@@ -1,0 +1,17 @@
+{
+  "schema": "opened-arm-cori-selfheal-v1",
+  "accepted_epoch": 220,
+  "accepted_global_step": 110440,
+  "accepted_sha256": "32fbdca8a1b8a573dfaadfac86313ce8449ceb66f397ddaecf5049e9427c2b90",
+  "accepted_checkpoint_path": "/teamspace/jobs/c3-cori-e210-e220-b16-sh012/artifacts/c3-cori-lightning-runs/cori-e100-to-e300-b16/checkpoints/checkpoint_epoch=219.ckpt",
+  "accepted_source_kind": "managed_job_artifact",
+  "current_target": 230,
+  "current_job_name": "c3-cori-e220-e230-b16-sh013",
+  "current_job_id": "job_01m0byqsxkq8r4f8xvqnm4h274",
+  "current_job_submitted_at": "2026-08-19T02:48:51.644547+00:00",
+  "attempt_counter": 13,
+  "consecutive_failures": 0,
+  "last_status": "migrated_from_private_controller",
+  "updated_at": "2026-08-19T02:48:51.644940+00:00",
+  "history": []
+}
