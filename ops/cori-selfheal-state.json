@@ -1,18 +1,18 @@
 {
   "schema": "opened-arm-cori-selfheal-v1",
-  "accepted_epoch": 230,
-  "accepted_global_step": 115460,
-  "accepted_sha256": "b17668cf184894a0bca91c58572ddd2e1dc1b0c79cbd096b3d99861f4711424f",
-  "accepted_checkpoint_path": "/teamspace/jobs/c3-cori-e220-e230-b16-sh013/artifacts/c3-cori-lightning-runs/cori-e100-to-e300-b16/checkpoints/checkpoint_epoch=229.ckpt",
+  "accepted_epoch": 240,
+  "accepted_global_step": 120480,
+  "accepted_sha256": "fb46bf1d748a0e386d33def042146615cb95e4b5db8b88453addeafa226b665b",
+  "accepted_checkpoint_path": "/teamspace/jobs/c3-cori-e230-e240-b16-oa014/artifacts/c3-cori-lightning-runs/cori-e100-to-e550-b16/checkpoints/checkpoint_epoch=239.ckpt",
   "accepted_source_kind": "managed_job_artifact",
-  "current_target": 240,
-  "current_job_name": "c3-cori-e230-e240-b16-oa014",
-  "current_job_id": "job_01m0cq940eww74d7x1apam8k1q",
-  "current_job_submitted_at": "2026-08-19T09:57:44.850239+00:00",
-  "attempt_counter": 14,
+  "current_target": 250,
+  "current_job_name": "c3-cori-e240-e250-b16-oa015",
+  "current_job_id": "job_01m0cvsb74jtehbstnybe8xtez",
+  "current_job_submitted_at": "2026-08-19T11:16:30.784854+00:00",
+  "attempt_counter": 15,
   "consecutive_failures": 0,
   "last_status": "segment_submitted",
-  "updated_at": "2026-08-19T09:57:44.850268+00:00",
+  "updated_at": "2026-08-19T11:16:30.784922+00:00",
   "history": [
     {
       "at": "2026-08-19T09:55:48.051953+00:00",
@@ -39,6 +39,32 @@
       "job_id": "job_01m0cq940eww74d7x1apam8k1q",
       "accepted_epoch": 230,
       "accepted_step": 115460
+    },
+    {
+      "at": "2026-08-19T11:13:54.161506+00:00",
+      "event": "checkpoint_recovered",
+      "job_name": "c3-cori-e230-e240-b16-oa014",
+      "terminal_status": "completed",
+      "epoch": 240,
+      "global_step": 120480,
+      "sha256": "fb46bf1d748a0e386d33def042146615cb95e4b5db8b88453addeafa226b665b",
+      "path": "/teamspace/jobs/c3-cori-e230-e240-b16-oa014/artifacts/c3-cori-lightning-runs/cori-e100-to-e550-b16/checkpoints/checkpoint_epoch=239.ckpt"
+    },
+    {
+      "at": "2026-08-19T11:13:54.161535+00:00",
+      "event": "segment_verified",
+      "target": 240,
+      "epoch": 240,
+      "step": 120480
+    },
+    {
+      "at": "2026-08-19T11:16:30.784922+00:00",
+      "event": "segment_submitted",
+      "target": 250,
+      "job_name": "c3-cori-e240-e250-b16-oa015",
+      "job_id": "job_01m0cvsb74jtehbstnybe8xtez",
+      "accepted_epoch": 240,
+      "accepted_step": 120480
     }
   ]
 }
