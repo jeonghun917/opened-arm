@@ -1,5 +1,6 @@
 name: Opened ARM Cori Emergency Halt
 
+# Emergency stop mode: recurring training is intentionally disabled.
 on:
   workflow_dispatch:
   push:
