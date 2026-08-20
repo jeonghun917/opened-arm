@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   id-token: write
 
 concurrency:
@@ -22,6 +22,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
+      - name: Checkout public runner repository
+        uses: actions/checkout@v4
+        with:
+          path: runner-repo
+          fetch-depth: 1
+
       - name: Mint scoped scheduler OIDC token
         id: oidc
         uses: actions/github-script@v7
@@ -32,6 +38,7 @@ jobs:
             core.setOutput('token', token);
 
       - name: Refresh dashboard control plane
+        id: sync_call
         shell: bash
         env:
           DASHBOARD_OIDC_TOKEN: ${{ steps.oidc.outputs.token }}
@@ -52,6 +59,7 @@ jobs:
             echo "Dashboard sync attempt ${attempt} -> HTTP ${code}"
             if [ "$code" = "200" ]; then
               cat "$tmp"
+              echo "http_code=$code" >> "$GITHUB_OUTPUT"
               exit 0
             fi
 
@@ -61,5 +69,39 @@ jobs:
             fi
           done
 
+          echo "http_code=${code:-000}" >> "$GITHUB_OUTPUT"
           echo "Dashboard control-plane sync failed after retries."
           exit 1
+
+      - name: Persist bootstrap evidence
+        if: always() && github.event_name != 'schedule'
+        shell: bash
+        working-directory: runner-repo
+        env:
+          SYNC_STATUS: ${{ steps.sync_call.outcome }}
+          HTTP_CODE: ${{ steps.sync_call.outputs.http_code }}
+        run: |
+          set -euo pipefail
+          mkdir -p ops
+          python - <<'PY'
+          import json, os
+          payload = {
+              "runId": os.environ.get("GITHUB_RUN_ID", ""),
+              "event": os.environ.get("GITHUB_EVENT_NAME", ""),
+              "syncStatus": os.environ.get("SYNC_STATUS", ""),
+              "httpCode": os.environ.get("HTTP_CODE", ""),
+              "runnerSha": os.environ.get("GITHUB_SHA", ""),
+          }
+          with open("ops/dashboard-control-plane-sync-bootstrap.json", "w", encoding="utf-8") as f:
+              json.dump(payload, f, indent=2)
+              f.write("\n")
+          PY
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add ops/dashboard-control-plane-sync-bootstrap.json
+          if git diff --cached --quiet; then
+            echo "Bootstrap evidence unchanged"
+          else
+            git commit -m "Record dashboard control-plane sync bootstrap"
+            git push origin HEAD:main
+          fi
