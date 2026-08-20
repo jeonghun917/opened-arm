@@ -1,14 +1,17 @@
 {
-  "schema": 1,
+  "schema": 2,
   "targetSha": "0dbce4e218939ba5cbb54c3d2fe8dc18894ac82a",
   "actualSha": "0dbce4e218939ba5cbb54c3d2fe8dc18894ac82a",
-  "jobStatus": "success",
+  "jobStatus": "failure",
   "credentialGate": "success",
   "privateCheckout": "success",
   "identityCheck": "success",
   "npmCi": "success",
   "npmRunCheck": "success",
-  "runId": "32335062261",
+  "previewOidc": "success",
+  "previewRuntime": "failure",
+  "previewUrl": "https://dashboard-control-center-d6lulz8ey-ashite1010-3572s-projects.vercel.app",
+  "runId": "32336811540",
   "runAttempt": "1",
-  "runnerRepoSha": "4148e90ad69d8490310c07e0fba08c1eaf489094"
+  "runnerRepoSha": "30e83f0716d9dd02fddf125be06809018fa122c8"
 }
