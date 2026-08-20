@@ -26,10 +26,11 @@ jobs:
     timeout-minutes: 15
     env:
       TARGET_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.sha || '0dbce4e218939ba5cbb54c3d2fe8dc18894ac82a' }}
-      DASHBOARD_REPO_TOKEN: ${{ secrets.DASHBOARD_REPO_TOKEN }}
     steps:
       - name: Credential gate
         shell: bash
+        env:
+          DASHBOARD_REPO_TOKEN: ${{ secrets.DASHBOARD_REPO_TOKEN }}
         run: |
           set -euo pipefail
           if [ -z "${DASHBOARD_REPO_TOKEN:-}" ]; then
@@ -50,7 +51,7 @@ jobs:
           fetch-depth: 1
           persist-credentials: false
 
-      - name: Verify checkout identity
+      - name: Verify checkout identity and credential cleanup
         shell: bash
         run: |
           set -euo pipefail
@@ -59,6 +60,10 @@ jobs:
           echo "actual=$ACTUAL_SHA"
           test "$ACTUAL_SHA" = "$TARGET_SHA"
           test -z "$(git status --porcelain)"
+          if git config --local --get-regexp '^http\..*\.extraheader$' >/dev/null 2>&1; then
+            echo "Checkout credential header unexpectedly persisted"
+            exit 1
+          fi
 
       - name: Set up Node 22
         uses: actions/setup-node@v4
