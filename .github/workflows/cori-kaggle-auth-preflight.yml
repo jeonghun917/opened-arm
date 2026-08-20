@@ -1,0 +1,78 @@
+name: Cori Kaggle Auth Preflight
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/cori-kaggle-auth-preflight.yml'
+      - 'runner/kaggle_cori_segment_entry.py'
+      - 'ops/cori-kaggle-t4-benchmark.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  auth-preflight:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      KAGGLE_API_TOKEN: ${{ secrets.KAGGLE_API_TOKEN }}
+      KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
+      KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
+      KAGGLE_DATASET_ID: ${{ secrets.KAGGLE_DATASET_ID }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Syntax check portability entrypoint
+        run: python -m py_compile runner/kaggle_cori_segment_entry.py runner/lightning_cori_continue_to550.py
+
+      - name: Detect Kaggle auth without exposing credentials
+        id: auth
+        shell: bash
+        run: |
+          set -euo pipefail
+          auth_ready=false
+          auth_mode=none
+          if [ -n "${KAGGLE_API_TOKEN:-}" ]; then
+            auth_ready=true
+            auth_mode=api_token
+          elif [ -n "${KAGGLE_USERNAME:-}" ] && [ -n "${KAGGLE_KEY:-}" ]; then
+            auth_ready=true
+            auth_mode=legacy_key_pair
+          fi
+          dataset_ready=false
+          if [[ "${KAGGLE_DATASET_ID:-}" == */* ]]; then
+            dataset_ready=true
+          fi
+          echo "auth_ready=$auth_ready" >> "$GITHUB_OUTPUT"
+          echo "auth_mode=$auth_mode" >> "$GITHUB_OUTPUT"
+          echo "dataset_ready=$dataset_ready" >> "$GITHUB_OUTPUT"
+          echo "C3_KAGGLE_AUTH_READY=$auth_ready"
+          echo "C3_KAGGLE_DATASET_HANDLE_READY=$dataset_ready"
+
+      - name: Verify Kaggle credentials against API
+        if: steps.auth.outputs.auth_ready == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --quiet --upgrade kaggle
+          # Do not print private dataset names or credential material; exit status is enough.
+          kaggle datasets list -m --page 1 >/dev/null
+          echo C3_KAGGLE_API_AUTH_PASS
+
+      - name: Report remaining bootstrap blocker
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${{ steps.auth.outputs.auth_ready }}" != "true" ]; then
+            echo 'C3_KAGGLE_BOOTSTRAP_BLOCKED: add KAGGLE_API_TOKEN (preferred) or KAGGLE_USERNAME + KAGGLE_KEY as encrypted Actions secrets.'
+          elif [ "${{ steps.auth.outputs.dataset_ready }}" != "true" ]; then
+            echo 'C3_KAGGLE_BOOTSTRAP_BLOCKED: add KAGGLE_DATASET_ID as an encrypted Actions secret in owner/private-dataset-slug form.'
+          else
+            echo 'C3_KAGGLE_BOOTSTRAP_READY: auth and private dataset handle are present; private asset staging can be executed next.'
+          fi
