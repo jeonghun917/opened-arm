@@ -89,3 +89,5 @@ jobs:
             echo "- Node: \`$(node --version 2>/dev/null || echo unavailable)\`"
             echo "- npm: \`$(npm --version 2>/dev/null || echo unavailable)\`"
           } >> "$GITHUB_STEP_SUMMARY"
+
+# validation-trigger: 2026-08-20T14:13+09:00
