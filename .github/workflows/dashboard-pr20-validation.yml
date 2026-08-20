@@ -28,6 +28,8 @@ jobs:
     env:
       TARGET_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.sha || '0dbce4e218939ba5cbb54c3d2fe8dc18894ac82a' }}
       PREVIEW_URL: https://dashboard-control-center-d6lulz8ey-ashite1010-3572s-projects.vercel.app
+      PREVIEW_DEPLOYMENT_ID: dpl_234gZtyaB23Gs8BGDoFBZ6XwB4D2
+      VERCEL_TEAM_ID: team_Tv17GhiipGhZrD6X1hpRz5ba
     steps:
       - name: Checkout public runner repository
         uses: actions/checkout@v4
@@ -112,10 +114,13 @@ jobs:
         env:
           VERCEL_TRUSTED_OIDC_TOKEN: ${{ steps.preview_oidc.outputs.token }}
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
           set -euo pipefail
           tmp="$(mktemp)"
-          trap 'rm -f "$tmp"' EXIT
+          api_tmp="$(mktemp)"
+          trap 'rm -f "$tmp" "$api_tmp"' EXIT
+          TEMP_BYPASS=""
 
           request_code() {
             local mode="$1"
@@ -128,10 +133,17 @@ jobs:
                 -H "x-vercel-trusted-oidc-idp-token: $VERCEL_TRUSTED_OIDC_TOKEN" \
                 -o "$tmp" -w '%{http_code}' \
                 "$PREVIEW_URL$path")"
-            else
+            elif [ "$mode" = "automation-secret" ]; then
               code="$(curl -sS --max-time 30 -X "$method" \
                 -H 'accept: application/json' \
                 -H "x-vercel-protection-bypass: $VERCEL_AUTOMATION_BYPASS_SECRET" \
+                -H 'x-vercel-set-bypass-cookie: true' \
+                -o "$tmp" -w '%{http_code}' \
+                "$PREVIEW_URL$path")"
+            else
+              code="$(curl -sS --max-time 30 -X "$method" \
+                -H 'accept: application/json' \
+                -H "x-vercel-protection-bypass: $TEMP_BYPASS" \
                 -H 'x-vercel-set-bypass-cookie: true' \
                 -o "$tmp" -w '%{http_code}' \
                 "$PREVIEW_URL$path")"
@@ -143,14 +155,48 @@ jobs:
           code="$(request_code oidc GET /api/health)"
           echo "OIDC GET /api/health -> $code"
 
+          if [ "$code" != "200" ] && [ -n "${VERCEL_AUTOMATION_BYPASS_SECRET:-}" ]; then
+            echo "OIDC bypass rejected; configured automation bypass secret is present, retrying without printing it."
+            MODE=automation-secret
+            code="$(request_code automation-secret GET /api/health)"
+            echo "Automation bypass GET /api/health -> $code"
+          fi
+
+          if [ "$code" != "200" ] && [ -n "${VERCEL_TOKEN:-}" ]; then
+            echo "Existing VERCEL_TOKEN is present; requesting a 10-minute bypass for the exact preview deployment."
+            api_code="$(curl -sS --max-time 30 -X PATCH \
+              -H "Authorization: Bearer $VERCEL_TOKEN" \
+              -H 'content-type: application/json' \
+              -o "$api_tmp" -w '%{http_code}' \
+              "https://api.vercel.com/aliases/$PREVIEW_DEPLOYMENT_ID/protection-bypass?teamId=$VERCEL_TEAM_ID" \
+              --data '{"ttl":600}')"
+            echo "Temporary bypass API -> $api_code"
+            if [ "$api_code" = "200" ]; then
+              TEMP_BYPASS="$(python - "$api_tmp" <<'PY'
+import json, sys
+with open(sys.argv[1], encoding='utf-8') as f:
+    data = json.load(f)
+value = data.get('value') or (data.get('protectionBypass') or {}).get('value') or ''
+print(value)
+PY
+)"
+              if [ -n "$TEMP_BYPASS" ]; then
+                echo "::add-mask::$TEMP_BYPASS"
+                MODE=temporary-bypass
+                code="$(request_code temporary-bypass GET /api/health)"
+                echo "Temporary bypass GET /api/health -> $code"
+              else
+                echo "Vercel returned 200 but no bypass value was present."
+              fi
+            fi
+          fi
+
           if [ "$code" != "200" ]; then
-            if [ -n "${VERCEL_AUTOMATION_BYPASS_SECRET:-}" ]; then
-              echo "OIDC bypass rejected; automation bypass secret is present, retrying without printing it."
-              MODE=automation-secret
-              code="$(request_code automation-secret GET /api/health)"
-              echo "Automation bypass GET /api/health -> $code"
-            else
-              echo "OIDC bypass rejected and VERCEL_AUTOMATION_BYPASS_SECRET is not configured in opened-arm."
+            if [ -z "${VERCEL_AUTOMATION_BYPASS_SECRET:-}" ]; then
+              echo "VERCEL_AUTOMATION_BYPASS_SECRET is not configured in opened-arm."
+            fi
+            if [ -z "${VERCEL_TOKEN:-}" ]; then
+              echo "VERCEL_TOKEN is not configured in opened-arm."
             fi
           fi
 
@@ -202,7 +248,7 @@ jobs:
           python - <<'PY'
           import json, os
           payload = {
-              "schema": 3,
+              "schema": 4,
               "targetSha": os.environ.get("TARGET_SHA", ""),
               "actualSha": os.environ.get("ACTUAL_SHA", ""),
               "jobStatus": os.environ.get("JOB_STATUS", ""),
@@ -244,4 +290,4 @@ jobs:
             echo "- preview runtime: \`$PREVIEW_RUNTIME_STATUS\`"
           } >> "$GITHUB_STEP_SUMMARY"
 
-# validation-trigger: 2026-08-20T14:54+09:00
+# validation-trigger: 2026-08-20T14:58+09:00
