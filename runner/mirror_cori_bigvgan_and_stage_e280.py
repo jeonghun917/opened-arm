@@ -22,6 +22,8 @@ LOCAL_ROOT = Path("cori_exact_assets")
 LOCAL_GENERATOR = LOCAL_ROOT / "generator_final.pt"
 LOCAL_CONFIG = LOCAL_ROOT / "checkpoints" / "config.json"
 LOCAL_MANIFEST = LOCAL_ROOT / "MIRROR_MANIFEST.json"
+VERIFY_GENERATOR = LOCAL_ROOT / "_verify" / "generator_final.pt"
+VERIFY_CONFIG = LOCAL_ROOT / "_verify" / "config.json"
 LOCAL_E280 = Path("cori_e280_checkpoint_epoch_279.ckpt")
 
 VAULT_BIGVGAN_ROOT = "C3_ASSET_VAULT/cori/bigvgan/adapted_20260817T022729Z"
@@ -55,6 +57,15 @@ def modal_get(remote: str, local: Path) -> None:
     )
     if not local.is_file():
         raise RuntimeError(f"Modal download did not produce {local} from {remote}")
+
+
+def studio_download(studio: Studio, remote: str, local: Path) -> None:
+    local.parent.mkdir(parents=True, exist_ok=True)
+    if local.exists():
+        local.unlink()
+    studio.download_file(remote, file_path=str(local))
+    if not local.is_file():
+        raise RuntimeError(f"Lightning Studio download did not produce {local} from {remote}")
 
 
 def main() -> None:
@@ -99,56 +110,33 @@ def main() -> None:
         json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
     )
 
+    # Studio file transfer works against persistent Studio storage without starting compute.
     studio = Studio(name=STUDIO_NAME, teamspace=TEAMSPACE, org=ORG, create_ok=False)
-    print(f"Starting Lightning CPU Studio {STUDIO_NAME!r} for verified asset transfer...", flush=True)
-    studio.start()
-    try:
-        studio.upload_file(str(LOCAL_GENERATOR), VAULT_GENERATOR, progress_bar=False)
-        studio.upload_file(str(LOCAL_CONFIG), VAULT_CONFIG, progress_bar=False)
-        studio.upload_file(str(LOCAL_MANIFEST), VAULT_MANIFEST, progress_bar=False)
+    print("Mirroring exact BigVGAN assets into persistent Lightning Studio storage...", flush=True)
+    studio.upload_file(str(LOCAL_GENERATOR), VAULT_GENERATOR, progress_bar=False)
+    studio.upload_file(str(LOCAL_CONFIG), VAULT_CONFIG, progress_bar=False)
+    studio.upload_file(str(LOCAL_MANIFEST), VAULT_MANIFEST, progress_bar=False)
 
-        verify_py = f"""
-import hashlib, json
-from pathlib import Path
+    # Read the mirrored bytes back out and verify them independently.
+    studio_download(studio, VAULT_GENERATOR, VERIFY_GENERATOR)
+    studio_download(studio, VAULT_CONFIG, VERIFY_CONFIG)
+    verified_generator_sha = sha256_file(VERIFY_GENERATOR)
+    verified_config_sha = sha256_file(VERIFY_CONFIG)
+    if verified_generator_sha != generator_sha:
+        raise RuntimeError(
+            f"post-mirror generator SHA mismatch: {verified_generator_sha} != {generator_sha}"
+        )
+    if verified_config_sha != config_sha:
+        raise RuntimeError(
+            f"post-mirror config SHA mismatch: {verified_config_sha} != {config_sha}"
+        )
 
-def sha256(p):
-    h=hashlib.sha256()
-    with Path(p).open('rb') as f:
-        for chunk in iter(lambda:f.read(1024*1024), b''): h.update(chunk)
-    return h.hexdigest()
-
-checks={{
-  'generator': ('{VAULT_GENERATOR}', '{generator_sha}'),
-  'config': ('{VAULT_CONFIG}', '{config_sha}'),
-  'e280': ('{VAULT_E280}', '{E280_SHA256}'),
-}}
-result={{}}
-for name,(rel,expected) in checks.items():
-    p=Path.home()/rel
-    if not p.is_file(): raise SystemExit(f'missing vault asset: {{p}}')
-    actual=sha256(p)
-    if actual != expected: raise SystemExit(f'SHA mismatch {{name}}: {{actual}} != {{expected}}')
-    result[name]={{'path':str(p),'bytes':p.stat().st_size,'sha256':actual}}
-print(json.dumps(result, indent=2))
-"""
-        remote_output = studio.run("python - <<'PY'\n" + verify_py + "\nPY")
-        print("C3_LIGHTNING_VAULT_VERIFY_BEGIN", flush=True)
-        print(remote_output, flush=True)
-        print("C3_LIGHTNING_VAULT_VERIFY_END", flush=True)
-
-        if LOCAL_E280.exists():
-            LOCAL_E280.unlink()
-        studio.download_file(VAULT_E280, file_path=str(LOCAL_E280), progress_bar=False)
-    finally:
-        print(f"Stopping Lightning CPU Studio {STUDIO_NAME!r}...", flush=True)
-        studio.stop()
-
-    if not LOCAL_E280.is_file():
-        raise RuntimeError("Lightning Studio download did not produce E280")
+    studio_download(studio, VAULT_E280, LOCAL_E280)
     e280_sha = sha256_file(LOCAL_E280)
     if e280_sha != E280_SHA256:
         raise RuntimeError(f"local E280 SHA mismatch: {e280_sha} != {E280_SHA256}")
 
+    # Stage the SHA-verified E280 acoustic checkpoint beside the original Modal vocoder.
     subprocess.run(
         ["modal", "volume", "put", "--force", MODAL_VOLUME, str(LOCAL_E280), MODAL_E280],
         check=True,
@@ -157,8 +145,11 @@ print(json.dumps(result, indent=2))
     report = {
         "ok": True,
         "gpu_allocated": False,
+        "lightning_compute_started": False,
         "bigvgan_generator_sha256": generator_sha,
+        "bigvgan_generator_bytes": LOCAL_GENERATOR.stat().st_size,
         "bigvgan_config_sha256": config_sha,
+        "bigvgan_config_bytes": LOCAL_CONFIG.stat().st_size,
         "e280_sha256": e280_sha,
         "lightning_vault_root": VAULT_BIGVGAN_ROOT,
         "modal_e280": f"/vol/{MODAL_E280}",
