@@ -1,4 +1,4 @@
-name: Cori E280 CPU Preview
+name: Cori E280 CPU Asset Vault
 
 on:
   pull_request:
@@ -6,21 +6,19 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: cori-e280-preview-cpu
+  group: cori-e280-cpu-asset-vault
   cancel-in-progress: true
 
 permissions:
   contents: read
 
 jobs:
-  preview:
+  inspect-and-archive:
     runs-on: ubuntu-24.04
-    timeout-minutes: 120
+    timeout-minutes: 90
     env:
       LIGHTNING_USER_ID: ${{ secrets.LIGHTNING_USER_ID }}
       LIGHTNING_API_KEY: ${{ secrets.LIGHTNING_API_KEY }}
-      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
-      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-python@v5
@@ -32,70 +30,17 @@ jobs:
           set -euo pipefail
           test -n "$LIGHTNING_USER_ID" || { echo 'missing LIGHTNING_USER_ID'; exit 2; }
           test -n "$LIGHTNING_API_KEY" || { echo 'missing LIGHTNING_API_KEY'; exit 2; }
-      - name: Report Modal credential state
-        shell: bash
-        run: |
-          if [ -n "$MODAL_TOKEN_ID" ] && [ -n "$MODAL_TOKEN_SECRET" ]; then
-            echo 'MODAL_READY=1' >> "$GITHUB_ENV"
-            echo 'Modal credentials present.'
-          else
-            echo 'MODAL_READY=0' >> "$GITHUB_ENV"
-            echo 'Modal credentials absent in opened-arm; synthesis will be skipped.'
-          fi
       - name: Syntax check
-        run: python -m py_compile runner/stage_cori_e280_to_modal.py runner/synthesize_cori_e280_preview.py
+        run: python -m py_compile runner/lightning_cori_asset_vault.py
       - name: Install Lightning client
         run: python -m pip install --upgrade lightning-sdk
-      - name: Download and verify accepted E280 checkpoint
-        shell: bash
-        run: |
-          python - <<'PY'
-          import hashlib, os
-          from pathlib import Path
-          from lightning_sdk import Teamspace
-          expected='081cf4012a4087f437b8bf2fa0a115da931c5aff26fe22a67acb4f25707cb7a9'
-          src='jobs/c3-cori-e270-e280-b16-oa018/artifacts/c3-cori-lightning-runs/cori-e100-to-e550-b16/checkpoints/checkpoint_epoch=279.ckpt'
-          out=Path('cori_e280_checkpoint_epoch_279.ckpt')
-          Teamspace(name='default-project', org='jeonghun917-org').download_file(src, file_path=str(out))
-          h=hashlib.sha256()
-          with out.open('rb') as f:
-              for chunk in iter(lambda:f.read(1024*1024), b''): h.update(chunk)
-          actual=h.hexdigest()
-          if actual != expected: raise SystemExit(f'SHA mismatch: {actual}')
-          print('C3_E280_DOWNLOAD_SHA_PASS')
-          PY
-      - name: Install Modal client
-        if: env.MODAL_READY == '1'
-        run: python -m pip install --upgrade modal
-      - name: Stage E280 to private Modal volume
-        if: env.MODAL_READY == '1'
-        run: modal volume put --force c3-speech-en-v1 cori_e280_checkpoint_epoch_279.ckpt training/cori/lightning_e280/checkpoint_epoch=279.ckpt
-      - name: Remove local checkpoint
+      - name: Start CPU Studio, inspect shared storage, and archive canonical originals
+        run: python runner/lightning_cori_asset_vault.py
+      - name: Upload metadata-only inspection report
         if: always()
-        run: rm -f cori_e280_checkpoint_epoch_279.ckpt
-      - name: Synthesize with frozen Cori-adapted BigVGAN on Modal CPU
-        if: env.MODAL_READY == '1'
-        run: modal run runner/synthesize_cori_e280_preview.py --output-dir cori_e280_preview
-      - name: Verify result
-        if: env.MODAL_READY == '1'
-        run: |
-          python - <<'PY'
-          import json
-          from pathlib import Path
-          p=json.loads(Path('cori_e280_preview/result.json').read_text())
-          assert p['ok'] is True and p['gpu_allocated'] is False
-          assert p['epoch_completed'] == 280 and p['global_step'] == 140560
-          assert p['checkpoint_sha256'] == '081cf4012a4087f437b8bf2fa0a115da931c5aff26fe22a67acb4f25707cb7a9'
-          print('C3_E280_PREVIEW_PASS')
-          PY
-      - name: Upload temporary listening artifact
-        if: env.MODAL_READY == '1'
         uses: actions/upload-artifact@v4
         with:
-          name: cori-e280-preview-cpu
-          path: |
-            cori_e280_preview/preview_E280.wav
-            cori_e280_preview/cori-e280-preview.zip
-            cori_e280_preview/result.json
-          if-no-files-found: error
-          retention-days: 1
+          name: cori-lightning-asset-vault-report
+          path: lightning-cori-asset-vault-report.txt
+          if-no-files-found: warn
+          retention-days: 7
