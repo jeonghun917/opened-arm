@@ -1,0 +1,12 @@
+{
+  "targetSha": "80bc1025a40eb3ebb444b4686d493f65ac3d2761",
+  "actualSha": "80bc1025a40eb3ebb444b4686d493f65ac3d2761",
+  "credentialGate": "success",
+  "pendingStatusPublish": "success",
+  "privateCheckout": "success",
+  "identityCheck": "success",
+  "npmCi": "success",
+  "npmRunCheck": "success",
+  "finalStatusPublish": "success",
+  "runId": "32393424240"
+}
