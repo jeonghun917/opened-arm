@@ -1,0 +1,9 @@
+{
+  "targetSha": "80bc1025a40eb3ebb444b4686d493f65ac3d2761",
+  "repoReadHttp": "200",
+  "statusWriteHttp": "403",
+  "acceptedGithubPermissions": "statuses=write",
+  "oauthScopes": "",
+  "responseBody": "{\n  \"message\": \"Resource not accessible by personal access token\",\n  \"documentation_url\": \"https://docs.github.com/rest/commits/statuses#create-a-commit-status\",\n  \"status\": \"403\"\n}",
+  "runId": "32392901983"
+}
