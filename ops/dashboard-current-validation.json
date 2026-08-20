@@ -1,0 +1,13 @@
+{
+  "schema": 1,
+  "targetSha": "c385388c51b63fef185fd4940d3bf90fe467d199",
+  "actualSha": "c385388c51b63fef185fd4940d3bf90fe467d199",
+  "targetResolution": "success",
+  "credentialGate": "success",
+  "privateCheckout": "success",
+  "identityCheck": "success",
+  "npmCi": "success",
+  "npmRunCheck": "success",
+  "runId": "32377450861",
+  "runAttempt": "1"
+}
