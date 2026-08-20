@@ -14,7 +14,7 @@ on:
       - ".github/workflows/dashboard-pr20-validation.yml"
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: dashboard-pr20-public-validation
@@ -27,7 +27,14 @@ jobs:
     env:
       TARGET_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.sha || '0dbce4e218939ba5cbb54c3d2fe8dc18894ac82a' }}
     steps:
+      - name: Checkout public runner repository
+        uses: actions/checkout@v4
+        with:
+          path: runner-repo
+          fetch-depth: 0
+
       - name: Credential gate
+        id: credential_gate
         shell: bash
         env:
           DASHBOARD_REPO_TOKEN: ${{ secrets.DASHBOARD_REPO_TOKEN }}
@@ -43,19 +50,24 @@ jobs:
           fi
 
       - name: Checkout exact private dashboard SHA
+        id: dashboard_checkout
         uses: actions/checkout@v4
         with:
           repository: jeonghun917/dashboard-control-center
           ref: ${{ env.TARGET_SHA }}
           token: ${{ secrets.DASHBOARD_REPO_TOKEN }}
+          path: dashboard
           fetch-depth: 1
           persist-credentials: false
 
       - name: Verify checkout identity and credential cleanup
+        id: identity
         shell: bash
+        working-directory: dashboard
         run: |
           set -euo pipefail
           ACTUAL_SHA="$(git rev-parse HEAD)"
+          echo "actual_sha=$ACTUAL_SHA" >> "$GITHUB_OUTPUT"
           echo "target=$TARGET_SHA"
           echo "actual=$ACTUAL_SHA"
           test "$ACTUAL_SHA" = "$TARGET_SHA"
@@ -66,28 +78,74 @@ jobs:
           fi
 
       - name: Set up Node 22
+        id: setup_node
         uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
+          cache-dependency-path: dashboard/package-lock.json
 
       - name: Clean install
+        id: npm_ci
+        working-directory: dashboard
         run: npm ci
 
       - name: Full dashboard check
+        id: npm_check
+        working-directory: dashboard
         run: npm run check
 
-      - name: Validation summary
+      - name: Persist validation result
         if: always()
         shell: bash
+        env:
+          JOB_STATUS: ${{ job.status }}
+          ACTUAL_SHA: ${{ steps.identity.outputs.actual_sha }}
+          CREDENTIAL_STATUS: ${{ steps.credential_gate.outcome }}
+          CHECKOUT_STATUS: ${{ steps.dashboard_checkout.outcome }}
+          IDENTITY_STATUS: ${{ steps.identity.outcome }}
+          NPM_CI_STATUS: ${{ steps.npm_ci.outcome }}
+          NPM_CHECK_STATUS: ${{ steps.npm_check.outcome }}
+        working-directory: runner-repo
         run: |
+          set -euo pipefail
+          mkdir -p ops
+          python - <<'PY'
+          import json, os
+          payload = {
+              "schema": 1,
+              "targetSha": os.environ.get("TARGET_SHA", ""),
+              "actualSha": os.environ.get("ACTUAL_SHA", ""),
+              "jobStatus": os.environ.get("JOB_STATUS", ""),
+              "credentialGate": os.environ.get("CREDENTIAL_STATUS", ""),
+              "privateCheckout": os.environ.get("CHECKOUT_STATUS", ""),
+              "identityCheck": os.environ.get("IDENTITY_STATUS", ""),
+              "npmCi": os.environ.get("NPM_CI_STATUS", ""),
+              "npmRunCheck": os.environ.get("NPM_CHECK_STATUS", ""),
+              "runId": os.environ.get("GITHUB_RUN_ID", ""),
+              "runAttempt": os.environ.get("GITHUB_RUN_ATTEMPT", ""),
+              "runnerRepoSha": os.environ.get("GITHUB_SHA", ""),
+          }
+          with open("ops/dashboard-pr20-validation.json", "w", encoding="utf-8") as f:
+              json.dump(payload, f, ensure_ascii=False, indent=2)
+              f.write("\n")
+          PY
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add ops/dashboard-pr20-validation.json
+          if git diff --cached --quiet; then
+            echo "Validation result unchanged"
+          else
+            git commit -m "Record dashboard PR20 validation result"
+            git push origin HEAD:main
+          fi
           {
             echo "## Dashboard PR #20 public validation"
             echo "- target SHA: \`$TARGET_SHA\`"
-            echo "- repository: \`jeonghun917/dashboard-control-center\`"
-            echo "- runner repository: \`jeonghun917/opened-arm\`"
-            echo "- Node: \`$(node --version 2>/dev/null || echo unavailable)\`"
-            echo "- npm: \`$(npm --version 2>/dev/null || echo unavailable)\`"
+            echo "- actual SHA: \`${ACTUAL_SHA:-unavailable}\`"
+            echo "- job: \`$JOB_STATUS\`"
+            echo "- npm ci: \`$NPM_CI_STATUS\`"
+            echo "- npm run check: \`$NPM_CHECK_STATUS\`"
           } >> "$GITHUB_STEP_SUMMARY"
 
-# validation-trigger: 2026-08-20T14:13+09:00
+# validation-trigger: 2026-08-20T14:15+09:00
