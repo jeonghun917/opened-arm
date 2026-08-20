@@ -15,6 +15,7 @@ on:
 
 permissions:
   contents: write
+  id-token: write
 
 concurrency:
   group: dashboard-pr20-public-validation
@@ -26,6 +27,7 @@ jobs:
     timeout-minutes: 15
     env:
       TARGET_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.sha || '0dbce4e218939ba5cbb54c3d2fe8dc18894ac82a' }}
+      PREVIEW_URL: https://dashboard-control-center-d6lulz8ey-ashite1010-3572s-projects.vercel.app
     steps:
       - name: Checkout public runner repository
         uses: actions/checkout@v4
@@ -95,6 +97,49 @@ jobs:
         working-directory: dashboard
         run: npm run check
 
+      - name: Acquire GitHub OIDC for Vercel Preview Protection
+        id: preview_oidc
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const token = await core.getIDToken();
+            core.setSecret(token);
+            core.setOutput('token', token);
+
+      - name: Exact-SHA Preview runtime checks
+        id: preview_runtime
+        shell: bash
+        env:
+          VERCEL_TRUSTED_OIDC_TOKEN: ${{ steps.preview_oidc.outputs.token }}
+        run: |
+          set -euo pipefail
+          tmp="$(mktemp)"
+          trap 'rm -f "$tmp"' EXIT
+
+          check_status() {
+            local method="$1"
+            local path="$2"
+            local expected="$3"
+            local code
+            code="$(curl -sS --max-time 30 -X "$method" \
+              -H 'accept: application/json' \
+              -H "x-vercel-trusted-oidc-idp-token: $VERCEL_TRUSTED_OIDC_TOKEN" \
+              -o "$tmp" -w '%{http_code}' \
+              "$PREVIEW_URL$path")"
+            echo "$method $path -> $code (expected $expected)"
+            cat "$tmp"
+            echo
+            if [ "$code" != "$expected" ]; then
+              echo "Unexpected runtime status for $method $path"
+              exit 1
+            fi
+          }
+
+          check_status GET /api/health 200
+          check_status GET /api/google/auth 200
+          check_status GET /api/modules/korean/drive 401
+          check_status POST /api/cron/sync 401
+
       - name: Persist validation result
         if: always()
         shell: bash
@@ -106,6 +151,8 @@ jobs:
           IDENTITY_STATUS: ${{ steps.identity.outcome }}
           NPM_CI_STATUS: ${{ steps.npm_ci.outcome }}
           NPM_CHECK_STATUS: ${{ steps.npm_check.outcome }}
+          PREVIEW_OIDC_STATUS: ${{ steps.preview_oidc.outcome }}
+          PREVIEW_RUNTIME_STATUS: ${{ steps.preview_runtime.outcome }}
         working-directory: runner-repo
         run: |
           set -euo pipefail
@@ -113,7 +160,7 @@ jobs:
           python - <<'PY'
           import json, os
           payload = {
-              "schema": 1,
+              "schema": 2,
               "targetSha": os.environ.get("TARGET_SHA", ""),
               "actualSha": os.environ.get("ACTUAL_SHA", ""),
               "jobStatus": os.environ.get("JOB_STATUS", ""),
@@ -122,6 +169,9 @@ jobs:
               "identityCheck": os.environ.get("IDENTITY_STATUS", ""),
               "npmCi": os.environ.get("NPM_CI_STATUS", ""),
               "npmRunCheck": os.environ.get("NPM_CHECK_STATUS", ""),
+              "previewOidc": os.environ.get("PREVIEW_OIDC_STATUS", ""),
+              "previewRuntime": os.environ.get("PREVIEW_RUNTIME_STATUS", ""),
+              "previewUrl": os.environ.get("PREVIEW_URL", ""),
               "runId": os.environ.get("GITHUB_RUN_ID", ""),
               "runAttempt": os.environ.get("GITHUB_RUN_ATTEMPT", ""),
               "runnerRepoSha": os.environ.get("GITHUB_SHA", ""),
@@ -146,6 +196,8 @@ jobs:
             echo "- job: \`$JOB_STATUS\`"
             echo "- npm ci: \`$NPM_CI_STATUS\`"
             echo "- npm run check: \`$NPM_CHECK_STATUS\`"
+            echo "- preview OIDC: \`$PREVIEW_OIDC_STATUS\`"
+            echo "- preview runtime: \`$PREVIEW_RUNTIME_STATUS\`"
           } >> "$GITHUB_STEP_SUMMARY"
 
-# validation-trigger: 2026-08-20T14:15+09:00
+# validation-trigger: 2026-08-20T14:42+09:00
