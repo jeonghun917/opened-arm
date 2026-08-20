@@ -1,4 +1,4 @@
-name: Cori E280 CPU Asset Vault
+name: Cori E280 Exact Vocoder Mirror + CPU Preview
 
 on:
   pull_request:
@@ -6,41 +6,88 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: cori-e280-cpu-asset-vault
+  group: cori-e280-exact-vocoder-preview
   cancel-in-progress: true
 
 permissions:
   contents: read
 
 jobs:
-  inspect-and-archive:
+  mirror-and-preview:
     runs-on: ubuntu-24.04
-    timeout-minutes: 90
+    timeout-minutes: 150
     env:
       LIGHTNING_USER_ID: ${{ secrets.LIGHTNING_USER_ID }}
       LIGHTNING_API_KEY: ${{ secrets.LIGHTNING_API_KEY }}
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Validate Lightning credentials
+
+      - name: Validate provider credentials
         shell: bash
         run: |
           set -euo pipefail
           test -n "$LIGHTNING_USER_ID" || { echo 'missing LIGHTNING_USER_ID'; exit 2; }
           test -n "$LIGHTNING_API_KEY" || { echo 'missing LIGHTNING_API_KEY'; exit 2; }
+          test -n "$MODAL_TOKEN_ID" || { echo 'missing MODAL_TOKEN_ID'; exit 2; }
+          test -n "$MODAL_TOKEN_SECRET" || { echo 'missing MODAL_TOKEN_SECRET'; exit 2; }
+
       - name: Syntax check
-        run: python -m py_compile runner/lightning_cori_asset_vault.py
-      - name: Install Lightning client
-        run: python -m pip install --upgrade lightning-sdk
-      - name: Start CPU Studio, inspect shared storage, and archive canonical originals
-        run: python runner/lightning_cori_asset_vault.py
-      - name: Upload metadata-only inspection report
+        run: |
+          python -m py_compile \
+            runner/mirror_cori_bigvgan_and_stage_e280.py \
+            runner/synthesize_cori_e280_preview.py
+
+      - name: Install provider clients
+        run: python -m pip install --upgrade lightning-sdk modal
+
+      - name: Mirror exact adapted BigVGAN and stage verified E280
+        run: python runner/mirror_cori_bigvgan_and_stage_e280.py
+
+      - name: Synthesize E280 with frozen adapted BigVGAN on Modal CPU
+        run: modal run runner/synthesize_cori_e280_preview.py --output-dir cori_e280_preview
+
+      - name: Verify preview result
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=json.loads(Path('cori_e280_preview/result.json').read_text())
+          assert p['ok'] is True and p['gpu_allocated'] is False
+          assert p['epoch_completed'] == 280 and p['global_step'] == 140560
+          assert p['checkpoint_sha256'] == '081cf4012a4087f437b8bf2fa0a115da931c5aff26fe22a67acb4f25707cb7a9'
+          assert p['items'] == 5
+          print('C3_E280_PREVIEW_PASS')
+          PY
+
+      - name: Upload metadata-only transfer report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: cori-lightning-asset-vault-report
-          path: lightning-cori-asset-vault-report.txt
+          name: cori-e280-exact-asset-transfer-report
+          path: cori-asset-transfer-report.json
           if-no-files-found: warn
           retention-days: 7
+
+      - name: Upload temporary listening artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cori-e280-preview-cpu
+          path: |
+            cori_e280_preview/preview_E280.wav
+            cori_e280_preview/cori-e280-preview.zip
+            cori_e280_preview/result.json
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Remove local model assets
+        if: always()
+        shell: bash
+        run: |
+          rm -rf cori_exact_assets
+          rm -f cori_e280_checkpoint_epoch_279.ckpt
