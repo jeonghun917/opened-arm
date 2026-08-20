@@ -21,7 +21,7 @@ The next E280→E290 segment was stopped during an emergency halt. Recurring sel
 
 `ops/cori-selfheal-state.json` is the public non-secret operational state record for the last accepted checkpoint. A checkpoint is never promoted merely because it is newer; semantic epoch/global-step progress and SHA-256 are verified before acceptance.
 
-Canonical checkpoint/vocoder storage metadata is tracked separately in [`ops/cori-asset-registry.md`](ops/cori-asset-registry.md). Binary model assets stay in private provider storage; the repository stores only paths, SHA-256 values, status, and handling policy.
+Canonical asset locations, SHA-256 values, the mirrored Cori-adapted BigVGAN, and the E280 descriptive-preview status are recorded in `ops/cori-asset-registry.md`.
 
 ## Public-runner policy
 
