@@ -283,4 +283,4 @@ jobs:
             echo "- preview runtime: \`$PREVIEW_RUNTIME_STATUS\`"
           } >> "$GITHUB_STEP_SUMMARY"
 
-# validation-trigger: 2026-08-20T15:00+09:00
+# validation-trigger: 2026-08-20T15:24+09:00
