@@ -15,10 +15,10 @@ from __future__ import annotations
 import hashlib
 import json
 import shutil
+import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
 
-# Lightning documents this_studio as the writable persistent Studio home.
 STUDIO_HOME = Path('/teamspace/studios/this_studio')
 VAULT = STUDIO_HOME / 'C3_ASSET_VAULT'
 VAULT.mkdir(parents=True, exist_ok=True)
@@ -26,7 +26,7 @@ VAULT.mkdir(parents=True, exist_ok=True)
 (VAULT / 'cori' / 'bigvgan').mkdir(parents=True, exist_ok=True)
 
 EXPECTED_E280_SHA = '081cf4012a4087f437b8bf2fa0a115da931c5aff26fe22a67acb4f25707cb7a9'
-E280_ROOT = Path('/teamspace/jobs/c3-cori-e270-e280-b16-oa018')
+E280_EXACT = Path('/teamspace/jobs/c3-cori-e270-e280-b16-oa018/artifacts/c3-cori-lightning-runs/cori-e100-to-e550-b16/checkpoints/checkpoint_epoch=279.ckpt')
 
 
 def sha256(path: Path) -> str:
@@ -48,30 +48,21 @@ def copy_verified(src: Path, dst: Path, expected_sha: str | None = None) -> dict
             raise RuntimeError(f'vault collision at {dst}: {dst_sha} != {actual}')
     else:
         shutil.copy2(src, dst)
-    final = sha256(dst)
-    if final != actual:
+    if sha256(dst) != actual:
         raise RuntimeError(f'post-copy SHA mismatch for {dst}')
-    return {
-        'source': str(src),
-        'vault': str(dst),
-        'bytes': src.stat().st_size,
-        'sha256': actual,
-    }
+    return {'source': str(src), 'vault': str(dst), 'bytes': src.stat().st_size, 'sha256': actual}
 
 
-def find_named(root: Path, name: str, limit: int = 100) -> list[str]:
-    if not root.exists() or limit <= 0:
-        return []
-    out = []
+def bounded_find(root: str, *, kind: str, name: str, maxdepth: int = 8, timeout: int = 30) -> list[str]:
+    cmd = ['find', root, '-maxdepth', str(maxdepth), '-type', kind, '-name', name, '-print']
     try:
-        iterator = root.rglob(name)
-        for p in iterator:
-            out.append(str(p))
-            if len(out) >= limit:
-                break
-    except (PermissionError, OSError) as exc:
-        out.append(f'__SCAN_ERROR__:{root}:{exc!r}')
-    return out
+        cp = subprocess.run(cmd, text=True, capture_output=True, timeout=timeout, check=False)
+        lines = [x for x in cp.stdout.splitlines() if x.strip()]
+        if cp.returncode not in (0, 1):
+            lines.append(f'__FIND_RC_{cp.returncode}__:{cp.stderr[-500:]}')
+        return lines[:100]
+    except subprocess.TimeoutExpired:
+        return [f'__FIND_TIMEOUT__:{root}:{name}']
 
 
 report = {
@@ -85,83 +76,52 @@ report = {
     'discovery': {},
 }
 
-# 1) Recover accepted E280 from the Studio-visible managed-job mount and freeze it by SHA.
-e280_candidates = find_named(E280_ROOT, 'checkpoint_epoch=279.ckpt', limit=20)
-report['discovery']['e280_candidates'] = e280_candidates
-for raw in e280_candidates:
-    if raw.startswith('__SCAN_ERROR__'):
-        continue
-    p = Path(raw)
-    try:
-        if sha256(p) == EXPECTED_E280_SHA:
-            dst = VAULT / 'cori' / 'matcha' / 'E280' / f'checkpoint_epoch=279__sha256_{EXPECTED_E280_SHA}.ckpt'
-            report['e280'] = {'status': 'archived', **copy_verified(p, dst, EXPECTED_E280_SHA)}
-            break
-    except OSError as exc:
-        report.setdefault('errors', []).append(f'e280 candidate {p}: {exc!r}')
+# Directly use the exact managed-job mount path previously accepted by the controller.
+report['discovery']['e280_exact_exists'] = E280_EXACT.exists()
+if E280_EXACT.exists():
+    dst = VAULT / 'cori' / 'matcha' / 'E280' / f'checkpoint_epoch=279__sha256_{EXPECTED_E280_SHA}.ckpt'
+    report['e280'] = {'status': 'archived', **copy_verified(E280_EXACT, dst, EXPECTED_E280_SHA)}
 
-# 2) Search Lightning shared storage for the exact historical Cori-adapted BigVGAN run.
-search_roots = [Path('/teamspace/studios'), Path('/teamspace/jobs')]
-markers = []
-for root in search_roots:
-    if not root.exists():
-        continue
-    try:
-        for p in root.rglob('*'):
-            s = str(p).lower()
-            if ('bigvgan_base_cori_22k80' in s or 'vocoder_adaptation' in s) and 'c3_asset_vault' not in s.lower():
-                markers.append(str(p))
-                if len(markers) >= 200:
-                    break
-    except (PermissionError, OSError) as exc:
-        report.setdefault('errors', []).append(f'scan {root}: {exc!r}')
-    if len(markers) >= 200:
-        break
-report['discovery']['bigvgan_markers'] = markers
+# Keep the expensive search bounded. We only need to know whether the historical adapted run was copied to Lightning.
+studio_children = []
+try:
+    studio_children = sorted(p.name for p in Path('/teamspace/studios').iterdir())
+except Exception as exc:
+    report.setdefault('errors', []).append(f'list /teamspace/studios: {exc!r}')
+report['discovery']['studio_children'] = studio_children
+
+bigvgan_dirs = []
+for root in ('/teamspace/studios', '/teamspace/jobs'):
+    bigvgan_dirs.extend(bounded_find(root, kind='d', name='bigvgan_base_cori_22k80', maxdepth=8, timeout=25))
+report['discovery']['bigvgan_base_dirs'] = bigvgan_dirs
 
 run_roots = []
-for raw in markers:
-    p = Path(raw)
-    if 'bigvgan_base_cori_22k80' in str(p) and '20260817T022729Z' in str(p):
-        cur = p if p.is_dir() else p.parent
-        while cur.name and cur.name != '20260817T022729Z':
-            cur = cur.parent
-        if cur.name == '20260817T022729Z' and cur not in run_roots:
-            run_roots.append(cur)
+for raw in bigvgan_dirs:
+    if raw.startswith('__'):
+        continue
+    base = Path(raw)
+    exact = base / '20260817T022729Z'
+    if exact.is_dir():
+        run_roots.append(exact)
 report['discovery']['exact_bigvgan_run_roots'] = [str(x) for x in run_roots]
 
 if run_roots:
     src_root = run_roots[0]
     dst_root = VAULT / 'cori' / 'bigvgan' / 'adapted_20260817T022729Z'
     files = []
-    preferred_names = {
-        'generator_final.pt', 'generator.pt', 'config.json', 'args.json',
-        'hparams.json', 'training_args.json', 'README.md', 'STATS.json',
-    }
+    preferred_names = {'generator_final.pt', 'generator.pt', 'config.json', 'args.json', 'hparams.json', 'training_args.json', 'README.md', 'STATS.json'}
     for p in src_root.rglob('*'):
         if not p.is_file():
             continue
         low = p.name.lower()
         if p.name in preferred_names or low.endswith(('.json', '.yaml', '.yml')) or 'generator' in low:
-            rel = p.relative_to(src_root)
-            files.append(copy_verified(p, dst_root / rel))
+            files.append(copy_verified(p, dst_root / p.relative_to(src_root)))
     report['adapted_bigvgan'] = {
         'status': 'archived' if files else 'run_found_no_selected_files',
         'source_root': str(src_root),
         'vault_root': str(dst_root),
         'files': files,
     }
-
-# 3) Inventory anchor checkpoint locations for later canonicalization.
-anchors = {}
-for name in ('checkpoint_epoch=099.ckpt', 'checkpoint_epoch=199.ckpt'):
-    found = []
-    for root in search_roots:
-        found.extend(find_named(root, name, limit=max(0, 20 - len(found))))
-        if len(found) >= 20:
-            break
-    anchors[name] = found
-report['discovery']['anchor_checkpoint_candidates'] = anchors
 
 manifest_path = VAULT / 'C3_ASSET_VAULT_MANIFEST.json'
 manifest_path.write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
