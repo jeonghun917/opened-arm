@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "targetSha": "19611b9ebffd0230fdb22df6ee73863c022ec1ef",
+  "actualSha": "",
+  "targetResolution": "success",
+  "credentialGate": "success",
+  "pendingStatusPublish": "failure",
+  "privateCheckout": "skipped",
+  "identityCheck": "skipped",
+  "npmCi": "skipped",
+  "npmRunCheck": "skipped",
+  "statusContext": "dashboard-public-validation",
+  "runId": "32376723801",
+  "runAttempt": "1"
+}
