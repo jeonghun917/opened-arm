@@ -1,0 +1,15 @@
+{
+  "applyHttp": "403",
+  "verifyHttp": "403",
+  "verified": false,
+  "requiredStatusChecks": [],
+  "strictStatusChecks": null,
+  "enforceAdmins": null,
+  "requiredApprovingReviewCount": null,
+  "requiredLinearHistory": null,
+  "allowForcePushes": null,
+  "allowDeletions": null,
+  "requiredConversationResolution": null,
+  "errorMessage": "Resource not accessible by personal access token",
+  "runId": "32394258204"
+}
