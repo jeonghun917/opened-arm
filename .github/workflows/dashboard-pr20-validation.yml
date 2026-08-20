@@ -6,7 +6,7 @@ on:
       sha:
         description: Exact dashboard-control-center commit SHA to validate
         required: true
-        default: c385388c51b63fef185fd4940d3bf90fe467d199
+        default: 80bc1025a40eb3ebb444b4686d493f65ac3d2761
   push:
     branches:
       - main
@@ -25,7 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
-      TARGET_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.sha || 'c385388c51b63fef185fd4940d3bf90fe467d199' }}
+      TARGET_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.sha || '80bc1025a40eb3ebb444b4686d493f65ac3d2761' }}
     steps:
       - name: Checkout public runner repository
         uses: actions/checkout@v4
