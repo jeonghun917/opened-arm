@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import textwrap
 from pathlib import Path
 
@@ -9,19 +8,19 @@ from lightning_sdk import Studio
 ORG = "jeonghun917-org"
 TEAMSPACE = "default-project"
 STUDIO_NAME = "c3-asset-vault"
-EXPECTED_E280_SHA = "081cf4012a4087f437b8bf2fa0a115da931c5aff26fe22a67acb4f25707cb7a9"
 
 REMOTE = r'''
 from __future__ import annotations
 
 import hashlib
 import json
-import os
 import shutil
 from datetime import datetime, timezone
 from pathlib import Path
 
-VAULT = Path('/teamspace/studios/c3-asset-vault/C3_ASSET_VAULT')
+# Lightning documents this_studio as the writable persistent Studio home.
+STUDIO_HOME = Path('/teamspace/studios/this_studio')
+VAULT = STUDIO_HOME / 'C3_ASSET_VAULT'
 VAULT.mkdir(parents=True, exist_ok=True)
 (VAULT / 'cori' / 'matcha').mkdir(parents=True, exist_ok=True)
 (VAULT / 'cori' / 'bigvgan').mkdir(parents=True, exist_ok=True)
@@ -61,13 +60,17 @@ def copy_verified(src: Path, dst: Path, expected_sha: str | None = None) -> dict
 
 
 def find_named(root: Path, name: str, limit: int = 100) -> list[str]:
-    if not root.exists():
+    if not root.exists() or limit <= 0:
         return []
     out = []
-    for p in root.rglob(name):
-        out.append(str(p))
-        if len(out) >= limit:
-            break
+    try:
+        iterator = root.rglob(name)
+        for p in iterator:
+            out.append(str(p))
+            if len(out) >= limit:
+                break
+    except (PermissionError, OSError) as exc:
+        out.append(f'__SCAN_ERROR__:{root}:{exc!r}')
     return out
 
 
@@ -75,16 +78,19 @@ report = {
     'schema': 'c3-cori-asset-vault-v1',
     'created_at_utc': datetime.now(timezone.utc).isoformat(),
     'studio': 'c3-asset-vault',
+    'studio_home': str(STUDIO_HOME),
     'vault_root': str(VAULT),
     'e280': {'status': 'missing'},
     'adapted_bigvgan': {'status': 'not_found'},
     'discovery': {},
 }
 
-# 1) Recover the accepted E280 checkpoint from the Studio-visible managed-job mount.
+# 1) Recover accepted E280 from the Studio-visible managed-job mount and freeze it by SHA.
 e280_candidates = find_named(E280_ROOT, 'checkpoint_epoch=279.ckpt', limit=20)
 report['discovery']['e280_candidates'] = e280_candidates
 for raw in e280_candidates:
+    if raw.startswith('__SCAN_ERROR__'):
+        continue
     p = Path(raw)
     try:
         if sha256(p) == EXPECTED_E280_SHA:
@@ -94,41 +100,40 @@ for raw in e280_candidates:
     except OSError as exc:
         report.setdefault('errors', []).append(f'e280 candidate {p}: {exc!r}')
 
-# 2) Search Lightning shared storage for an exact Cori-adapted BigVGAN run copy.
+# 2) Search Lightning shared storage for the exact historical Cori-adapted BigVGAN run.
 search_roots = [Path('/teamspace/studios'), Path('/teamspace/jobs')]
 markers = []
 for root in search_roots:
     if not root.exists():
         continue
-    for p in root.rglob('*'):
-        s = str(p).lower()
-        if ('bigvgan_base_cori_22k80' in s or 'vocoder_adaptation' in s) and 'c3_asset_vault' not in s:
-            markers.append(str(p))
-            if len(markers) >= 200:
-                break
+    try:
+        for p in root.rglob('*'):
+            s = str(p).lower()
+            if ('bigvgan_base_cori_22k80' in s or 'vocoder_adaptation' in s) and 'c3_asset_vault' not in s.lower():
+                markers.append(str(p))
+                if len(markers) >= 200:
+                    break
+    except (PermissionError, OSError) as exc:
+        report.setdefault('errors', []).append(f'scan {root}: {exc!r}')
     if len(markers) >= 200:
         break
 report['discovery']['bigvgan_markers'] = markers
 
-# Prefer the exact historical run marker when present.
 run_roots = []
 for raw in markers:
     p = Path(raw)
-    s = str(p)
-    if 'bigvgan_base_cori_22k80' in s and '20260817T022729Z' in s:
+    if 'bigvgan_base_cori_22k80' in str(p) and '20260817T022729Z' in str(p):
         cur = p if p.is_dir() else p.parent
         while cur.name and cur.name != '20260817T022729Z':
             cur = cur.parent
         if cur.name == '20260817T022729Z' and cur not in run_roots:
             run_roots.append(cur)
-
 report['discovery']['exact_bigvgan_run_roots'] = [str(x) for x in run_roots]
 
 if run_roots:
     src_root = run_roots[0]
     dst_root = VAULT / 'cori' / 'bigvgan' / 'adapted_20260817T022729Z'
     files = []
-    # Archive model/config/metadata files only; no source audio or dataset material.
     preferred_names = {
         'generator_final.pt', 'generator.pt', 'config.json', 'args.json',
         'hparams.json', 'training_args.json', 'README.md', 'STATS.json',
@@ -147,7 +152,7 @@ if run_roots:
         'files': files,
     }
 
-# 3) Record anchor-checkpoint discovery without hashing/copying every historical file.
+# 3) Inventory anchor checkpoint locations for later canonicalization.
 anchors = {}
 for name in ('checkpoint_epoch=099.ckpt', 'checkpoint_epoch=199.ckpt'):
     found = []
@@ -172,9 +177,11 @@ def main() -> None:
     studio.start()
     try:
         cmd = "python - <<'PY'\n" + textwrap.dedent(REMOTE) + "\nPY"
-        output = studio.run(cmd)
+        output, exit_code = studio.run_with_exit_code(cmd)
         print(output, flush=True)
         Path('lightning-cori-asset-vault-report.txt').write_text(output + '\n', encoding='utf-8')
+        if exit_code != 0:
+            raise RuntimeError(f'remote inspection failed with exit code {exit_code}')
     finally:
         print(f"Stopping Lightning Studio {STUDIO_NAME!r}...", flush=True)
         studio.stop()
