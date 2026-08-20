@@ -172,14 +172,7 @@ jobs:
               --data '{"ttl":600}')"
             echo "Temporary bypass API -> $api_code"
             if [ "$api_code" = "200" ]; then
-              TEMP_BYPASS="$(python - "$api_tmp" <<'PY'
-import json, sys
-with open(sys.argv[1], encoding='utf-8') as f:
-    data = json.load(f)
-value = data.get('value') or (data.get('protectionBypass') or {}).get('value') or ''
-print(value)
-PY
-)"
+              TEMP_BYPASS="$(python -c 'import json,sys; d=json.load(open(sys.argv[1], encoding="utf-8")); print(d.get("value") or (d.get("protectionBypass") or {}).get("value") or "")' "$api_tmp")"
               if [ -n "$TEMP_BYPASS" ]; then
                 echo "::add-mask::$TEMP_BYPASS"
                 MODE=temporary-bypass
@@ -290,4 +283,4 @@ PY
             echo "- preview runtime: \`$PREVIEW_RUNTIME_STATUS\`"
           } >> "$GITHUB_STEP_SUMMARY"
 
-# validation-trigger: 2026-08-20T14:58+09:00
+# validation-trigger: 2026-08-20T15:00+09:00
