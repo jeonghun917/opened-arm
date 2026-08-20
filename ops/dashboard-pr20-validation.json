@@ -10,9 +10,9 @@
   "npmRunCheck": "success",
   "previewOidc": "success",
   "previewRuntime": "failure",
-  "previewBypassMode": "oidc",
+  "previewBypassMode": "automation-secret",
   "previewUrl": "https://dashboard-control-center-d6lulz8ey-ashite1010-3572s-projects.vercel.app",
-  "runId": "32337865624",
+  "runId": "32339526318",
   "runAttempt": "1",
-  "runnerRepoSha": "5f2c142e3e68642cef1eeedd2184e73b3c72be3d"
+  "runnerRepoSha": "5441a1ee31f194200be1f6ea1870e1c3408277c9"
 }
