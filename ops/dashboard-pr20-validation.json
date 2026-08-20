@@ -1,0 +1,14 @@
+{
+  "schema": 1,
+  "targetSha": "0dbce4e218939ba5cbb54c3d2fe8dc18894ac82a",
+  "actualSha": "0dbce4e218939ba5cbb54c3d2fe8dc18894ac82a",
+  "jobStatus": "success",
+  "credentialGate": "success",
+  "privateCheckout": "success",
+  "identityCheck": "success",
+  "npmCi": "success",
+  "npmRunCheck": "success",
+  "runId": "32335062261",
+  "runAttempt": "1",
+  "runnerRepoSha": "4148e90ad69d8490310c07e0fba08c1eaf489094"
+}
