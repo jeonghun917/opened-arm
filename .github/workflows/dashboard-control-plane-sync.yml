@@ -1,0 +1,65 @@
+name: Dashboard Control Plane Sync
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/dashboard-control-plane-sync.yml"
+  schedule:
+    - cron: '0 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: dashboard-control-plane-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Mint scoped scheduler OIDC token
+        id: oidc
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const token = await core.getIDToken('dashboard-control-center-scheduler');
+            core.setSecret(token);
+            core.setOutput('token', token);
+
+      - name: Refresh dashboard control plane
+        shell: bash
+        env:
+          DASHBOARD_OIDC_TOKEN: ${{ steps.oidc.outputs.token }}
+        run: |
+          set -euo pipefail
+          tmp="$(mktemp)"
+          trap 'rm -f "$tmp"' EXIT
+
+          for attempt in 1 2 3 4 5 6; do
+            code="$(curl --silent --show-error --max-time 90 \
+              --request POST \
+              --header "Authorization: Bearer ${DASHBOARD_OIDC_TOKEN}" \
+              --header "Accept: application/json" \
+              --output "$tmp" \
+              --write-out '%{http_code}' \
+              https://dashboard-control-center.vercel.app/api/cron/sync || true)"
+
+            echo "Dashboard sync attempt ${attempt} -> HTTP ${code}"
+            if [ "$code" = "200" ]; then
+              cat "$tmp"
+              exit 0
+            fi
+
+            cat "$tmp" || true
+            if [ "$attempt" -lt 6 ]; then
+              sleep 20
+            fi
+          done
+
+          echo "Dashboard control-plane sync failed after retries."
+          exit 1
