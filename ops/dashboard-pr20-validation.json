@@ -9,7 +9,13 @@
   "npmCi": "success",
   "npmRunCheck": "success",
   "previewOidc": "success",
-  "previewRuntime": "failure",
+  "previewRuntime": "blocked_by_vercel_protection",
+  "previewHealthStatus": 401,
+  "previewProtection": {
+    "vercelAuthEnabled": true,
+    "autoVercelAuthRedirect": true,
+    "message": "Protected deployment"
+  },
   "previewUrl": "https://dashboard-control-center-d6lulz8ey-ashite1010-3572s-projects.vercel.app",
   "runId": "32336811540",
   "runAttempt": "1",
