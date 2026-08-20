@@ -1,0 +1,45 @@
+name: Dashboard PR21 Clean Check
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/dashboard-pr21-clean-check.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      TARGET_SHA: 8fec65da9a87bd8356124824bf78cef9f14e2b75
+    steps:
+      - name: Checkout exact dashboard SHA
+        uses: actions/checkout@v4
+        with:
+          repository: jeonghun917/dashboard-control-center
+          ref: ${{ env.TARGET_SHA }}
+          token: ${{ secrets.DASHBOARD_REPO_TOKEN }}
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Verify exact SHA
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$TARGET_SHA"
+          test -z "$(git status --porcelain)"
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Clean install
+        run: npm ci
+
+      - name: Full check
+        run: npm run check
