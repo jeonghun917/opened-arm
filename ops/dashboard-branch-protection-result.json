@@ -1,0 +1,17 @@
+{
+  "applyHttp": "403",
+  "verifyHttp": "403",
+  "requiredStatusChecks": [],
+  "strictStatusChecks": null,
+  "enforceAdmins": null,
+  "pullRequestRequired": false,
+  "requiredApprovingReviewCount": null,
+  "dismissStaleReviews": null,
+  "requiredLinearHistory": null,
+  "allowForcePushes": null,
+  "allowDeletions": null,
+  "requiredConversationResolution": null,
+  "errorMessage": "Upgrade to GitHub Pro or make this repository public to enable this feature.",
+  "runId": "32394803818",
+  "verified": false
+}
