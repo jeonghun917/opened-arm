@@ -49,12 +49,26 @@ Historical exact run reference:
 
 Status as of 2026-08-20:
 
-- the historical Modal→Lightning acoustic handoff did not include the adapted BigVGAN generator/config weights;
-- a targeted CPU inspection of the relevant Lightning handoff Studio (`c3-cori-e100-e200`) and accepted E200 job storage found no BigVGAN/vocoder candidate matching the exact adapted run;
-- therefore there is currently **no confirmed exact PyTorch adapted-BigVGAN copy on Lightning**;
-- the exported Android/ONNX vocoder asset is a separate runtime artifact and must not be silently substituted for the frozen PyTorch evaluation path without an explicit parity decision.
+- exact PyTorch generator/config were recovered from the original Modal volume and mirrored into persistent Lightning Studio storage;
+- Lightning compute was not started for the mirror; Studio storage transfer was used directly;
+- generator: `generator_final.pt`, 56,013,388 bytes, SHA-256 `c4a76a15d367f1e291ee5c495fa41655cf7c44cb10f47a09f8cc31ef73ed16b1`;
+- config: `checkpoints/config.json`, 1,216 bytes, SHA-256 `3fe116e1826849ea102eb3edf3eb0cc9c52dc0319e85feafcafdb66d89680896`;
+- vault root: `C3_ASSET_VAULT/cori/bigvgan/adapted_20260817T022729Z`;
+- the mirrored bytes were downloaded back from Lightning and SHA-verified after transfer;
+- the exported Android/ONNX vocoder remains a separate runtime artifact and is not treated as an automatic substitute for this frozen PyTorch evaluation path.
 
-Next archive action: when Modal credentials are available to the execution workflow, copy only the exact adapted run's generator/config/required metadata into `C3_ASSET_VAULT/cori/bigvgan/`, record source and destination SHA-256 values, and leave source audio/dataset material out of public artifacts.
+## E280 descriptive preview
+
+A CPU-only descriptive preview was generated on 2026-08-20 using:
+
+- acoustic checkpoint: E280 / global_step 140560 / SHA-256 `081cf4012a4087f437b8bf2fa0a115da931c5aff26fe22a67acb4f25707cb7a9`;
+- vocoder: exact Cori-adapted BigVGAN run above;
+- inference: `n_timesteps=10`, `temperature=0.667`, `length_scale=1.0`;
+- five fixed listening items;
+- no EQ, reverb, compressor, pause surgery, or ending-duration patch;
+- GPU allocated: false.
+
+The preview passed checkpoint/vocoder loading and output verification. It is descriptive listening material only, not a formal milestone evaluation or automatic quality promotion.
 
 ## Execution and security boundary
 
