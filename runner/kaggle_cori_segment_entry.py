@@ -14,22 +14,46 @@ EXPECTED_E280_SHA256 = "081cf4012a4087f437b8bf2fa0a115da931c5aff26fe22a67acb4f25
 EXPECTED_E280_EPOCH = 280
 EXPECTED_E280_GLOBAL_STEP = 140560
 DEFAULT_TARGET_EPOCH = 290
+EXPECTED_GPU_NAME_TOKEN = "T4"
 
 
 def print_gpu_preflight() -> dict:
     import torch
 
     if not torch.cuda.is_available():
-        raise RuntimeError("CUDA GPU is required; enable a Kaggle GPU accelerator first")
+        raise RuntimeError("CUDA GPU is required; enable a Kaggle T4 accelerator first")
+
+    count = int(torch.cuda.device_count())
+    if count != 1:
+        raise RuntimeError(
+            f"first Kaggle benchmark requires exactly one visible GPU; found {count}. "
+            "Do not substitute T4 x2 or another multi-GPU configuration."
+        )
+
+    name = torch.cuda.get_device_name(0)
+    if EXPECTED_GPU_NAME_TOKEN not in name.upper():
+        raise RuntimeError(
+            f"first Kaggle benchmark is frozen to one T4; got GPU {name!r}. "
+            "P100 is intentionally rejected because Kaggle's current default image may lack sm_60 kernels."
+        )
+
+    # Force one real CUDA kernel launch. This catches environments where CUDA is
+    # reported available but the installed torch build cannot execute on the GPU.
+    probe = torch.ones(1, device="cuda")
+    probe.add_(1)
+    torch.cuda.synchronize()
+    del probe
+    torch.cuda.empty_cache()
 
     props = torch.cuda.get_device_properties(0)
     info = {
         "torch_version": torch.__version__,
         "cuda_version": torch.version.cuda,
-        "gpu_name": torch.cuda.get_device_name(0),
+        "gpu_name": name,
         "gpu_total_memory_bytes": int(props.total_memory),
         "gpu_total_memory_gib": round(props.total_memory / (1024 ** 3), 3),
-        "gpu_count_visible": int(torch.cuda.device_count()),
+        "gpu_count_visible": count,
+        "cuda_kernel_probe": "pass",
     }
     print("C3_KAGGLE_GPU_PREFLIGHT", json.dumps(info, ensure_ascii=False), flush=True)
     try:
@@ -63,7 +87,7 @@ def verify_resume(path: Path) -> tuple[int, int, str]:
 
 def main() -> None:
     p = argparse.ArgumentParser(
-        description="Port the frozen Cori E280 continuation recipe to a Kaggle single-GPU session."
+        description="Port the frozen Cori E280 continuation recipe to a Kaggle single-T4 session."
     )
     p.add_argument("--handoff-dir", type=Path, required=True)
     p.add_argument("--dataset-root", type=Path, required=True)
@@ -74,7 +98,7 @@ def main() -> None:
     p.add_argument(
         "--preflight-only",
         action="store_true",
-        help="Verify GPU, E280 identity, and input paths without starting training.",
+        help="Verify one T4, a real CUDA kernel launch, E280 identity, and input paths without training.",
     )
     args = p.parse_args()
 
@@ -104,7 +128,7 @@ def main() -> None:
         raise FileNotFoundError("handoff bundle incomplete: " + ", ".join(missing))
 
     preflight = {
-        "schema": "c3-cori-kaggle-preflight-v1",
+        "schema": "c3-cori-kaggle-preflight-v2-t4",
         "created_at_utc": datetime.now(timezone.utc).isoformat(),
         "resume_epoch": epoch,
         "resume_global_step": step,
@@ -116,6 +140,9 @@ def main() -> None:
         "dataset_root": str(dataset_root),
         "resume_checkpoint": str(resume),
     }
+    preflight_path = args.output_root.resolve() / "KAGGLE_PREFLIGHT.json"
+    preflight_path.parent.mkdir(parents=True, exist_ok=True)
+    preflight_path.write_text(json.dumps(preflight, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print("C3_KAGGLE_PREFLIGHT_PASS")
     print(json.dumps(preflight, ensure_ascii=False, indent=2), flush=True)
 
