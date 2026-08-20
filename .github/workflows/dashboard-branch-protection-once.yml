@@ -1,5 +1,6 @@
 name: Dashboard Branch Protection One-shot
 
+# retry after temporary Administration permission grant
 on:
   push:
     branches: [ops/apply-dashboard-branch-protection]
