@@ -111,26 +111,67 @@ jobs:
         shell: bash
         env:
           VERCEL_TRUSTED_OIDC_TOKEN: ${{ steps.preview_oidc.outputs.token }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
         run: |
           set -euo pipefail
           tmp="$(mktemp)"
           trap 'rm -f "$tmp"' EXIT
 
+          request_code() {
+            local mode="$1"
+            local method="$2"
+            local path="$3"
+            local code
+            if [ "$mode" = "oidc" ]; then
+              code="$(curl -sS --max-time 30 -X "$method" \
+                -H 'accept: application/json' \
+                -H "x-vercel-trusted-oidc-idp-token: $VERCEL_TRUSTED_OIDC_TOKEN" \
+                -o "$tmp" -w '%{http_code}' \
+                "$PREVIEW_URL$path")"
+            else
+              code="$(curl -sS --max-time 30 -X "$method" \
+                -H 'accept: application/json' \
+                -H "x-vercel-protection-bypass: $VERCEL_AUTOMATION_BYPASS_SECRET" \
+                -H 'x-vercel-set-bypass-cookie: true' \
+                -o "$tmp" -w '%{http_code}' \
+                "$PREVIEW_URL$path")"
+            fi
+            printf '%s' "$code"
+          }
+
+          MODE=oidc
+          code="$(request_code oidc GET /api/health)"
+          echo "OIDC GET /api/health -> $code"
+
+          if [ "$code" != "200" ]; then
+            if [ -n "${VERCEL_AUTOMATION_BYPASS_SECRET:-}" ]; then
+              echo "OIDC bypass rejected; automation bypass secret is present, retrying without printing it."
+              MODE=automation-secret
+              code="$(request_code automation-secret GET /api/health)"
+              echo "Automation bypass GET /api/health -> $code"
+            else
+              echo "OIDC bypass rejected and VERCEL_AUTOMATION_BYPASS_SECRET is not configured in opened-arm."
+            fi
+          fi
+
+          echo "bypass_mode=$MODE" >> "$GITHUB_OUTPUT"
+          if [ "$code" != "200" ]; then
+            echo "Preview Protection still blocks app-level runtime verification."
+            cat "$tmp"
+            exit 1
+          fi
+
           check_status() {
             local method="$1"
             local path="$2"
             local expected="$3"
-            local code
-            code="$(curl -sS --max-time 30 -X "$method" \
-              -H 'accept: application/json' \
-              -H "x-vercel-trusted-oidc-idp-token: $VERCEL_TRUSTED_OIDC_TOKEN" \
-              -o "$tmp" -w '%{http_code}' \
-              "$PREVIEW_URL$path")"
-            echo "$method $path -> $code (expected $expected)"
+            local actual
+            actual="$(request_code "$MODE" "$method" "$path")"
+            echo "$MODE $method $path -> $actual (expected $expected)"
             cat "$tmp"
             echo
-            if [ "$code" != "$expected" ]; then
-              echo "Unexpected runtime status for $method $path"
+            if [ "$actual" != "$expected" ]; then
+              echo "Unexpected app-level runtime status for $method $path"
               exit 1
             fi
           }
@@ -153,6 +194,7 @@ jobs:
           NPM_CHECK_STATUS: ${{ steps.npm_check.outcome }}
           PREVIEW_OIDC_STATUS: ${{ steps.preview_oidc.outcome }}
           PREVIEW_RUNTIME_STATUS: ${{ steps.preview_runtime.outcome }}
+          PREVIEW_BYPASS_MODE: ${{ steps.preview_runtime.outputs.bypass_mode }}
         working-directory: runner-repo
         run: |
           set -euo pipefail
@@ -160,7 +202,7 @@ jobs:
           python - <<'PY'
           import json, os
           payload = {
-              "schema": 2,
+              "schema": 3,
               "targetSha": os.environ.get("TARGET_SHA", ""),
               "actualSha": os.environ.get("ACTUAL_SHA", ""),
               "jobStatus": os.environ.get("JOB_STATUS", ""),
@@ -171,6 +213,7 @@ jobs:
               "npmRunCheck": os.environ.get("NPM_CHECK_STATUS", ""),
               "previewOidc": os.environ.get("PREVIEW_OIDC_STATUS", ""),
               "previewRuntime": os.environ.get("PREVIEW_RUNTIME_STATUS", ""),
+              "previewBypassMode": os.environ.get("PREVIEW_BYPASS_MODE", ""),
               "previewUrl": os.environ.get("PREVIEW_URL", ""),
               "runId": os.environ.get("GITHUB_RUN_ID", ""),
               "runAttempt": os.environ.get("GITHUB_RUN_ATTEMPT", ""),
@@ -197,7 +240,8 @@ jobs:
             echo "- npm ci: \`$NPM_CI_STATUS\`"
             echo "- npm run check: \`$NPM_CHECK_STATUS\`"
             echo "- preview OIDC: \`$PREVIEW_OIDC_STATUS\`"
+            echo "- preview bypass mode: \`${PREVIEW_BYPASS_MODE:-unavailable}\`"
             echo "- preview runtime: \`$PREVIEW_RUNTIME_STATUS\`"
           } >> "$GITHUB_STEP_SUMMARY"
 
-# validation-trigger: 2026-08-20T14:42+09:00
+# validation-trigger: 2026-08-20T14:54+09:00
