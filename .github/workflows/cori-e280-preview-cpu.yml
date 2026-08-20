@@ -1,0 +1,74 @@
+name: Cori E280 CPU Preview
+
+on:
+  push:
+    branches: [e280-preview-cpu]
+    paths:
+      - '.github/workflows/cori-e280-preview-cpu.yml'
+      - 'runner/stage_cori_e280_to_modal.py'
+      - 'runner/synthesize_cori_e280_preview.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  preview:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    env:
+      LIGHTNING_USER_ID: ${{ secrets.LIGHTNING_USER_ID }}
+      LIGHTNING_API_KEY: ${{ secrets.LIGHTNING_API_KEY }}
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Validate credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$LIGHTNING_USER_ID" || { echo 'missing LIGHTNING_USER_ID'; exit 2; }
+          test -n "$LIGHTNING_API_KEY" || { echo 'missing LIGHTNING_API_KEY'; exit 2; }
+          test -n "$MODAL_TOKEN_ID" || { echo 'missing MODAL_TOKEN_ID'; exit 2; }
+          test -n "$MODAL_TOKEN_SECRET" || { echo 'missing MODAL_TOKEN_SECRET'; exit 2; }
+      - name: Syntax check
+        run: python -m py_compile runner/stage_cori_e280_to_modal.py runner/synthesize_cori_e280_preview.py
+      - name: Install clients
+        run: python -m pip install --upgrade lightning-sdk modal
+      - name: Stage verified E280 checkpoint to private Modal volume
+        run: python runner/stage_cori_e280_to_modal.py
+      - name: Remove local checkpoint
+        if: always()
+        run: rm -f cori_e280_checkpoint_epoch_279.ckpt
+      - name: Synthesize with frozen Cori-adapted BigVGAN on Modal CPU
+        run: modal run runner/synthesize_cori_e280_preview.py --output-dir cori_e280_preview
+      - name: Verify result
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=json.loads(Path('cori_e280_preview/result.json').read_text())
+          assert p['ok'] is True
+          assert p['gpu_allocated'] is False
+          assert p['epoch_completed'] == 280
+          assert p['global_step'] == 140560
+          assert p['checkpoint_sha256'] == '081cf4012a4087f437b8bf2fa0a115da931c5aff26fe22a67acb4f25707cb7a9'
+          assert Path('cori_e280_preview/preview_E280.wav').is_file()
+          print('C3_E280_PREVIEW_PASS')
+          PY
+      - name: Upload temporary listening artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: cori-e280-preview-cpu
+          path: |
+            cori_e280_preview/preview_E280.wav
+            cori_e280_preview/cori-e280-preview.zip
+            cori_e280_preview/result.json
+          if-no-files-found: error
+          retention-days: 1
+
+# Public opened-arm is only the execution plane. No checkpoint, source audio, dataset,
+# API credential, or model weight is committed to this repository. Synthesis is CPU-only.
