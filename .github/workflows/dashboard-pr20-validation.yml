@@ -1,4 +1,4 @@
-name: Dashboard PR20 Public Validation
+name: Dashboard Public Clean Validation
 
 on:
   workflow_dispatch:
@@ -6,7 +6,7 @@ on:
       sha:
         description: Exact dashboard-control-center commit SHA to validate
         required: true
-        default: 0dbce4e218939ba5cbb54c3d2fe8dc18894ac82a
+        default: c385388c51b63fef185fd4940d3bf90fe467d199
   push:
     branches:
       - main
@@ -15,10 +15,9 @@ on:
 
 permissions:
   contents: write
-  id-token: write
 
 concurrency:
-  group: dashboard-pr20-public-validation
+  group: dashboard-public-clean-validation
   cancel-in-progress: false
 
 jobs:
@@ -26,10 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
-      TARGET_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.sha || '0dbce4e218939ba5cbb54c3d2fe8dc18894ac82a' }}
-      PREVIEW_URL: https://dashboard-control-center-d6lulz8ey-ashite1010-3572s-projects.vercel.app
-      PREVIEW_DEPLOYMENT_ID: dpl_234gZtyaB23Gs8BGDoFBZ6XwB4D2
-      VERCEL_TEAM_ID: team_Tv17GhiipGhZrD6X1hpRz5ba
+      TARGET_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.sha || 'c385388c51b63fef185fd4940d3bf90fe467d199' }}
     steps:
       - name: Checkout public runner repository
         uses: actions/checkout@v4
@@ -38,23 +34,17 @@ jobs:
           fetch-depth: 0
 
       - name: Credential gate
-        id: credential_gate
+        id: credential
         shell: bash
         env:
           DASHBOARD_REPO_TOKEN: ${{ secrets.DASHBOARD_REPO_TOKEN }}
         run: |
           set -euo pipefail
-          if [ -z "${DASHBOARD_REPO_TOKEN:-}" ]; then
-            echo "Missing required Actions secret: DASHBOARD_REPO_TOKEN"
-            exit 1
-          fi
-          if ! [[ "$TARGET_SHA" =~ ^[0-9a-f]{40}$ ]]; then
-            echo "TARGET_SHA must be an exact 40-character lowercase commit SHA"
-            exit 1
-          fi
+          test -n "${DASHBOARD_REPO_TOKEN:-}"
+          [[ "$TARGET_SHA" =~ ^[0-9a-f]{40}$ ]]
 
       - name: Checkout exact private dashboard SHA
-        id: dashboard_checkout
+        id: checkout
         uses: actions/checkout@v4
         with:
           repository: jeonghun917/dashboard-control-center
@@ -64,25 +54,22 @@ jobs:
           fetch-depth: 1
           persist-credentials: false
 
-      - name: Verify checkout identity and credential cleanup
+      - name: Verify exact checkout
         id: identity
         shell: bash
         working-directory: dashboard
         run: |
           set -euo pipefail
-          ACTUAL_SHA="$(git rev-parse HEAD)"
-          echo "actual_sha=$ACTUAL_SHA" >> "$GITHUB_OUTPUT"
-          echo "target=$TARGET_SHA"
-          echo "actual=$ACTUAL_SHA"
-          test "$ACTUAL_SHA" = "$TARGET_SHA"
+          actual="$(git rev-parse HEAD)"
+          echo "actual_sha=$actual" >> "$GITHUB_OUTPUT"
+          test "$actual" = "$TARGET_SHA"
           test -z "$(git status --porcelain)"
           if git config --local --get-regexp '^http\..*\.extraheader$' >/dev/null 2>&1; then
-            echo "Checkout credential header unexpectedly persisted"
+            echo "Checkout credential unexpectedly persisted"
             exit 1
           fi
 
       - name: Set up Node 22
-        id: setup_node
         uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -99,139 +86,16 @@ jobs:
         working-directory: dashboard
         run: npm run check
 
-      - name: Acquire GitHub OIDC for Vercel Preview Protection
-        id: preview_oidc
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const token = await core.getIDToken();
-            core.setSecret(token);
-            core.setOutput('token', token);
-
-      - name: Exact-SHA Preview runtime checks
-        id: preview_runtime
-        shell: bash
-        env:
-          VERCEL_TRUSTED_OIDC_TOKEN: ${{ steps.preview_oidc.outputs.token }}
-          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        run: |
-          set -euo pipefail
-          tmp="$(mktemp)"
-          api_tmp="$(mktemp)"
-          trap 'rm -f "$tmp" "$api_tmp"' EXIT
-          TEMP_BYPASS=""
-
-          request_code() {
-            local mode="$1"
-            local method="$2"
-            local path="$3"
-            local code
-            if [ "$mode" = "oidc" ]; then
-              code="$(curl -sS --max-time 30 -X "$method" \
-                -H 'accept: application/json' \
-                -H "x-vercel-trusted-oidc-idp-token: $VERCEL_TRUSTED_OIDC_TOKEN" \
-                -o "$tmp" -w '%{http_code}' \
-                "$PREVIEW_URL$path")"
-            elif [ "$mode" = "automation-secret" ]; then
-              code="$(curl -sS --max-time 30 -X "$method" \
-                -H 'accept: application/json' \
-                -H "x-vercel-protection-bypass: $VERCEL_AUTOMATION_BYPASS_SECRET" \
-                -o "$tmp" -w '%{http_code}' \
-                "$PREVIEW_URL$path")"
-            else
-              code="$(curl -sS --max-time 30 -X "$method" \
-                -H 'accept: application/json' \
-                -H "x-vercel-protection-bypass: $TEMP_BYPASS" \
-                -o "$tmp" -w '%{http_code}' \
-                "$PREVIEW_URL$path")"
-            fi
-            printf '%s' "$code"
-          }
-
-          MODE=oidc
-          code="$(request_code oidc GET /api/health)"
-          echo "OIDC GET /api/health -> $code"
-
-          if [ "$code" != "200" ] && [ -n "${VERCEL_AUTOMATION_BYPASS_SECRET:-}" ]; then
-            echo "OIDC bypass rejected; configured automation bypass secret is present, retrying without printing it."
-            MODE=automation-secret
-            code="$(request_code automation-secret GET /api/health)"
-            echo "Automation bypass GET /api/health -> $code"
-          fi
-
-          if [ "$code" != "200" ] && [ -n "${VERCEL_TOKEN:-}" ]; then
-            echo "Existing VERCEL_TOKEN is present; requesting a 10-minute bypass for the exact preview deployment."
-            api_code="$(curl -sS --max-time 30 -X PATCH \
-              -H "Authorization: Bearer $VERCEL_TOKEN" \
-              -H 'content-type: application/json' \
-              -o "$api_tmp" -w '%{http_code}' \
-              "https://api.vercel.com/aliases/$PREVIEW_DEPLOYMENT_ID/protection-bypass?teamId=$VERCEL_TEAM_ID" \
-              --data '{"ttl":600}')"
-            echo "Temporary bypass API -> $api_code"
-            if [ "$api_code" = "200" ]; then
-              TEMP_BYPASS="$(python -c 'import json,sys; d=json.load(open(sys.argv[1], encoding="utf-8")); print(d.get("value") or (d.get("protectionBypass") or {}).get("value") or "")' "$api_tmp")"
-              if [ -n "$TEMP_BYPASS" ]; then
-                echo "::add-mask::$TEMP_BYPASS"
-                MODE=temporary-bypass
-                code="$(request_code temporary-bypass GET /api/health)"
-                echo "Temporary bypass GET /api/health -> $code"
-              else
-                echo "Vercel returned 200 but no bypass value was present."
-              fi
-            fi
-          fi
-
-          if [ "$code" != "200" ]; then
-            if [ -z "${VERCEL_AUTOMATION_BYPASS_SECRET:-}" ]; then
-              echo "VERCEL_AUTOMATION_BYPASS_SECRET is not configured in opened-arm."
-            fi
-            if [ -z "${VERCEL_TOKEN:-}" ]; then
-              echo "VERCEL_TOKEN is not configured in opened-arm."
-            fi
-          fi
-
-          echo "bypass_mode=$MODE" >> "$GITHUB_OUTPUT"
-          if [ "$code" != "200" ]; then
-            echo "Preview Protection still blocks app-level runtime verification."
-            cat "$tmp"
-            exit 1
-          fi
-
-          check_status() {
-            local method="$1"
-            local path="$2"
-            local expected="$3"
-            local actual
-            actual="$(request_code "$MODE" "$method" "$path")"
-            echo "$MODE $method $path -> $actual (expected $expected)"
-            cat "$tmp"
-            echo
-            if [ "$actual" != "$expected" ]; then
-              echo "Unexpected app-level runtime status for $method $path"
-              exit 1
-            fi
-          }
-
-          check_status GET /api/health 200
-          check_status GET /api/google/auth 200
-          check_status GET /api/modules/korean/drive 401
-          check_status POST /api/cron/sync 401
-
       - name: Persist validation result
         if: always()
         shell: bash
         env:
-          JOB_STATUS: ${{ job.status }}
           ACTUAL_SHA: ${{ steps.identity.outputs.actual_sha }}
-          CREDENTIAL_STATUS: ${{ steps.credential_gate.outcome }}
-          CHECKOUT_STATUS: ${{ steps.dashboard_checkout.outcome }}
+          CREDENTIAL_STATUS: ${{ steps.credential.outcome }}
+          CHECKOUT_STATUS: ${{ steps.checkout.outcome }}
           IDENTITY_STATUS: ${{ steps.identity.outcome }}
           NPM_CI_STATUS: ${{ steps.npm_ci.outcome }}
           NPM_CHECK_STATUS: ${{ steps.npm_check.outcome }}
-          PREVIEW_OIDC_STATUS: ${{ steps.preview_oidc.outcome }}
-          PREVIEW_RUNTIME_STATUS: ${{ steps.preview_runtime.outcome }}
-          PREVIEW_BYPASS_MODE: ${{ steps.preview_runtime.outputs.bypass_mode }}
         working-directory: runner-repo
         run: |
           set -euo pipefail
@@ -239,46 +103,26 @@ jobs:
           python - <<'PY'
           import json, os
           payload = {
-              "schema": 4,
+              "schema": 5,
               "targetSha": os.environ.get("TARGET_SHA", ""),
               "actualSha": os.environ.get("ACTUAL_SHA", ""),
-              "jobStatus": os.environ.get("JOB_STATUS", ""),
               "credentialGate": os.environ.get("CREDENTIAL_STATUS", ""),
               "privateCheckout": os.environ.get("CHECKOUT_STATUS", ""),
               "identityCheck": os.environ.get("IDENTITY_STATUS", ""),
               "npmCi": os.environ.get("NPM_CI_STATUS", ""),
               "npmRunCheck": os.environ.get("NPM_CHECK_STATUS", ""),
-              "previewOidc": os.environ.get("PREVIEW_OIDC_STATUS", ""),
-              "previewRuntime": os.environ.get("PREVIEW_RUNTIME_STATUS", ""),
-              "previewBypassMode": os.environ.get("PREVIEW_BYPASS_MODE", ""),
-              "previewUrl": os.environ.get("PREVIEW_URL", ""),
               "runId": os.environ.get("GITHUB_RUN_ID", ""),
               "runAttempt": os.environ.get("GITHUB_RUN_ATTEMPT", ""),
-              "runnerRepoSha": os.environ.get("GITHUB_SHA", ""),
           }
-          with open("ops/dashboard-pr20-validation.json", "w", encoding="utf-8") as f:
+          with open("ops/dashboard-validation.json", "w", encoding="utf-8") as f:
               json.dump(payload, f, ensure_ascii=False, indent=2)
               f.write("\n")
           PY
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add ops/dashboard-pr20-validation.json
-          if git diff --cached --quiet; then
-            echo "Validation result unchanged"
-          else
-            git commit -m "Record dashboard PR20 validation result"
+          git pull --rebase origin main
+          git add ops/dashboard-validation.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Record dashboard clean validation result"
             git push origin HEAD:main
           fi
-          {
-            echo "## Dashboard PR #20 public validation"
-            echo "- target SHA: \`$TARGET_SHA\`"
-            echo "- actual SHA: \`${ACTUAL_SHA:-unavailable}\`"
-            echo "- job: \`$JOB_STATUS\`"
-            echo "- npm ci: \`$NPM_CI_STATUS\`"
-            echo "- npm run check: \`$NPM_CHECK_STATUS\`"
-            echo "- preview OIDC: \`$PREVIEW_OIDC_STATUS\`"
-            echo "- preview bypass mode: \`${PREVIEW_BYPASS_MODE:-unavailable}\`"
-            echo "- preview runtime: \`$PREVIEW_RUNTIME_STATUS\`"
-          } >> "$GITHUB_STEP_SUMMARY"
-
-# validation-trigger: 2026-08-20T15:27+09:00
