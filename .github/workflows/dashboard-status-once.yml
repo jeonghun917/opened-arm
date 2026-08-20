@@ -7,7 +7,7 @@ on:
       - ".github/workflows/dashboard-status-once.yml"
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   diagnose:
@@ -16,7 +16,13 @@ jobs:
     env:
       TARGET_SHA: 80bc1025a40eb3ebb444b4686d493f65ac3d2761
     steps:
+      - uses: actions/checkout@v4
+        with:
+          path: runner-repo
+          fetch-depth: 0
+
       - name: Diagnose token access and commit-status permission
+        id: diag
         shell: bash
         env:
           DASHBOARD_REPO_TOKEN: ${{ secrets.DASHBOARD_REPO_TOKEN }}
@@ -32,7 +38,6 @@ jobs:
             --header "Accept: application/vnd.github+json" \
             --header "X-GitHub-Api-Version: 2022-11-28" \
             https://api.github.com/repos/jeonghun917/dashboard-control-center)"
-          echo "repo_read_http=$repo_code"
 
           status_code="$(curl --silent --show-error \
             --dump-header "$tmp_headers" \
@@ -44,12 +49,64 @@ jobs:
             --header "X-GitHub-Api-Version: 2022-11-28" \
             "https://api.github.com/repos/jeonghun917/dashboard-control-center/statuses/${TARGET_SHA}" \
             --data '{"state":"success","context":"dashboard-public-validation","description":"Permission diagnostic"}')"
-          echo "status_write_http=$status_code"
-          echo "response_body:"
-          cat "$tmp_body"
-          echo
-          echo "permission_headers:"
-          grep -iE '^(x-accepted-github-permissions|x-oauth-scopes|x-github-api-version-selected):' "$tmp_headers" || true
 
-          test "$repo_code" = 200
-          test "$status_code" = 201
+          body="$(cat "$tmp_body")"
+          accepted="$(grep -i '^x-accepted-github-permissions:' "$tmp_headers" | sed 's/^[^:]*:[[:space:]]*//' | tr -d '\r' || true)"
+          scopes="$(grep -i '^x-oauth-scopes:' "$tmp_headers" | sed 's/^[^:]*:[[:space:]]*//' | tr -d '\r' || true)"
+          echo "repo_code=$repo_code" >> "$GITHUB_OUTPUT"
+          echo "status_code=$status_code" >> "$GITHUB_OUTPUT"
+          echo "accepted=$accepted" >> "$GITHUB_OUTPUT"
+          echo "scopes=$scopes" >> "$GITHUB_OUTPUT"
+          printf '%s' "$body" > "$RUNNER_TEMP/dashboard-status-body.txt"
+
+      - name: Persist diagnostic evidence
+        if: always()
+        working-directory: runner-repo
+        shell: bash
+        env:
+          REPO_CODE: ${{ steps.diag.outputs.repo_code }}
+          STATUS_CODE: ${{ steps.diag.outputs.status_code }}
+          ACCEPTED: ${{ steps.diag.outputs.accepted }}
+          SCOPES: ${{ steps.diag.outputs.scopes }}
+        run: |
+          set -euo pipefail
+          mkdir -p ops
+          python - <<'PY'
+          import json, os
+          body_path = os.path.join(os.environ['RUNNER_TEMP'], 'dashboard-status-body.txt')
+          try:
+              body = open(body_path, encoding='utf-8').read()
+          except FileNotFoundError:
+              body = ''
+          data = {
+              'targetSha': os.environ.get('TARGET_SHA', ''),
+              'repoReadHttp': os.environ.get('REPO_CODE', ''),
+              'statusWriteHttp': os.environ.get('STATUS_CODE', ''),
+              'acceptedGithubPermissions': os.environ.get('ACCEPTED', ''),
+              'oauthScopes': os.environ.get('SCOPES', ''),
+              'responseBody': body,
+              'runId': os.environ.get('GITHUB_RUN_ID', ''),
+          }
+          with open('ops/dashboard-status-diagnostic.json', 'w', encoding='utf-8') as f:
+              json.dump(data, f, ensure_ascii=False, indent=2)
+              f.write('\n')
+          PY
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git pull --rebase origin main
+          git add ops/dashboard-status-diagnostic.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Record dashboard status permission diagnostics"
+            git push origin HEAD:main
+          fi
+
+      - name: Require status write
+        if: always()
+        shell: bash
+        env:
+          REPO_CODE: ${{ steps.diag.outputs.repo_code }}
+          STATUS_CODE: ${{ steps.diag.outputs.status_code }}
+        run: |
+          set -euo pipefail
+          test "$REPO_CODE" = 200
+          test "$STATUS_CODE" = 201
