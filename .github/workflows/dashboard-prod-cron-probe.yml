@@ -1,0 +1,43 @@
+name: Dashboard Production Cron Probe
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/dashboard-prod-cron-probe.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Probe production cron without OIDC
+        shell: bash
+        run: |
+          set -euo pipefail
+          tmp="$(mktemp)"
+          code="$(curl -sS --max-time 30 -X POST -H 'accept: application/json' -o "$tmp" -w '%{http_code}' https://dashboard-control-center.vercel.app/api/cron/sync)"
+          mkdir -p ops
+          python -c 'import json,sys; json.dump({"status":int(sys.argv[1]),"expected":401,"ok":sys.argv[1]=="401"},open("ops/dashboard-prod-cron-probe.json","w"),indent=2)' "$code"
+          echo >> ops/dashboard-prod-cron-probe.json
+          echo "POST /api/cron/sync -> $code"
+          cat "$tmp"
+          test "$code" = "401"
+      - name: Persist probe result
+        if: always()
+        shell: bash
+        run: |
+          if [ ! -f ops/dashboard-prod-cron-probe.json ]; then
+            printf '{"ok":false,"error":"probe did not produce a result"}\n' > ops/dashboard-prod-cron-probe.json
+          fi
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add ops/dashboard-prod-cron-probe.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Record dashboard production cron probe"
+            git push origin HEAD:main
+          fi
