@@ -1,5 +1,5 @@
 {
-  "schema": 2,
+  "schema": 3,
   "targetSha": "0dbce4e218939ba5cbb54c3d2fe8dc18894ac82a",
   "actualSha": "0dbce4e218939ba5cbb54c3d2fe8dc18894ac82a",
   "jobStatus": "failure",
@@ -9,15 +9,10 @@
   "npmCi": "success",
   "npmRunCheck": "success",
   "previewOidc": "success",
-  "previewRuntime": "blocked_by_vercel_protection",
-  "previewHealthStatus": 401,
-  "previewProtection": {
-    "vercelAuthEnabled": true,
-    "autoVercelAuthRedirect": true,
-    "message": "Protected deployment"
-  },
+  "previewRuntime": "failure",
+  "previewBypassMode": "oidc",
   "previewUrl": "https://dashboard-control-center-d6lulz8ey-ashite1010-3572s-projects.vercel.app",
-  "runId": "32336811540",
+  "runId": "32337463267",
   "runAttempt": "1",
-  "runnerRepoSha": "30e83f0716d9dd02fddf125be06809018fa122c8"
+  "runnerRepoSha": "070eb4eee92200d41787989d54dcb516f3a06c1d"
 }
