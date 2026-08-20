@@ -1,0 +1,144 @@
+name: Dashboard Current Public Validation
+
+on:
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: Exact dashboard-control-center commit SHA to validate
+        required: true
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/dashboard-current-validation.yml"
+      - "ops/dashboard-validation-target.txt"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: dashboard-current-public-validation
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout public runner repository
+        uses: actions/checkout@v4
+        with:
+          path: runner-repo
+          fetch-depth: 0
+
+      - name: Resolve exact dashboard SHA
+        id: target
+        shell: bash
+        env:
+          INPUT_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.sha || '' }}
+        run: |
+          set -euo pipefail
+          if [ -n "${INPUT_SHA:-}" ]; then
+            target="$INPUT_SHA"
+          else
+            target="$(tr -d '[:space:]' < runner-repo/ops/dashboard-validation-target.txt)"
+          fi
+          [[ "$target" =~ ^[0-9a-f]{40}$ ]]
+          echo "sha=$target" >> "$GITHUB_OUTPUT"
+
+      - name: Check private checkout credential
+        id: credential
+        shell: bash
+        env:
+          DASHBOARD_REPO_TOKEN: ${{ secrets.DASHBOARD_REPO_TOKEN }}
+        run: |
+          set -euo pipefail
+          test -n "${DASHBOARD_REPO_TOKEN:-}"
+
+      - name: Checkout exact private dashboard SHA
+        id: checkout
+        uses: actions/checkout@v4
+        with:
+          repository: jeonghun917/dashboard-control-center
+          ref: ${{ steps.target.outputs.sha }}
+          token: ${{ secrets.DASHBOARD_REPO_TOKEN }}
+          path: dashboard
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Verify exact checkout
+        id: identity
+        shell: bash
+        working-directory: dashboard
+        env:
+          TARGET_SHA: ${{ steps.target.outputs.sha }}
+        run: |
+          set -euo pipefail
+          actual="$(git rev-parse HEAD)"
+          echo "actual_sha=$actual" >> "$GITHUB_OUTPUT"
+          test "$actual" = "$TARGET_SHA"
+          test -z "$(git status --porcelain)"
+          if git config --local --get-regexp '^http\..*\.extraheader$' >/dev/null 2>&1; then
+            echo "Checkout credential unexpectedly persisted"
+            exit 1
+          fi
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: dashboard/package-lock.json
+
+      - name: Clean install
+        id: npm_ci
+        working-directory: dashboard
+        run: npm ci
+
+      - name: Full dashboard check
+        id: npm_check
+        working-directory: dashboard
+        run: npm run check
+
+      - name: Persist validation evidence
+        if: always()
+        shell: bash
+        working-directory: runner-repo
+        env:
+          TARGET_SHA: ${{ steps.target.outputs.sha }}
+          ACTUAL_SHA: ${{ steps.identity.outputs.actual_sha }}
+          TARGET_STATUS: ${{ steps.target.outcome }}
+          CREDENTIAL_STATUS: ${{ steps.credential.outcome }}
+          CHECKOUT_STATUS: ${{ steps.checkout.outcome }}
+          IDENTITY_STATUS: ${{ steps.identity.outcome }}
+          NPM_CI_STATUS: ${{ steps.npm_ci.outcome }}
+          NPM_CHECK_STATUS: ${{ steps.npm_check.outcome }}
+        run: |
+          set -euo pipefail
+          mkdir -p ops
+          python - <<'PY'
+          import json, os
+          payload = {
+              "schema": 1,
+              "targetSha": os.environ.get("TARGET_SHA", ""),
+              "actualSha": os.environ.get("ACTUAL_SHA", ""),
+              "targetResolution": os.environ.get("TARGET_STATUS", ""),
+              "credentialGate": os.environ.get("CREDENTIAL_STATUS", ""),
+              "privateCheckout": os.environ.get("CHECKOUT_STATUS", ""),
+              "identityCheck": os.environ.get("IDENTITY_STATUS", ""),
+              "npmCi": os.environ.get("NPM_CI_STATUS", ""),
+              "npmRunCheck": os.environ.get("NPM_CHECK_STATUS", ""),
+              "runId": os.environ.get("GITHUB_RUN_ID", ""),
+              "runAttempt": os.environ.get("GITHUB_RUN_ATTEMPT", ""),
+          }
+          with open("ops/dashboard-current-validation.json", "w", encoding="utf-8") as f:
+              json.dump(payload, f, ensure_ascii=False, indent=2)
+              f.write("\n")
+          PY
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git pull --rebase origin main
+          git add ops/dashboard-current-validation.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Record current dashboard validation result"
+            git push origin HEAD:main
+          fi
