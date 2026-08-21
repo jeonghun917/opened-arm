@@ -1,6 +1,6 @@
 # Cori Kaggle T4 portability benchmark
 
-Status: PREPARED / AUTH RECHECK REQUESTED 2026-08-21 KST
+Status: ROOT-CAUSE DIAGNOSIS / GPU RETRY BLOCKED 2026-08-21 KST
 
 Purpose: test whether the frozen Cori Matcha-TTS continuation recipe can run unchanged on Kaggle's free single-GPU T4 environment before using Kaggle for any research continuation.
 
@@ -68,8 +68,12 @@ The exact E280 checkpoint is rejected unless both its SHA and checkpoint metadat
 - FAIL-ENVIRONMENT: dependency/runtime incompatibility may be fixed only if the change does not alter model/data/optimizer semantics; rerun the same benchmark after the environment fix.
 - FAIL-DATA: reconstruct or transfer the frozen dataset exactly before retrying; do not replace it with a newly filtered corpus.
 
-## Current blocker
+## Root-cause gate before another GPU launch
 
-An authentication preflight is being re-run after user authorization to continue. If Kaggle auth and `KAGGLE_DATASET_ID` are present, proceed to private input publication and then the single-T4 E280->E290 benchmark. If either is absent, stop before any private asset upload or GPU launch.
+The latest two long-running retries both reached the environment bootstrap and then failed because the API-pushed Kaggle kernel could not resolve Ubuntu package hosts while trying to install `espeak-ng`. The launcher metadata requested `enable_internet: true`, so another T4 retry is blocked until a CPU-only API-kernel probe determines the effective network state and inventories the preinstalled runtime.
+
+The CPU probe must check DNS/HTTPS reachability plus preinstalled `espeak-ng`, `ffmpeg`, `git`, compiler tools, PyTorch, Lightning, phonemizer, Hydra/OmegaConf, librosa, soundfile, NumPy/SciPy and related Matcha dependencies. It consumes no Kaggle GPU allocation.
+
+If the probe confirms API-pushed kernels have no effective internet, the next training kernel must be fully offline: exact Matcha source and any missing system/Python dependencies must be supplied through a private Kaggle Dataset, with SHA/version checks, before one more T4 benchmark is authorized. Do not spend another GPU session on apt/pip/git network retries.
 
 The user's token must be stored only as an encrypted repository secret or in Kaggle's own credential store, never in chat, code, logs, commits, or public artifacts.
