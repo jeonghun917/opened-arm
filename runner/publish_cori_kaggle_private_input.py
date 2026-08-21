@@ -82,6 +82,18 @@ OUT = STAGING / 'c3-cori-base.zip'
 MANIFEST = STAGING / 'c3-cori-base-manifest.json'
 STAGING.mkdir(parents=True, exist_ok=True)
 
+# Reuse an already-built private bundle when its local persistent file and
+# manifest agree on size. The initial build already computes and records SHA-256.
+if OUT.is_file() and MANIFEST.is_file():
+    try:
+        prior = json.loads(MANIFEST.read_text(encoding='utf-8'))
+        if int(prior.get('archive_bytes', -1)) == OUT.stat().st_size and prior.get('archive_sha256'):
+            print('C3_KAGGLE_BASE_BUNDLE_REUSE')
+            print(json.dumps(prior, ensure_ascii=False))
+            raise SystemExit(0)
+    except (OSError, ValueError, TypeError, json.JSONDecodeError):
+        pass
+
 required = [
     HANDOFF / 'cori_matcha_epoch100.ckpt',
     HANDOFF / 'HANDOFF_MANIFEST.json',
@@ -138,17 +150,49 @@ print(json.dumps(manifest, ensure_ascii=False))
     command = "python - <<'PY'\n" + textwrap.dedent(remote) + "\nPY"
     out, rc = studio.run_with_exit_code(command)
     print(out, flush=True)
-    if rc != 0 or "C3_KAGGLE_BASE_BUNDLE_PASS" not in str(out):
+    if rc != 0 or not any(
+        marker in str(out)
+        for marker in ("C3_KAGGLE_BASE_BUNDLE_PASS", "C3_KAGGLE_BASE_BUNDLE_REUSE")
+    ):
         raise RuntimeError(f"remote base bundle failed with exit code {rc}")
 
 
-def download_file(studio: Studio, remote: str, local: Path) -> None:
+def download_file(
+    studio: Studio,
+    remote: str,
+    local: Path,
+    *,
+    attempts: int = 1,
+    delay_seconds: int = 15,
+) -> None:
     local.parent.mkdir(parents=True, exist_ok=True)
-    if local.exists():
-        local.unlink()
-    studio.download_file(remote, file_path=str(local))
-    if not local.is_file():
-        raise RuntimeError(f"Lightning download did not produce {local} from {remote}")
+    last: Exception | None = None
+    for attempt in range(1, attempts + 1):
+        if local.exists():
+            local.unlink()
+        try:
+            studio.download_file(remote, file_path=str(local))
+            if local.is_file():
+                if attempt > 1:
+                    print(
+                        f"C3_LIGHTNING_DOWNLOAD_SYNCED remote={remote} attempt={attempt}",
+                        flush=True,
+                    )
+                return
+            last = RuntimeError(f"Lightning download returned without local file: {remote}")
+        except Exception as exc:
+            last = exc
+        if attempt < attempts:
+            print(
+                f"C3_LIGHTNING_DOWNLOAD_WAIT remote={remote} attempt={attempt}/{attempts} "
+                f"error={type(last).__name__}",
+                flush=True,
+            )
+            time.sleep(delay_seconds)
+    raise RuntimeError(
+        f"Lightning download did not become available after {attempts} attempts: {remote}; "
+        f"last={last!r}"
+    )
 
 
 def build_e280_zip() -> None:
@@ -238,7 +282,7 @@ def main() -> None:
     vault = Studio(name=VAULT_STUDIO_NAME, teamspace=TEAMSPACE, org=ORG, create_ok=False)
     try:
         # E280 can be transferred from persistent vault storage without starting GPU compute.
-        download_file(vault, VAULT_E280, LOCAL_E280)
+        download_file(vault, VAULT_E280, LOCAL_E280, attempts=4, delay_seconds=10)
         if sha256_file(LOCAL_E280) != E280_SHA256:
             raise RuntimeError("downloaded vault E280 SHA mismatch")
         build_e280_zip()
@@ -246,11 +290,20 @@ def main() -> None:
         # Only the source Studio needs CPU briefly to package the frozen handoff+audio tree.
         ensure_cpu_ready(source)
         remote_build_base_bundle(source)
-        download_file(source, REMOTE_BASE_ZIP, LOCAL_BASE_ZIP)
+        # Large Studio-home files can take time to become visible through the SDK's
+        # persisted object-store download path. Poll rather than treating the first
+        # NoSuchKey as data loss.
+        download_file(
+            source,
+            REMOTE_BASE_ZIP,
+            LOCAL_BASE_ZIP,
+            attempts=80,
+            delay_seconds=15,
+        )
 
         action = publish_private_dataset(dataset_id)
         report = {
-            "schema": "c3-cori-kaggle-private-publish-v1",
+            "schema": "c3-cori-kaggle-private-publish-v2",
             "created_at_utc": datetime.now(timezone.utc).isoformat(),
             "ok": True,
             "gpu_allocated": False,
