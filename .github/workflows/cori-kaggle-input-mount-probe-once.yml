@@ -2,18 +2,16 @@ name: Cori Kaggle Network Env Probe Once
 
 # CPU-only root-cause probe. This workflow must never launch GPU training.
 on:
-  pull_request:
-    branches: [main]
+  push:
+    branches: [feat/kaggle-p100-port]
     paths:
       - '.github/workflows/cori-kaggle-input-mount-probe-once.yml'
-      - 'ops/cori-kaggle-t4-benchmark.md'
 
 permissions:
   contents: write
 
 jobs:
   probe:
-    if: github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'feat/kaggle-p100-port'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:
@@ -22,7 +20,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
-          ref: ${{ github.head_ref }}
+          ref: feat/kaggle-p100-port
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
