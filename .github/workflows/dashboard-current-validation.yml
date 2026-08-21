@@ -170,6 +170,9 @@ jobs:
           FINAL_STATUS: ${{ steps.final_status.outcome }}
         run: |
           set -euo pipefail
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git pull --rebase origin main
           mkdir -p ops
           python - <<'PY'
           import json, os
@@ -193,9 +196,6 @@ jobs:
               json.dump(payload, f, ensure_ascii=False, indent=2)
               f.write("\n")
           PY
-          git config user.name github-actions[bot]
-          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git pull --rebase origin main
           git add ops/dashboard-current-validation.json
           if ! git diff --cached --quiet; then
             git commit -m "Record current dashboard validation result"
