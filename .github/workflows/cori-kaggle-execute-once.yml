@@ -1,0 +1,125 @@
+name: Cori Kaggle Execute Once
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/cori-kaggle-execute-once.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  publish-and-launch:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'feat/kaggle-p100-port'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 240
+    env:
+      LIGHTNING_USER_ID: ${{ secrets.LIGHTNING_USER_ID }}
+      LIGHTNING_API_KEY: ${{ secrets.LIGHTNING_API_KEY }}
+      KAGGLE_API_TOKEN: ${{ secrets.KAGGLE_API_TOKEN }}
+      KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
+      KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
+      KAGGLE_DATASET_ID: ${{ secrets.KAGGLE_DATASET_ID }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: One-shot authorization and secret gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${LIGHTNING_USER_ID:-}" || { echo 'missing LIGHTNING_USER_ID'; exit 2; }
+          test -n "${LIGHTNING_API_KEY:-}" || { echo 'missing LIGHTNING_API_KEY'; exit 2; }
+          test -n "${KAGGLE_DATASET_ID:-}" || { echo 'missing KAGGLE_DATASET_ID'; exit 2; }
+          [[ "$KAGGLE_DATASET_ID" == */* ]] || { echo 'invalid KAGGLE_DATASET_ID'; exit 2; }
+          if [ -z "${KAGGLE_API_TOKEN:-}" ] && { [ -z "${KAGGLE_USERNAME:-}" ] || [ -z "${KAGGLE_KEY:-}" ]; }; then
+            echo 'missing Kaggle auth'; exit 2
+          fi
+          echo C3_KAGGLE_EXECUTE_ONCE_SECRET_GATE_PASS
+
+      - name: Syntax check frozen portability path
+        run: |
+          python -m py_compile \
+            runner/publish_cori_kaggle_private_input.py \
+            runner/kaggle_cori_kernel.py \
+            runner/kaggle_cori_segment_entry.py \
+            runner/lightning_cori_continue_to550.py
+
+      - name: Install provider clients
+        run: python -m pip install --quiet --upgrade lightning-sdk kaggle
+
+      - name: Verify Kaggle API authentication
+        run: |
+          set -euo pipefail
+          kaggle datasets list -m --page 1 >/dev/null
+          echo C3_KAGGLE_EXECUTE_ONCE_AUTH_PASS
+
+      - name: Publish exact frozen assets to private Kaggle Dataset
+        run: python runner/publish_cori_kaggle_private_input.py
+
+      - name: Verify private Dataset exists
+        run: |
+          set -euo pipefail
+          kaggle datasets status "$KAGGLE_DATASET_ID" >/dev/null
+          echo C3_KAGGLE_EXECUTE_ONCE_DATASET_PASS
+
+      - name: Build exact E280 to E290 private T4 kernel bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf kaggle_kernel_bundle
+          mkdir -p kaggle_kernel_bundle
+          cp runner/kaggle_cori_kernel.py kaggle_kernel_bundle/benchmark.py
+          cp runner/kaggle_cori_segment_entry.py kaggle_kernel_bundle/kaggle_cori_segment_entry.py
+          cp runner/lightning_cori_continue_to550.py kaggle_kernel_bundle/lightning_cori_continue_to550.py
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          dataset_id=os.environ['KAGGLE_DATASET_ID'].strip()
+          owner, _ = dataset_id.split('/',1)
+          metadata={
+              'id': f'{owner}/c3-cori-e280-e290-t4-benchmark',
+              'title': 'C3 Cori E280 E290 T4 Benchmark',
+              'code_file': 'benchmark.py',
+              'language': 'python',
+              'kernel_type': 'script',
+              'is_private': True,
+              'enable_gpu': True,
+              'enable_internet': True,
+              'machine_shape': 'NvidiaTeslaT4',
+              'dataset_sources': [dataset_id],
+              'competition_sources': [],
+              'kernel_sources': [],
+              'model_sources': [],
+          }
+          Path('kaggle_kernel_bundle/kernel-metadata.json').write_text(json.dumps(metadata, indent=2)+'\n', encoding='utf-8')
+          Path('kernel-id.txt').write_text(metadata['id']+'\n', encoding='utf-8')
+          print('C3_KAGGLE_KERNEL_BUNDLE_PASS')
+          PY
+
+      - name: Push and start private single-T4 benchmark
+        shell: bash
+        run: |
+          set -euo pipefail
+          kaggle kernels push -p kaggle_kernel_bundle --accelerator NvidiaTeslaT4 -t 43200
+          echo C3_KAGGLE_T4_KERNEL_PUSHED
+
+      - name: Confirm kernel accepted by Kaggle
+        shell: bash
+        run: |
+          set -euo pipefail
+          KERNEL_ID=$(cat kernel-id.txt)
+          kaggle kernels status "$KERNEL_ID"
+          echo C3_KAGGLE_KERNEL_STATUS_PASS
+
+      - name: Remove all local sensitive staging
+        if: always()
+        shell: bash
+        run: |
+          rm -rf cori_kaggle_private_stage kaggle_kernel_bundle
+          rm -f kernel-id.txt cori-kaggle-private-publish-report.json
+          find . -maxdepth 3 -type f \( -name '*.ckpt' -o -name '*.wav' -o -name '*.flac' -o -name 'c3-cori-base.zip' -o -name 'c3-cori-e280.zip' \) -delete
