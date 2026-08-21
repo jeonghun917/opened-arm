@@ -1,6 +1,6 @@
 # Cori Kaggle T4 portability benchmark
 
-Status: PREPARED / NOT YET EXECUTED
+Status: PREPARED / AUTH RECHECK REQUESTED 2026-08-21 KST
 
 Purpose: test whether the frozen Cori Matcha-TTS continuation recipe can run unchanged on Kaggle's free single-GPU T4 environment before using Kaggle for any research continuation.
 
@@ -70,4 +70,6 @@ The exact E280 checkpoint is rejected unless both its SHA and checkpoint metadat
 
 ## Current blocker
 
-The code path is prepared, but the benchmark cannot start until Kaggle authentication and a private Dataset handle are available to the orchestration path. The user's token must be stored only as an encrypted repository secret or in Kaggle's own credential store, never in chat, code, logs, commits, or public artifacts.
+An authentication preflight is being re-run after user authorization to continue. If Kaggle auth and `KAGGLE_DATASET_ID` are present, proceed to private input publication and then the single-T4 E280->E290 benchmark. If either is absent, stop before any private asset upload or GPU launch.
+
+The user's token must be stored only as an encrypted repository secret or in Kaggle's own credential store, never in chat, code, logs, commits, or public artifacts.
