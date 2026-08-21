@@ -42,23 +42,36 @@ def sha256_file(path: Path) -> str:
 
 
 def ensure_cpu_ready(studio: Studio) -> None:
-    if str(studio.status).lower() not in {"running", "started"}:
-        studio.start(Machine.CPU)
+    start_requested = False
     last = None
-    for _ in range(60):
-        try:
-            out = str(studio.run("echo C3_KAGGLE_SOURCE_STUDIO_READY"))
-            if "C3_KAGGLE_SOURCE_STUDIO_READY" in out:
-                return
-        except Exception as exc:  # provider transition states
-            last = exc
+    for _ in range(120):
+        status = str(studio.status).lower()
+        if status in {"running", "started"}:
+            try:
+                out = str(studio.run("echo C3_KAGGLE_SOURCE_STUDIO_READY"))
+                if "C3_KAGGLE_SOURCE_STUDIO_READY" in out:
+                    return
+            except Exception as exc:
+                last = exc
+        elif status in {"stopped", "notcreated", "not_created"}:
+            if not start_requested:
+                studio.start(Machine.CPU)
+                start_requested = True
+        elif status in {"pending", "starting", "stopping"}:
+            # Provider transition state: wait instead of issuing an invalid duplicate start.
+            pass
+        elif status == "failed":
+            raise RuntimeError("source Studio entered failed state")
+        else:
+            last = RuntimeError(f"unexpected Studio status: {status}")
         time.sleep(5)
-    raise RuntimeError(f"source Studio never became shell-ready: {last!r}")
+    raise RuntimeError(f"source Studio never became shell-ready: status={studio.status} last={last!r}")
 
 
 def stop_studio(studio: Studio) -> None:
     try:
-        if str(studio.status).lower() not in {"stopped", "stopping"}:
+        status = str(studio.status).lower()
+        if status not in {"stopped", "stopping", "notcreated", "not_created"}:
             studio.stop()
     except Exception as exc:
         print("C3_KAGGLE_SOURCE_STUDIO_STOP_WARNING", type(exc).__name__, flush=True)
@@ -280,6 +293,7 @@ def main() -> None:
 
     source = Studio(name=SOURCE_STUDIO_NAME, teamspace=TEAMSPACE, org=ORG, create_ok=False)
     vault = Studio(name=VAULT_STUDIO_NAME, teamspace=TEAMSPACE, org=ORG, create_ok=False)
+    source_compute_touched = False
     try:
         # E280 can be transferred from persistent vault storage without starting GPU compute.
         download_file(vault, VAULT_E280, LOCAL_E280, attempts=4, delay_seconds=10)
@@ -287,26 +301,38 @@ def main() -> None:
             raise RuntimeError("downloaded vault E280 SHA mismatch")
         build_e280_zip()
 
-        # Only the source Studio needs CPU briefly to package the frozen handoff+audio tree.
-        ensure_cpu_ready(source)
-        remote_build_base_bundle(source)
-        # Large Studio-home files can take time to become visible through the SDK's
-        # persisted object-store download path. Poll rather than treating the first
-        # NoSuchKey as data loss.
-        download_file(
-            source,
-            REMOTE_BASE_ZIP,
-            LOCAL_BASE_ZIP,
-            attempts=80,
-            delay_seconds=15,
-        )
+        # First try the already-created 4.3 GB persisted bundle without starting compute.
+        # The previous attempt successfully built it but hit object-store visibility delay.
+        try:
+            download_file(
+                source,
+                REMOTE_BASE_ZIP,
+                LOCAL_BASE_ZIP,
+                attempts=4,
+                delay_seconds=15,
+            )
+            print("C3_KAGGLE_BASE_BUNDLE_PERSISTED_REUSE_PASS", flush=True)
+        except RuntimeError:
+            # If it is still not visible, briefly use CPU to verify/reuse or rebuild it,
+            # then wait for persistence to expose the large file through the SDK.
+            ensure_cpu_ready(source)
+            source_compute_touched = True
+            remote_build_base_bundle(source)
+            download_file(
+                source,
+                REMOTE_BASE_ZIP,
+                LOCAL_BASE_ZIP,
+                attempts=80,
+                delay_seconds=15,
+            )
 
         action = publish_private_dataset(dataset_id)
         report = {
-            "schema": "c3-cori-kaggle-private-publish-v2",
+            "schema": "c3-cori-kaggle-private-publish-v3",
             "created_at_utc": datetime.now(timezone.utc).isoformat(),
             "ok": True,
             "gpu_allocated": False,
+            "source_cpu_compute_touched": source_compute_touched,
             "dataset_id": dataset_id,
             "kaggle_action": action,
             "e280_sha256": E280_SHA256,
@@ -321,7 +347,8 @@ def main() -> None:
         print("C3_KAGGLE_PRIVATE_PUBLISH_PASS")
         print(json.dumps(report, ensure_ascii=False, indent=2), flush=True)
     finally:
-        stop_studio(source)
+        if source_compute_touched:
+            stop_studio(source)
         # Sensitive local staging is ephemeral and must not become an Actions artifact.
         shutil.rmtree(LOCAL_ROOT, ignore_errors=True)
 
