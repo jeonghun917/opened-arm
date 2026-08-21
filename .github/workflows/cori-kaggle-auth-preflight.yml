@@ -61,9 +61,53 @@ jobs:
         run: |
           set -euo pipefail
           python -m pip install --quiet --upgrade kaggle
-          # Do not print private dataset names or credential material; exit status is enough.
           kaggle datasets list -m --page 1 >/dev/null
           echo C3_KAGGLE_API_AUTH_PASS
+
+      - name: Resolve public Kaggle owner from token introspection
+        id: identity
+        if: steps.auth.outputs.auth_mode == 'api_token'
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, os, urllib.parse, urllib.request
+          token=os.environ['KAGGLE_API_TOKEN']
+          body=urllib.parse.urlencode({'token':token}).encode()
+          req=urllib.request.Request(
+              'https://www.kaggle.com/api/v1/oauth2/introspect',
+              data=body,
+              headers={'Content-Type':'application/x-www-form-urlencoded'},
+              method='POST',
+          )
+          with urllib.request.urlopen(req, timeout=30) as r:
+              data=json.load(r)
+          if not data.get('active'):
+              raise SystemExit('Kaggle token introspection returned inactive token')
+          username=data.get('username') or ''
+          print('C3_KAGGLE_INTROSPECTION_ACTIVE=true')
+          if username:
+              # Kaggle usernames are public account handles; never print token/sub/claims.
+              print('C3_KAGGLE_PUBLIC_USERNAME='+username)
+              with open(os.environ['GITHUB_OUTPUT'],'a',encoding='utf-8') as f:
+                  f.write('username='+username+'\n')
+          else:
+              print('C3_KAGGLE_PUBLIC_USERNAME_UNAVAILABLE')
+          PY
+
+      - name: Compare configured Dataset owner to authenticated owner
+        if: steps.identity.outputs.username != ''
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXPECTED="${{ steps.identity.outputs.username }}"
+          CONFIGURED="${KAGGLE_DATASET_ID%%/*}"
+          if [ "$CONFIGURED" = "$EXPECTED" ]; then
+            echo C3_KAGGLE_DATASET_OWNER_MATCH=true
+          else
+            echo C3_KAGGLE_DATASET_OWNER_MATCH=false
+            echo "C3_KAGGLE_EXPECTED_OWNER=$EXPECTED"
+          fi
 
       - name: Report remaining bootstrap blocker
         shell: bash
@@ -74,5 +118,5 @@ jobs:
           elif [ "${{ steps.auth.outputs.dataset_ready }}" != "true" ]; then
             echo 'C3_KAGGLE_BOOTSTRAP_BLOCKED: add KAGGLE_DATASET_ID as an encrypted Actions secret in owner/private-dataset-slug form.'
           else
-            echo 'C3_KAGGLE_BOOTSTRAP_READY: auth and private dataset handle are present; private asset staging can be executed next.'
+            echo 'C3_KAGGLE_BOOTSTRAP_READY: auth and private dataset handle are present; owner match is checked separately.'
           fi
