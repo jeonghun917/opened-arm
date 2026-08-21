@@ -1,5 +1,4 @@
 name: Dashboard Control Plane Sync
-# durable-inbox cursor-store verification pulse
 
 on:
   push:
