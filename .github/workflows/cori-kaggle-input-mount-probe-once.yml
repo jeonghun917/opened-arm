@@ -1,0 +1,179 @@
+name: Cori Kaggle Network Env Probe Once
+
+# CPU-only root-cause probe. This workflow must never launch GPU training.
+on:
+  push:
+    branches: [feat/kaggle-p100-port]
+    paths:
+      - '.github/workflows/cori-kaggle-input-mount-probe-once.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  probe:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      KAGGLE_API_TOKEN: ${{ secrets.KAGGLE_API_TOKEN }}
+      KAGGLE_DATASET_ID: ${{ secrets.KAGGLE_DATASET_ID }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: feat/kaggle-p100-port
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install Kaggle CLI
+        run: python -m pip install --quiet --upgrade kaggle
+      - name: Resolve owner and build CPU network environment probe
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, os, urllib.parse, urllib.request
+          from pathlib import Path
+          token=os.environ['KAGGLE_API_TOKEN']
+          configured=os.environ['KAGGLE_DATASET_ID'].strip()
+          _,slug=configured.split('/',1)
+          req=urllib.request.Request('https://www.kaggle.com/api/v1/oauth2/introspect',data=urllib.parse.urlencode({'token':token}).encode(),headers={'Content-Type':'application/x-www-form-urlencoded'},method='POST')
+          with urllib.request.urlopen(req,timeout=30) as r: data=json.load(r)
+          owner=(data.get('username') or '').strip()
+          if not data.get('active') or not owner: raise SystemExit('inactive Kaggle token')
+          dataset=f'{owner}/{slug}'
+          kernel=f'{owner}/c3-cori-network-env-probe'
+          Path('probe').mkdir(exist_ok=True)
+          Path('probe/probe.py').write_text(r'''import ctypes.util
+import importlib.metadata as md
+import json
+import shutil
+import socket
+import subprocess
+import sys
+import urllib.request
+from pathlib import Path
+
+print('C3_PROBE_SCHEMA=kaggle-api-network-env-v1')
+print('C3_PROBE_PYTHON='+sys.version.replace('\n',' '))
+for host in ['archive.ubuntu.com','security.ubuntu.com','pypi.org','github.com']:
+    try:
+        rows=socket.getaddrinfo(host,443,type=socket.SOCK_STREAM)
+        addrs=sorted({r[4][0] for r in rows})[:4]
+        print('C3_PROBE_DNS',host,'PASS',addrs)
+    except Exception as e:
+        print('C3_PROBE_DNS',host,'FAIL',type(e).__name__,str(e)[:300])
+for url in ['https://pypi.org/simple/','https://github.com/']:
+    try:
+        with urllib.request.urlopen(url,timeout=8) as r:
+            print('C3_PROBE_HTTP',url,'PASS',getattr(r,'status',None))
+    except Exception as e:
+        print('C3_PROBE_HTTP',url,'FAIL',type(e).__name__,str(e)[:300])
+for command in ['espeak-ng','espeak','ffmpeg','git','gcc','g++']:
+    print('C3_PROBE_BIN',command,shutil.which(command) or 'MISSING')
+for lib in ['espeak-ng','espeak','sndfile']:
+    print('C3_PROBE_LIB',lib,ctypes.util.find_library(lib) or 'MISSING')
+for pkg in ['torch','torchaudio','torchvision','lightning','pytorch-lightning','phonemizer','librosa','soundfile','numpy','scipy','hydra-core','omegaconf','einops']:
+    try: print('C3_PROBE_PKG',pkg,md.version(pkg))
+    except md.PackageNotFoundError: print('C3_PROBE_PKG',pkg,'MISSING')
+try:
+    import torch
+    print('C3_PROBE_TORCH',json.dumps({'version':torch.__version__,'cuda_version':torch.version.cuda,'cuda_available':torch.cuda.is_available()}))
+except Exception as e:
+    print('C3_PROBE_TORCH_IMPORT_FAIL',type(e).__name__,str(e)[:500])
+for pkg in ['espeak-ng','ffmpeg','libsndfile1','git','build-essential']:
+    p=subprocess.run(['dpkg-query','-W','-f=${Status} ${Version}',pkg],text=True,capture_output=True)
+    value=(p.stdout or p.stderr).strip().replace('\n',' ')[:500]
+    print('C3_PROBE_DPKG',pkg,p.returncode,value)
+resolv=Path('/etc/resolv.conf')
+if resolv.exists():
+    safe=[]
+    for line in resolv.read_text(encoding='utf-8',errors='replace').splitlines():
+        line=line.strip()
+        if line.startswith(('nameserver ','options ','search ')): safe.append(line)
+    print('C3_PROBE_RESOLV',safe[:20])
+print('C3_PROBE_DONE')
+''',encoding='utf-8')
+          meta={
+              'id':kernel,
+              'title':'C3 Cori Network Env Probe',
+              'code_file':'probe.py',
+              'language':'python',
+              'kernel_type':'script',
+              'is_private':True,
+              'enable_gpu':False,
+              'enable_internet':True,
+              'dataset_sources':[dataset],
+              'competition_sources':[],
+              'kernel_sources':[],
+              'model_sources':[],
+          }
+          Path('probe/kernel-metadata.json').write_text(json.dumps(meta,indent=2)+'\n',encoding='utf-8')
+          Path('kernel-id.txt').write_text(kernel+'\n',encoding='utf-8')
+          print('C3_PROBE_BUILD_PASS')
+          PY
+      - name: Push CPU probe only
+        run: kaggle kernels push -p probe -t 600
+      - name: Wait terminal and save sanitized diagnostics
+        shell: bash
+        run: |
+          set -euo pipefail
+          K=$(cat kernel-id.txt)
+          STATUS=UNKNOWN
+          for i in $(seq 1 60); do
+            O=$(kaggle kernels status "$K" 2>&1 || true)
+            echo "C3_PROBE_STATUS ${O##*status }"
+            if echo "$O" | grep -q 'KernelWorkerStatus.COMPLETE'; then STATUS=COMPLETE; break; fi
+            if echo "$O" | grep -Eq 'KernelWorkerStatus\.(ERROR|FAILED|CANCELLED|CANCELED)'; then STATUS=ERROR; break; fi
+            sleep 10
+          done
+          rm -rf probe_out; mkdir probe_out
+          kaggle kernels output "$K" -p probe_out --force || true
+          mkdir -p ops
+          PROBE_STATUS="$STATUS" python - <<'PY'
+          from pathlib import Path
+          import json, os
+          out=[]
+          for p in Path('probe_out').rglob('*.log'):
+              text=p.read_text(encoding='utf-8',errors='replace')
+              try:
+                  rows=json.loads(text)
+              except Exception:
+                  rows=None
+              if isinstance(rows,list):
+                  for row in rows:
+                      data=str(row.get('data',''))
+                      for line in data.splitlines():
+                          if line.startswith('C3_PROBE_'):
+                              out.append(line)
+              else:
+                  for line in text.splitlines():
+                      if 'C3_PROBE_' in line:
+                          out.append(line.strip())
+          header=[
+              '# Kaggle API CPU network/environment probe',
+              '',
+              'This file is sanitized operational output. No credentials, private paths, audio, or model bytes are recorded.',
+              '',
+              'terminal_status: '+os.environ.get('PROBE_STATUS','UNKNOWN'),
+              '',
+              '```text',
+          ]
+          Path('ops/kaggle-network-probe-latest.txt').write_text('\n'.join(header+out+['```',''])+'\n',encoding='utf-8')
+          print('\n'.join(out))
+          PY
+      - name: Commit sanitized probe result to branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add ops/kaggle-network-probe-latest.txt
+          if git diff --cached --quiet; then
+            echo C3_PROBE_RESULT_UNCHANGED
+            exit 0
+          fi
+          git commit -m 'Record Kaggle CPU network probe result'
+          git push origin HEAD:feat/kaggle-p100-port
+      - name: Cleanup
+        if: always()
+        run: rm -rf probe probe_out kernel-id.txt
