@@ -19,6 +19,7 @@ MATCHA = WORK / "Matcha-TTS"
 OUTPUT = WORK / "c3-cori-kaggle-runs"
 PRIVATE_STAGE = WORK / "c3-cori-private-input"
 E280_SHA256 = "081cf4012a4087f437b8bf2fa0a115da931c5aff26fe22a67acb4f25707cb7a9"
+TARGET_NAMES = {"checkpoint_epoch=279.ckpt", "c3-cori-base.zip", "c3-cori-e280.zip"}
 
 
 def run(cmd: list[str], *, cwd: Path | None = None) -> None:
@@ -54,14 +55,6 @@ def safe_extract_zip(archive: Path, destination: Path) -> None:
 
 
 def walk_input_followlinks() -> tuple[list[Path], list[Path], list[Path], list[str]]:
-    """Walk Kaggle's provider mount including directory symlinks.
-
-    pathlib.Path.rglob() deliberately does not recurse through directory symlinks
-    by default on the Python used by Kaggle. Current Kaggle inputs expose an
-    extra `datasets` mount layer which may contain provider-managed symlinked
-    directories, so use os.walk(..., followlinks=True) and collect only the
-    three filenames needed by this experiment.
-    """
     checkpoints: list[Path] = []
     base_zips: list[Path] = []
     e280_zips: list[Path] = []
@@ -86,8 +79,11 @@ def walk_input_followlinks() -> tuple[list[Path], list[Path], list[Path], list[s
                 rel = str(base_path.relative_to(INPUT)) or "."
             except ValueError:
                 rel = str(base_path)
-            # Only operational mount names are reported; never read file contents.
-            tree.append(f"{rel}:dirs={dirs[:12]}:files={files[:20]}:islink={base_path.is_symlink()}")
+            # Never print source-audio filenames into public orchestration logs.
+            targets = [name for name in files if name in TARGET_NAMES]
+            tree.append(
+                f"{rel}:dirs={dirs[:12]}:file_count={len(files)}:target_files={targets}:islink={base_path.is_symlink()}"
+            )
 
         for name in files:
             p = base_path / name
@@ -101,9 +97,72 @@ def walk_input_followlinks() -> tuple[list[Path], list[Path], list[Path], list[s
     return sorted(set(checkpoints)), sorted(set(base_zips)), sorted(set(e280_zips)), tree
 
 
+def stage_split_expanded_mount(checkpoints: list[Path]) -> Path | None:
+    """Normalize Kaggle's auto-expanded two-archive mount without copying data.
+
+    Kaggle currently expands `c3-cori-base.zip` under a `c3-cori-base/` directory
+    and `c3-cori-e280.zip` under a separate `c3-cori-e280/` directory. Build the
+    unified layout expected by the frozen continuation code using ephemeral
+    symlinks in /kaggle/working.
+    """
+    candidates: list[tuple[Path, Path]] = []
+    for checkpoint in checkpoints:
+        if checkpoint.name != "checkpoint_epoch=279.ckpt":
+            continue
+        e280_dir = checkpoint.parent
+        for ancestor in checkpoint.parents:
+            if ancestor == INPUT.parent:
+                break
+            base_dir = ancestor / "c3-cori-base"
+            if (
+                (base_dir / "c3-cori-handoff").is_dir()
+                and (base_dir / "c3-cori-dataset").is_dir()
+            ):
+                candidates.append((base_dir, e280_dir))
+                break
+
+    # Deduplicate by resolved paths.
+    unique: dict[tuple[str, str], tuple[Path, Path]] = {}
+    for base_dir, e280_dir in candidates:
+        key = (str(base_dir.resolve()), str(e280_dir.resolve()))
+        unique[key] = (base_dir, e280_dir)
+    pairs = list(unique.values())
+    if not pairs:
+        return None
+    if len(pairs) != 1:
+        raise RuntimeError(f"multiple split-expanded private C3 mounts found: {len(pairs)}")
+
+    base_dir, e280_dir = pairs[0]
+    checkpoint = e280_dir / "checkpoint_epoch=279.ckpt"
+    actual_sha = sha256_file(checkpoint)
+    if actual_sha != E280_SHA256:
+        raise RuntimeError(f"split-expanded E280 SHA mismatch: {actual_sha}")
+
+    if PRIVATE_STAGE.exists() or PRIVATE_STAGE.is_symlink():
+        if PRIVATE_STAGE.is_symlink() or PRIVATE_STAGE.is_file():
+            PRIVATE_STAGE.unlink()
+        else:
+            shutil.rmtree(PRIVATE_STAGE)
+    PRIVATE_STAGE.mkdir(parents=True, exist_ok=True)
+    (PRIVATE_STAGE / "c3-cori-handoff").symlink_to(
+        (base_dir / "c3-cori-handoff").resolve(), target_is_directory=True
+    )
+    (PRIVATE_STAGE / "c3-cori-dataset").symlink_to(
+        (base_dir / "c3-cori-dataset").resolve(), target_is_directory=True
+    )
+    (PRIVATE_STAGE / "c3-cori-e280").symlink_to(e280_dir.resolve(), target_is_directory=True)
+
+    if not is_private_root(PRIVATE_STAGE):
+        raise RuntimeError("split-expanded mount staging did not produce required unified structure")
+    print("C3_KAGGLE_PRIVATE_INPUT_LAYOUT=split_expanded", flush=True)
+    print("C3_KAGGLE_PRIVATE_INPUT_SHA_PASS", flush=True)
+    return PRIVATE_STAGE
+
+
 def discover_private_input() -> Path:
     checkpoints, base_zips, e280_zips, tree = walk_input_followlinks()
 
+    # Legacy/unified expanded layout.
     direct_hits: list[Path] = []
     for checkpoint in checkpoints:
         root = checkpoint.parent.parent
@@ -115,10 +174,18 @@ def discover_private_input() -> Path:
         if sha256_file(checkpoint) != E280_SHA256:
             raise RuntimeError("attached E280 checkpoint SHA mismatch")
         print("C3_KAGGLE_PRIVATE_INPUT_LAYOUT=expanded", flush=True)
+        print("C3_KAGGLE_PRIVATE_INPUT_SHA_PASS", flush=True)
         return direct_hits[0]
     if len(direct_hits) > 1:
         raise RuntimeError(f"multiple expanded private C3 inputs found: {len(direct_hits)}")
 
+    # Current Kaggle behavior: each uploaded ZIP is auto-expanded into its own
+    # sibling directory under the private Dataset mount.
+    split = stage_split_expanded_mount(checkpoints)
+    if split is not None:
+        return split
+
+    # Fallback for providers that mount the ZIP files verbatim.
     pairs = [(base, e280) for base in base_zips for e280 in e280_zips if base.parent == e280.parent]
     if len(pairs) != 1:
         print("C3_KAGGLE_INPUT_TREE_BEGIN", flush=True)
@@ -127,8 +194,7 @@ def discover_private_input() -> Path:
         print("C3_KAGGLE_INPUT_TREE_END", flush=True)
         raise RuntimeError(
             "expected exactly one attached private C3 input; "
-            f"expanded_hits=0 archive_pairs={len(pairs)} base_zips={len(base_zips)} "
-            f"e280_zips={len(e280_zips)}"
+            f"expanded_hits=0 archive_pairs={len(pairs)} base_zips={len(base_zips)} e280_zips={len(e280_zips)}"
         )
 
     base_zip, e280_zip = pairs[0]
@@ -136,9 +202,7 @@ def discover_private_input() -> Path:
         shutil.rmtree(PRIVATE_STAGE)
     PRIVATE_STAGE.mkdir(parents=True, exist_ok=True)
     print("C3_KAGGLE_PRIVATE_INPUT_LAYOUT=archived", flush=True)
-    print("C3_KAGGLE_PRIVATE_INPUT_EXTRACT_BASE_BEGIN", flush=True)
     safe_extract_zip(base_zip, PRIVATE_STAGE)
-    print("C3_KAGGLE_PRIVATE_INPUT_EXTRACT_E280_BEGIN", flush=True)
     safe_extract_zip(e280_zip, PRIVATE_STAGE)
 
     if not is_private_root(PRIVATE_STAGE):
@@ -148,6 +212,7 @@ def discover_private_input() -> Path:
     if actual_sha != E280_SHA256:
         raise RuntimeError(f"extracted E280 SHA mismatch: {actual_sha}")
     print("C3_KAGGLE_PRIVATE_INPUT_EXTRACT_PASS", flush=True)
+    print("C3_KAGGLE_PRIVATE_INPUT_SHA_PASS", flush=True)
     return PRIVATE_STAGE
 
 
@@ -233,7 +298,7 @@ def main() -> None:
 
     elapsed = time.monotonic() - started
     report = {
-        "schema": "c3-cori-kaggle-t4-benchmark-wrapper-v3",
+        "schema": "c3-cori-kaggle-t4-benchmark-wrapper-v4",
         "finished_at_utc": datetime.now(timezone.utc).isoformat(),
         "ok": True,
         "wall_seconds_including_environment_setup": elapsed,
