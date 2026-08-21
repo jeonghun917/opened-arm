@@ -1,4 +1,4 @@
-# Retry 2: tolerate Lightning persistence delay for the 4.3 GB private base bundle.
+# Retry 3: robust Studio transition handling + persisted 4.3 GB bundle reuse.
 name: Cori Kaggle Execute Once
 
 on:
