@@ -7,14 +7,13 @@ on:
     paths:
       - '.github/workflows/cori-kaggle-input-mount-probe-once.yml'
       - 'ops/cori-kaggle-t4-benchmark.md'
-  workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   probe:
-    if: github.event_name == 'workflow_dispatch' || (github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'feat/kaggle-p100-port')
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'feat/kaggle-p100-port'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:
@@ -22,6 +21,8 @@ jobs:
       KAGGLE_DATASET_ID: ${{ secrets.KAGGLE_DATASET_ID }}
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.head_ref }}
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
@@ -114,27 +115,67 @@ print('C3_PROBE_DONE')
           PY
       - name: Push CPU probe only
         run: kaggle kernels push -p probe -t 600
-      - name: Wait terminal and print sanitized diagnostics
+      - name: Wait terminal and save sanitized diagnostics
         shell: bash
         run: |
           set -euo pipefail
           K=$(cat kernel-id.txt)
+          STATUS=UNKNOWN
           for i in $(seq 1 60); do
             O=$(kaggle kernels status "$K" 2>&1 || true)
             echo "C3_PROBE_STATUS ${O##*status }"
-            if echo "$O" | grep -Eq 'KernelWorkerStatus\.(COMPLETE|ERROR|FAILED|CANCELLED|CANCELED)'; then break; fi
+            if echo "$O" | grep -q 'KernelWorkerStatus.COMPLETE'; then STATUS=COMPLETE; break; fi
+            if echo "$O" | grep -Eq 'KernelWorkerStatus\.(ERROR|FAILED|CANCELLED|CANCELED)'; then STATUS=ERROR; break; fi
             sleep 10
           done
           rm -rf probe_out; mkdir probe_out
           kaggle kernels output "$K" -p probe_out --force || true
-          python - <<'PY'
+          mkdir -p ops
+          PROBE_STATUS="$STATUS" python - <<'PY'
           from pathlib import Path
+          import json, os
+          out=[]
           for p in Path('probe_out').rglob('*.log'):
               text=p.read_text(encoding='utf-8',errors='replace')
-              for line in text.splitlines():
-                  if 'C3_PROBE_' in line or 'Traceback' in line or 'RuntimeError' in line:
-                      print(line[:3000])
+              try:
+                  rows=json.loads(text)
+              except Exception:
+                  rows=None
+              if isinstance(rows,list):
+                  for row in rows:
+                      data=str(row.get('data',''))
+                      for line in data.splitlines():
+                          if line.startswith('C3_PROBE_'):
+                              out.append(line)
+              else:
+                  for line in text.splitlines():
+                      if 'C3_PROBE_' in line:
+                          out.append(line.strip())
+          header=[
+              '# Kaggle API CPU network/environment probe',
+              '',
+              'This file is sanitized operational output. No credentials, private paths, audio, or model bytes are recorded.',
+              '',
+              'terminal_status: '+os.environ.get('PROBE_STATUS','UNKNOWN'),
+              '',
+              '```text',
+          ]
+          Path('ops/kaggle-network-probe-latest.txt').write_text('\n'.join(header+out+['```',''])+'\n',encoding='utf-8')
+          print('\n'.join(out))
           PY
+      - name: Commit sanitized probe result to branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add ops/kaggle-network-probe-latest.txt
+          if git diff --cached --quiet; then
+            echo C3_PROBE_RESULT_UNCHANGED
+            exit 0
+          fi
+          git commit -m 'Record Kaggle CPU network probe result'
+          git push origin HEAD:feat/kaggle-p100-port
       - name: Cleanup
         if: always()
         run: rm -rf probe probe_out kernel-id.txt
