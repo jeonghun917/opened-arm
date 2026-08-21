@@ -1,0 +1,9 @@
+# Kaggle API CPU network/environment probe
+
+Sanitized operational output; no credentials or private model/audio data.
+
+terminal_status: ERROR
+
+```text
+```
+
