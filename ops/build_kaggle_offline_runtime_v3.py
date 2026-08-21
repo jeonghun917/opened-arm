@@ -10,6 +10,10 @@ from pathlib import Path
 
 import build_kaggle_offline_runtime as base
 
+# Keep stable references before monkey-patching base.main() hooks. Without this,
+# publish_runtime_v3() recursively calls itself after base.publish_runtime is replaced.
+BASE_PUBLISH_RUNTIME = base.publish_runtime
+
 
 def sha256_file(path: Path) -> str:
     h = hashlib.sha256()
@@ -75,7 +79,6 @@ def wait_for_exact_runtime_archive(runtime_id: str) -> None:
                 local_archive.name,
                 "-p",
                 str(verify_root),
-                "--unzip",
                 "-o",
                 "-q",
             ],
@@ -96,7 +99,7 @@ def wait_for_exact_runtime_archive(runtime_id: str) -> None:
 
 
 def publish_runtime_v3(owner: str) -> str:
-    runtime_id = base.publish_runtime(owner)
+    runtime_id = BASE_PUBLISH_RUNTIME(owner)
     wait_for_exact_runtime_archive(runtime_id)
     return runtime_id
 
