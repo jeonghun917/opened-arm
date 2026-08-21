@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import ctypes.util
 import hashlib
 import json
 import os
@@ -25,6 +26,32 @@ TARGET_NAMES = {"checkpoint_epoch=279.ckpt", "c3-cori-base.zip", "c3-cori-e280.z
 def run(cmd: list[str], *, cwd: Path | None = None) -> None:
     print("+", " ".join(cmd), flush=True)
     subprocess.run(cmd, cwd=str(cwd) if cwd else None, check=True)
+
+
+def run_retry(
+    cmd: list[str],
+    *,
+    cwd: Path | None = None,
+    attempts: int = 4,
+    delay_seconds: int = 15,
+) -> None:
+    last_error: subprocess.CalledProcessError | None = None
+    for attempt in range(1, attempts + 1):
+        try:
+            run(cmd, cwd=cwd)
+            return
+        except subprocess.CalledProcessError as exc:
+            last_error = exc
+            if attempt == attempts:
+                break
+            print(
+                f"C3_KAGGLE_RETRY attempt={attempt}/{attempts} rc={exc.returncode} "
+                f"sleep={delay_seconds}s",
+                flush=True,
+            )
+            time.sleep(delay_seconds)
+    assert last_error is not None
+    raise last_error
 
 
 def sha256_file(path: Path) -> str:
@@ -216,16 +243,66 @@ def discover_private_input() -> Path:
     return PRIVATE_STAGE
 
 
+def missing_system_packages() -> list[str]:
+    package_commands = {
+        "git": ["git"],
+        "build-essential": ["gcc", "g++", "make"],
+        "espeak-ng": ["espeak-ng"],
+        "ffmpeg": ["ffmpeg"],
+    }
+    missing: list[str] = []
+    for package, commands in package_commands.items():
+        if any(shutil.which(command) is None for command in commands):
+            missing.append(package)
+    if ctypes.util.find_library("sndfile") is None:
+        missing.append("libsndfile1")
+    return sorted(set(missing))
+
+
+def ensure_system_dependencies() -> None:
+    missing = missing_system_packages()
+    if not missing:
+        print("C3_KAGGLE_SYSTEM_DEPS_PREINSTALLED=true", flush=True)
+        return
+
+    print("C3_KAGGLE_SYSTEM_DEPS_MISSING=" + ",".join(missing), flush=True)
+    apt_base = [
+        "apt-get",
+        "-o",
+        "Acquire::Retries=3",
+        "-o",
+        "Acquire::http::Timeout=20",
+        "-o",
+        "Acquire::https::Timeout=20",
+    ]
+    run_retry(apt_base + ["update", "-qq"], attempts=3, delay_seconds=20)
+    run_retry(
+        apt_base + ["install", "-y", "-qq", "--no-install-recommends", *missing],
+        attempts=3,
+        delay_seconds=20,
+    )
+    remaining = missing_system_packages()
+    if remaining:
+        raise RuntimeError("system dependencies still missing after apt install: " + ",".join(remaining))
+    print("C3_KAGGLE_SYSTEM_DEPS_READY=true", flush=True)
+
+
 def install_environment() -> None:
-    run(["apt-get", "update", "-qq"])
-    run(["apt-get", "install", "-y", "-qq", "git", "build-essential", "espeak-ng", "ffmpeg", "libsndfile1"])
-    run(
+    # Do not spend GPU time hitting Ubuntu mirrors unless the current Kaggle image
+    # is actually missing a required system dependency. Previous runs died only
+    # because archive.ubuntu.com DNS resolution failed during unconditional apt.
+    ensure_system_dependencies()
+    run_retry(
         [
             sys.executable,
             "-m",
             "pip",
             "install",
             "--quiet",
+            "--retries",
+            "8",
+            "--timeout",
+            "30",
             "--upgrade",
             "--force-reinstall",
             "torch==2.5.1",
@@ -233,14 +310,35 @@ def install_environment() -> None:
             "torchvision==0.20.1",
             "--index-url",
             "https://download.pytorch.org/whl/cu121",
-        ]
+        ],
+        attempts=3,
+        delay_seconds=20,
     )
     if MATCHA.exists():
         shutil.rmtree(MATCHA)
-    run(["git", "clone", "--quiet", MATCHA_REPO, str(MATCHA)])
+    run_retry(["git", "clone", "--quiet", MATCHA_REPO, str(MATCHA)], attempts=3, delay_seconds=20)
     run(["git", "checkout", "--detach", MATCHA_COMMIT], cwd=MATCHA)
-    run([sys.executable, "-m", "pip", "install", "--quiet", "-e", str(MATCHA)])
-    run([sys.executable, "-m", "pip", "install", "--quiet", "lightning==2.6.5"])
+    run_retry(
+        [sys.executable, "-m", "pip", "install", "--quiet", "--retries", "8", "--timeout", "30", "-e", str(MATCHA)],
+        attempts=3,
+        delay_seconds=20,
+    )
+    run_retry(
+        [
+            sys.executable,
+            "-m",
+            "pip",
+            "install",
+            "--quiet",
+            "--retries",
+            "8",
+            "--timeout",
+            "30",
+            "lightning==2.6.5",
+        ],
+        attempts=3,
+        delay_seconds=20,
+    )
 
 
 def environment_report() -> dict:
@@ -298,7 +396,7 @@ def main() -> None:
 
     elapsed = time.monotonic() - started
     report = {
-        "schema": "c3-cori-kaggle-t4-benchmark-wrapper-v4",
+        "schema": "c3-cori-kaggle-t4-benchmark-wrapper-v5",
         "finished_at_utc": datetime.now(timezone.utc).isoformat(),
         "ok": True,
         "wall_seconds_including_environment_setup": elapsed,
