@@ -15,55 +15,30 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
-      - name: Probe anonymous write routes
+      - name: Probe and persist anonymous write-route evidence
         shell: bash
         run: |
           set -euo pipefail
           base="https://dashboard-control-center.vercel.app"
-          gh_code="$(curl --silent --show-error --output /tmp/github-body --write-out '%{http_code}' \
-            --request POST \
-            --header 'content-type: application/json' \
-            --header 'x-idempotency-key: anonymous-production-probe-github' \
+          gh_code="$(curl -sS -o /dev/null -w '%{http_code}' -X POST \
+            -H 'content-type: application/json' \
+            -H 'x-idempotency-key: anonymous-production-probe-github' \
             --data '{"repo":"jeonghun917/dashboard-control-center","type":"rerun_failed","runId":1}' \
             "$base/api/github/action")"
-          li_code="$(curl --silent --show-error --output /tmp/lightning-body --write-out '%{http_code}' \
-            --request POST \
-            --header 'content-type: application/json' \
-            --header 'x-idempotency-key: anonymous-production-probe-lightning' \
+          li_code="$(curl -sS -o /dev/null -w '%{http_code}' -X POST \
+            -H 'content-type: application/json' \
+            -H 'x-idempotency-key: anonymous-production-probe-lightning' \
             --data '{"type":"stop_job","jobName":"probe"}' \
             "$base/api/lightning/action")"
           test "$gh_code" = 401
           test "$li_code" = 401
-          python - <<'PY'
-          import json, os
-          payload = {
-              "githubActionAnonymousStatus": os.environ["GH_CODE"],
-              "lightningActionAnonymousStatus": os.environ["LI_CODE"],
-              "expected": "401",
-              "runId": os.environ.get("GITHUB_RUN_ID", ""),
-          }
-          os.makedirs("ops", exist_ok=True)
-          with open("ops/dashboard-auth-production-probe.json", "w", encoding="utf-8") as f:
-              json.dump(payload, f, indent=2)
-              f.write("\n")
-          PY
-        env:
-          GH_CODE: "${{ steps.codes.outputs.gh_code }}"
-          LI_CODE: "${{ steps.codes.outputs.li_code }}"
-      - name: Persist evidence
-        if: success()
-        shell: bash
-        run: |
-          set -euo pipefail
-          # Re-probe only to capture codes for evidence in a simple, deterministic way.
-          base="https://dashboard-control-center.vercel.app"
-          gh_code="$(curl -sS -o /dev/null -w '%{http_code}' -X POST -H 'content-type: application/json' -H 'x-idempotency-key: anonymous-production-probe-github-2' --data '{"repo":"jeonghun917/dashboard-control-center","type":"rerun_failed","runId":1}' "$base/api/github/action")"
-          li_code="$(curl -sS -o /dev/null -w '%{http_code}' -X POST -H 'content-type: application/json' -H 'x-idempotency-key: anonymous-production-probe-lightning-2' --data '{"type":"stop_job","jobName":"probe"}' "$base/api/lightning/action")"
-          test "$gh_code" = 401
-          test "$li_code" = 401
+          mkdir -p ops
           printf '{\n  "githubActionAnonymousStatus": "%s",\n  "lightningActionAnonymousStatus": "%s",\n  "expected": "401",\n  "runId": "%s"\n}\n' "$gh_code" "$li_code" "$GITHUB_RUN_ID" > ops/dashboard-auth-production-probe.json
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git pull --rebase origin main
           git add ops/dashboard-auth-production-probe.json
-          git commit -m "Record dashboard auth production probe"
-          git push
+          if ! git diff --cached --quiet; then
+            git commit -m "Record dashboard auth production probe"
+            git push
+          fi
