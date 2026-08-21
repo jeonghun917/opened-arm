@@ -1,0 +1,263 @@
+name: ARS BELLUM B013 Public Diagnostic
+
+on:
+  push:
+    branches:
+      - 'ars-bellum/validation-control'
+    paths:
+      - 'ops/ars-bellum-b013-diagnostic-target.txt'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ars-bellum-b013-diagnostic
+  cancel-in-progress: false
+
+jobs:
+  diagnose:
+    name: diagnose-b013-private-exact-sha
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: ars-bellum-validation
+
+    steps:
+      - name: Checkout public control plane
+        uses: actions/checkout@v4
+        with:
+          path: control
+          persist-credentials: false
+          fetch-depth: 1
+
+      - name: Resolve diagnostic target
+        id: target
+        shell: bash
+        run: |
+          set -euo pipefail
+          file='control/ops/ars-bellum-b013-diagnostic-target.txt'
+          target_sha="$(awk -F= '$1=="target_sha" {print $2}' "$file" | tr -d '[:space:]')"
+          expected_tree="$(awk -F= '$1=="expected_source_tree" {print $2}' "$file" | tr -d '[:space:]')"
+          expected_m2_blob="$(awk -F= '$1=="expected_m2_workflow_blob" {print $2}' "$file" | tr -d '[:space:]')"
+          request_id="$(awk -F= '$1=="request_id" {print $2}' "$file" | tr -d '[:space:]')"
+          [[ "$target_sha" =~ ^[0-9a-f]{40}$ ]]
+          [[ "$expected_tree" =~ ^[0-9a-f]{40}$ ]]
+          [[ "$expected_m2_blob" =~ ^[0-9a-f]{40}$ ]]
+          [[ "$request_id" =~ ^[A-Za-z0-9._-]{1,80}$ ]]
+          echo "target_sha=$target_sha" >> "$GITHUB_OUTPUT"
+          echo "expected_tree=$expected_tree" >> "$GITHUB_OUTPUT"
+          echo "expected_m2_blob=$expected_m2_blob" >> "$GITHUB_OUTPUT"
+          echo "request_id=$request_id" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout exact private ARS BELLUM SHA
+        uses: actions/checkout@v4
+        with:
+          repository: jeonghun917/ars-bellum
+          ref: ${{ steps.target.outputs.target_sha }}
+          token: ${{ secrets.ARS_BELLUM_READ_TOKEN }}
+          path: source
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Verify exact source identity
+        id: identity
+        working-directory: source
+        shell: bash
+        env:
+          TARGET_SHA: ${{ steps.target.outputs.target_sha }}
+          EXPECTED_TREE: ${{ steps.target.outputs.expected_tree }}
+          EXPECTED_M2_BLOB: ${{ steps.target.outputs.expected_m2_blob }}
+        run: |
+          set -euo pipefail
+          actual_sha="$(git rev-parse HEAD)"
+          actual_tree="$(git rev-parse 'HEAD^{tree}')"
+          actual_m2_blob="$(git ls-tree HEAD -- .github/workflows/m2-verify.yml | awk '{print $3}')"
+          test "$actual_sha" = "$TARGET_SHA"
+          test "$actual_tree" = "$EXPECTED_TREE"
+          test "$actual_m2_blob" = "$EXPECTED_M2_BLOB"
+          test -z "$(git status --porcelain)"
+          if git config --local --get-regexp '^http\..*\.extraheader$' >/dev/null 2>&1; then exit 13; fi
+          echo "actual_sha=$actual_sha" >> "$GITHUB_OUTPUT"
+          echo "actual_tree=$actual_tree" >> "$GITHUB_OUTPUT"
+          echo "m2_workflow_blob=$actual_m2_blob" >> "$GITHUB_OUTPUT"
+
+      - name: Extract exact private browser verification bodies
+        shell: bash
+        env:
+          SOURCE_WORKFLOW: ${{ github.workspace }}/source/.github/workflows/m2-verify.yml
+        run: |
+          set -euo pipefail
+          out="$RUNNER_TEMP/ars-b013-private-runs"
+          mkdir -p "$out"
+          python3 - "$SOURCE_WORKFLOW" "$out" <<'PY'
+          import re, sys, textwrap
+          from pathlib import Path
+          source, out = Path(sys.argv[1]), Path(sys.argv[2])
+          wanted = {
+              "Guard artifact-only run evidence": "guard.sh",
+              "Initialize run-bound identity": "initialize.sh",
+              "Verify actual m2_prototype Chrome WebGL2": "browser.sh",
+              "Enforce browser PASS gate": "browser-gate.sh",
+          }
+          lines = source.read_text(encoding="utf-8").splitlines()
+          starts=[]
+          for i,line in enumerate(lines):
+              m=re.match(r"^\s{6}- name:\s*(.+?)\s*$", line)
+              if m: starts.append((i,m.group(1)))
+          found=set()
+          for pos,(start,name) in enumerate(starts):
+              if name not in wanted: continue
+              end=starts[pos+1][0] if pos+1 < len(starts) else len(lines)
+              section=lines[start:end]
+              runs=[i for i,line in enumerate(section) if line.strip()=="run: |"]
+              if len(runs)!=1: raise SystemExit(f"run-block resolution failed:{name}:{len(runs)}")
+              body=textwrap.dedent("\n".join(section[runs[0]+1:])).rstrip()+"\n"
+              (out/wanted[name]).write_text(body,encoding="utf-8")
+              found.add(name)
+          missing=sorted(set(wanted)-found)
+          if missing: raise SystemExit("missing:"+",".join(missing))
+          PY
+
+      - name: Guard private evidence workspace
+        id: guard
+        working-directory: source
+        continue-on-error: true
+        shell: bash
+        run: bash "$RUNNER_TEMP/ars-b013-private-runs/guard.sh" > "$RUNNER_TEMP/ars-b013-guard.log" 2>&1
+
+      - name: Initialize private run-bound identity
+        id: initialize
+        working-directory: source
+        continue-on-error: true
+        shell: bash
+        run: bash "$RUNNER_TEMP/ars-b013-private-runs/initialize.sh" > "$RUNNER_TEMP/ars-b013-init.log" 2>&1
+
+      - name: Run exact private Chrome WebGL2 browser verification
+        id: browser
+        working-directory: source
+        continue-on-error: true
+        shell: bash
+        run: bash "$RUNNER_TEMP/ars-b013-private-runs/browser.sh" > "$RUNNER_TEMP/ars-b013-browser.log" 2>&1
+
+      - name: Run exact private browser PASS gate
+        id: gate
+        working-directory: source
+        continue-on-error: true
+        shell: bash
+        run: bash "$RUNNER_TEMP/ars-b013-private-runs/browser-gate.sh" > "$RUNNER_TEMP/ars-b013-gate.log" 2>&1
+
+      - name: Build sanitized B013 diagnostic evidence
+        id: evidence
+        if: always()
+        working-directory: source
+        shell: bash
+        env:
+          SOURCE_HEAD: ${{ steps.identity.outputs.actual_sha }}
+          SOURCE_TREE: ${{ steps.identity.outputs.actual_tree }}
+          M2_WORKFLOW_BLOB: ${{ steps.identity.outputs.m2_workflow_blob }}
+          REQUEST_ID: ${{ steps.target.outputs.request_id }}
+          GUARD_OUTCOME: ${{ steps.guard.outcome }}
+          INITIALIZE_OUTCOME: ${{ steps.initialize.outcome }}
+          BROWSER_OUTCOME: ${{ steps.browser.outcome }}
+          GATE_OUTCOME: ${{ steps.gate.outcome }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/ars-b013-diagnostic"
+          python3 - <<'PY'
+          import json, math, os
+          from pathlib import Path
+          def load(path):
+              try:
+                  value=json.loads(Path(path).read_text(encoding="utf-8"))
+                  return value if isinstance(value,dict) else {}
+              except Exception:
+                  return {}
+          def state(entry):
+              if not isinstance(entry,dict) or "pass" not in entry: return "NOT_TESTED"
+              return "PASS" if entry.get("pass") is True else "FAIL"
+          def point(value):
+              if not isinstance(value,dict): return None
+              out={}
+              for k in ("x","z"):
+                  v=value.get(k)
+                  if isinstance(v,(int,float)) and math.isfinite(v): out[k]=v
+              return out or None
+          def changed(a,b,eps=1e-4):
+              if not (isinstance(a,dict) and isinstance(b,dict)): return None
+              try: return math.hypot(float(a["x"])-float(b["x"]),float(a["z"])-float(b["z"])) > eps
+              except Exception: return None
+          browser=load("m2_ci_browser_verification_result.json")
+          raw=browser.get("rawResult") if isinstance(browser.get("rawResult"),dict) else {}
+          observations=raw.get("browserObservations") if isinstance(raw.get("browserObservations"),dict) else browser.get("browserObservations",{})
+          if not isinstance(observations,dict): observations={}
+          tests={f"M21-02-BROWSER-{i:03d}":state(observations.get(f"M21-02-BROWSER-{i:03d}")) for i in range(1,17)}
+          first_failed=next((k for k,v in tests.items() if v=="FAIL"),None)
+          entry=observations.get("M21-02-BROWSER-013") if isinstance(observations.get("M21-02-BROWSER-013"),dict) else {}
+          detail=entry.get("detail") if isinstance(entry.get("detail"),dict) else {}
+          p0=point(detail.get("rayTarget0")); pd=point(detail.get("rayTargetAfterDrag")); pp=point(detail.get("rayTargetAfterPinch"))
+          rb=detail.get("revisionBeforeTouchTactical"); ra=detail.get("revisionAfterTouchTactical")
+          payload={
+              "schema":1,
+              "authorityRole":"DIAGNOSTIC_EXECUTION_ONLY",
+              "sourceRepository":"jeonghun917/ars-bellum",
+              "sourceHead":os.environ.get("SOURCE_HEAD"),
+              "sourceTree":os.environ.get("SOURCE_TREE"),
+              "privateM2WorkflowBlob":os.environ.get("M2_WORKFLOW_BLOB"),
+              "executionRepository":os.environ.get("GITHUB_REPOSITORY"),
+              "executionRef":os.environ.get("GITHUB_REF"),
+              "workflowRunId":os.environ.get("GITHUB_RUN_ID"),
+              "workflowRunAttempt":os.environ.get("GITHUB_RUN_ATTEMPT"),
+              "requestId":os.environ.get("REQUEST_ID"),
+              "browserResult":browser.get("result","NOT_TESTED"),
+              "browserFailureCode":str(raw.get("error"))[:120] if raw.get("error") is not None else None,
+              "browserFirstFailedTest":first_failed,
+              "browserB001B016":tests,
+              "b013":tests["M21-02-BROWSER-013"],
+              "b013Detail":{
+                  "rayTarget0":p0,
+                  "rayTargetAfterDrag":pd,
+                  "rayTargetAfterPinch":pp,
+                  "dragChanged":changed(p0,pd),
+                  "pinchChanged":changed(pd,pp),
+                  "uiLeakageFree":detail.get("uiLeakage") if isinstance(detail.get("uiLeakage"),bool) else None,
+                  "revisionBeforeTouchTactical":rb if isinstance(rb,int) else None,
+                  "revisionAfterTouchTactical":ra if isinstance(ra,int) else None,
+                  "revisionDelta":ra-rb if isinstance(rb,int) and isinstance(ra,int) else None,
+                  "activePointerCount":detail.get("activePointerCount") if isinstance(detail.get("activePointerCount"),int) else None,
+              },
+              "errorCounts":{
+                  "parentErrors":len(raw.get("parentErrors",[])) if isinstance(raw.get("parentErrors"),list) else None,
+                  "parentRejections":len(raw.get("parentRejections",[])) if isinstance(raw.get("parentRejections"),list) else None,
+                  "frameErrors":len(raw.get("frameErrors",[])) if isinstance(raw.get("frameErrors"),list) else None,
+                  "frameRejections":len(raw.get("frameRejections",[])) if isinstance(raw.get("frameRejections"),list) else None,
+              },
+              "stepOutcomes":{
+                  "guard":os.environ.get("GUARD_OUTCOME"),
+                  "initialize":os.environ.get("INITIALIZE_OUTCOME"),
+                  "browser":os.environ.get("BROWSER_OUTCOME"),
+                  "browserGate":os.environ.get("GATE_OUTCOME"),
+              },
+              "publicDataPolicy":"SANITIZED_B013_RUNTIME_VALUES_ONLY_NO_SOURCE_NO_RAW_HARNESS_NO_RAW_LOGS",
+          }
+          out=Path(os.environ["RUNNER_TEMP"])/"ars-b013-diagnostic"/"b013-diagnostic-summary.json"
+          out.write_text(json.dumps(payload,indent=2)+"\n",encoding="utf-8")
+          print("B013_DIAGNOSTIC="+payload["b013"])
+          PY
+
+      - name: Upload sanitized B013 diagnostic evidence
+        id: artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ars-bellum-b013-diagnostic-${{ steps.target.outputs.target_sha }}-${{ github.run_id }}
+          path: ${{ runner.temp }}/ars-b013-diagnostic/b013-diagnostic-summary.json
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Enforce diagnostic completion
+        if: always()
+        shell: bash
+        env:
+          ARTIFACT_OUTCOME: ${{ steps.artifact.outcome }}
+        run: |
+          set -euo pipefail
+          test "$ARTIFACT_OUTCOME" = success
