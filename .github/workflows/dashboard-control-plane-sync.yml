@@ -1,4 +1,5 @@
 name: Dashboard Control Plane Sync
+# durable-inbox production verification pulse
 
 on:
   push:
@@ -29,7 +30,7 @@ jobs:
           script: |
             const token = await core.getIDToken('dashboard-control-center-scheduler');
             core.setSecret(token);
-            core.setOutput('token', token);
+            core.setOutput('token', token)
 
       - name: Refresh dashboard control plane
         shell: bash
