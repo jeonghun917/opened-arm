@@ -31,7 +31,7 @@ jobs:
           rm -rf probe probe_out
           mkdir probe
           python - <<'PY'
-          import json, os, urllib.parse, urllib.request
+          import json, os, textwrap, urllib.parse, urllib.request
           from pathlib import Path
           token=os.environ['KAGGLE_API_TOKEN']
           req=urllib.request.Request(
@@ -44,7 +44,8 @@ jobs:
           owner=(data.get('username') or '').strip()
           if not data.get('active') or not owner: raise SystemExit('inactive Kaggle token')
           kernel=f'{owner}/c3-cori-network-env-probe'
-          Path('probe/probe.py').write_text(r'''import ctypes.util
+          script=textwrap.dedent(r'''
+          import ctypes.util
           import importlib.metadata as md
           import json
           import platform
@@ -55,37 +56,37 @@ jobs:
           import urllib.request
           from pathlib import Path
 
-          print('C3_PROBE_SCHEMA=kaggle-api-network-env-v3')
-          print('C3_PROBE_PYTHON='+sys.version.replace('\\n',' '))
-          print('C3_PROBE_PLATFORM='+platform.platform())
+          print('C3_PROBE_SCHEMA=kaggle-api-network-env-v4', flush=True)
+          print('C3_PROBE_PYTHON='+sys.version.replace('\\n',' '), flush=True)
+          print('C3_PROBE_PLATFORM='+platform.platform(), flush=True)
           for host in ['archive.ubuntu.com','security.ubuntu.com','pypi.org','github.com','download.pytorch.org']:
               try:
                   rows=socket.getaddrinfo(host,443,type=socket.SOCK_STREAM)
-                  print('C3_PROBE_DNS',host,'PASS',sorted({r[4][0] for r in rows})[:4])
+                  print('C3_PROBE_DNS',host,'PASS',sorted({r[4][0] for r in rows})[:4], flush=True)
               except Exception as e:
-                  print('C3_PROBE_DNS',host,'FAIL',type(e).__name__,str(e)[:300])
+                  print('C3_PROBE_DNS',host,'FAIL',type(e).__name__,str(e)[:300], flush=True)
           for url in ['https://pypi.org/simple/','https://github.com/','https://download.pytorch.org/whl/cu121/']:
               try:
                   with urllib.request.urlopen(url,timeout=8) as r:
-                      print('C3_PROBE_HTTP',url,'PASS',getattr(r,'status',None))
+                      print('C3_PROBE_HTTP',url,'PASS',getattr(r,'status',None), flush=True)
               except Exception as e:
-                  print('C3_PROBE_HTTP',url,'FAIL',type(e).__name__,str(e)[:300])
+                  print('C3_PROBE_HTTP',url,'FAIL',type(e).__name__,str(e)[:300], flush=True)
           for command in ['espeak-ng','espeak','ffmpeg','git','gcc','g++','make']:
-              print('C3_PROBE_BIN',command,shutil.which(command) or 'MISSING')
+              print('C3_PROBE_BIN',command,shutil.which(command) or 'MISSING', flush=True)
           for lib in ['espeak-ng','espeak','sndfile']:
-              print('C3_PROBE_LIB',lib,ctypes.util.find_library(lib) or 'MISSING')
+              print('C3_PROBE_LIB',lib,ctypes.util.find_library(lib) or 'MISSING', flush=True)
           packages=['torch','torchaudio','torchvision','lightning','pytorch-lightning','torchmetrics','phonemizer','librosa','soundfile','numpy','scipy','hydra-core','hydra-colorlog','omegaconf','einops','cython','packaging','rootutils','rich','inflect','Unidecode','conformer','diffusers','pandas','matplotlib']
           for pkg in packages:
-              try: print('C3_PROBE_PKG',pkg,md.version(pkg))
-              except md.PackageNotFoundError: print('C3_PROBE_PKG',pkg,'MISSING')
+              try: print('C3_PROBE_PKG',pkg,md.version(pkg), flush=True)
+              except md.PackageNotFoundError: print('C3_PROBE_PKG',pkg,'MISSING', flush=True)
           try:
               import torch
-              print('C3_PROBE_TORCH',json.dumps({'version':torch.__version__,'cuda_version':torch.version.cuda,'cuda_available':torch.cuda.is_available()}))
+              print('C3_PROBE_TORCH',json.dumps({'version':torch.__version__,'cuda_version':torch.version.cuda,'cuda_available':torch.cuda.is_available()}), flush=True)
           except Exception as e:
-              print('C3_PROBE_TORCH_IMPORT_FAIL',type(e).__name__,str(e)[:500])
+              print('C3_PROBE_TORCH_IMPORT_FAIL',type(e).__name__,str(e)[:500], flush=True)
           for pkg in ['espeak-ng','espeak','ffmpeg','libsndfile1','git','build-essential']:
               p=subprocess.run(['dpkg-query','-W','-f=${Status} ${Version}',pkg],text=True,capture_output=True)
-              print('C3_PROBE_DPKG',pkg,p.returncode,(p.stdout or p.stderr).strip().replace('\\n',' ')[:500])
+              print('C3_PROBE_DPKG',pkg,p.returncode,(p.stdout or p.stderr).strip().replace('\\n',' ')[:500], flush=True)
           for p in ['/etc/os-release','/etc/resolv.conf']:
               q=Path(p)
               if q.exists():
@@ -95,9 +96,11 @@ jobs:
                       line=line.strip()
                       if p.endswith('os-release') or line.startswith(('nameserver ','options ','search ')):
                           safe.append(line)
-                  print('C3_PROBE_FILE',p,safe[:30])
-          print('C3_PROBE_DONE')
-          '''.replace('\n          ','\n').lstrip(), encoding='utf-8')
+                  print('C3_PROBE_FILE',p,safe[:30], flush=True)
+          print('C3_PROBE_DONE', flush=True)
+          ''').lstrip()
+          compile(script,'probe.py','exec')
+          Path('probe/probe.py').write_text(script,encoding='utf-8')
           meta={
               'id':kernel,
               'title':'C3 Cori Network Env Probe',
@@ -118,7 +121,7 @@ jobs:
           PY
       - name: Push CPU-only Kaggle kernel
         run: kaggle kernels push -p probe -t 600
-      - name: Wait and collect sanitized diagnostics
+      - name: Wait and collect diagnostics
         shell: bash
         run: |
           set -u
@@ -136,21 +139,27 @@ jobs:
           PROBE_STATUS="$STATUS" python - <<'PY'
           from pathlib import Path
           import json, os
-          out=[]
-          for p in Path('probe_out').rglob('*.log'):
+          lines=[]
+          for p in sorted(Path('probe_out').rglob('*')):
+              if not p.is_file(): continue
               text=p.read_text(encoding='utf-8',errors='replace')
+              lines.append('FILE '+p.name)
               try: rows=json.loads(text)
               except Exception: rows=None
               if isinstance(rows,list):
+                  raw=[]
                   for row in rows:
-                      for line in str(row.get('data','')).splitlines():
-                          if line.startswith('C3_PROBE_'): out.append(line)
+                      data=str(row.get('data',''))
+                      raw.extend(data.splitlines())
               else:
-                  for line in text.splitlines():
-                      if 'C3_PROBE_' in line: out.append(line.strip())
-          body=['# Kaggle API CPU network/environment probe','', 'Sanitized operational output; no credentials or private model/audio data.','', 'terminal_status: '+os.environ.get('PROBE_STATUS','UNKNOWN'),'','```text',*out,'```','']
+                  raw=text.splitlines()
+              # This probe has no Dataset/model inputs. Persist a bounded tail so syntax/runtime
+              # failures remain diagnosable while avoiding giant notebook HTML blobs.
+              useful=[x for x in raw if x.strip()]
+              for x in useful[-250:]: lines.append(x[:3000])
+          body=['# Kaggle API CPU network/environment probe','', 'Sanitized operational output; this CPU probe attaches no private dataset/model/audio data.','', 'terminal_status: '+os.environ.get('PROBE_STATUS','UNKNOWN'),'','```text',*lines[-500:],'```','']
           Path('ops/kaggle-network-probe-latest.txt').write_text('\n'.join(body)+'\n',encoding='utf-8')
-          print('\n'.join(out))
+          print('\n'.join(lines[-200:]))
           PY
       - name: Persist sanitized result
         if: always()
@@ -160,10 +169,11 @@ jobs:
           test -f ops/kaggle-network-probe-latest.txt || printf '# Kaggle API CPU network/environment probe\n\nterminal_status: WORKFLOW_FAILED_BEFORE_REPORT\n' > ops/kaggle-network-probe-latest.txt
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git pull --rebase origin main
           git add ops/kaggle-network-probe-latest.txt
           if git diff --cached --quiet; then exit 0; fi
           git commit -m 'Record Kaggle CPU environment probe'
-          git push
+          git push origin HEAD:main
       - name: Cleanup
         if: always()
         run: rm -rf probe probe_out kernel-id.txt
