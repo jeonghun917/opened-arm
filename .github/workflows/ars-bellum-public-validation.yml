@@ -1,0 +1,448 @@
+name: ARS BELLUM Public Exact-SHA Validation
+
+on:
+  push:
+    branches:
+      - 'ars-bellum/validation-control'
+    paths:
+      - 'ops/ars-bellum-validation-target.txt'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ars-bellum-public-validation
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: validate-private-exact-sha
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    environment: ars-bellum-validation
+
+    steps:
+      - name: Checkout public control plane
+        uses: actions/checkout@v4
+        with:
+          path: control
+          persist-credentials: false
+          fetch-depth: 1
+
+      - name: Resolve bounded validation target
+        id: target
+        shell: bash
+        run: |
+          set -euo pipefail
+          file='control/ops/ars-bellum-validation-target.txt'
+          test -f "$file"
+          target_sha="$(awk -F= '$1=="target_sha" {print $2}' "$file" | tr -d '[:space:]')"
+          expected_tree="$(awk -F= '$1=="expected_source_tree" {print $2}' "$file" | tr -d '[:space:]')"
+          expected_m2_blob="$(awk -F= '$1=="expected_m2_workflow_blob" {print $2}' "$file" | tr -d '[:space:]')"
+          request_id="$(awk -F= '$1=="request_id" {print $2}' "$file" | tr -d '[:space:]')"
+          [[ "$target_sha" =~ ^[0-9a-f]{40}$ ]]
+          [[ "$expected_tree" =~ ^[0-9a-f]{40}$ ]]
+          [[ "$expected_m2_blob" =~ ^[0-9a-f]{40}$ ]]
+          [[ "$request_id" =~ ^[A-Za-z0-9._-]{1,80}$ ]]
+          echo "target_sha=$target_sha" >> "$GITHUB_OUTPUT"
+          echo "expected_tree=$expected_tree" >> "$GITHUB_OUTPUT"
+          echo "expected_m2_blob=$expected_m2_blob" >> "$GITHUB_OUTPUT"
+          echo "request_id=$request_id" >> "$GITHUB_OUTPUT"
+
+      - name: Private checkout credential gate
+        shell: bash
+        env:
+          ARS_BELLUM_READ_TOKEN: ${{ secrets.ARS_BELLUM_READ_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "${ARS_BELLUM_READ_TOKEN:-}" ]; then
+            echo 'ARS_BELLUM_READ_TOKEN is not configured for the ars-bellum-validation environment.' >&2
+            exit 12
+          fi
+
+      - name: Checkout exact private ARS BELLUM SHA
+        uses: actions/checkout@v4
+        with:
+          repository: jeonghun917/ars-bellum
+          ref: ${{ steps.target.outputs.target_sha }}
+          token: ${{ secrets.ARS_BELLUM_READ_TOKEN }}
+          path: source
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Verify private source identity and workflow authority
+        id: identity
+        shell: bash
+        working-directory: source
+        env:
+          TARGET_SHA: ${{ steps.target.outputs.target_sha }}
+          EXPECTED_TREE: ${{ steps.target.outputs.expected_tree }}
+          EXPECTED_M2_BLOB: ${{ steps.target.outputs.expected_m2_blob }}
+        run: |
+          set -euo pipefail
+          actual_sha="$(git rev-parse HEAD)"
+          actual_tree="$(git rev-parse 'HEAD^{tree}')"
+          actual_m2_blob="$(git ls-tree HEAD -- .github/workflows/m2-verify.yml | awk '{print $3}')"
+          verify_blob="$(git ls-tree HEAD -- .github/workflows/verify.yml | awk '{print $3}')"
+          test "$actual_sha" = "$TARGET_SHA"
+          test "$actual_tree" = "$EXPECTED_TREE"
+          test "$actual_m2_blob" = "$EXPECTED_M2_BLOB"
+          test -n "$verify_blob"
+          test -z "$(git status --porcelain)"
+          if git config --local --get-regexp '^http\..*\.extraheader$' >/dev/null 2>&1; then
+            echo 'Private checkout credential unexpectedly persisted.' >&2
+            exit 13
+          fi
+          echo "actual_sha=$actual_sha" >> "$GITHUB_OUTPUT"
+          echo "actual_tree=$actual_tree" >> "$GITHUB_OUTPUT"
+          echo "m2_workflow_blob=$actual_m2_blob" >> "$GITHUB_OUTPUT"
+          echo "verify_workflow_blob=$verify_blob" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Extract exact private M2 verification run bodies
+        id: extract
+        shell: bash
+        env:
+          SOURCE_WORKFLOW: ${{ github.workspace }}/source/.github/workflows/m2-verify.yml
+        run: |
+          set -euo pipefail
+          out="$RUNNER_TEMP/ars-bellum-private-runs"
+          rm -rf "$out"
+          mkdir -p "$out"
+          python3 - "$SOURCE_WORKFLOW" "$out" <<'PY'
+          import re
+          import sys
+          import textwrap
+          from pathlib import Path
+
+          source = Path(sys.argv[1])
+          out = Path(sys.argv[2])
+          wanted = {
+              "Guard artifact-only run evidence": "guard.sh",
+              "Initialize run-bound identity": "initialize.sh",
+              "Verify M1 baseline": "m2-m1.sh",
+              "Verify M2 static and deterministic": "m2-static.sh",
+              "Verify actual m2_prototype Chrome WebGL2": "m2-browser.sh",
+              "Enforce browser PASS gate": "browser-gate.sh",
+          }
+          lines = source.read_text(encoding="utf-8").splitlines()
+          starts = []
+          for i, line in enumerate(lines):
+              m = re.match(r"^\s{6}- name:\s*(.+?)\s*$", line)
+              if m:
+                  starts.append((i, m.group(1)))
+          found = {}
+          for pos, (start, name) in enumerate(starts):
+              if name not in wanted:
+                  continue
+              end = starts[pos + 1][0] if pos + 1 < len(starts) else len(lines)
+              section = lines[start:end]
+              run_indexes = [i for i, line in enumerate(section) if line.strip() == "run: |"]
+              if len(run_indexes) != 1:
+                  raise SystemExit(f"run-block resolution failed for {name}: {len(run_indexes)}")
+              body = textwrap.dedent("\n".join(section[run_indexes[0] + 1:])).rstrip() + "\n"
+              if not body.strip():
+                  raise SystemExit(f"empty run body: {name}")
+              (out / wanted[name]).write_text(body, encoding="utf-8")
+              found[name] = True
+          missing = sorted(set(wanted) - set(found))
+          if missing:
+              raise SystemExit("missing named private verification steps: " + ", ".join(missing))
+          PY
+          echo 'Private verification bodies resolved by exact step name.'
+
+      - name: Guard private run evidence policy
+        id: guard
+        shell: bash
+        working-directory: source
+        continue-on-error: true
+        run: bash "$RUNNER_TEMP/ars-bellum-private-runs/guard.sh" > "$RUNNER_TEMP/ars-guard.log" 2>&1
+
+      - name: Initialize private run-bound identity
+        id: initialize
+        shell: bash
+        working-directory: source
+        continue-on-error: true
+        run: bash "$RUNNER_TEMP/ars-bellum-private-runs/initialize.sh" > "$RUNNER_TEMP/ars-initialize.log" 2>&1
+
+      - name: Verify standalone M1 authority
+        id: m1_standalone
+        shell: bash
+        working-directory: source
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/ars-public-evidence"
+          set +e
+          node verify.mjs > "$RUNNER_TEMP/ars-m1-standalone.raw" 2>&1
+          rc=$?
+          set -e
+          RAW_EXIT="$rc" python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          raw_path = Path(os.environ["RUNNER_TEMP"]) / "ars-m1-standalone.raw"
+          try:
+              parsed = json.loads(raw_path.read_text(encoding="utf-8", errors="replace"))
+          except Exception:
+              parsed = None
+          passed = os.environ["RAW_EXIT"] == "0" and isinstance(parsed, dict) and parsed.get("status") == "PASS"
+          payload = {
+              "result": "PASS" if passed else "FAIL",
+              "rawStatus": parsed.get("status") if isinstance(parsed, dict) else "UNPARSEABLE",
+          }
+          out = Path(os.environ["RUNNER_TEMP"]) / "ars-public-evidence" / "m1-standalone.json"
+          out.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+          PY
+          test "$rc" -eq 0
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          p=Path(os.environ["RUNNER_TEMP"])/"ars-public-evidence"/"m1-standalone.json"
+          raise SystemExit(0 if json.loads(p.read_text())["result"] == "PASS" else 1)
+          PY
+
+      - name: Verify M2-bound M1 regression using private body
+        id: m2_m1
+        shell: bash
+        working-directory: source
+        continue-on-error: true
+        run: bash "$RUNNER_TEMP/ars-bellum-private-runs/m2-m1.sh" > "$RUNNER_TEMP/ars-m2-m1.log" 2>&1
+
+      - name: Verify M2 static and deterministic using private body
+        id: m2_static
+        shell: bash
+        working-directory: source
+        continue-on-error: true
+        run: bash "$RUNNER_TEMP/ars-bellum-private-runs/m2-static.sh" > "$RUNNER_TEMP/ars-m2-static.log" 2>&1
+
+      - name: Verify actual Chrome WebGL2 using private body
+        id: m2_browser
+        shell: bash
+        working-directory: source
+        continue-on-error: true
+        run: bash "$RUNNER_TEMP/ars-bellum-private-runs/m2-browser.sh" > "$RUNNER_TEMP/ars-m2-browser.log" 2>&1
+
+      - name: Enforce private browser PASS gate
+        id: browser_gate
+        shell: bash
+        working-directory: source
+        continue-on-error: true
+        run: bash "$RUNNER_TEMP/ars-bellum-private-runs/browser-gate.sh" > "$RUNNER_TEMP/ars-browser-gate.log" 2>&1
+
+      - name: Build sanitized dual-provenance evidence
+        id: evidence
+        if: always()
+        shell: bash
+        env:
+          TARGET_SHA: ${{ steps.target.outputs.target_sha }}
+          EXPECTED_TREE: ${{ steps.target.outputs.expected_tree }}
+          EXPECTED_M2_BLOB: ${{ steps.target.outputs.expected_m2_blob }}
+          REQUEST_ID: ${{ steps.target.outputs.request_id }}
+          ACTUAL_SHA: ${{ steps.identity.outputs.actual_sha }}
+          ACTUAL_TREE: ${{ steps.identity.outputs.actual_tree }}
+          ACTUAL_M2_BLOB: ${{ steps.identity.outputs.m2_workflow_blob }}
+          VERIFY_WORKFLOW_BLOB: ${{ steps.identity.outputs.verify_workflow_blob }}
+          GUARD_OUTCOME: ${{ steps.guard.outcome }}
+          INITIALIZE_OUTCOME: ${{ steps.initialize.outcome }}
+          M1_STANDALONE_OUTCOME: ${{ steps.m1_standalone.outcome }}
+          M2_M1_OUTCOME: ${{ steps.m2_m1.outcome }}
+          M2_STATIC_OUTCOME: ${{ steps.m2_static.outcome }}
+          M2_BROWSER_OUTCOME: ${{ steps.m2_browser.outcome }}
+          BROWSER_GATE_OUTCOME: ${{ steps.browser_gate.outcome }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/ars-public-evidence"
+          python3 - <<'PY'
+          import datetime
+          import json
+          import os
+          import subprocess
+          from pathlib import Path
+
+          root = Path(os.environ["GITHUB_WORKSPACE"])
+          source = root / "source"
+          control = root / "control"
+          out = Path(os.environ["RUNNER_TEMP"]) / "ars-public-evidence"
+
+          def load(path):
+              try:
+                  value = json.loads(Path(path).read_text(encoding="utf-8"))
+                  return value if isinstance(value, dict) else {}
+              except Exception:
+                  return {}
+
+          def result_of(payload):
+              value = payload.get("result")
+              return value if value in {"PASS", "FAIL", "NOT_TESTED"} else "NOT_TESTED"
+
+          m1_standalone = load(out / "m1-standalone.json")
+          m2_m1 = load(source / "m2_ci_m1_verification_result.json")
+          m2_static = load(source / "m2_ci_verification_result.json")
+          browser = load(source / "m2_ci_browser_verification_result.json")
+          raw_browser = browser.get("rawResult") if isinstance(browser.get("rawResult"), dict) else {}
+          observations = raw_browser.get("browserObservations") if isinstance(raw_browser.get("browserObservations"), dict) else browser.get("browserObservations", {})
+          if not isinstance(observations, dict):
+              observations = {}
+          browser_tests = {}
+          for i in range(1, 17):
+              key = f"M21-02-BROWSER-{i:03d}"
+              entry = observations.get(key)
+              browser_tests[key] = bool(isinstance(entry, dict) and entry.get("pass") is True)
+
+          def command_output(cmd):
+              try:
+                  return subprocess.check_output(cmd, text=True, stderr=subprocess.DEVNULL).strip()[:300]
+              except Exception:
+                  return "NOT_AVAILABLE"
+
+          execution_workflow_blob = command_output([
+              "git", "-C", str(control), "ls-tree", os.environ.get("GITHUB_SHA", "HEAD"),
+              "--", ".github/workflows/ars-bellum-public-validation.yml"
+          ]).split()[2] if command_output([
+              "git", "-C", str(control), "ls-tree", os.environ.get("GITHUB_SHA", "HEAD"),
+              "--", ".github/workflows/ars-bellum-public-validation.yml"
+          ]).count(" ") >= 2 else "NOT_AVAILABLE"
+
+          m1_result = result_of(m1_standalone)
+          m2_m1_result = result_of(m2_m1)
+          m2_static_result = result_of(m2_static)
+          browser_result = result_of(browser)
+          required_browser_pass = all(browser_tests.values())
+          overall = (
+              m1_result == "PASS" and m2_m1_result == "PASS" and
+              m2_static_result == "PASS" and browser_result == "PASS" and
+              required_browser_pass and os.environ.get("GUARD_OUTCOME") == "success" and
+              os.environ.get("INITIALIZE_OUTCOME") == "success" and
+              os.environ.get("BROWSER_GATE_OUTCOME") == "success"
+          )
+
+          payload = {
+              "schema": 1,
+              "authorityRole": "VALIDATION_EXECUTION_ONLY",
+              "sourceRepository": "jeonghun917/ars-bellum",
+              "sourceHead": os.environ.get("ACTUAL_SHA") or os.environ.get("TARGET_SHA"),
+              "sourceTree": os.environ.get("ACTUAL_TREE") or os.environ.get("EXPECTED_TREE"),
+              "expectedSourceTree": os.environ.get("EXPECTED_TREE"),
+              "testedHead": browser.get("testedHead") or m2_static.get("testedHead") or m2_m1.get("testedHead") or os.environ.get("ACTUAL_SHA") or os.environ.get("TARGET_SHA"),
+              "privateM2WorkflowBlob": os.environ.get("ACTUAL_M2_BLOB") or os.environ.get("EXPECTED_M2_BLOB"),
+              "privateVerifyWorkflowBlob": os.environ.get("VERIFY_WORKFLOW_BLOB") or "NOT_AVAILABLE",
+              "executionRepository": os.environ.get("GITHUB_REPOSITORY"),
+              "executionRef": os.environ.get("GITHUB_REF"),
+              "executionWorkflowPath": ".github/workflows/ars-bellum-public-validation.yml",
+              "executionWorkflowBlob": execution_workflow_blob,
+              "workflowRunId": os.environ.get("GITHUB_RUN_ID"),
+              "workflowRunAttempt": os.environ.get("GITHUB_RUN_ATTEMPT"),
+              "requestId": os.environ.get("REQUEST_ID"),
+              "results": {
+                  "m1Standalone": m1_result,
+                  "m2BoundM1Regression": m2_m1_result,
+                  "m2StaticDeterministic": m2_static_result,
+                  "browser": browser_result,
+                  "b013": "PASS" if browser_tests.get("M21-02-BROWSER-013") else "NOT_TESTED" if browser_result == "NOT_TESTED" else "FAIL",
+                  "sameCanvasRestart": "PASS" if browser_tests.get("M21-02-BROWSER-015") else "NOT_TESTED" if browser_result == "NOT_TESTED" else "FAIL",
+                  "asyncErrorRejectionGate": "PASS" if browser_tests.get("M21-02-BROWSER-016") else "NOT_TESTED" if browser_result == "NOT_TESTED" else "FAIL",
+                  "browserB001B016": browser_tests,
+                  "overall": "PASS" if overall else "FAIL",
+              },
+              "stepOutcomes": {
+                  "guard": os.environ.get("GUARD_OUTCOME"),
+                  "initialize": os.environ.get("INITIALIZE_OUTCOME"),
+                  "m1Standalone": os.environ.get("M1_STANDALONE_OUTCOME"),
+                  "m2M1": os.environ.get("M2_M1_OUTCOME"),
+                  "m2Static": os.environ.get("M2_STATIC_OUTCOME"),
+                  "m2Browser": os.environ.get("M2_BROWSER_OUTCOME"),
+                  "browserGate": os.environ.get("BROWSER_GATE_OUTCOME"),
+              },
+              "runner": {
+                  "os": os.environ.get("RUNNER_OS", "NOT_AVAILABLE"),
+                  "arch": os.environ.get("RUNNER_ARCH", "NOT_AVAILABLE"),
+                  "imageOS": os.environ.get("ImageOS", "NOT_AVAILABLE"),
+                  "imageVersion": os.environ.get("ImageVersion", "NOT_AVAILABLE"),
+                  "node": command_output(["node", "--version"]),
+                  "chrome": command_output(["bash", "-lc", "(google-chrome-stable --version || google-chrome --version || chromium --version) 2>/dev/null | head -1"]),
+              },
+              "publicDataPolicy": "SANITIZED_RESULTS_ONLY_NO_SOURCE_NO_RAW_HARNESS_NO_RAW_LOGS",
+              "generatedAt": datetime.datetime.now(datetime.timezone.utc).isoformat().replace("+00:00", "Z"),
+          }
+          (out / "validation-summary.json").write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+          print("ARS_PUBLIC_VALIDATION_SUMMARY=" + payload["results"]["overall"])
+          PY
+
+      - name: Upload sanitized validation evidence
+        id: evidence_artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ars-bellum-validation-evidence-${{ steps.target.outputs.target_sha }}-${{ github.run_id }}
+          path: ${{ runner.temp }}/ars-public-evidence/*.json
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Bind evidence artifact digest
+        id: receipt
+        if: always()
+        shell: bash
+        env:
+          EVIDENCE_ARTIFACT_NAME: ars-bellum-validation-evidence-${{ steps.target.outputs.target_sha }}-${{ github.run_id }}
+          EVIDENCE_ARTIFACT_DIGEST: ${{ steps.evidence_artifact.outputs.artifact-digest }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import datetime, json, os
+          from pathlib import Path
+          out=Path(os.environ["RUNNER_TEMP"])/"ars-public-evidence"
+          summary=json.loads((out/"validation-summary.json").read_text(encoding="utf-8"))
+          receipt={
+              "schema":1,
+              "sourceRepository":summary["sourceRepository"],
+              "sourceHead":summary["sourceHead"],
+              "sourceTree":summary["sourceTree"],
+              "testedHead":summary["testedHead"],
+              "executionRepository":summary["executionRepository"],
+              "executionWorkflowPath":summary["executionWorkflowPath"],
+              "executionWorkflowBlob":summary["executionWorkflowBlob"],
+              "workflowRunId":summary["workflowRunId"],
+              "workflowRunAttempt":summary["workflowRunAttempt"],
+              "privateM2WorkflowBlob":summary["privateM2WorkflowBlob"],
+              "evidenceArtifactName":os.environ.get("EVIDENCE_ARTIFACT_NAME"),
+              "artifactDigest":os.environ.get("EVIDENCE_ARTIFACT_DIGEST") or "NOT_AVAILABLE",
+              "overall":summary["results"]["overall"],
+              "generatedAt":datetime.datetime.now(datetime.timezone.utc).isoformat().replace("+00:00","Z"),
+          }
+          (out/"provenance-receipt.json").write_text(json.dumps(receipt,indent=2)+"\n",encoding="utf-8")
+          PY
+
+      - name: Upload provenance receipt
+        id: provenance_artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ars-bellum-validation-provenance-${{ steps.target.outputs.target_sha }}-${{ github.run_id }}
+          path: ${{ runner.temp }}/ars-public-evidence/provenance-receipt.json
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Enforce public run-bound acceptance
+        if: always()
+        shell: bash
+        env:
+          EVIDENCE_UPLOAD: ${{ steps.evidence_artifact.outcome }}
+          RECEIPT_UPLOAD: ${{ steps.provenance_artifact.outcome }}
+        run: |
+          set -euo pipefail
+          test "$EVIDENCE_UPLOAD" = success
+          test "$RECEIPT_UPLOAD" = success
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          p=Path(os.environ["RUNNER_TEMP"])/"ars-public-evidence"/"validation-summary.json"
+          result=json.loads(p.read_text(encoding="utf-8"))
+          if result.get("results",{}).get("overall") != "PASS":
+              raise SystemExit("ARS public run-bound acceptance did not PASS")
+          print("ARS public run-bound acceptance PASS")
+          PY
