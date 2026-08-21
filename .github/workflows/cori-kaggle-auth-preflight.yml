@@ -1,5 +1,6 @@
 name: Cori Kaggle Auth Preflight
 
+# Manual root-cause probe trigger: CPU-only Kaggle API kernel, no GPU launch.
 on:
   pull_request:
     branches: [main]
