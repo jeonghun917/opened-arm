@@ -1,0 +1,12 @@
+# Kaggle offline runtime CPU validation
+
+Private CPU-only validation; no credentials or model/audio bytes are recorded here.
+
+terminal_status: ERROR
+validation_pass: false
+
+```text
+Traceback (most recent call last):
+    raise RuntimeError(f"runtime schema mismatch: {manifest.get('schema')!r}")
+RuntimeError: runtime schema mismatch: 'c3-kaggle-offline-runtime-v1'
+```
