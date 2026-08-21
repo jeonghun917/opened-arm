@@ -1,3 +1,4 @@
+# Retry 2: tolerate Lightning persistence delay for the 4.3 GB private base bundle.
 name: Cori Kaggle Execute Once
 
 on:
