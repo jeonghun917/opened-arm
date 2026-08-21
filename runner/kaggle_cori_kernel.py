@@ -53,16 +53,62 @@ def safe_extract_zip(archive: Path, destination: Path) -> None:
         zf.extractall(destination)
 
 
+def walk_input_followlinks() -> tuple[list[Path], list[Path], list[Path], list[str]]:
+    """Walk Kaggle's provider mount including directory symlinks.
+
+    pathlib.Path.rglob() deliberately does not recurse through directory symlinks
+    by default on the Python used by Kaggle. Current Kaggle inputs expose an
+    extra `datasets` mount layer which may contain provider-managed symlinked
+    directories, so use os.walk(..., followlinks=True) and collect only the
+    three filenames needed by this experiment.
+    """
+    checkpoints: list[Path] = []
+    base_zips: list[Path] = []
+    e280_zips: list[Path] = []
+    tree: list[str] = []
+    if not INPUT.is_dir():
+        return checkpoints, base_zips, e280_zips, tree
+
+    seen_real_dirs: set[str] = set()
+    for base, dirs, files in os.walk(str(INPUT), followlinks=True):
+        base_path = Path(base)
+        try:
+            real = str(base_path.resolve())
+        except OSError:
+            real = str(base_path)
+        if real in seen_real_dirs:
+            dirs[:] = []
+            continue
+        seen_real_dirs.add(real)
+
+        if len(tree) < 80:
+            try:
+                rel = str(base_path.relative_to(INPUT)) or "."
+            except ValueError:
+                rel = str(base_path)
+            # Only operational mount names are reported; never read file contents.
+            tree.append(f"{rel}:dirs={dirs[:12]}:files={files[:20]}:islink={base_path.is_symlink()}")
+
+        for name in files:
+            p = base_path / name
+            if name == "checkpoint_epoch=279.ckpt":
+                checkpoints.append(p)
+            elif name == "c3-cori-base.zip":
+                base_zips.append(p)
+            elif name == "c3-cori-e280.zip":
+                e280_zips.append(p)
+
+    return sorted(set(checkpoints)), sorted(set(base_zips)), sorted(set(e280_zips)), tree
+
+
 def discover_private_input() -> Path:
-    # Kaggle has used more than one input mount layout over time. Newer script
-    # sessions can expose an extra /kaggle/input/datasets/... hierarchy, so do
-    # not assume the Dataset is a direct child of /kaggle/input.
+    checkpoints, base_zips, e280_zips, tree = walk_input_followlinks()
+
     direct_hits: list[Path] = []
-    if INPUT.is_dir():
-        for checkpoint in INPUT.rglob("checkpoint_epoch=279.ckpt"):
-            root = checkpoint.parent.parent
-            if is_private_root(root):
-                direct_hits.append(root)
+    for checkpoint in checkpoints:
+        root = checkpoint.parent.parent
+        if is_private_root(root):
+            direct_hits.append(root)
     direct_hits = sorted(set(direct_hits))
     if len(direct_hits) == 1:
         checkpoint = direct_hits[0] / "c3-cori-e280" / "checkpoint_epoch=279.ckpt"
@@ -73,19 +119,16 @@ def discover_private_input() -> Path:
     if len(direct_hits) > 1:
         raise RuntimeError(f"multiple expanded private C3 inputs found: {len(direct_hits)}")
 
-    # The private Dataset was intentionally uploaded as two archives. Kaggle may
-    # mount those archives verbatim rather than unpacking them. Locate them at
-    # any nested input depth, require a unique same-directory pair, then expand
-    # only into ephemeral /kaggle/working storage.
-    base_zips = sorted(INPUT.rglob("c3-cori-base.zip")) if INPUT.is_dir() else []
-    e280_zips = sorted(INPUT.rglob("c3-cori-e280.zip")) if INPUT.is_dir() else []
     pairs = [(base, e280) for base in base_zips for e280 in e280_zips if base.parent == e280.parent]
     if len(pairs) != 1:
-        visible = sorted(p.name for p in INPUT.iterdir()) if INPUT.is_dir() else []
+        print("C3_KAGGLE_INPUT_TREE_BEGIN", flush=True)
+        for row in tree:
+            print("C3_KAGGLE_INPUT_TREE", row, flush=True)
+        print("C3_KAGGLE_INPUT_TREE_END", flush=True)
         raise RuntimeError(
             "expected exactly one attached private C3 input; "
             f"expanded_hits=0 archive_pairs={len(pairs)} base_zips={len(base_zips)} "
-            f"e280_zips={len(e280_zips)} visible_roots={visible}"
+            f"e280_zips={len(e280_zips)}"
         )
 
     base_zip, e280_zip = pairs[0]
@@ -109,8 +152,6 @@ def discover_private_input() -> Path:
 
 
 def install_environment() -> None:
-    # Match the established continuation runtime as closely as practical rather than
-    # relying on Kaggle's moving default torch image.
     run(["apt-get", "update", "-qq"])
     run(["apt-get", "install", "-y", "-qq", "git", "build-essential", "espeak-ng", "ffmpeg", "libsndfile1"])
     run(
@@ -143,7 +184,6 @@ def environment_report() -> dict:
 
     if not torch.cuda.is_available():
         raise RuntimeError("Kaggle T4 is not CUDA-visible after pinned environment setup")
-    # Force a real CUDA kernel launch, not just a driver-visibility check.
     x = torch.ones(1, device="cuda")
     x.add_(1)
     torch.cuda.synchronize()
@@ -193,7 +233,7 @@ def main() -> None:
 
     elapsed = time.monotonic() - started
     report = {
-        "schema": "c3-cori-kaggle-t4-benchmark-wrapper-v2",
+        "schema": "c3-cori-kaggle-t4-benchmark-wrapper-v3",
         "finished_at_utc": datetime.now(timezone.utc).isoformat(),
         "ok": True,
         "wall_seconds_including_environment_setup": elapsed,
