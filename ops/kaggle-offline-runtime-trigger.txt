@@ -1,0 +1,4 @@
+request=2026-08-21T15:24:00+09:00
+purpose=build_and_cpu_validate_offline_runtime
+allow_gpu=false
+matcha_commit=bd4d90d93214b37f7a159cf205ae85762c2c10aa
