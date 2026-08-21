@@ -23,38 +23,24 @@ jobs:
       KAGGLE_DATASET_ID: ${{ secrets.KAGGLE_DATASET_ID }}
     steps:
       - uses: actions/checkout@v6
-
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-
       - name: Syntax check portability entrypoint
-        run: python -m py_compile runner/kaggle_cori_segment_entry.py runner/lightning_cori_continue_to550.py
-
+        run: python -m py_compile runner/kaggle_cori_kernel.py runner/kaggle_cori_segment_entry.py runner/lightning_cori_continue_to550.py
       - name: Detect Kaggle auth without exposing credentials
         id: auth
         shell: bash
         run: |
           set -euo pipefail
-          auth_ready=false
-          auth_mode=none
-          if [ -n "${KAGGLE_API_TOKEN:-}" ]; then
-            auth_ready=true
-            auth_mode=api_token
-          elif [ -n "${KAGGLE_USERNAME:-}" ] && [ -n "${KAGGLE_KEY:-}" ]; then
-            auth_ready=true
-            auth_mode=legacy_key_pair
-          fi
-          dataset_ready=false
-          if [[ "${KAGGLE_DATASET_ID:-}" == */* ]]; then
-            dataset_ready=true
-          fi
+          auth_ready=false; auth_mode=none
+          if [ -n "${KAGGLE_API_TOKEN:-}" ]; then auth_ready=true; auth_mode=api_token; elif [ -n "${KAGGLE_USERNAME:-}" ] && [ -n "${KAGGLE_KEY:-}" ]; then auth_ready=true; auth_mode=legacy_key_pair; fi
+          dataset_ready=false; if [[ "${KAGGLE_DATASET_ID:-}" == */* ]]; then dataset_ready=true; fi
           echo "auth_ready=$auth_ready" >> "$GITHUB_OUTPUT"
           echo "auth_mode=$auth_mode" >> "$GITHUB_OUTPUT"
           echo "dataset_ready=$dataset_ready" >> "$GITHUB_OUTPUT"
           echo "C3_KAGGLE_AUTH_READY=$auth_ready"
           echo "C3_KAGGLE_DATASET_HANDLE_READY=$dataset_ready"
-
       - name: Verify Kaggle credentials against API
         if: steps.auth.outputs.auth_ready == 'true'
         shell: bash
@@ -63,7 +49,6 @@ jobs:
           python -m pip install --quiet --upgrade kaggle
           kaggle datasets list -m --page 1 >/dev/null
           echo C3_KAGGLE_API_AUTH_PASS
-
       - name: Resolve public Kaggle owner from token introspection
         id: identity
         if: steps.auth.outputs.auth_mode == 'api_token'
@@ -73,50 +58,43 @@ jobs:
           python - <<'PY'
           import json, os, urllib.parse, urllib.request
           token=os.environ['KAGGLE_API_TOKEN']
-          body=urllib.parse.urlencode({'token':token}).encode()
-          req=urllib.request.Request(
-              'https://www.kaggle.com/api/v1/oauth2/introspect',
-              data=body,
-              headers={'Content-Type':'application/x-www-form-urlencoded'},
-              method='POST',
-          )
-          with urllib.request.urlopen(req, timeout=30) as r:
-              data=json.load(r)
-          if not data.get('active'):
-              raise SystemExit('Kaggle token introspection returned inactive token')
+          req=urllib.request.Request('https://www.kaggle.com/api/v1/oauth2/introspect',data=urllib.parse.urlencode({'token':token}).encode(),headers={'Content-Type':'application/x-www-form-urlencoded'},method='POST')
+          with urllib.request.urlopen(req, timeout=30) as r: data=json.load(r)
+          if not data.get('active'): raise SystemExit('Kaggle token introspection returned inactive token')
           username=data.get('username') or ''
           print('C3_KAGGLE_INTROSPECTION_ACTIVE=true')
           if username:
-              # Kaggle usernames are public account handles; never print token/sub/claims.
               print('C3_KAGGLE_PUBLIC_USERNAME='+username)
-              with open(os.environ['GITHUB_OUTPUT'],'a',encoding='utf-8') as f:
-                  f.write('username='+username+'\n')
-          else:
-              print('C3_KAGGLE_PUBLIC_USERNAME_UNAVAILABLE')
+              with open(os.environ['GITHUB_OUTPUT'],'a',encoding='utf-8') as f: f.write('username='+username+'\n')
           PY
-
       - name: Compare configured Dataset owner to authenticated owner
         if: steps.identity.outputs.username != ''
         shell: bash
         run: |
-          set -euo pipefail
-          EXPECTED="${{ steps.identity.outputs.username }}"
-          CONFIGURED="${KAGGLE_DATASET_ID%%/*}"
-          if [ "$CONFIGURED" = "$EXPECTED" ]; then
-            echo C3_KAGGLE_DATASET_OWNER_MATCH=true
-          else
-            echo C3_KAGGLE_DATASET_OWNER_MATCH=false
-            echo "C3_KAGGLE_EXPECTED_OWNER=$EXPECTED"
-          fi
-
-      - name: Report remaining bootstrap blocker
+          EXPECTED="${{ steps.identity.outputs.username }}"; CONFIGURED="${KAGGLE_DATASET_ID%%/*}"
+          if [ "$CONFIGURED" = "$EXPECTED" ]; then echo C3_KAGGLE_DATASET_OWNER_MATCH=true; else echo C3_KAGGLE_DATASET_OWNER_MATCH=false; echo "C3_KAGGLE_EXPECTED_OWNER=$EXPECTED"; fi
+      - name: Print latest private benchmark failure excerpt
+        if: steps.identity.outputs.username != ''
         shell: bash
         run: |
           set -euo pipefail
-          if [ "${{ steps.auth.outputs.auth_ready }}" != "true" ]; then
-            echo 'C3_KAGGLE_BOOTSTRAP_BLOCKED: add KAGGLE_API_TOKEN (preferred) or KAGGLE_USERNAME + KAGGLE_KEY as encrypted Actions secrets.'
-          elif [ "${{ steps.auth.outputs.dataset_ready }}" != "true" ]; then
-            echo 'C3_KAGGLE_BOOTSTRAP_BLOCKED: add KAGGLE_DATASET_ID as an encrypted Actions secret in owner/private-dataset-slug form.'
-          else
-            echo 'C3_KAGGLE_BOOTSTRAP_READY: auth and private dataset handle are present; owner match is checked separately.'
-          fi
+          K="${{ steps.identity.outputs.username }}/c3-cori-e280-e290-t4-benchmark"
+          rm -rf latest_kernel_out; mkdir latest_kernel_out
+          kaggle kernels status "$K" || true
+          kaggle kernels output "$K" -p latest_kernel_out --force || true
+          python - <<'PY'
+          from pathlib import Path
+          import json
+          for p in Path('latest_kernel_out').rglob('*.log'):
+              try: rows=json.loads(p.read_text(encoding='utf-8',errors='replace'))
+              except Exception: continue
+              for r in rows:
+                  d=str(r.get('data',''))
+                  if any(k in d for k in ('C3_KAGGLE_','Traceback','RuntimeError','Exception')):
+                      print('C3_LATEST_KERNEL',d.replace('\n',' | ')[:4000])
+          PY
+          rm -rf latest_kernel_out
+      - name: Report remaining bootstrap blocker
+        shell: bash
+        run: |
+          if [ "${{ steps.auth.outputs.auth_ready }}" != "true" ]; then echo 'C3_KAGGLE_BOOTSTRAP_BLOCKED: auth missing'; elif [ "${{ steps.auth.outputs.dataset_ready }}" != "true" ]; then echo 'C3_KAGGLE_BOOTSTRAP_BLOCKED: dataset handle missing'; else echo 'C3_KAGGLE_BOOTSTRAP_READY'; fi
