@@ -1,17 +1,74 @@
 from __future__ import annotations
 
 import json
+import shutil
 import sys
+import tarfile
 import time
 from datetime import datetime, timezone
 from pathlib import Path
 
 import kaggle_cori_kernel as legacy
-from kaggle_offline_runtime import prepare_offline_environment
+import kaggle_offline_runtime as offline
 
 WORK = Path("/kaggle/working")
+INPUT = Path("/kaggle/input")
 MATCHA = WORK / "Matcha-TTS"
 OUTPUT = WORK / "c3-cori-kaggle-runs"
+RUNTIME_STAGE = WORK / "c3-cori-offline-runtime-v2"
+
+
+def _safe_extract(archive: Path, destination: Path) -> None:
+    destination.mkdir(parents=True, exist_ok=True)
+    base = destination.resolve()
+    with tarfile.open(archive, "r:gz") as tf:
+        for member in tf.getmembers():
+            target = (destination / member.name).resolve()
+            if target != base and base not in target.parents:
+                raise RuntimeError(f"unsafe offline runtime archive member: {member.name}")
+        tf.extractall(destination)
+
+
+def prepare_offline_v2() -> dict:
+    manifests = list(INPUT.rglob("runtime-manifest.json"))
+    archives = list(INPUT.rglob("c3-cori-offline-runtime.tar.gz"))
+    if len(manifests) == 1:
+        runtime = manifests[0].parent
+    elif len(archives) == 1:
+        if RUNTIME_STAGE.exists():
+            shutil.rmtree(RUNTIME_STAGE)
+        RUNTIME_STAGE.mkdir(parents=True)
+        _safe_extract(archives[0], RUNTIME_STAGE)
+        runtime = RUNTIME_STAGE
+    else:
+        raise RuntimeError(
+            f"offline runtime discovery failed manifests={len(manifests)} archives={len(archives)}"
+        )
+
+    manifest = json.loads((runtime / "runtime-manifest.json").read_text(encoding="utf-8"))
+    if manifest.get("schema") != "c3-kaggle-offline-runtime-v2":
+        raise RuntimeError(f"offline runtime schema mismatch: {manifest.get('schema')!r}")
+    if manifest.get("matcha_commit") != legacy.MATCHA_COMMIT:
+        raise RuntimeError("offline runtime Matcha commit mismatch")
+    if manifest.get("network_required_at_kaggle_runtime") is not False:
+        raise RuntimeError("offline runtime does not assert network-free execution")
+    for row in manifest.get("files", []):
+        path = runtime / str(row["path"])
+        if not path.is_file() or offline.sha256_file(path) != row.get("sha256"):
+            raise RuntimeError(f"offline runtime integrity mismatch: {row['path']}")
+    print("C3_KAGGLE_OFFLINE_RUNTIME_SHA_PASS", flush=True)
+
+    offline.ensure_espeak_ng(runtime)
+    offline.ensure_python_dependencies(runtime)
+    offline.prepare_matcha_source(runtime, MATCHA)
+
+    return {
+        "schema": manifest.get("schema"),
+        "matcha_commit": manifest.get("matcha_commit"),
+        "builder_python": manifest.get("builder_python"),
+        "network_required": False,
+        "torch_vendored": manifest.get("torch_vendored"),
+    }
 
 
 def main() -> None:
@@ -22,10 +79,9 @@ def main() -> None:
     source = legacy.discover_private_input()
     print("C3_KAGGLE_PRIVATE_INPUT_DISCOVERED", source.name, flush=True)
 
-    # This bootstrap performs no apt/pip/git network access. Public Matcha source,
-    # eSpeak-NG packages and small Python dependency wheels come from the attached
-    # private runtime Dataset. Kaggle's own CUDA-matched torch/numpy/scipy remain in place.
-    offline_runtime = prepare_offline_environment(MATCHA)
+    # No apt/pip/git network access. Public Matcha source, eSpeak-NG packages and
+    # small Python dependency wheels come from the attached runtime Dataset.
+    offline_runtime = prepare_offline_v2()
 
     env = legacy.environment_report()
     if env["gpu_count"] != 1 or "T4" not in str(env["gpu"]).upper():
@@ -55,7 +111,7 @@ def main() -> None:
 
     elapsed = time.monotonic() - started
     report = {
-        "schema": "c3-cori-kaggle-t4-offline-wrapper-v1",
+        "schema": "c3-cori-kaggle-t4-offline-wrapper-v2",
         "finished_at_utc": datetime.now(timezone.utc).isoformat(),
         "ok": True,
         "wall_seconds_including_offline_environment_setup": elapsed,
