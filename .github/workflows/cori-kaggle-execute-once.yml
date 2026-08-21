@@ -1,4 +1,4 @@
-# Retry 3: robust Studio transition handling + persisted 4.3 GB bundle reuse.
+# Retry 4: derive the private Dataset owner from the authenticated Kaggle token.
 name: Cori Kaggle Execute Once
 
 on:
@@ -58,6 +58,35 @@ jobs:
           set -euo pipefail
           kaggle datasets list -m --page 1 >/dev/null
           echo C3_KAGGLE_EXECUTE_ONCE_AUTH_PASS
+
+      - name: Normalize private Dataset owner to authenticated Kaggle account
+        if: env.KAGGLE_API_TOKEN != ''
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, os, urllib.parse, urllib.request
+          token=os.environ['KAGGLE_API_TOKEN']
+          configured=os.environ['KAGGLE_DATASET_ID'].strip()
+          _, slug=configured.split('/',1)
+          body=urllib.parse.urlencode({'token':token}).encode()
+          req=urllib.request.Request(
+              'https://www.kaggle.com/api/v1/oauth2/introspect',
+              data=body,
+              headers={'Content-Type':'application/x-www-form-urlencoded'},
+              method='POST',
+          )
+          with urllib.request.urlopen(req, timeout=30) as r:
+              data=json.load(r)
+          owner=(data.get('username') or '').strip()
+          if not data.get('active') or not owner:
+              raise SystemExit('cannot resolve authenticated Kaggle owner')
+          effective=f'{owner}/{slug}'
+          with open(os.environ['GITHUB_ENV'],'a',encoding='utf-8') as f:
+              f.write('KAGGLE_DATASET_ID='+effective+'\n')
+          print('C3_KAGGLE_DATASET_OWNER_NORMALIZED=true')
+          print('C3_KAGGLE_AUTHENTICATED_OWNER='+owner)
+          PY
 
       - name: Publish exact frozen assets to private Kaggle Dataset
         run: python runner/publish_cori_kaggle_private_input.py
