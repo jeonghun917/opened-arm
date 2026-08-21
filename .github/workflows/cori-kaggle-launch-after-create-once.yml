@@ -1,15 +1,66 @@
 name: Cori Kaggle Launch After Create Once
 
-# Manual-only after the single diagnosed v5 retry. PR synchronization must not
-# consume additional Kaggle GPU quota.
 on:
-  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/cori-kaggle-launch-after-create-once.yml'
 
 permissions:
   contents: read
 
 jobs:
-  disabled-until-next-explicit-retry:
+  launch-v6-once:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'feat/kaggle-p100-port'
     runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      KAGGLE_API_TOKEN: ${{ secrets.KAGGLE_API_TOKEN }}
+      KAGGLE_DATASET_ID: ${{ secrets.KAGGLE_DATASET_ID }}
     steps:
-      - run: echo C3_KAGGLE_AUTO_RELAUNCH_DISABLED
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install --quiet --upgrade kaggle
+      - name: Resolve authenticated owner
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os,urllib.parse,urllib.request
+          configured=os.environ['KAGGLE_DATASET_ID'].strip(); _,slug=configured.split('/',1)
+          token=os.environ['KAGGLE_API_TOKEN']
+          req=urllib.request.Request('https://www.kaggle.com/api/v1/oauth2/introspect',data=urllib.parse.urlencode({'token':token}).encode(),headers={'Content-Type':'application/x-www-form-urlencoded'},method='POST')
+          with urllib.request.urlopen(req,timeout=30) as r: data=json.load(r)
+          owner=(data.get('username') or '').strip()
+          if not data.get('active') or not owner: raise SystemExit('inactive Kaggle token')
+          with open(os.environ['GITHUB_ENV'],'a',encoding='utf-8') as f: f.write(f'KAGGLE_OWNER={owner}\nKAGGLE_EFFECTIVE_DATASET={owner}/{slug}\n')
+          PY
+      - name: Build exact benchmark kernel bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf kernel_bundle; mkdir kernel_bundle
+          cp runner/kaggle_cori_kernel.py kernel_bundle/benchmark.py
+          cp runner/kaggle_cori_segment_entry.py kernel_bundle/kaggle_cori_segment_entry.py
+          cp runner/lightning_cori_continue_to550.py kernel_bundle/lightning_cori_continue_to550.py
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          owner=os.environ['KAGGLE_OWNER']; dataset=os.environ['KAGGLE_EFFECTIVE_DATASET']
+          meta={'id':f'{owner}/c3-cori-e280-e290-t4-benchmark','title':'C3 Cori E280 E290 T4 Benchmark','code_file':'benchmark.py','language':'python','kernel_type':'script','is_private':True,'enable_gpu':True,'enable_internet':True,'machine_shape':'NvidiaTeslaT4','dataset_sources':[dataset],'competition_sources':[],'kernel_sources':[],'model_sources':[]}
+          Path('kernel_bundle/kernel-metadata.json').write_text(json.dumps(meta,indent=2)+'\n',encoding='utf-8')
+          Path('kernel-id.txt').write_text(meta['id']+'\n',encoding='utf-8')
+          PY
+      - name: Push v6 and verify accepted
+        shell: bash
+        run: |
+          set -euo pipefail
+          kaggle kernels push -p kernel_bundle --accelerator NvidiaTeslaT4 -t 43200
+          K=$(cat kernel-id.txt)
+          kaggle kernels status "$K"
+          echo C3_KAGGLE_SPLIT_MOUNT_RETRY_PUSHED
+      - name: Cleanup
+        if: always()
+        run: rm -rf kernel_bundle kernel-id.txt
