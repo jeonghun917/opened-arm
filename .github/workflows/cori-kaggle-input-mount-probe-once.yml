@@ -1,17 +1,18 @@
 name: Cori Kaggle Network Env Probe Once
 
 on:
-  pull_request:
-    branches: [main]
+  push:
+    branches: [feat/kaggle-p100-port]
     paths:
       - '.github/workflows/cori-kaggle-input-mount-probe-once.yml'
+      - 'ops/cori-kaggle-t4-benchmark.md'
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
   probe:
-    if: github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'feat/kaggle-p100-port'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:
@@ -53,7 +54,6 @@ from pathlib import Path
 
 print('C3_PROBE_SCHEMA=kaggle-api-network-env-v1')
 print('C3_PROBE_PYTHON='+sys.version.replace('\n',' '))
-
 for host in ['archive.ubuntu.com','security.ubuntu.com','pypi.org','github.com']:
     try:
         rows=socket.getaddrinfo(host,443,type=socket.SOCK_STREAM)
@@ -61,45 +61,34 @@ for host in ['archive.ubuntu.com','security.ubuntu.com','pypi.org','github.com']
         print('C3_PROBE_DNS',host,'PASS',addrs)
     except Exception as e:
         print('C3_PROBE_DNS',host,'FAIL',type(e).__name__,str(e)[:300])
-
 for url in ['https://pypi.org/simple/','https://github.com/']:
     try:
         with urllib.request.urlopen(url,timeout=8) as r:
             print('C3_PROBE_HTTP',url,'PASS',getattr(r,'status',None))
     except Exception as e:
         print('C3_PROBE_HTTP',url,'FAIL',type(e).__name__,str(e)[:300])
-
 for command in ['espeak-ng','espeak','ffmpeg','git','gcc','g++']:
     print('C3_PROBE_BIN',command,shutil.which(command) or 'MISSING')
-
 for lib in ['espeak-ng','espeak','sndfile']:
     print('C3_PROBE_LIB',lib,ctypes.util.find_library(lib) or 'MISSING')
-
-packages=['torch','torchaudio','torchvision','lightning','pytorch-lightning','phonemizer','librosa','soundfile','numpy','scipy','hydra-core','omegaconf','einops']
-for pkg in packages:
-    try:
-        print('C3_PROBE_PKG',pkg,md.version(pkg))
-    except md.PackageNotFoundError:
-        print('C3_PROBE_PKG',pkg,'MISSING')
-
+for pkg in ['torch','torchaudio','torchvision','lightning','pytorch-lightning','phonemizer','librosa','soundfile','numpy','scipy','hydra-core','omegaconf','einops']:
+    try: print('C3_PROBE_PKG',pkg,md.version(pkg))
+    except md.PackageNotFoundError: print('C3_PROBE_PKG',pkg,'MISSING')
 try:
     import torch
     print('C3_PROBE_TORCH',json.dumps({'version':torch.__version__,'cuda_version':torch.version.cuda,'cuda_available':torch.cuda.is_available()}))
 except Exception as e:
     print('C3_PROBE_TORCH_IMPORT_FAIL',type(e).__name__,str(e)[:500])
-
 for pkg in ['espeak-ng','ffmpeg','libsndfile1','git','build-essential']:
     p=subprocess.run(['dpkg-query','-W','-f=${Status} ${Version}',pkg],text=True,capture_output=True)
     value=(p.stdout or p.stderr).strip().replace('\n',' ')[:500]
     print('C3_PROBE_DPKG',pkg,p.returncode,value)
-
 resolv=Path('/etc/resolv.conf')
 if resolv.exists():
     safe=[]
     for line in resolv.read_text(encoding='utf-8',errors='replace').splitlines():
         line=line.strip()
-        if line.startswith(('nameserver ','options ','search ')):
-            safe.append(line)
+        if line.startswith(('nameserver ','options ','search ')): safe.append(line)
     print('C3_PROBE_RESOLV',safe[:20])
 print('C3_PROBE_DONE')
 ''',encoding='utf-8')
