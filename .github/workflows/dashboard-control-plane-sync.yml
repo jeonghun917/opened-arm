@@ -13,6 +13,8 @@ permissions:
   contents: read
   id-token: write
 
+# Outer serialization only. The Dashboard server owns the durable lease and
+# per-GitHub-run idempotency boundary, so correctness does not depend on this queue.
 concurrency:
   group: dashboard-control-plane-sync
   cancel-in-progress: false
@@ -50,12 +52,22 @@ jobs:
               https://dashboard-control-center.vercel.app/api/cron/sync || true)"
 
             echo "Dashboard sync attempt ${attempt} -> HTTP ${code}"
+            cat "$tmp" || true
+
             if [ "$code" = "200" ]; then
-              cat "$tmp"
               exit 0
             fi
 
-            cat "$tmp" || true
+            # 409 means this exact GitHub run attempt is durably recorded as failed.
+            # Reissuing the same invocation cannot repair it; a GitHub rerun gets a
+            # new run_attempt and therefore a fresh server idempotency identity.
+            if [ "$code" = "409" ]; then
+              echo "Dashboard scheduler invocation is durably failed; rerun the workflow for a fresh invocation identity."
+              exit 1
+            fi
+
+            # 202 = same invocation still running; 423 = another invocation owns
+            # the server lease. Both are safe to poll without starting duplicate work.
             if [ "$attempt" -lt 6 ]; then
               sleep 20
             fi
