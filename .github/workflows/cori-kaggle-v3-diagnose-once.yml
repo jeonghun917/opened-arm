@@ -1,0 +1,89 @@
+name: Cori Kaggle V3 Diagnose Once
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/cori-kaggle-v3-diagnose-once.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'feat/kaggle-p100-port'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      KAGGLE_API_TOKEN: ${{ secrets.KAGGLE_API_TOKEN }}
+      KERNEL_ID: jeonghunmun/c3-cori-e280-e290-t4-benchmark
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install Kaggle CLI
+        run: python -m pip install --quiet --upgrade kaggle
+      - name: Verify failed kernel status
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${KAGGLE_API_TOKEN:-}" || { echo 'missing KAGGLE_API_TOKEN'; exit 2; }
+          kaggle kernels status "$KERNEL_ID"
+      - name: Pull failed-kernel output for diagnosis
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf kaggle_v3_diag
+          mkdir -p kaggle_v3_diag
+          kaggle kernels output "$KERNEL_ID" -p kaggle_v3_diag --force || true
+          echo C3_KAGGLE_V3_OUTPUT_FILES_BEGIN
+          find kaggle_v3_diag -maxdepth 2 -type f -printf '%P\n' | sort | sed -n '1,80p'
+          echo C3_KAGGLE_V3_OUTPUT_FILES_END
+      - name: Print sanitized failure excerpt
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          root=Path('kaggle_v3_diag')
+          candidates=[]
+          for p in root.rglob('*'):
+              if not p.is_file() or p.stat().st_size > 8_000_000:
+                  continue
+              if p.suffix.lower() not in {'.txt','.log','.html','.json','.out','.err'}:
+                  continue
+              try:
+                  text=p.read_text(encoding='utf-8', errors='replace')
+              except Exception:
+                  continue
+              if any(x in text for x in ('Traceback', 'RuntimeError', 'Exception', 'Error', 'ERROR')):
+                  candidates.append((p,text))
+
+          if not candidates:
+              print('C3_KAGGLE_V3_TRACEBACK_NOT_FOUND_IN_OUTPUT')
+              raise SystemExit(0)
+
+          print('C3_KAGGLE_V3_FAILURE_EXCERPT_BEGIN')
+          for p,text in candidates[:5]:
+              # Strip HTML tags and collapse noisy whitespace. Do not print tokens/env values.
+              clean=re.sub(r'<[^>]+>', ' ', text)
+              clean=clean.replace('&quot;','"').replace('&#39;',"'").replace('&gt;','>').replace('&lt;','<').replace('&amp;','&')
+              lines=[re.sub(r'\s+',' ',x).strip() for x in clean.splitlines()]
+              hits=[i for i,x in enumerate(lines) if re.search(r'Traceback|RuntimeError|Exception|Error|ERROR',x)]
+              for i in hits[:8]:
+                  a=max(0,i-6); b=min(len(lines),i+18)
+                  print(f'--- {p.name} lines~{a}:{b} ---')
+                  for line in lines[a:b]:
+                      if line:
+                          print(line[:1200])
+          print('C3_KAGGLE_V3_FAILURE_EXCERPT_END')
+          PY
+      - name: Cleanup
+        if: always()
+        shell: bash
+        run: |
+          find kaggle_v3_diag -type f \( -name '*.ckpt' -o -name '*.wav' -o -name '*.flac' -o -name '*.zip' \) -delete 2>/dev/null || true
+          rm -rf kaggle_v3_diag
