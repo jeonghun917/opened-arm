@@ -10,6 +10,8 @@ on:
       - 'runner/kaggle_offline_runtime.py'
       - 'runner/kaggle_cori_segment_entry.py'
       - 'runner/lightning_cori_continue_to550.py'
+      - 'ops/build_kaggle_offline_runtime.py'
+      - 'ops/kaggle_offline_cpu_validate.py'
   workflow_dispatch:
 
 permissions:
@@ -30,7 +32,56 @@ jobs:
             runner/kaggle_cori_kernel.py \
             runner/kaggle_offline_runtime.py \
             runner/kaggle_cori_segment_entry.py \
-            runner/lightning_cori_continue_to550.py
+            runner/lightning_cori_continue_to550.py \
+            ops/build_kaggle_offline_runtime.py \
+            ops/kaggle_offline_cpu_validate.py
+
+  offline-runtime-cpu-validate:
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    env:
+      KAGGLE_API_TOKEN: ${{ secrets.KAGGLE_API_TOKEN }}
+      KAGGLE_DATASET_ID: ${{ secrets.KAGGLE_DATASET_ID }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate CPU-only gate inputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${KAGGLE_API_TOKEN:-}" || { echo 'missing KAGGLE_API_TOKEN'; exit 2; }
+          [[ "${KAGGLE_DATASET_ID:-}" == */* ]] || { echo 'KAGGLE_DATASET_ID must be owner/private-dataset-slug'; exit 2; }
+          echo C3_OFFLINE_PR_GATE_INPUTS_PASS
+      - name: Install builder clients
+        run: python -m pip install --quiet --upgrade pip wheel kaggle
+      - name: Build private offline runtime and run CPU-only Kaggle validator
+        shell: bash
+        run: |
+          set -euo pipefail
+          python ops/build_kaggle_offline_runtime.py
+      - name: Show bounded validation report
+        if: always()
+        shell: bash
+        run: |
+          if [ -f ops/kaggle-offline-runtime-validation-latest.txt ]; then
+            cat ops/kaggle-offline-runtime-validation-latest.txt
+          else
+            echo 'validation report missing'
+          fi
+      - name: Enforce CPU validation pass
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q '^terminal_status: COMPLETE$' ops/kaggle-offline-runtime-validation-latest.txt
+          grep -q '^validation_pass: true$' ops/kaggle-offline-runtime-validation-latest.txt
+          grep -q 'C3_OFFLINE_CPU_VALIDATION_PASS' ops/kaggle-offline-runtime-validation-latest.txt
+          echo C3_OFFLINE_PR_CPU_GATE_PASS
+      - name: Cleanup builder workspace
+        if: always()
+        run: rm -rf .c3-kaggle-offline-build
 
   launch-private-t4-benchmark:
     if: github.event_name == 'workflow_dispatch'
