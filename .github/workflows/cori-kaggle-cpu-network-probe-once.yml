@@ -1,13 +1,14 @@
 name: Cori Kaggle CPU Network Probe Once
 
 on:
-  push:
+  pull_request:
     branches: [main]
     paths:
       - '.github/workflows/cori-kaggle-cpu-network-probe-once.yml'
+  workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   probe:
@@ -15,24 +16,14 @@ jobs:
     timeout-minutes: 20
     env:
       KAGGLE_API_TOKEN: ${{ secrets.KAGGLE_API_TOKEN }}
-      RESULT_PATH: ops/kaggle-network-probe-latest.txt
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Initialize sanitized result
-        run: |
-          cat > probe_report.txt <<'EOF'
-          # Kaggle API CPU network/environment probe
-
-          This file is sanitized operational output. No credentials, private paths, audio, or model bytes are recorded.
-
-          terminal_status: NOT_STARTED
-          EOF
-      - name: Install Kaggle CLI on GitHub runner
+      - name: Install Kaggle CLI
         run: python -m pip install --quiet --upgrade kaggle
-      - name: Build CPU-only Kaggle probe
+      - name: Build CPU-only Kaggle environment probe
         shell: bash
         run: |
           set -euo pipefail
@@ -101,25 +92,22 @@ print('C3_PROBE_DONE')
           PY
       - name: Push CPU-only Kaggle kernel
         run: kaggle kernels push -p probe -t 600
-      - name: Wait and collect diagnostics
+      - name: Wait and print sanitized diagnostics
         shell: bash
         run: |
-          set -u
+          set -euo pipefail
           K=$(cat kernel-id.txt)
-          STATUS=UNKNOWN
           for i in $(seq 1 60); do
             O=$(kaggle kernels status "$K" 2>&1 || true)
             echo "C3_PROBE_STATUS ${O##*status }"
-            if echo "$O" | grep -q 'KernelWorkerStatus.COMPLETE'; then STATUS=COMPLETE; break; fi
-            if echo "$O" | grep -Eq 'KernelWorkerStatus\.(ERROR|FAILED|CANCELLED|CANCELED)'; then STATUS=ERROR; break; fi
+            if echo "$O" | grep -Eq 'KernelWorkerStatus\.(COMPLETE|ERROR|FAILED|CANCELLED|CANCELED)'; then break; fi
             sleep 10
           done
           rm -rf probe_out; mkdir probe_out
           kaggle kernels output "$K" -p probe_out --force || true
-          PROBE_STATUS="$STATUS" python - <<'PY'
+          python - <<'PY'
           from pathlib import Path
-          import json, os
-          out=[]
+          import json
           for p in Path('probe_out').rglob('*.log'):
               text=p.read_text(encoding='utf-8',errors='replace')
               try: rows=json.loads(text)
@@ -127,41 +115,10 @@ print('C3_PROBE_DONE')
               if isinstance(rows,list):
                   for row in rows:
                       for line in str(row.get('data','')).splitlines():
-                          if line.startswith('C3_PROBE_'): out.append(line)
+                          if line.startswith('C3_PROBE_'): print(line)
               else:
                   for line in text.splitlines():
-                      if 'C3_PROBE_' in line: out.append(line.strip())
-          body=['# Kaggle API CPU network/environment probe','', 'This file is sanitized operational output. No credentials, private paths, audio, or model bytes are recorded.','', 'terminal_status: '+os.environ.get('PROBE_STATUS','UNKNOWN'),'','```text',*out,'```','']
-          Path('probe_report.txt').write_text('\n'.join(body)+'\n',encoding='utf-8')
-          print('\n'.join(out))
-          PY
-      - name: Persist sanitized result to main
-        if: always()
-        env:
-          GH_TOKEN: ${{ github.token }}
-          REPO: ${{ github.repository }}
-          BRANCH: main
-        shell: bash
-        run: |
-          set -euo pipefail
-          python - <<'PY'
-          import base64, json, os, urllib.error, urllib.request
-          from pathlib import Path
-          report=Path('probe_report.txt')
-          if not report.exists(): report.write_text('# Kaggle API CPU network/environment probe\n\nterminal_status: WORKFLOW_FAILED_BEFORE_REPORT\n',encoding='utf-8')
-          repo=os.environ['REPO']; branch=os.environ['BRANCH']; path=os.environ['RESULT_PATH']; token=os.environ['GH_TOKEN']
-          url=f'https://api.github.com/repos/{repo}/contents/{path}'
-          headers={'Authorization':f'Bearer {token}','Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'}
-          sha=None
-          try:
-              with urllib.request.urlopen(urllib.request.Request(url+'?ref='+branch,headers=headers),timeout=30) as r: sha=json.load(r).get('sha')
-          except urllib.error.HTTPError as e:
-              if e.code != 404: raise
-          payload={'message':'Record Kaggle CPU network probe result','content':base64.b64encode(report.read_bytes()).decode(),'branch':branch}
-          if sha: payload['sha']=sha
-          req=urllib.request.Request(url,data=json.dumps(payload).encode(),headers={**headers,'Content-Type':'application/json'},method='PUT')
-          with urllib.request.urlopen(req,timeout=30) as r: json.load(r)
-          print('C3_PROBE_RESULT_PERSISTED')
+                      if 'C3_PROBE_' in line: print(line[:3000])
           PY
       - name: Cleanup
         if: always()
