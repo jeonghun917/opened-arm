@@ -1,5 +1,6 @@
 name: Cori Kaggle Network Env Probe Once
 
+# Manual CPU-only root-cause probe retrigger. Do not launch GPU training from this workflow.
 on:
   push:
     branches: [feat/kaggle-p100-port]
