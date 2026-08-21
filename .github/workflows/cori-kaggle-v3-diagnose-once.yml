@@ -13,10 +13,11 @@ jobs:
   diagnose:
     if: github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'feat/kaggle-p100-port'
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 20
     env:
       KAGGLE_API_TOKEN: ${{ secrets.KAGGLE_API_TOKEN }}
-      KERNEL_ID: jeonghunmun/c3-cori-e280-e290-t4-benchmark
+      KAGGLE_DATASET_ID: ${{ secrets.KAGGLE_DATASET_ID }}
+      FAILED_KERNEL_ID: jeonghunmun/c3-cori-e280-e290-t4-benchmark
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-python@v5
@@ -24,66 +25,89 @@ jobs:
           python-version: '3.11'
       - name: Install Kaggle CLI
         run: python -m pip install --quiet --upgrade kaggle
-      - name: Verify failed kernel status
+      - name: Pull latest failed-kernel log
         shell: bash
         run: |
           set -euo pipefail
-          test -n "${KAGGLE_API_TOKEN:-}" || { echo 'missing KAGGLE_API_TOKEN'; exit 2; }
-          kaggle kernels status "$KERNEL_ID"
-      - name: Pull failed-kernel output for diagnosis
-        shell: bash
-        run: |
-          set -euo pipefail
-          rm -rf kaggle_v3_diag
-          mkdir -p kaggle_v3_diag
-          kaggle kernels output "$KERNEL_ID" -p kaggle_v3_diag --force || true
-          echo C3_KAGGLE_V3_OUTPUT_FILES_BEGIN
-          find kaggle_v3_diag -maxdepth 2 -type f -printf '%P\n' | sort | sed -n '1,80p'
-          echo C3_KAGGLE_V3_OUTPUT_FILES_END
-      - name: Print sanitized failure excerpt
-        shell: bash
-        run: |
-          set -euo pipefail
+          kaggle kernels status "$FAILED_KERNEL_ID" || true
+          rm -rf failed_out; mkdir failed_out
+          kaggle kernels output "$FAILED_KERNEL_ID" -p failed_out --force || true
           python - <<'PY'
           from pathlib import Path
-          import re
-
-          root=Path('kaggle_v3_diag')
-          candidates=[]
-          for p in root.rglob('*'):
-              if not p.is_file() or p.stat().st_size > 8_000_000:
-                  continue
-              if p.suffix.lower() not in {'.txt','.log','.html','.json','.out','.err'}:
-                  continue
-              try:
-                  text=p.read_text(encoding='utf-8', errors='replace')
-              except Exception:
-                  continue
-              if any(x in text for x in ('Traceback', 'RuntimeError', 'Exception', 'Error', 'ERROR')):
-                  candidates.append((p,text))
-
-          if not candidates:
-              print('C3_KAGGLE_V3_TRACEBACK_NOT_FOUND_IN_OUTPUT')
-              raise SystemExit(0)
-
-          print('C3_KAGGLE_V3_FAILURE_EXCERPT_BEGIN')
-          for p,text in candidates[:5]:
-              # Strip HTML tags and collapse noisy whitespace. Do not print tokens/env values.
-              clean=re.sub(r'<[^>]+>', ' ', text)
-              clean=clean.replace('&quot;','"').replace('&#39;',"'").replace('&gt;','>').replace('&lt;','<').replace('&amp;','&')
-              lines=[re.sub(r'\s+',' ',x).strip() for x in clean.splitlines()]
-              hits=[i for i,x in enumerate(lines) if re.search(r'Traceback|RuntimeError|Exception|Error|ERROR',x)]
-              for i in hits[:8]:
-                  a=max(0,i-6); b=min(len(lines),i+18)
-                  print(f'--- {p.name} lines~{a}:{b} ---')
-                  for line in lines[a:b]:
-                      if line:
-                          print(line[:1200])
-          print('C3_KAGGLE_V3_FAILURE_EXCERPT_END')
+          import json
+          for p in Path('failed_out').rglob('*.log'):
+              try: rows=json.loads(p.read_text(encoding='utf-8',errors='replace'))
+              except Exception: continue
+              for r in rows:
+                  d=str(r.get('data',''))
+                  if any(k in d for k in ('Traceback','RuntimeError','C3_KAGGLE_')):
+                      print('C3_FAILED_LOG',d.replace('\n',' | ')[:2500])
+          PY
+      - name: Build private CPU mount probe
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf probe
+          mkdir probe
+          python - <<'PY'
+          import json, os, urllib.parse, urllib.request
+          from pathlib import Path
+          token=os.environ['KAGGLE_API_TOKEN']
+          configured=os.environ['KAGGLE_DATASET_ID'].strip()
+          _,slug=configured.split('/',1)
+          req=urllib.request.Request('https://www.kaggle.com/api/v1/oauth2/introspect',data=urllib.parse.urlencode({'token':token}).encode(),headers={'Content-Type':'application/x-www-form-urlencoded'},method='POST')
+          with urllib.request.urlopen(req,timeout=30) as r: data=json.load(r)
+          owner=(data.get('username') or '').strip()
+          if not data.get('active') or not owner: raise SystemExit('inactive Kaggle token')
+          dataset=f'{owner}/{slug}'
+          kernel=f'{owner}/c3-cori-input-mount-probe'
+          code=r'''import os
+from pathlib import Path
+root=Path('/kaggle/input')
+print('C3_PROBE_ROOT',root.exists(),root.is_symlink())
+try:
+    print('C3_PROBE_TOP',[(p.name,p.is_dir(),p.is_symlink(),str(p.resolve())[:500]) for p in root.iterdir()])
+except Exception as e: print('C3_PROBE_TOP_ERROR',type(e).__name__,str(e))
+seen=0
+for base,dirs,files in os.walk(str(root),followlinks=True):
+    rel=os.path.relpath(base,str(root))
+    print('C3_PROBE_DIR',rel,'ISLINK',os.path.islink(base),'DIRS',dirs[:30],'FILES',files[:60])
+    seen+=1
+    if seen>=120:
+        print('C3_PROBE_TRUNCATED'); break
+print('C3_PROBE_DONE',seen)
+'''
+          Path('probe/probe.py').write_text(code,encoding='utf-8')
+          meta={'id':kernel,'title':'C3 Cori Input Mount Probe','code_file':'probe.py','language':'python','kernel_type':'script','is_private':True,'enable_gpu':False,'enable_internet':False,'dataset_sources':[dataset],'competition_sources':[],'kernel_sources':[],'model_sources':[]}
+          Path('probe/kernel-metadata.json').write_text(json.dumps(meta,indent=2)+'\n',encoding='utf-8')
+          Path('probe-id.txt').write_text(kernel+'\n',encoding='utf-8')
+          print('C3_PROBE_EFFECTIVE_DATASET',dataset)
+          PY
+      - name: Run CPU mount probe and print sanitized tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          kaggle kernels push -p probe -t 600
+          K=$(cat probe-id.txt)
+          for i in $(seq 1 60); do
+            O=$(kaggle kernels status "$K" 2>&1 || true)
+            echo "C3_PROBE_STATUS ${O##*status }"
+            if echo "$O" | grep -Eq 'KernelWorkerStatus\.(COMPLETE|ERROR|FAILED|CANCELLED|CANCELED)'; then break; fi
+            sleep 10
+          done
+          rm -rf probe_out; mkdir probe_out
+          kaggle kernels output "$K" -p probe_out --force || true
+          python - <<'PY'
+          from pathlib import Path
+          import json
+          for p in Path('probe_out').rglob('*.log'):
+              try: rows=json.loads(p.read_text(encoding='utf-8',errors='replace'))
+              except Exception: continue
+              for r in rows:
+                  d=str(r.get('data',''))
+                  if 'C3_PROBE_' in d or 'Traceback' in d or 'RuntimeError' in d:
+                      print(d.replace('\n',' | ')[:5000])
           PY
       - name: Cleanup
         if: always()
-        shell: bash
-        run: |
-          find kaggle_v3_diag -type f \( -name '*.ckpt' -o -name '*.wav' -o -name '*.flac' -o -name '*.zip' \) -delete 2>/dev/null || true
-          rm -rf kaggle_v3_diag
+        run: rm -rf failed_out probe probe_out probe-id.txt
