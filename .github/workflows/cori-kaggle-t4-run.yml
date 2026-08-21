@@ -5,7 +5,9 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/cori-kaggle-t4-run.yml'
+      - 'runner/kaggle_cori_offline_kernel.py'
       - 'runner/kaggle_cori_kernel.py'
+      - 'runner/kaggle_offline_runtime.py'
       - 'runner/kaggle_cori_segment_entry.py'
       - 'runner/lightning_cori_continue_to550.py'
   workflow_dispatch:
@@ -21,10 +23,12 @@ jobs:
       - uses: actions/checkout@v6
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: '3.12'
       - run: |
           python -m py_compile \
+            runner/kaggle_cori_offline_kernel.py \
             runner/kaggle_cori_kernel.py \
+            runner/kaggle_offline_runtime.py \
             runner/kaggle_cori_segment_entry.py \
             runner/lightning_cori_continue_to550.py
 
@@ -42,7 +46,7 @@ jobs:
 
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: '3.12'
 
       - name: Validate Kaggle auth and private dataset handle
         shell: bash
@@ -58,19 +62,25 @@ jobs:
       - name: Install Kaggle CLI
         run: python -m pip install --quiet --upgrade kaggle
 
-      - name: Verify private dataset exists
+      - name: Verify private training and offline runtime Datasets exist
+        shell: bash
         run: |
           set -euo pipefail
+          RUNTIME_ID="${KAGGLE_DATASET_ID%%/*}/c3-cori-offline-runtime"
           kaggle datasets status "$KAGGLE_DATASET_ID" >/dev/null
+          kaggle datasets status "$RUNTIME_ID" >/dev/null
           echo C3_KAGGLE_PRIVATE_DATASET_STATUS_PASS
+          echo C3_KAGGLE_OFFLINE_RUNTIME_DATASET_STATUS_PASS
 
-      - name: Build private kernel bundle
+      - name: Build private offline kernel bundle
         shell: bash
         run: |
           set -euo pipefail
           rm -rf kaggle_kernel_bundle
           mkdir -p kaggle_kernel_bundle
-          cp runner/kaggle_cori_kernel.py kaggle_kernel_bundle/benchmark.py
+          cp runner/kaggle_cori_offline_kernel.py kaggle_kernel_bundle/benchmark.py
+          cp runner/kaggle_cori_kernel.py kaggle_kernel_bundle/kaggle_cori_kernel.py
+          cp runner/kaggle_offline_runtime.py kaggle_kernel_bundle/kaggle_offline_runtime.py
           cp runner/kaggle_cori_segment_entry.py kaggle_kernel_bundle/kaggle_cori_segment_entry.py
           cp runner/lightning_cori_continue_to550.py kaggle_kernel_bundle/lightning_cori_continue_to550.py
           python - <<'PY'
@@ -78,6 +88,7 @@ jobs:
           from pathlib import Path
           dataset_id=os.environ['KAGGLE_DATASET_ID'].strip()
           owner, _ = dataset_id.split('/',1)
+          runtime_id=f'{owner}/c3-cori-offline-runtime'
           metadata={
               'id': f'{owner}/c3-cori-e280-e290-t4-benchmark',
               'title': 'C3 Cori E280 E290 T4 Benchmark',
@@ -86,9 +97,9 @@ jobs:
               'kernel_type': 'script',
               'is_private': True,
               'enable_gpu': True,
-              'enable_internet': True,
+              'enable_internet': False,
               'machine_shape': 'NvidiaTeslaT4',
-              'dataset_sources': [dataset_id],
+              'dataset_sources': [dataset_id, runtime_id],
               'competition_sources': [],
               'kernel_sources': [],
               'model_sources': [],
@@ -97,6 +108,7 @@ jobs:
               json.dumps(metadata, indent=2)+'\n', encoding='utf-8'
           )
           print('C3_KAGGLE_KERNEL_ID='+metadata['id'])
+          print('C3_KAGGLE_NETWORK_ENABLED=false')
           PY
 
       - name: Push and start private T4 kernel
@@ -104,7 +116,7 @@ jobs:
         run: |
           set -euo pipefail
           kaggle kernels push -p kaggle_kernel_bundle --accelerator NvidiaTeslaT4 -t 43200
-          echo C3_KAGGLE_T4_KERNEL_PUSHED
+          echo C3_KAGGLE_T4_OFFLINE_KERNEL_PUSHED
 
       - name: Remove local kernel bundle
         if: always()
