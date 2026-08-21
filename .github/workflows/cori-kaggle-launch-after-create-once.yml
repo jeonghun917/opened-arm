@@ -1,125 +1,17 @@
 name: Cori Kaggle Launch After Create Once
 
+# Diagnostic safety: do not relaunch a paid/quota GPU kernel on every PR synchronization.
+# This workflow is manual-only until the current portability failure is understood.
 on:
-  pull_request:
-    branches: [main]
-    paths:
-      - '.github/workflows/cori-kaggle-launch-after-create-once.yml'
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  wait-and-launch:
-    if: github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'feat/kaggle-p100-port'
+  disabled-until-diagnosed:
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
-    env:
-      KAGGLE_API_TOKEN: ${{ secrets.KAGGLE_API_TOKEN }}
-      KAGGLE_DATASET_ID: ${{ secrets.KAGGLE_DATASET_ID }}
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Install Kaggle CLI
-        run: python -m pip install --quiet --upgrade kaggle
-
-      - name: Resolve authenticated owner and effective private Dataset id
-        shell: bash
-        run: |
-          set -euo pipefail
-          test -n "${KAGGLE_API_TOKEN:-}" || { echo 'missing KAGGLE_API_TOKEN'; exit 2; }
-          test -n "${KAGGLE_DATASET_ID:-}" || { echo 'missing KAGGLE_DATASET_ID'; exit 2; }
-          python - <<'PY'
-          import json, os, urllib.parse, urllib.request
-          configured=os.environ['KAGGLE_DATASET_ID'].strip()
-          _, slug=configured.split('/',1)
-          token=os.environ['KAGGLE_API_TOKEN']
-          req=urllib.request.Request(
-              'https://www.kaggle.com/api/v1/oauth2/introspect',
-              data=urllib.parse.urlencode({'token':token}).encode(),
-              headers={'Content-Type':'application/x-www-form-urlencoded'},
-              method='POST',
-          )
-          with urllib.request.urlopen(req, timeout=30) as r:
-              data=json.load(r)
-          owner=(data.get('username') or '').strip()
-          if not data.get('active') or not owner:
-              raise SystemExit('cannot resolve active Kaggle owner')
-          effective=f'{owner}/{slug}'
-          with open(os.environ['GITHUB_ENV'],'a',encoding='utf-8') as f:
-              f.write('KAGGLE_DATASET_ID='+effective+'\n')
-              f.write('KAGGLE_OWNER='+owner+'\n')
-          print('C3_KAGGLE_EFFECTIVE_DATASET_RESOLVED=true')
-          print('C3_KAGGLE_OWNER='+owner)
-          PY
-
-      - name: Wait for private Dataset provisioning
-        shell: bash
-        run: |
-          set -euo pipefail
-          for i in $(seq 1 90); do
-            if kaggle datasets status "$KAGGLE_DATASET_ID" >/dev/null 2>&1; then
-              echo "C3_KAGGLE_PRIVATE_DATASET_READY attempt=$i"
-              exit 0
-            fi
-            echo "C3_KAGGLE_PRIVATE_DATASET_WAIT attempt=$i"
-            sleep 10
-          done
-          echo 'private Kaggle Dataset did not become queryable within 15 minutes'
-          exit 3
-
-      - name: Build exact E280 to E290 single-T4 kernel bundle
-        shell: bash
-        run: |
-          set -euo pipefail
-          rm -rf kaggle_kernel_bundle
-          mkdir -p kaggle_kernel_bundle
-          cp runner/kaggle_cori_kernel.py kaggle_kernel_bundle/benchmark.py
-          cp runner/kaggle_cori_segment_entry.py kaggle_kernel_bundle/kaggle_cori_segment_entry.py
-          cp runner/lightning_cori_continue_to550.py kaggle_kernel_bundle/lightning_cori_continue_to550.py
-          python - <<'PY'
-          import json, os
-          from pathlib import Path
-          dataset_id=os.environ['KAGGLE_DATASET_ID']
-          owner=os.environ['KAGGLE_OWNER']
-          metadata={
-              'id': f'{owner}/c3-cori-e280-e290-t4-benchmark',
-              'title': 'C3 Cori E280 E290 T4 Benchmark',
-              'code_file': 'benchmark.py',
-              'language': 'python',
-              'kernel_type': 'script',
-              'is_private': True,
-              'enable_gpu': True,
-              'enable_internet': True,
-              'machine_shape': 'NvidiaTeslaT4',
-              'dataset_sources': [dataset_id],
-              'competition_sources': [],
-              'kernel_sources': [],
-              'model_sources': [],
-          }
-          Path('kaggle_kernel_bundle/kernel-metadata.json').write_text(json.dumps(metadata, indent=2)+'\n', encoding='utf-8')
-          Path('kernel-id.txt').write_text(metadata['id']+'\n', encoding='utf-8')
-          print('C3_KAGGLE_T4_BUNDLE_PASS')
-          PY
-
-      - name: Push private T4 benchmark
-        shell: bash
-        run: |
-          set -euo pipefail
-          kaggle kernels push -p kaggle_kernel_bundle --accelerator NvidiaTeslaT4 -t 43200
-          echo C3_KAGGLE_T4_KERNEL_PUSHED
-
-      - name: Confirm Kaggle accepted the kernel
-        shell: bash
-        run: |
-          set -euo pipefail
-          KERNEL_ID=$(cat kernel-id.txt)
-          kaggle kernels status "$KERNEL_ID"
-          echo C3_KAGGLE_T4_KERNEL_ACCEPTED
-
-      - name: Cleanup
-        if: always()
-        run: rm -rf kaggle_kernel_bundle kernel-id.txt
+      - run: |
+          echo 'C3_KAGGLE_AUTO_RELAUNCH_DISABLED'
+          echo 'Re-enable the exact benchmark launcher only after a diagnosed fix is committed.'
