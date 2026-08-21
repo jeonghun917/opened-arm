@@ -1,5 +1,6 @@
 name: Cori Kaggle CPU Network Probe Once
 
+# Diagnostic PR trigger 2026-08-21; CPU-only, no Kaggle GPU allocation.
 on:
   pull_request:
     branches: [main]
