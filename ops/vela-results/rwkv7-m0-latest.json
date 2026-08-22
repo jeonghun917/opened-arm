@@ -1,0 +1,21 @@
+{
+  "status": "RWKV7_REAL_WEIGHT_M0_PROBE",
+  "source_repo": "BlinkDL/RWKV-LM",
+  "source_commit": "524481d5099b38d9bc8ef1e89209161b86c8011b",
+  "source_path": "RWKV-v7/rwkv_v7_demo_rnn.py",
+  "weight_repo": "BlinkDL/rwkv7-g1",
+  "weight_revision": "1e5090cdd819629ff8755e0e04f4db83f0bb9dbb",
+  "weight_file": "rwkv7-g1a-0.1b-20250728-ctx4096.pth",
+  "weight_sha256": "964f01cc4673273bbcf1b9c3cdc243d58af97bffeab51cb20c752eeaf048a3c6",
+  "device": "cpu",
+  "dtype": "float32",
+  "state_tensor_count": 36,
+  "state_numel": 608256,
+  "restore_max_abs_diff": 0.0,
+  "full_replay_max_abs_diff": 0.0,
+  "fresh_max_abs_diff": 8.170828819274902,
+  "restore_equivalent": true,
+  "full_replay_equivalent": true,
+  "fresh_is_different": true,
+  "claim_boundary": "Actual released RWKV-7 0.1B weights with the pinned official RNN transition equations adapted only to eager CPU execution. M0 state-checkpoint evidence only; not reasoning-quality or identity evidence."
+}
