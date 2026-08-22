@@ -1,0 +1,262 @@
+{
+  "status": "MICRO_LEARNED_ENGINE_UPGRADE_PROBE",
+  "model": "state-spaces/mamba-130m-hf",
+  "torch_version": "2.13.0+cu130",
+  "transformers_version": "4.57.6",
+  "trainable_parameter": "backbone.layers[0].mixer.x_proj.weight",
+  "lr": 0.0001,
+  "epochs": 1,
+  "train_examples": 6,
+  "baseline": {
+    "accuracy": 0.6666666666666666,
+    "pair_summary": {
+      "codeword-control": {
+        "both_correct": true,
+        "choices": [
+          " ALPHA",
+          " BETA"
+        ],
+        "choice_flips": true
+      },
+      "correction": {
+        "both_correct": false,
+        "choices": [
+          " RED",
+          " RED"
+        ],
+        "choice_flips": false
+      },
+      "plan-control": {
+        "both_correct": false,
+        "choices": [
+          " commit",
+          " commit"
+        ],
+        "choice_flips": false
+      }
+    },
+    "rows": [
+      {
+        "pair": "correction",
+        "variant": "A",
+        "expected": " BLUE",
+        "chosen": " RED",
+        "correct": false,
+        "margin": -1.5075048170983791,
+        "scores": {
+          " BLUE": -2.669584270566702,
+          " RED": -1.1620794534683228
+        }
+      },
+      {
+        "pair": "correction",
+        "variant": "B",
+        "expected": " RED",
+        "chosen": " RED",
+        "correct": true,
+        "margin": 1.0202308893203735,
+        "scores": {
+          " BLUE": -2.524513840675354,
+          " RED": -1.5042829513549805
+        }
+      },
+      {
+        "pair": "codeword-control",
+        "variant": "A",
+        "expected": " ALPHA",
+        "chosen": " ALPHA",
+        "correct": true,
+        "margin": 1.37117876438424,
+        "scores": {
+          " ALPHA": -1.4439449585042894,
+          " BETA": -2.8151237228885293
+        }
+      },
+      {
+        "pair": "codeword-control",
+        "variant": "B",
+        "expected": " BETA",
+        "chosen": " BETA",
+        "correct": true,
+        "margin": 0.785610830411315,
+        "scores": {
+          " ALPHA": -2.4324427056126297,
+          " BETA": -1.6468318752013147
+        }
+      },
+      {
+        "pair": "plan-control",
+        "variant": "A",
+        "expected": " commit",
+        "chosen": " commit",
+        "correct": true,
+        "margin": 0.6712570190429688,
+        "scores": {
+          " commit": -4.267392158508301,
+          " collect": -4.9386491775512695
+        }
+      },
+      {
+        "pair": "plan-control",
+        "variant": "B",
+        "expected": " collect",
+        "chosen": " commit",
+        "correct": false,
+        "margin": -1.2698326110839844,
+        "scores": {
+          " commit": -4.173771858215332,
+          " collect": -5.443604469299316
+        }
+      }
+    ]
+  },
+  "after": {
+    "accuracy": 0.6666666666666666,
+    "pair_summary": {
+      "codeword-control": {
+        "both_correct": true,
+        "choices": [
+          " ALPHA",
+          " BETA"
+        ],
+        "choice_flips": true
+      },
+      "correction": {
+        "both_correct": false,
+        "choices": [
+          " RED",
+          " RED"
+        ],
+        "choice_flips": false
+      },
+      "plan-control": {
+        "both_correct": false,
+        "choices": [
+          " commit",
+          " commit"
+        ],
+        "choice_flips": false
+      }
+    },
+    "rows": [
+      {
+        "pair": "correction",
+        "variant": "A",
+        "expected": " BLUE",
+        "chosen": " RED",
+        "correct": false,
+        "margin": -1.4157682098448277,
+        "scores": {
+          " BLUE": -2.561113778501749,
+          " RED": -1.1453455686569214
+        }
+      },
+      {
+        "pair": "correction",
+        "variant": "B",
+        "expected": " RED",
+        "chosen": " RED",
+        "correct": true,
+        "margin": 0.9092927575111389,
+        "scores": {
+          " BLUE": -2.4012466073036194,
+          " RED": -1.4919538497924805
+        }
+      },
+      {
+        "pair": "codeword-control",
+        "variant": "A",
+        "expected": " ALPHA",
+        "chosen": " ALPHA",
+        "correct": true,
+        "margin": 1.3671533046290278,
+        "scores": {
+          " ALPHA": -1.4073029765859246,
+          " BETA": -2.7744562812149525
+        }
+      },
+      {
+        "pair": "codeword-control",
+        "variant": "B",
+        "expected": " BETA",
+        "chosen": " BETA",
+        "correct": true,
+        "margin": 0.8135984786786139,
+        "scores": {
+          " ALPHA": -2.4027325911447406,
+          " BETA": -1.5891341124661267
+        }
+      },
+      {
+        "pair": "plan-control",
+        "variant": "A",
+        "expected": " commit",
+        "chosen": " commit",
+        "correct": true,
+        "margin": 0.5971450805664062,
+        "scores": {
+          " commit": -4.247701644897461,
+          " collect": -4.844846725463867
+        }
+      },
+      {
+        "pair": "plan-control",
+        "variant": "B",
+        "expected": " collect",
+        "chosen": " commit",
+        "correct": false,
+        "margin": -1.1705856323242188,
+        "scores": {
+          " commit": -4.166288375854492,
+          " collect": -5.336874008178711
+        }
+      }
+    ]
+  },
+  "training_trace": [
+    {
+      "loss": 1.8570128679275513,
+      "grad_norm": 3.3732945919036865
+    },
+    {
+      "loss": 1.6421637535095215,
+      "grad_norm": 3.023780584335327
+    },
+    {
+      "loss": 1.3221982717514038,
+      "grad_norm": 1.5695222616195679
+    },
+    {
+      "loss": 1.3891243934631348,
+      "grad_norm": 3.7576653957366943
+    },
+    {
+      "loss": 1.2853467464447021,
+      "grad_norm": 1.9853097200393677
+    },
+    {
+      "loss": 1.1910899877548218,
+      "grad_norm": 3.742223024368286
+    }
+  ],
+  "weight_delta": {
+    "l2": 0.11882898956537247,
+    "rms": 0.0003389859339222312,
+    "max_abs": 0.0006023459136486053,
+    "relative_l2": 0.0038000624626874924
+  },
+  "migration": {
+    "old_vs_new_native_state": {
+      "rms": 0.013106591033420538,
+      "l2": 11.253975745542736,
+      "max_abs": 0.2641584873199463,
+      "numel": 737280
+    },
+    "continuation_logit_error": {
+      "rms": 0.6831575632095337,
+      "max_abs": 1.0362396240234375,
+      "argmax_same": true
+    }
+  },
+  "claim_boundary": "This is an actual gradient-based same-architecture weight update on a tiny synthetic correction task. It may demonstrate narrow task learning and state incompatibility after learning, but it is not evidence of broad reasoning improvement."
+}
