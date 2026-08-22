@@ -1,28 +1,20 @@
 {
-  "status": "M0_PROBE_ERROR",
+  "status": "M0_STATE_CHECKPOINT_PROBE",
   "model": "state-spaces/mamba-130m-hf",
+  "device": "cpu",
   "torch_version": "2.13.0+cu130",
-  "error_type": "ValueError",
-  "error": "You have to specify the `cache_position` manually when `use_cache=True` and `cache_params` is passed, you don't have to pass a `cache_params` if you are in prefilling stage because in that case it will be initialized for you automatically",
-  "traceback_tail": [
-    "  File \"/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/torch/nn/modules/module.py\", line 1778, in _wrapped_call_impl",
-    "    return self._call_impl(*args, **kwargs)",
-    "           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
-    "  File \"/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/torch/nn/modules/module.py\", line 1789, in _call_impl",
-    "    return forward_call(*args, **kwargs)",
-    "           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
-    "  File \"/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/transformers/models/mamba/modeling_mamba.py\", line 840, in forward",
-    "    mamba_outputs = self.backbone(",
-    "                    ^^^^^^^^^^^^^^",
-    "  File \"/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/torch/nn/modules/module.py\", line 1778, in _wrapped_call_impl",
-    "    return self._call_impl(*args, **kwargs)",
-    "           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
-    "  File \"/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/torch/nn/modules/module.py\", line 1789, in _call_impl",
-    "    return forward_call(*args, **kwargs)",
-    "           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
-    "  File \"/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/transformers/models/mamba/modeling_mamba.py\", line 688, in forward",
-    "    raise ValueError(",
-    "ValueError: You have to specify the `cache_position` manually when `use_cache=True` and `cache_params` is passed, you don't have to pass a `cache_params` if you are in prefilling stage because in that case it will be initialized for you automatically"
+  "transformers_version": "4.57.6",
+  "prefix_tokens": 23,
+  "continuation_tokens": 1,
+  "cache_type": "MambaCache",
+  "cache_argument": "cache_params",
+  "cache_position": [
+    23
   ],
-  "claim_boundary": "Experiment/runtime failure only; do not interpret as a Mamba architecture failure."
+  "restore_max_abs_diff": 0.0,
+  "fresh_max_abs_diff": 32.873897552490234,
+  "restore_equivalent": true,
+  "fresh_is_different": true,
+  "interpretation": "This tests whether the Mamba inference cache can be serialized and restored across a fresh Python object load while preserving the next-token logits at a one-token cached-continuation boundary.",
+  "claim_boundary": "Mamba-1 130M family probe only. It does not establish Mamba-3 behavior, VELA continuity, identity, or cognitive-engine superiority."
 }
