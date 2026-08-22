@@ -1,0 +1,43 @@
+{
+  "checkpoint_command_ok": true,
+  "restart_script_created": true,
+  "native_rc": 0,
+  "restored_rc": 0,
+  "native": {
+    "candidate": "ONA/OpenNARS for Applications",
+    "branch": "native",
+    "process_rc": 0,
+    "expected_live_state": true,
+    "state_signature": {
+      "belief_queue": [
+        "<active <-> durable>: { \"priority\": 0.325625, \"time\": 2 } Truth: frequency=1.000000, confidence=0.447514",
+        "<active --> durable>: { \"priority\": 0.325625, \"time\": 2 } Truth: frequency=1.000000, confidence=0.447514",
+        "<durable <-> active>: { \"priority\": 0.325625, \"time\": 2 } Truth: frequency=1.000000, confidence=0.447514"
+      ],
+      "goal_queue": [
+        "<durable --> target>: {\"priority\": 0.452455, \"time\": 3 } Truth: frequency=1.000000, confidence=0.810000"
+      ]
+    },
+    "claim_boundary": "Whole-process checkpoint fixture; not ordinary persistentNAR behavior and not VELA identity evidence."
+  },
+  "restored": {
+    "candidate": "ONA/OpenNARS for Applications",
+    "branch": "restored",
+    "process_rc": 0,
+    "expected_live_state": true,
+    "state_signature": {
+      "belief_queue": [
+        "<active <-> durable>: { \"priority\": 0.325625, \"time\": 2 } Truth: frequency=1.000000, confidence=0.447514",
+        "<active --> durable>: { \"priority\": 0.325625, \"time\": 2 } Truth: frequency=1.000000, confidence=0.447514",
+        "<durable <-> active>: { \"priority\": 0.325625, \"time\": 2 } Truth: frequency=1.000000, confidence=0.447514"
+      ],
+      "goal_queue": [
+        "<durable --> target>: {\"priority\": 0.452455, \"time\": 3 } Truth: frequency=1.000000, confidence=0.810000"
+      ]
+    },
+    "claim_boundary": "Whole-process checkpoint fixture; not ordinary persistentNAR behavior and not VELA identity evidence."
+  },
+  "state_signature_equivalent": true,
+  "checkpoint_command_tail": "",
+  "claim_boundary": "External whole-process checkpoint reference only. Equivalence demonstrates that preserving the full causally active runtime state is sufficient for this fixture; it does not prove VELA identity or make DMTCP the target architecture."
+}

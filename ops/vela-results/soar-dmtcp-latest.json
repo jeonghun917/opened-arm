@@ -1,0 +1,31 @@
+{
+  "checkpoint_command_ok": true,
+  "restart_script_created": true,
+  "native_rc": 0,
+  "restored_rc": 0,
+  "native": {
+    "candidate": "Soar 9.6.5",
+    "branch": "native",
+    "expected_live_state": true,
+    "state_signature": {
+      "input_marker": "active",
+      "production": "sp {vela*dmtcp-scope\n(state <s> ^superstate nil)\n-->\n(<s> ^vela-rule-loaded yes)\n}",
+      "state": "(S1 ^epmem E1 ^io I1 ^reward-link R1 ^smem L1 ^superstate nil ^type state\n^vela-rule-loaded yes)\n(E1 ^command C1 ^present-id 1 ^result R2)\n(I1 ^input-link I2 ^output-link I3)\n(I2 ^vela-marker active)\n(L1 ^command C2 ^result R3)"
+    },
+    "claim_boundary": "Whole-process checkpoint fixture; not ordinary save-agent behavior and not VELA identity evidence."
+  },
+  "restored": {
+    "candidate": "Soar 9.6.5",
+    "branch": "restored",
+    "expected_live_state": true,
+    "state_signature": {
+      "input_marker": "active",
+      "production": "sp {vela*dmtcp-scope\n(state <s> ^superstate nil)\n-->\n(<s> ^vela-rule-loaded yes)\n}",
+      "state": "(S1 ^epmem E1 ^io I1 ^reward-link R1 ^smem L1 ^superstate nil ^type state\n^vela-rule-loaded yes)\n(E1 ^command C1 ^present-id 1 ^result R2)\n(I1 ^input-link I2 ^output-link I3)\n(I2 ^vela-marker active)\n(L1 ^command C2 ^result R3)"
+    },
+    "claim_boundary": "Whole-process checkpoint fixture; not ordinary save-agent behavior and not VELA identity evidence."
+  },
+  "state_signature_equivalent": true,
+  "checkpoint_command_tail": "",
+  "claim_boundary": "External whole-process checkpoint reference only. Equivalence demonstrates that preserving the full causally active runtime state is sufficient for this fixture; it does not prove VELA identity or make DMTCP the target architecture."
+}
