@@ -1,0 +1,52 @@
+{
+  "status": "XLSTM_ARCH_STATE_PROBE",
+  "source_commit": "f539ba80770ba2b9acd5bf4c1e0f0d4827494184",
+  "device": "cpu",
+  "weights": "deterministic_random_fixture_only",
+  "state_tensor_count": 6,
+  "state_shapes": {
+    "0": [
+      [
+        1,
+        4,
+        4,
+        8
+      ],
+      [
+        1,
+        4,
+        4
+      ],
+      [
+        1,
+        4,
+        1
+      ]
+    ],
+    "1": [
+      [
+        1,
+        4,
+        4,
+        8
+      ],
+      [
+        1,
+        4,
+        4
+      ],
+      [
+        1,
+        4,
+        1
+      ]
+    ]
+  },
+  "restore_max_abs_diff": 0.0,
+  "full_replay_max_abs_diff": 3.5762786865234375e-07,
+  "fresh_max_abs_diff": 0.40718525648117065,
+  "restore_equivalent": true,
+  "full_replay_equivalent": true,
+  "fresh_is_different": true,
+  "claim_boundary": "Architecture/state-interface probe with deterministic random weights only. It does not validate the released xLSTM 7B checkpoint or establish VELA cognitive continuity."
+}
