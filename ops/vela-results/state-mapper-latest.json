@@ -1,0 +1,133 @@
+{
+  "status": "AFFINE_STATE_MAPPER_PROBE",
+  "model": "state-spaces/mamba-130m-hf",
+  "torch_version": "2.13.0+cu130",
+  "transformers_version": "4.57.6",
+  "weight_scale_delta": 0.01,
+  "updated_parameter": "backbone.layers[0].mixer.x_proj.weight",
+  "calibration_prefix_count": 4,
+  "heldout_prefix_count": 4,
+  "mapper": "per-cache-tensor scalar affine y=a*x+b fitted on calibration prefixes",
+  "coefficient_count": 48,
+  "mean_state_rms_improvement_fraction": 0.0034870306058436273,
+  "mean_logit_rms_improvement_fraction": 0.15156083856459474,
+  "rows": [
+    {
+      "prefix": "The next plan step is commit because evidence collection is complete.",
+      "prefix_tokens": 12,
+      "direct_state_error": {
+        "rms": 0.00469530671368446,
+        "l2": 4.031625595011684,
+        "max_abs": 0.2553367614746094,
+        "numel": 737280
+      },
+      "mapped_state_error": {
+        "rms": 0.004687380417447685,
+        "l2": 4.024819679928716,
+        "max_abs": 0.2933540344238281,
+        "numel": 737280
+      },
+      "state_rms_improvement_fraction": 0.0016881317281519648,
+      "direct_logit_error": {
+        "rms": 0.05491118133068085,
+        "max_abs": 0.234649658203125
+      },
+      "mapped_logit_error": {
+        "rms": 0.02931094542145729,
+        "max_abs": 0.19712066650390625
+      },
+      "logit_rms_improvement_fraction": 0.4662117129670963,
+      "native_argmax": 13,
+      "direct_argmax_same": true,
+      "mapped_argmax_same": true
+    },
+    {
+      "prefix": "Project Orion is active while Project Vega is explicitly paused.",
+      "prefix_tokens": 13,
+      "direct_state_error": {
+        "rms": 0.005164290052589149,
+        "l2": 4.434318187436276,
+        "max_abs": 0.103485107421875,
+        "numel": 737280
+      },
+      "mapped_state_error": {
+        "rms": 0.005144560671116254,
+        "l2": 4.417377551995347,
+        "max_abs": 0.13774871826171875,
+        "numel": 737280
+      },
+      "state_rms_improvement_fraction": 0.00382034728336067,
+      "direct_logit_error": {
+        "rms": 0.03088236413896084,
+        "max_abs": 0.11946868896484375
+      },
+      "mapped_logit_error": {
+        "rms": 0.04884219169616699,
+        "max_abs": 0.13979339599609375
+      },
+      "logit_rms_improvement_fraction": -0.5815561100307163,
+      "native_argmax": 13,
+      "direct_argmax_same": true,
+      "mapped_argmax_same": true
+    },
+    {
+      "prefix": "The latest observation weakens the timing explanation but preserves the scope explanation.",
+      "prefix_tokens": 14,
+      "direct_state_error": {
+        "rms": 0.004450291025388942,
+        "l2": 3.821242848931936,
+        "max_abs": 0.0888214111328125,
+        "numel": 737280
+      },
+      "mapped_state_error": {
+        "rms": 0.004433844749667621,
+        "l2": 3.8071212525839377,
+        "max_abs": 0.1197662353515625,
+        "numel": 737280
+      },
+      "state_rms_improvement_fraction": 0.003695550611745424,
+      "direct_logit_error": {
+        "rms": 0.36909836530685425,
+        "max_abs": 0.454010009765625
+      },
+      "mapped_logit_error": {
+        "rms": 0.11965588480234146,
+        "max_abs": 0.19585800170898438
+      },
+      "logit_rms_improvement_fraction": 0.675815728138313,
+      "native_argmax": 13,
+      "direct_argmax_same": true,
+      "mapped_argmax_same": true
+    },
+    {
+      "prefix": "The current constraint forbids external action until verification succeeds.",
+      "prefix_tokens": 11,
+      "direct_state_error": {
+        "rms": 0.004738156049349719,
+        "l2": 4.068418181509562,
+        "max_abs": 0.10854554176330566,
+        "numel": 737280
+      },
+      "mapped_state_error": {
+        "rms": 0.004715677797350171,
+        "l2": 4.049117228106801,
+        "max_abs": 0.109230637550354,
+        "numel": 737280
+      },
+      "state_rms_improvement_fraction": 0.004744092800116451,
+      "direct_logit_error": {
+        "rms": 0.03179972991347313,
+        "max_abs": 0.11958694458007812
+      },
+      "mapped_logit_error": {
+        "rms": 0.030344191938638687,
+        "max_abs": 0.11632919311523438
+      },
+      "logit_rms_improvement_fraction": 0.045772023183685895,
+      "native_argmax": 13,
+      "direct_argmax_same": true,
+      "mapped_argmax_same": true
+    }
+  ],
+  "claim_boundary": "Held-out mechanism probe for a simple mapper after a controlled same-architecture weight perturbation. This is not learned capability improvement and does not establish that arbitrary fine-tuning or architecture changes admit a simple state map."
+}
