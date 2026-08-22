@@ -1,1 +1,28 @@
-{"status":"FAIL_BEFORE_RESULT","source_commit":"5aeaef3381557817b423b1298101970925c8ab20"}
+{
+  "status": "M0_PROBE_ERROR",
+  "model": "state-spaces/mamba-130m-hf",
+  "torch_version": "2.13.0+cu130",
+  "error_type": "ValueError",
+  "error": "You have to specify the `cache_position` manually when `use_cache=True` and `cache_params` is passed, you don't have to pass a `cache_params` if you are in prefilling stage because in that case it will be initialized for you automatically",
+  "traceback_tail": [
+    "  File \"/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/torch/nn/modules/module.py\", line 1778, in _wrapped_call_impl",
+    "    return self._call_impl(*args, **kwargs)",
+    "           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+    "  File \"/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/torch/nn/modules/module.py\", line 1789, in _call_impl",
+    "    return forward_call(*args, **kwargs)",
+    "           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+    "  File \"/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/transformers/models/mamba/modeling_mamba.py\", line 840, in forward",
+    "    mamba_outputs = self.backbone(",
+    "                    ^^^^^^^^^^^^^^",
+    "  File \"/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/torch/nn/modules/module.py\", line 1778, in _wrapped_call_impl",
+    "    return self._call_impl(*args, **kwargs)",
+    "           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+    "  File \"/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/torch/nn/modules/module.py\", line 1789, in _call_impl",
+    "    return forward_call(*args, **kwargs)",
+    "           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+    "  File \"/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/transformers/models/mamba/modeling_mamba.py\", line 688, in forward",
+    "    raise ValueError(",
+    "ValueError: You have to specify the `cache_position` manually when `use_cache=True` and `cache_params` is passed, you don't have to pass a `cache_params` if you are in prefilling stage because in that case it will be initialized for you automatically"
+  ],
+  "claim_boundary": "Experiment/runtime failure only; do not interpret as a Mamba architecture failure."
+}
