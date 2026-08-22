@@ -1,0 +1,59 @@
+{
+  "status": "MICROBUDGET_PREPARED_NO_SPEND",
+  "currency": "USD",
+  "hard_caps": {
+    "kaggle": null,
+    "lightning": 4.5,
+    "modal": 4.5
+  },
+  "allocation_policy": [
+    "Kaggle first; use free account quota without a user-defined spend cap",
+    "Lightning and Modal each have a normal base cap of $2.50",
+    "A shared additional reserve of $2.00 may be spent automatically when it unlocks a blocked/high-information experiment",
+    "Combined paid spend may not exceed $7.00 without new explicit approval",
+    "No single paid provider may exceed $4.50 without new explicit approval"
+  ],
+  "planned_first_wave": {
+    "kaggle": {
+      "target_gpu_hours": null,
+      "jobs": [
+        "RWKV-169M state restore",
+        "shared-state HARD GATE",
+        "small-model repeat"
+      ],
+      "note": "Use available free quota as needed; stop only on account quota/runtime limits or experiment stop conditions."
+    },
+    "lightning": {
+      "planned_cost_usd": 1.8,
+      "reserve_usd": 0.7,
+      "preferred_gpu": "T4",
+      "jobs": [
+        "RWKV repeat",
+        "small recurrent/state-space probe",
+        "environment reproducibility"
+      ]
+    },
+    "modal": {
+      "planned_cost_usd": 1.2,
+      "reserve_usd": 1.3,
+      "preferred_gpu": "T4",
+      "jobs": [
+        "isolated RWKV checkpoint equivalence repeat",
+        "short adapter regression"
+      ],
+      "max_single_job_seconds": 1200
+    }
+  },
+  "performance_policy": {
+    "primary_objective": "performance",
+    "hard_constraint": "single-subject integration HARD GATE",
+    "no_rank_freeze_before": "comparable real candidates are run on adequate hardware"
+  },
+  "base_caps": {
+    "lightning": 2.5,
+    "modal": 2.5
+  },
+  "shared_extra_reserve_usd": 2.0,
+  "paid_total_hard_ceiling_usd": 7.0,
+  "absolute_provider_hard_ceiling_usd": 4.5
+}
