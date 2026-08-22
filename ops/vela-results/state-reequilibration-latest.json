@@ -1,0 +1,143 @@
+{
+  "status": "STATE_REEQUILIBRATION_HORIZON_PROBE",
+  "model": "state-spaces/mamba-130m-hf",
+  "torch_version": "2.13.0+cu130",
+  "transformers_version": "4.57.6",
+  "weight_scale_delta": 0.01,
+  "updated_parameter": "backbone.layers[0].mixer.x_proj.weight",
+  "prefix_tokens": 47,
+  "horizons": [
+    0,
+    1,
+    2,
+    4,
+    8,
+    16,
+    32,
+    47
+  ],
+  "rows": [
+    {
+      "w2_replayed_recent_tokens": 0,
+      "w1_history_tokens_kept_without_recompute": 47,
+      "state_error_vs_full_w2": {
+        "rms": 0.0037012228440031175,
+        "l2": 3.178055377561371,
+        "max_abs": 0.1315174102783203,
+        "numel": 737280
+      },
+      "continuation_logit_error_vs_full_w2": {
+        "rms": 0.04813196137547493,
+        "max_abs": 0.15700340270996094,
+        "argmax_same": true
+      }
+    },
+    {
+      "w2_replayed_recent_tokens": 1,
+      "w1_history_tokens_kept_without_recompute": 46,
+      "state_error_vs_full_w2": {
+        "rms": 0.003601860998100347,
+        "l2": 3.0927383183069246,
+        "max_abs": 0.12190437316894531,
+        "numel": 737280
+      },
+      "continuation_logit_error_vs_full_w2": {
+        "rms": 0.06947988271713257,
+        "max_abs": 0.1789703369140625,
+        "argmax_same": true
+      }
+    },
+    {
+      "w2_replayed_recent_tokens": 2,
+      "w1_history_tokens_kept_without_recompute": 45,
+      "state_error_vs_full_w2": {
+        "rms": 0.0032959462133768085,
+        "l2": 2.830064556784731,
+        "max_abs": 0.11710357666015625,
+        "numel": 737280
+      },
+      "continuation_logit_error_vs_full_w2": {
+        "rms": 0.04760481044650078,
+        "max_abs": 0.15500259399414062,
+        "argmax_same": true
+      }
+    },
+    {
+      "w2_replayed_recent_tokens": 4,
+      "w1_history_tokens_kept_without_recompute": 43,
+      "state_error_vs_full_w2": {
+        "rms": 0.0027145742956243973,
+        "l2": 2.330869499516069,
+        "max_abs": 0.11124038696289062,
+        "numel": 737280
+      },
+      "continuation_logit_error_vs_full_w2": {
+        "rms": 0.015639271587133408,
+        "max_abs": 0.11594390869140625,
+        "argmax_same": true
+      }
+    },
+    {
+      "w2_replayed_recent_tokens": 8,
+      "w1_history_tokens_kept_without_recompute": 39,
+      "state_error_vs_full_w2": {
+        "rms": 0.0022439447807045625,
+        "l2": 1.926763417885924,
+        "max_abs": 0.10984230041503906,
+        "numel": 737280
+      },
+      "continuation_logit_error_vs_full_w2": {
+        "rms": 0.020056651905179024,
+        "max_abs": 0.13228607177734375,
+        "argmax_same": true
+      }
+    },
+    {
+      "w2_replayed_recent_tokens": 16,
+      "w1_history_tokens_kept_without_recompute": 31,
+      "state_error_vs_full_w2": {
+        "rms": 0.0020165042244357214,
+        "l2": 1.7314715607374458,
+        "max_abs": 0.10843467712402344,
+        "numel": 737280
+      },
+      "continuation_logit_error_vs_full_w2": {
+        "rms": 0.0964948758482933,
+        "max_abs": 0.23071861267089844,
+        "argmax_same": true
+      }
+    },
+    {
+      "w2_replayed_recent_tokens": 32,
+      "w1_history_tokens_kept_without_recompute": 15,
+      "state_error_vs_full_w2": {
+        "rms": 0.001590758440254335,
+        "l2": 1.3659048991450486,
+        "max_abs": 0.08717536926269531,
+        "numel": 737280
+      },
+      "continuation_logit_error_vs_full_w2": {
+        "rms": 0.09296155720949173,
+        "max_abs": 0.21199607849121094,
+        "argmax_same": true
+      }
+    },
+    {
+      "w2_replayed_recent_tokens": 47,
+      "w1_history_tokens_kept_without_recompute": 0,
+      "state_error_vs_full_w2": {
+        "rms": 0.0,
+        "l2": 0.0,
+        "max_abs": 0.0,
+        "numel": 737280
+      },
+      "continuation_logit_error_vs_full_w2": {
+        "rms": 0.0,
+        "max_abs": 0.0,
+        "argmax_same": true
+      }
+    }
+  ],
+  "interpretation": "At horizon h, the engine keeps a W1 checkpoint from t-h and reprocesses only the most recent h real tokens under W2. This measures how much causal replay under the upgraded transition dynamics is needed to approach the W2-native state.",
+  "claim_boundary": "Controlled same-architecture weight perturbation, not a learned capability upgrade. Partial causal replay uses actual engine state and token transitions; it is not declarative record reinjection. Full replay is included only as the W2-native control."
+}
