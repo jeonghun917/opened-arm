@@ -1,0 +1,112 @@
+name: VELA ONA Soar state scope
+
+on:
+  push:
+    branches: [vela-experiment-infra]
+    paths:
+      - 'experiments/vela-active-state/state-scope-v1/**'
+      - '.github/workflows/vela-state-scope.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  state-scope:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: vela-experiment-infra
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: ONA live-state scope
+        id: ona
+        continue-on-error: true
+        run: |
+          ROOT="$RUNNER_TEMP/vela-ona-state-scope"
+          rm -rf "$ROOT"
+          mkdir -p "$ROOT"
+          git -C "$ROOT" init -q
+          git -C "$ROOT" remote add origin https://github.com/opennars/OpenNARS-for-Applications.git
+          git -C "$ROOT" fetch -q --depth 1 origin dc4efd0abd520cdb79bf53bfa3c285ebb24f2e8a
+          git -C "$ROOT" checkout -q FETCH_HEAD
+          cd "$ROOT"
+          ./build.sh
+          cd "$GITHUB_WORKSPACE"
+          mkdir -p ops/vela-results
+          python experiments/vela-active-state/state-scope-v1/ona_state_scope.py "$ROOT/NAR" \
+            | tee ops/vela-results/ona-state-scope-latest.json
+
+      - name: Soar save-agent scope
+        id: soar
+        continue-on-error: true
+        run: |
+          python -m pip install -q 'soar-sml==9.6.5'
+          mkdir -p ops/vela-results
+          python experiments/vela-active-state/state-scope-v1/soar_state_scope.py \
+            | tee ops/vela-results/soar-state-scope-latest.json
+
+      - name: Write comparison snapshot
+        if: always()
+        env:
+          ONA_OUTCOME: ${{ steps.ona.outcome }}
+          SOAR_OUTCOME: ${{ steps.soar.outcome }}
+        run: |
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+
+          root = Path('ops/vela-results')
+          root.mkdir(parents=True, exist_ok=True)
+
+          def load(name):
+              p = root / name
+              try:
+                  return json.loads(p.read_text(encoding='utf-8'))
+              except Exception as exc:
+                  return {'status': 'NO_VALID_RESULT', 'error': f'{type(exc).__name__}: {exc}'}
+
+          ona = load('ona-state-scope-latest.json')
+          soar = load('soar-state-scope-latest.json')
+
+          lines = [
+              '# VELA ONA/Soar state-scope result — latest',
+              '',
+              f'source commit: {os.environ.get("GITHUB_SHA", "unknown")}',
+              '',
+              f'- ONA workflow outcome: {os.environ.get("ONA_OUTCOME")}',
+              f'  - native active belief: {ona.get("native_active_belief_present")}',
+              f'  - durable reload active belief: {ona.get("durable_reload_active_belief_present")}',
+              f'  - native active goal: {ona.get("native_active_goal_present")}',
+              f'  - durable reload active goal: {ona.get("durable_reload_active_goal_present")}',
+              f'  - durable concept retained: {ona.get("durable_reload_retains_durable_concept")}',
+              f'  - expected scope pattern: {ona.get("expected_scope_pattern")}',
+              '',
+              f'- Soar workflow outcome: {os.environ.get("SOAR_OUTCOME")}',
+              f'  - save-agent file created: {soar.get("save_agent_file_created")}',
+              f'  - production restored: {soar.get("saved_agent_restores_production")}',
+              f'  - working marker restored by save-agent: {soar.get("saved_agent_restores_working_marker")}',
+              f'  - working marker restored by matched replay: {soar.get("transcript_replay_restores_working_marker")}',
+              f'  - expected scope pattern: {soar.get("expected_scope_pattern")}',
+              '',
+              'Interpretation boundary: this tests what ordinary persistence omits from live state. It does not prove VELA identity, continuity, or engine superiority.',
+              '',
+          ]
+          (root / 'state-scope-latest.md').write_text('\n'.join(lines), encoding='utf-8')
+          PY
+
+      - name: Commit result snapshots
+        if: always()
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add ops/vela-results/ona-state-scope-latest.json \
+                  ops/vela-results/soar-state-scope-latest.json \
+                  ops/vela-results/state-scope-latest.md || true
+          git diff --cached --quiet || git commit -m 'Record VELA ONA Soar state-scope result [skip ci]'
+          git push origin HEAD:vela-experiment-infra
