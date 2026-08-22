@@ -1,0 +1,14 @@
+{
+  "candidate": "Soar 9.6.5",
+  "test": "save-agent scope vs live working memory",
+  "native_working_marker": "active",
+  "save_agent_file_created": true,
+  "saved_agent_restores_production": true,
+  "saved_agent_restores_working_marker": false,
+  "transcript_replay_restores_working_marker": true,
+  "expected_scope_pattern": true,
+  "save_output_tail": "Procedural memory, semantic memory and settings written to file.\n",
+  "source_output_tail": "s now off\nadd-osk is now on\nallow-local-negations is now on\nadd-ltm-links is now off\nmax-chunks is now 50\nmax-dupes is now 3\nThe maximum number of elaborations in a phase is now 100.\nThe maximum goal depth is now 100.\nSoar will now impasse when a state doesn't change.\n*\nTotal: 1 production sourced.\n",
+  "interpretation": "Soar save-agent preserves at least procedural agent content, but the live input-link working-memory marker is absent in a fresh runtime unless that working state is replayed.",
+  "claim_boundary": "State-scope evidence only; not a full Soar checkpoint test or VELA continuity proof."
+}

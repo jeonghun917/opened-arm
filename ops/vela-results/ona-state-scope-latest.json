@@ -1,0 +1,14 @@
+{
+  "candidate": "ONA/OpenNARS for Applications",
+  "test": "ordinary durable-memory reconstruction vs active-state scope",
+  "native_active_belief_present": true,
+  "durable_reload_active_belief_present": false,
+  "transcript_replay_active_belief_present": true,
+  "native_active_goal_present": true,
+  "durable_reload_active_goal_present": false,
+  "transcript_replay_active_goal_present": true,
+  "durable_reload_retains_durable_concept": true,
+  "expected_scope_pattern": true,
+  "interpretation": "The ordinary persistent-memory style can restore durable declarative content, but does not restore ONA's live cycling belief/goal queues. Full transcript replay can rebuild those observable states, but that is re-execution rather than a native checkpoint.",
+  "claim_boundary": "State-scope evidence only; not a VELA continuity or identity proof."
+}
