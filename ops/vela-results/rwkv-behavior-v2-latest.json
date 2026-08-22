@@ -1,0 +1,622 @@
+{
+  "status": "M1_SEMANTIC_BALANCED_PROBE_ONLY",
+  "model": "RWKV/rwkv-4-169m-pile",
+  "device": "cpu",
+  "dtype": "torch.float32",
+  "fixture_count": 10,
+  "accuracy": {
+    "native": 0.5,
+    "restored": 0.5,
+    "replay": 0.5,
+    "fresh": 0.5
+  },
+  "max_native_vs_restored_score_diff": 0.0,
+  "max_native_vs_replay_score_diff": 0.0,
+  "native_pairs_correct_and_flipping": 1,
+  "fresh_pairs_flipping": 0,
+  "pair_summary": {
+    "codeword": {
+      "native": {
+        "choices": [
+          " ALPHA",
+          " BETA"
+        ],
+        "choice_flips_with_state": true,
+        "both_variants_correct": true
+      },
+      "restored": {
+        "choices": [
+          " ALPHA",
+          " BETA"
+        ],
+        "choice_flips_with_state": true,
+        "both_variants_correct": true
+      },
+      "replay": {
+        "choices": [
+          " ALPHA",
+          " BETA"
+        ],
+        "choice_flips_with_state": true,
+        "both_variants_correct": true
+      },
+      "fresh": {
+        "choices": [
+          " ALPHA",
+          " ALPHA"
+        ],
+        "choice_flips_with_state": false,
+        "both_variants_correct": false
+      }
+    },
+    "correction": {
+      "native": {
+        "choices": [
+          " RED",
+          " BLUE"
+        ],
+        "choice_flips_with_state": true,
+        "both_variants_correct": false
+      },
+      "restored": {
+        "choices": [
+          " RED",
+          " BLUE"
+        ],
+        "choice_flips_with_state": true,
+        "both_variants_correct": false
+      },
+      "replay": {
+        "choices": [
+          " RED",
+          " BLUE"
+        ],
+        "choice_flips_with_state": true,
+        "both_variants_correct": false
+      },
+      "fresh": {
+        "choices": [
+          " RED",
+          " RED"
+        ],
+        "choice_flips_with_state": false,
+        "both_variants_correct": false
+      }
+    },
+    "hypothesis": {
+      "native": {
+        "choices": [
+          " one",
+          " one"
+        ],
+        "choice_flips_with_state": false,
+        "both_variants_correct": false
+      },
+      "restored": {
+        "choices": [
+          " one",
+          " one"
+        ],
+        "choice_flips_with_state": false,
+        "both_variants_correct": false
+      },
+      "replay": {
+        "choices": [
+          " one",
+          " one"
+        ],
+        "choice_flips_with_state": false,
+        "both_variants_correct": false
+      },
+      "fresh": {
+        "choices": [
+          " one",
+          " one"
+        ],
+        "choice_flips_with_state": false,
+        "both_variants_correct": false
+      }
+    },
+    "plan": {
+      "native": {
+        "choices": [
+          " commit",
+          " commit"
+        ],
+        "choice_flips_with_state": false,
+        "both_variants_correct": false
+      },
+      "restored": {
+        "choices": [
+          " commit",
+          " commit"
+        ],
+        "choice_flips_with_state": false,
+        "both_variants_correct": false
+      },
+      "replay": {
+        "choices": [
+          " commit",
+          " commit"
+        ],
+        "choice_flips_with_state": false,
+        "both_variants_correct": false
+      },
+      "fresh": {
+        "choices": [
+          " collect",
+          " collect"
+        ],
+        "choice_flips_with_state": false,
+        "both_variants_correct": false
+      }
+    },
+    "scope": {
+      "native": {
+        "choices": [
+          " MARS",
+          " MARS"
+        ],
+        "choice_flips_with_state": false,
+        "both_variants_correct": false
+      },
+      "restored": {
+        "choices": [
+          " MARS",
+          " MARS"
+        ],
+        "choice_flips_with_state": false,
+        "both_variants_correct": false
+      },
+      "replay": {
+        "choices": [
+          " MARS",
+          " MARS"
+        ],
+        "choice_flips_with_state": false,
+        "both_variants_correct": false
+      },
+      "fresh": {
+        "choices": [
+          " MARS",
+          " MARS"
+        ],
+        "choice_flips_with_state": false,
+        "both_variants_correct": false
+      }
+    }
+  },
+  "rows": [
+    {
+      "pair": "codeword",
+      "variant": "A",
+      "expected": " ALPHA",
+      "conditions": {
+        "native": {
+          "scores": {
+            " ALPHA": -0.6239571506157517,
+            " BETA": -2.0691454824991524
+          },
+          "chosen": " ALPHA",
+          "correct": true,
+          "expected_margin": 1.4451883318834007
+        },
+        "restored": {
+          "scores": {
+            " ALPHA": -0.6239571506157517,
+            " BETA": -2.0691454824991524
+          },
+          "chosen": " ALPHA",
+          "correct": true,
+          "expected_margin": 1.4451883318834007
+        },
+        "replay": {
+          "scores": {
+            " ALPHA": -0.6239571506157517,
+            " BETA": -2.0691454824991524
+          },
+          "chosen": " ALPHA",
+          "correct": true,
+          "expected_margin": 1.4451883318834007
+        },
+        "fresh": {
+          "scores": {
+            " ALPHA": -12.081761121749878,
+            " BETA": -12.69770935177803
+          },
+          "chosen": " ALPHA",
+          "correct": true,
+          "expected_margin": 0.6159482300281525
+        }
+      }
+    },
+    {
+      "pair": "codeword",
+      "variant": "B",
+      "expected": " BETA",
+      "conditions": {
+        "native": {
+          "scores": {
+            " ALPHA": -3.165563809219748,
+            " BETA": -0.47356422850862145
+          },
+          "chosen": " BETA",
+          "correct": true,
+          "expected_margin": 2.6919995807111263
+        },
+        "restored": {
+          "scores": {
+            " ALPHA": -3.165563809219748,
+            " BETA": -0.47356422850862145
+          },
+          "chosen": " BETA",
+          "correct": true,
+          "expected_margin": 2.6919995807111263
+        },
+        "replay": {
+          "scores": {
+            " ALPHA": -3.165563809219748,
+            " BETA": -0.47356422850862145
+          },
+          "chosen": " BETA",
+          "correct": true,
+          "expected_margin": 2.6919995807111263
+        },
+        "fresh": {
+          "scores": {
+            " ALPHA": -12.081761121749878,
+            " BETA": -12.69770935177803
+          },
+          "chosen": " ALPHA",
+          "correct": false,
+          "expected_margin": -0.6159482300281525
+        }
+      }
+    },
+    {
+      "pair": "correction",
+      "variant": "A",
+      "expected": " BLUE",
+      "conditions": {
+        "native": {
+          "scores": {
+            " BLUE": -1.6737512946128845,
+            " RED": -1.2766159772872925
+          },
+          "chosen": " RED",
+          "correct": false,
+          "expected_margin": -0.39713531732559204
+        },
+        "restored": {
+          "scores": {
+            " BLUE": -1.6737512946128845,
+            " RED": -1.2766159772872925
+          },
+          "chosen": " RED",
+          "correct": false,
+          "expected_margin": -0.39713531732559204
+        },
+        "replay": {
+          "scores": {
+            " BLUE": -1.6737512946128845,
+            " RED": -1.2766159772872925
+          },
+          "chosen": " RED",
+          "correct": false,
+          "expected_margin": -0.39713531732559204
+        },
+        "fresh": {
+          "scores": {
+            " BLUE": -12.233222246170044,
+            " RED": -10.376021385192871
+          },
+          "chosen": " RED",
+          "correct": false,
+          "expected_margin": -1.8572008609771729
+        }
+      }
+    },
+    {
+      "pair": "correction",
+      "variant": "B",
+      "expected": " RED",
+      "conditions": {
+        "native": {
+          "scores": {
+            " BLUE": -1.2616604827344418,
+            " RED": -2.457642078399658
+          },
+          "chosen": " BLUE",
+          "correct": false,
+          "expected_margin": -1.1959815956652164
+        },
+        "restored": {
+          "scores": {
+            " BLUE": -1.2616604827344418,
+            " RED": -2.457642078399658
+          },
+          "chosen": " BLUE",
+          "correct": false,
+          "expected_margin": -1.1959815956652164
+        },
+        "replay": {
+          "scores": {
+            " BLUE": -1.2616604827344418,
+            " RED": -2.457642078399658
+          },
+          "chosen": " BLUE",
+          "correct": false,
+          "expected_margin": -1.1959815956652164
+        },
+        "fresh": {
+          "scores": {
+            " BLUE": -12.233222246170044,
+            " RED": -10.376021385192871
+          },
+          "chosen": " RED",
+          "correct": true,
+          "expected_margin": 1.8572008609771729
+        }
+      }
+    },
+    {
+      "pair": "scope",
+      "variant": "A",
+      "expected": " MARS",
+      "conditions": {
+        "native": {
+          "scores": {
+            " MARS": -6.408868074417114,
+            " VENUS": -11.98080512881279
+          },
+          "chosen": " MARS",
+          "correct": true,
+          "expected_margin": 5.571937054395676
+        },
+        "restored": {
+          "scores": {
+            " MARS": -6.408868074417114,
+            " VENUS": -11.98080512881279
+          },
+          "chosen": " MARS",
+          "correct": true,
+          "expected_margin": 5.571937054395676
+        },
+        "replay": {
+          "scores": {
+            " MARS": -6.408868074417114,
+            " VENUS": -11.98080512881279
+          },
+          "chosen": " MARS",
+          "correct": true,
+          "expected_margin": 5.571937054395676
+        },
+        "fresh": {
+          "scores": {
+            " MARS": -15.413896560668945,
+            " VENUS": -18.095969676971436
+          },
+          "chosen": " MARS",
+          "correct": true,
+          "expected_margin": 2.6820731163024902
+        }
+      }
+    },
+    {
+      "pair": "scope",
+      "variant": "B",
+      "expected": " VENUS",
+      "conditions": {
+        "native": {
+          "scores": {
+            " MARS": -8.52928638458252,
+            " VENUS": -11.719538107514381
+          },
+          "chosen": " MARS",
+          "correct": false,
+          "expected_margin": -3.190251722931862
+        },
+        "restored": {
+          "scores": {
+            " MARS": -8.52928638458252,
+            " VENUS": -11.719538107514381
+          },
+          "chosen": " MARS",
+          "correct": false,
+          "expected_margin": -3.190251722931862
+        },
+        "replay": {
+          "scores": {
+            " MARS": -8.52928638458252,
+            " VENUS": -11.719538107514381
+          },
+          "chosen": " MARS",
+          "correct": false,
+          "expected_margin": -3.190251722931862
+        },
+        "fresh": {
+          "scores": {
+            " MARS": -15.413896560668945,
+            " VENUS": -18.095969676971436
+          },
+          "chosen": " MARS",
+          "correct": false,
+          "expected_margin": -2.6820731163024902
+        }
+      }
+    },
+    {
+      "pair": "hypothesis",
+      "variant": "A",
+      "expected": " one",
+      "conditions": {
+        "native": {
+          "scores": {
+            " one": -9.342181205749512,
+            " two": -10.535693168640137
+          },
+          "chosen": " one",
+          "correct": true,
+          "expected_margin": 1.193511962890625
+        },
+        "restored": {
+          "scores": {
+            " one": -9.342181205749512,
+            " two": -10.535693168640137
+          },
+          "chosen": " one",
+          "correct": true,
+          "expected_margin": 1.193511962890625
+        },
+        "replay": {
+          "scores": {
+            " one": -9.342181205749512,
+            " two": -10.535693168640137
+          },
+          "chosen": " one",
+          "correct": true,
+          "expected_margin": 1.193511962890625
+        },
+        "fresh": {
+          "scores": {
+            " one": -7.002793788909912,
+            " two": -8.311073303222656
+          },
+          "chosen": " one",
+          "correct": true,
+          "expected_margin": 1.3082795143127441
+        }
+      }
+    },
+    {
+      "pair": "hypothesis",
+      "variant": "B",
+      "expected": " two",
+      "conditions": {
+        "native": {
+          "scores": {
+            " one": -9.374954223632812,
+            " two": -10.541497230529785
+          },
+          "chosen": " one",
+          "correct": false,
+          "expected_margin": -1.1665430068969727
+        },
+        "restored": {
+          "scores": {
+            " one": -9.374954223632812,
+            " two": -10.541497230529785
+          },
+          "chosen": " one",
+          "correct": false,
+          "expected_margin": -1.1665430068969727
+        },
+        "replay": {
+          "scores": {
+            " one": -9.374954223632812,
+            " two": -10.541497230529785
+          },
+          "chosen": " one",
+          "correct": false,
+          "expected_margin": -1.1665430068969727
+        },
+        "fresh": {
+          "scores": {
+            " one": -7.002793788909912,
+            " two": -8.311073303222656
+          },
+          "chosen": " one",
+          "correct": false,
+          "expected_margin": -1.3082795143127441
+        }
+      }
+    },
+    {
+      "pair": "plan",
+      "variant": "A",
+      "expected": " commit",
+      "conditions": {
+        "native": {
+          "scores": {
+            " commit": -1.9541099071502686,
+            " collect": -2.824472188949585
+          },
+          "chosen": " commit",
+          "correct": true,
+          "expected_margin": 0.8703622817993164
+        },
+        "restored": {
+          "scores": {
+            " commit": -1.9541099071502686,
+            " collect": -2.824472188949585
+          },
+          "chosen": " commit",
+          "correct": true,
+          "expected_margin": 0.8703622817993164
+        },
+        "replay": {
+          "scores": {
+            " commit": -1.9541099071502686,
+            " collect": -2.824472188949585
+          },
+          "chosen": " commit",
+          "correct": true,
+          "expected_margin": 0.8703622817993164
+        },
+        "fresh": {
+          "scores": {
+            " commit": -7.954878330230713,
+            " collect": -6.677005290985107
+          },
+          "chosen": " collect",
+          "correct": false,
+          "expected_margin": -1.2778730392456055
+        }
+      }
+    },
+    {
+      "pair": "plan",
+      "variant": "B",
+      "expected": " collect",
+      "conditions": {
+        "native": {
+          "scores": {
+            " commit": -1.673726201057434,
+            " collect": -4.327320575714111
+          },
+          "chosen": " commit",
+          "correct": false,
+          "expected_margin": -2.6535943746566772
+        },
+        "restored": {
+          "scores": {
+            " commit": -1.673726201057434,
+            " collect": -4.327320575714111
+          },
+          "chosen": " commit",
+          "correct": false,
+          "expected_margin": -2.6535943746566772
+        },
+        "replay": {
+          "scores": {
+            " commit": -1.673726201057434,
+            " collect": -4.327320575714111
+          },
+          "chosen": " commit",
+          "correct": false,
+          "expected_margin": -2.6535943746566772
+        },
+        "fresh": {
+          "scores": {
+            " commit": -7.954878330230713,
+            " collect": -6.677005290985107
+          },
+          "chosen": " collect",
+          "correct": true,
+          "expected_margin": 1.2778730392456055
+        }
+      }
+    }
+  ],
+  "claim_boundary": "Balanced semantic paired probe on RWKV-4 169M. Behavioral/state evidence only, not VELA identity or engine-selection evidence."
+}
