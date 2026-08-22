@@ -1,0 +1,585 @@
+{
+  "status": "CORRECTION_CURRICULUM_LEARNED_UPGRADE_PROBE",
+  "model": "state-spaces/mamba-130m-hf",
+  "torch_version": "2.13.0+cu130",
+  "transformers_version": "4.57.6",
+  "trainable_parameter": "backbone.layers[0].mixer.x_proj.weight",
+  "lr": 0.0002,
+  "epochs": 3,
+  "train_examples": 12,
+  "train_value_pairs": [
+    [
+      " CAT",
+      " DOG"
+    ],
+    [
+      " EAST",
+      " WEST"
+    ],
+    [
+      " one",
+      " two"
+    ],
+    [
+      " Mars",
+      " Venus"
+    ],
+    [
+      " HOT",
+      " COLD"
+    ],
+    [
+      " UP",
+      " DOWN"
+    ]
+  ],
+  "baseline": {
+    "accuracy": 0.3333333333333333,
+    "pair_summary": {
+      "codeword-correction": {
+        "both_correct": false,
+        "choices": [
+          " ALPHA",
+          " BETA"
+        ],
+        "choice_flips": true
+      },
+      "color-correction": {
+        "both_correct": false,
+        "choices": [
+          " RED",
+          " RED"
+        ],
+        "choice_flips": false
+      },
+      "plan-control": {
+        "both_correct": false,
+        "choices": [
+          " commit",
+          " commit"
+        ],
+        "choice_flips": false
+      }
+    },
+    "rows": [
+      {
+        "pair": "color-correction",
+        "variant": "A",
+        "expected": " BLUE",
+        "chosen": " RED",
+        "correct": false,
+        "margin": -1.5075048170983791,
+        "scores": {
+          " BLUE": -2.669584270566702,
+          " RED": -1.1620794534683228
+        }
+      },
+      {
+        "pair": "color-correction",
+        "variant": "B",
+        "expected": " RED",
+        "chosen": " RED",
+        "correct": true,
+        "margin": 1.0202308893203735,
+        "scores": {
+          " BLUE": -2.524513840675354,
+          " RED": -1.5042829513549805
+        }
+      },
+      {
+        "pair": "codeword-correction",
+        "variant": "A",
+        "expected": " BETA",
+        "chosen": " ALPHA",
+        "correct": false,
+        "margin": -0.3392754099331796,
+        "scores": {
+          " BETA": -1.55713428882882,
+          " ALPHA": -1.2178588788956404
+        }
+      },
+      {
+        "pair": "codeword-correction",
+        "variant": "B",
+        "expected": " ALPHA",
+        "chosen": " BETA",
+        "correct": false,
+        "margin": -1.4027775088325143,
+        "scores": {
+          " BETA": -0.6609465079382062,
+          " ALPHA": -2.0637240167707205
+        }
+      },
+      {
+        "pair": "plan-control",
+        "variant": "A",
+        "expected": " commit",
+        "chosen": " commit",
+        "correct": true,
+        "margin": 0.6712570190429688,
+        "scores": {
+          " commit": -4.267392158508301,
+          " collect": -4.9386491775512695
+        }
+      },
+      {
+        "pair": "plan-control",
+        "variant": "B",
+        "expected": " collect",
+        "chosen": " commit",
+        "correct": false,
+        "margin": -1.2698326110839844,
+        "scores": {
+          " commit": -4.173771858215332,
+          " collect": -5.443604469299316
+        }
+      }
+    ]
+  },
+  "epoch_eval": [
+    {
+      "epoch": 1,
+      "mean_train_loss": 2.58028315504392,
+      "heldout": {
+        "accuracy": 0.3333333333333333,
+        "pair_summary": {
+          "codeword-correction": {
+            "both_correct": false,
+            "choices": [
+              " ALPHA",
+              " BETA"
+            ],
+            "choice_flips": true
+          },
+          "color-correction": {
+            "both_correct": false,
+            "choices": [
+              " RED",
+              " RED"
+            ],
+            "choice_flips": false
+          },
+          "plan-control": {
+            "both_correct": false,
+            "choices": [
+              " commit",
+              " commit"
+            ],
+            "choice_flips": false
+          }
+        },
+        "rows": [
+          {
+            "pair": "color-correction",
+            "variant": "A",
+            "expected": " BLUE",
+            "chosen": " RED",
+            "correct": false,
+            "margin": -1.5385113321244717,
+            "scores": {
+              " BLUE": -2.7062707506120205,
+              " RED": -1.1677594184875488
+            }
+          },
+          {
+            "pair": "color-correction",
+            "variant": "B",
+            "expected": " RED",
+            "chosen": " RED",
+            "correct": true,
+            "margin": 1.0483584702014923,
+            "scores": {
+              " BLUE": -2.5773145258426666,
+              " RED": -1.5289560556411743
+            }
+          },
+          {
+            "pair": "codeword-correction",
+            "variant": "A",
+            "expected": " BETA",
+            "chosen": " ALPHA",
+            "correct": false,
+            "margin": -0.37934932857751846,
+            "scores": {
+              " BETA": -1.5889911260455847,
+              " ALPHA": -1.2096417974680662
+            }
+          },
+          {
+            "pair": "codeword-correction",
+            "variant": "B",
+            "expected": " ALPHA",
+            "chosen": " BETA",
+            "correct": false,
+            "margin": -1.2430156283080578,
+            "scores": {
+              " BETA": -0.7413828922435641,
+              " ALPHA": -1.984398520551622
+            }
+          },
+          {
+            "pair": "plan-control",
+            "variant": "A",
+            "expected": " commit",
+            "chosen": " commit",
+            "correct": true,
+            "margin": 0.8914031982421875,
+            "scores": {
+              " commit": -4.106510162353516,
+              " collect": -4.997913360595703
+            }
+          },
+          {
+            "pair": "plan-control",
+            "variant": "B",
+            "expected": " collect",
+            "chosen": " commit",
+            "correct": false,
+            "margin": -1.6037559509277344,
+            "scores": {
+              " commit": -3.9802660942077637,
+              " collect": -5.584022045135498
+            }
+          }
+        ]
+      }
+    },
+    {
+      "epoch": 2,
+      "mean_train_loss": 2.3735863963762918,
+      "heldout": {
+        "accuracy": 0.3333333333333333,
+        "pair_summary": {
+          "codeword-correction": {
+            "both_correct": false,
+            "choices": [
+              " ALPHA",
+              " BETA"
+            ],
+            "choice_flips": true
+          },
+          "color-correction": {
+            "both_correct": false,
+            "choices": [
+              " RED",
+              " RED"
+            ],
+            "choice_flips": false
+          },
+          "plan-control": {
+            "both_correct": false,
+            "choices": [
+              " commit",
+              " commit"
+            ],
+            "choice_flips": false
+          }
+        },
+        "rows": [
+          {
+            "pair": "color-correction",
+            "variant": "A",
+            "expected": " BLUE",
+            "chosen": " RED",
+            "correct": false,
+            "margin": -1.476672500371933,
+            "scores": {
+              " BLUE": -2.6252475678920746,
+              " RED": -1.1485750675201416
+            }
+          },
+          {
+            "pair": "color-correction",
+            "variant": "B",
+            "expected": " RED",
+            "chosen": " RED",
+            "correct": true,
+            "margin": 1.0010487958788872,
+            "scores": {
+              " BLUE": -2.507378451526165,
+              " RED": -1.5063296556472778
+            }
+          },
+          {
+            "pair": "codeword-correction",
+            "variant": "A",
+            "expected": " BETA",
+            "chosen": " ALPHA",
+            "correct": false,
+            "margin": -0.37997852452099323,
+            "scores": {
+              " BETA": -1.5884190271608531,
+              " ALPHA": -1.20844050263986
+            }
+          },
+          {
+            "pair": "codeword-correction",
+            "variant": "B",
+            "expected": " ALPHA",
+            "chosen": " BETA",
+            "correct": false,
+            "margin": -1.155877048149705,
+            "scores": {
+              " BETA": -0.7812684173695743,
+              " ALPHA": -1.9371454655192792
+            }
+          },
+          {
+            "pair": "plan-control",
+            "variant": "A",
+            "expected": " commit",
+            "chosen": " commit",
+            "correct": true,
+            "margin": 1.0588264465332031,
+            "scores": {
+              " commit": -3.9523696899414062,
+              " collect": -5.011196136474609
+            }
+          },
+          {
+            "pair": "plan-control",
+            "variant": "B",
+            "expected": " collect",
+            "chosen": " commit",
+            "correct": false,
+            "margin": -1.8142778873443604,
+            "scores": {
+              " commit": -3.797865629196167,
+              " collect": -5.612143516540527
+            }
+          }
+        ]
+      }
+    },
+    {
+      "epoch": 3,
+      "mean_train_loss": 2.229617163538933,
+      "heldout": {
+        "accuracy": 0.3333333333333333,
+        "pair_summary": {
+          "codeword-correction": {
+            "both_correct": false,
+            "choices": [
+              " ALPHA",
+              " BETA"
+            ],
+            "choice_flips": true
+          },
+          "color-correction": {
+            "both_correct": false,
+            "choices": [
+              " RED",
+              " RED"
+            ],
+            "choice_flips": false
+          },
+          "plan-control": {
+            "both_correct": false,
+            "choices": [
+              " commit",
+              " commit"
+            ],
+            "choice_flips": false
+          }
+        },
+        "rows": [
+          {
+            "pair": "color-correction",
+            "variant": "A",
+            "expected": " BLUE",
+            "chosen": " RED",
+            "correct": false,
+            "margin": -1.3932286277413368,
+            "scores": {
+              " BLUE": -2.49544046074152,
+              " RED": -1.102211833000183
+            }
+          },
+          {
+            "pair": "color-correction",
+            "variant": "B",
+            "expected": " RED",
+            "chosen": " RED",
+            "correct": true,
+            "margin": 0.9383375570178032,
+            "scores": {
+              " BLUE": -2.3795218393206596,
+              " RED": -1.4411842823028564
+            }
+          },
+          {
+            "pair": "codeword-correction",
+            "variant": "A",
+            "expected": " BETA",
+            "chosen": " ALPHA",
+            "correct": false,
+            "margin": -0.37210369668900967,
+            "scores": {
+              " BETA": -1.5769459521397948,
+              " ALPHA": -1.2048422554507852
+            }
+          },
+          {
+            "pair": "codeword-correction",
+            "variant": "B",
+            "expected": " ALPHA",
+            "chosen": " BETA",
+            "correct": false,
+            "margin": -1.1382182561792433,
+            "scores": {
+              " BETA": -0.784124094992876,
+              " ALPHA": -1.9223423511721194
+            }
+          },
+          {
+            "pair": "plan-control",
+            "variant": "A",
+            "expected": " commit",
+            "chosen": " commit",
+            "correct": true,
+            "margin": 1.2340850830078125,
+            "scores": {
+              " commit": -3.7803797721862793,
+              " collect": -5.014464855194092
+            }
+          },
+          {
+            "pair": "plan-control",
+            "variant": "B",
+            "expected": " collect",
+            "chosen": " commit",
+            "correct": false,
+            "margin": -2.027862548828125,
+            "scores": {
+              " commit": -3.5874767303466797,
+              " collect": -5.615339279174805
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "after": {
+    "accuracy": 0.3333333333333333,
+    "pair_summary": {
+      "codeword-correction": {
+        "both_correct": false,
+        "choices": [
+          " ALPHA",
+          " BETA"
+        ],
+        "choice_flips": true
+      },
+      "color-correction": {
+        "both_correct": false,
+        "choices": [
+          " RED",
+          " RED"
+        ],
+        "choice_flips": false
+      },
+      "plan-control": {
+        "both_correct": false,
+        "choices": [
+          " commit",
+          " commit"
+        ],
+        "choice_flips": false
+      }
+    },
+    "rows": [
+      {
+        "pair": "color-correction",
+        "variant": "A",
+        "expected": " BLUE",
+        "chosen": " RED",
+        "correct": false,
+        "margin": -1.3932286277413368,
+        "scores": {
+          " BLUE": -2.49544046074152,
+          " RED": -1.102211833000183
+        }
+      },
+      {
+        "pair": "color-correction",
+        "variant": "B",
+        "expected": " RED",
+        "chosen": " RED",
+        "correct": true,
+        "margin": 0.9383375570178032,
+        "scores": {
+          " BLUE": -2.3795218393206596,
+          " RED": -1.4411842823028564
+        }
+      },
+      {
+        "pair": "codeword-correction",
+        "variant": "A",
+        "expected": " BETA",
+        "chosen": " ALPHA",
+        "correct": false,
+        "margin": -0.37210369668900967,
+        "scores": {
+          " BETA": -1.5769459521397948,
+          " ALPHA": -1.2048422554507852
+        }
+      },
+      {
+        "pair": "codeword-correction",
+        "variant": "B",
+        "expected": " ALPHA",
+        "chosen": " BETA",
+        "correct": false,
+        "margin": -1.1382182561792433,
+        "scores": {
+          " BETA": -0.784124094992876,
+          " ALPHA": -1.9223423511721194
+        }
+      },
+      {
+        "pair": "plan-control",
+        "variant": "A",
+        "expected": " commit",
+        "chosen": " commit",
+        "correct": true,
+        "margin": 1.2340850830078125,
+        "scores": {
+          " commit": -3.7803797721862793,
+          " collect": -5.014464855194092
+        }
+      },
+      {
+        "pair": "plan-control",
+        "variant": "B",
+        "expected": " collect",
+        "chosen": " commit",
+        "correct": false,
+        "margin": -2.027862548828125,
+        "scores": {
+          " commit": -3.5874767303466797,
+          " collect": -5.615339279174805
+        }
+      }
+    ]
+  },
+  "weight_delta": {
+    "l2": 0.8591267466545105,
+    "rms": 0.0024508503265678883,
+    "max_abs": 0.006646685302257538,
+    "relative_l2": 0.027474232017993927
+  },
+  "migration": {
+    "old_vs_new_native_state": {
+      "rms": 0.029320788339841128,
+      "l2": 25.1762979385989,
+      "max_abs": 0.9791699051856995,
+      "numel": 737280
+    },
+    "continuation_logit_error": {
+      "rms": 0.6329596638679504,
+      "max_abs": 1.2999801635742188,
+      "argmax_same": true
+    }
+  },
+  "claim_boundary": "Actual gradient-based update trained on correction patterns with held-out value pairs. Improvement, if any, is narrow transfer evidence only; controls and state migration are reported separately, and this is not broad reasoning evidence."
+}
