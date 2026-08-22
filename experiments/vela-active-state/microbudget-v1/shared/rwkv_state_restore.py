@@ -1,5 +1,5 @@
 from __future__ import annotations
-import json, tempfile
+import json, os, tempfile
 from pathlib import Path
 import torch
 
@@ -62,7 +62,14 @@ def run():
             "It does not establish VELA identity or overall cognitive superiority."
         ),
     }
+    result_path = os.environ.get("VELA_RESULT_PATH")
+    if result_path:
+        p = Path(result_path)
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(report, ensure_ascii=False, indent=2))
+    if not (report["restore_equivalent"] and report["fresh_is_different"]):
+        raise SystemExit(1)
     return report
 
 if __name__ == "__main__":

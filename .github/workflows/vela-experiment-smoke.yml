@@ -4,12 +4,12 @@ on:
   push:
     branches: [vela-experiment-infra]
     paths:
-      - 'experiments/vela-active-state/**'
+      - 'experiments/vela-active-state/microbudget-v1/**'
       - '.github/workflows/vela-experiment-smoke.yml'
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   guard-smoke:
@@ -17,6 +17,8 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: vela-experiment-infra
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
@@ -54,6 +56,8 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: vela-experiment-infra
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
@@ -64,6 +68,18 @@ jobs:
       - name: Run real RWKV recurrent-state checkpoint smoke on CPU
         env:
           HF_HUB_DISABLE_TELEMETRY: '1'
+          VELA_RESULT_PATH: ops/vela-results/rwkv-cpu-latest.json
         run: |
-          cd experiments/vela-active-state/microbudget-v1
-          python shared/rwkv_state_restore.py | tee runs_rwkv_cpu.log
+          python experiments/vela-active-state/microbudget-v1/shared/rwkv_state_restore.py
+      - name: Commit RWKV result snapshot
+        if: always()
+        run: |
+          if [[ ! -f ops/vela-results/rwkv-cpu-latest.json ]]; then
+            mkdir -p ops/vela-results
+            printf '{"status":"FAIL_BEFORE_RESULT","source_commit":"%s"}\n' "$GITHUB_SHA" > ops/vela-results/rwkv-cpu-latest.json
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add ops/vela-results/rwkv-cpu-latest.json
+          git diff --cached --quiet || git commit -m 'Record VELA RWKV CPU state result [skip ci]'
+          git push origin HEAD:vela-experiment-infra
