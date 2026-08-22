@@ -1,0 +1,11 @@
+{
+  "model": "RWKV/rwkv-4-169m-pile",
+  "device": "cpu",
+  "dtype": "torch.float32",
+  "state_tensor_count": 5,
+  "restore_max_abs_diff": 12.36583423614502,
+  "fresh_max_abs_diff": 13.489563941955566,
+  "restore_equivalent": false,
+  "fresh_is_different": true,
+  "claim_boundary": "This tests real RWKV recurrent-state checkpoint/restore equivalence. It does not establish VELA identity or overall cognitive superiority."
+}
