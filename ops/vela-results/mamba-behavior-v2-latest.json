@@ -1,0 +1,662 @@
+{
+  "status": "M1_BALANCED_BEHAVIORAL_PROBE_ONLY",
+  "model": "state-spaces/mamba-130m-hf",
+  "torch_version": "2.13.0+cu130",
+  "transformers_version": "4.57.6",
+  "fixture_count": 10,
+  "accuracy": {
+    "native": 0.5,
+    "restored": 0.5,
+    "replay": 0.5,
+    "fresh": 0.5
+  },
+  "max_native_vs_restored_logit_diff": 0.0,
+  "max_native_vs_replay_logit_diff": 0.00028228759765625,
+  "pair_summary": {
+    "codeword": {
+      "native": {
+        "choices": [
+          " A",
+          " A"
+        ],
+        "choice_flips_with_state": false,
+        "both_variants_correct": false
+      },
+      "restored": {
+        "choices": [
+          " A",
+          " A"
+        ],
+        "choice_flips_with_state": false,
+        "both_variants_correct": false
+      },
+      "replay": {
+        "choices": [
+          " A",
+          " A"
+        ],
+        "choice_flips_with_state": false,
+        "both_variants_correct": false
+      },
+      "fresh": {
+        "choices": [
+          " A",
+          " A"
+        ],
+        "choice_flips_with_state": false,
+        "both_variants_correct": false
+      }
+    },
+    "correction": {
+      "native": {
+        "choices": [
+          " A",
+          " A"
+        ],
+        "choice_flips_with_state": false,
+        "both_variants_correct": false
+      },
+      "restored": {
+        "choices": [
+          " A",
+          " A"
+        ],
+        "choice_flips_with_state": false,
+        "both_variants_correct": false
+      },
+      "replay": {
+        "choices": [
+          " A",
+          " A"
+        ],
+        "choice_flips_with_state": false,
+        "both_variants_correct": false
+      },
+      "fresh": {
+        "choices": [
+          " A",
+          " A"
+        ],
+        "choice_flips_with_state": false,
+        "both_variants_correct": false
+      }
+    },
+    "hypothesis": {
+      "native": {
+        "choices": [
+          " A",
+          " A"
+        ],
+        "choice_flips_with_state": false,
+        "both_variants_correct": false
+      },
+      "restored": {
+        "choices": [
+          " A",
+          " A"
+        ],
+        "choice_flips_with_state": false,
+        "both_variants_correct": false
+      },
+      "replay": {
+        "choices": [
+          " A",
+          " A"
+        ],
+        "choice_flips_with_state": false,
+        "both_variants_correct": false
+      },
+      "fresh": {
+        "choices": [
+          " A",
+          " A"
+        ],
+        "choice_flips_with_state": false,
+        "both_variants_correct": false
+      }
+    },
+    "plan": {
+      "native": {
+        "choices": [
+          " A",
+          " A"
+        ],
+        "choice_flips_with_state": false,
+        "both_variants_correct": false
+      },
+      "restored": {
+        "choices": [
+          " A",
+          " A"
+        ],
+        "choice_flips_with_state": false,
+        "both_variants_correct": false
+      },
+      "replay": {
+        "choices": [
+          " A",
+          " A"
+        ],
+        "choice_flips_with_state": false,
+        "both_variants_correct": false
+      },
+      "fresh": {
+        "choices": [
+          " A",
+          " A"
+        ],
+        "choice_flips_with_state": false,
+        "both_variants_correct": false
+      }
+    },
+    "scope": {
+      "native": {
+        "choices": [
+          " A",
+          " A"
+        ],
+        "choice_flips_with_state": false,
+        "both_variants_correct": false
+      },
+      "restored": {
+        "choices": [
+          " A",
+          " A"
+        ],
+        "choice_flips_with_state": false,
+        "both_variants_correct": false
+      },
+      "replay": {
+        "choices": [
+          " A",
+          " A"
+        ],
+        "choice_flips_with_state": false,
+        "both_variants_correct": false
+      },
+      "fresh": {
+        "choices": [
+          " A",
+          " A"
+        ],
+        "choice_flips_with_state": false,
+        "both_variants_correct": false
+      }
+    }
+  },
+  "native_pairs_correct_and_flipping": 0,
+  "fresh_pairs_flipping": 0,
+  "rows": [
+    {
+      "pair": "codeword",
+      "variant": "A",
+      "expected": " A",
+      "state_tokens": 14,
+      "probe_tokens": 18,
+      "restore_max_abs_diff": 0.0,
+      "replay_max_abs_diff": 0.0002231597900390625,
+      "conditions": {
+        "native": {
+          "chosen": " A",
+          "correct": true,
+          "expected_margin": 0.45209503173828125,
+          "scores": {
+            " A": 40.45637893676758,
+            " B": 40.0042839050293
+          }
+        },
+        "restored": {
+          "chosen": " A",
+          "correct": true,
+          "expected_margin": 0.45209503173828125,
+          "scores": {
+            " A": 40.45637893676758,
+            " B": 40.0042839050293
+          }
+        },
+        "replay": {
+          "chosen": " A",
+          "correct": true,
+          "expected_margin": 0.45207977294921875,
+          "scores": {
+            " A": 40.45635223388672,
+            " B": 40.0042724609375
+          }
+        },
+        "fresh": {
+          "chosen": " A",
+          "correct": true,
+          "expected_margin": 0.7340106964111328,
+          "scores": {
+            " A": 12.654348373413086,
+            " B": 11.920337677001953
+          }
+        }
+      }
+    },
+    {
+      "pair": "codeword",
+      "variant": "B",
+      "expected": " B",
+      "state_tokens": 14,
+      "probe_tokens": 18,
+      "restore_max_abs_diff": 0.0,
+      "replay_max_abs_diff": 0.00016021728515625,
+      "conditions": {
+        "native": {
+          "chosen": " A",
+          "correct": false,
+          "expected_margin": -0.5444374084472656,
+          "scores": {
+            " A": 40.86064529418945,
+            " B": 40.31620788574219
+          }
+        },
+        "restored": {
+          "chosen": " A",
+          "correct": false,
+          "expected_margin": -0.5444374084472656,
+          "scores": {
+            " A": 40.86064529418945,
+            " B": 40.31620788574219
+          }
+        },
+        "replay": {
+          "chosen": " A",
+          "correct": false,
+          "expected_margin": -0.5444488525390625,
+          "scores": {
+            " A": 40.860618591308594,
+            " B": 40.31616973876953
+          }
+        },
+        "fresh": {
+          "chosen": " A",
+          "correct": false,
+          "expected_margin": -0.7340106964111328,
+          "scores": {
+            " A": 12.654348373413086,
+            " B": 11.920337677001953
+          }
+        }
+      }
+    },
+    {
+      "pair": "correction",
+      "variant": "A",
+      "expected": " A",
+      "state_tokens": 17,
+      "probe_tokens": 19,
+      "restore_max_abs_diff": 0.0,
+      "replay_max_abs_diff": 0.0002269744873046875,
+      "conditions": {
+        "native": {
+          "chosen": " A",
+          "correct": true,
+          "expected_margin": 0.9969215393066406,
+          "scores": {
+            " A": 23.868473052978516,
+            " B": 22.871551513671875
+          }
+        },
+        "restored": {
+          "chosen": " A",
+          "correct": true,
+          "expected_margin": 0.9969215393066406,
+          "scores": {
+            " A": 23.868473052978516,
+            " B": 22.871551513671875
+          }
+        },
+        "replay": {
+          "chosen": " A",
+          "correct": true,
+          "expected_margin": 0.9969310760498047,
+          "scores": {
+            " A": 23.868379592895508,
+            " B": 22.871448516845703
+          }
+        },
+        "fresh": {
+          "chosen": " A",
+          "correct": true,
+          "expected_margin": 1.3503494262695312,
+          "scores": {
+            " A": 38.34452819824219,
+            " B": 36.994178771972656
+          }
+        }
+      }
+    },
+    {
+      "pair": "correction",
+      "variant": "B",
+      "expected": " B",
+      "state_tokens": 18,
+      "probe_tokens": 19,
+      "restore_max_abs_diff": 0.0,
+      "replay_max_abs_diff": 0.0002561807632446289,
+      "conditions": {
+        "native": {
+          "chosen": " A",
+          "correct": false,
+          "expected_margin": -1.1835060119628906,
+          "scores": {
+            " A": 18.62973403930664,
+            " B": 17.44622802734375
+          }
+        },
+        "restored": {
+          "chosen": " A",
+          "correct": false,
+          "expected_margin": -1.1835060119628906,
+          "scores": {
+            " A": 18.62973403930664,
+            " B": 17.44622802734375
+          }
+        },
+        "replay": {
+          "chosen": " A",
+          "correct": false,
+          "expected_margin": -1.1835098266601562,
+          "scores": {
+            " A": 18.629833221435547,
+            " B": 17.44632339477539
+          }
+        },
+        "fresh": {
+          "chosen": " A",
+          "correct": false,
+          "expected_margin": -1.3503494262695312,
+          "scores": {
+            " A": 38.34452819824219,
+            " B": 36.994178771972656
+          }
+        }
+      }
+    },
+    {
+      "pair": "scope",
+      "variant": "A",
+      "expected": " A",
+      "state_tokens": 15,
+      "probe_tokens": 18,
+      "restore_max_abs_diff": 0.0,
+      "replay_max_abs_diff": 0.00018310546875,
+      "conditions": {
+        "native": {
+          "chosen": " A",
+          "correct": true,
+          "expected_margin": 1.0560417175292969,
+          "scores": {
+            " A": -51.80641555786133,
+            " B": -52.862457275390625
+          }
+        },
+        "restored": {
+          "chosen": " A",
+          "correct": true,
+          "expected_margin": 1.0560417175292969,
+          "scores": {
+            " A": -51.80641555786133,
+            " B": -52.862457275390625
+          }
+        },
+        "replay": {
+          "chosen": " A",
+          "correct": true,
+          "expected_margin": 1.0560150146484375,
+          "scores": {
+            " A": -51.806373596191406,
+            " B": -52.862388610839844
+          }
+        },
+        "fresh": {
+          "chosen": " A",
+          "correct": true,
+          "expected_margin": 1.38507080078125,
+          "scores": {
+            " A": -46.85865020751953,
+            " B": -48.24372100830078
+          }
+        }
+      }
+    },
+    {
+      "pair": "scope",
+      "variant": "B",
+      "expected": " B",
+      "state_tokens": 15,
+      "probe_tokens": 18,
+      "restore_max_abs_diff": 0.0,
+      "replay_max_abs_diff": 0.000213623046875,
+      "conditions": {
+        "native": {
+          "chosen": " A",
+          "correct": false,
+          "expected_margin": -1.2335662841796875,
+          "scores": {
+            " A": -48.58879089355469,
+            " B": -49.822357177734375
+          }
+        },
+        "restored": {
+          "chosen": " A",
+          "correct": false,
+          "expected_margin": -1.2335662841796875,
+          "scores": {
+            " A": -48.58879089355469,
+            " B": -49.822357177734375
+          }
+        },
+        "replay": {
+          "chosen": " A",
+          "correct": false,
+          "expected_margin": -1.2335281372070312,
+          "scores": {
+            " A": -48.58879852294922,
+            " B": -49.82232666015625
+          }
+        },
+        "fresh": {
+          "chosen": " A",
+          "correct": false,
+          "expected_margin": -1.38507080078125,
+          "scores": {
+            " A": -46.85865020751953,
+            " B": -48.24372100830078
+          }
+        }
+      }
+    },
+    {
+      "pair": "hypothesis",
+      "variant": "A",
+      "expected": " A",
+      "state_tokens": 19,
+      "probe_tokens": 18,
+      "restore_max_abs_diff": 0.0,
+      "replay_max_abs_diff": 0.0002593994140625,
+      "conditions": {
+        "native": {
+          "chosen": " A",
+          "correct": true,
+          "expected_margin": 1.6941795349121094,
+          "scores": {
+            " A": -56.5219612121582,
+            " B": -58.21614074707031
+          }
+        },
+        "restored": {
+          "chosen": " A",
+          "correct": true,
+          "expected_margin": 1.6941795349121094,
+          "scores": {
+            " A": -56.5219612121582,
+            " B": -58.21614074707031
+          }
+        },
+        "replay": {
+          "chosen": " A",
+          "correct": true,
+          "expected_margin": 1.6941871643066406,
+          "scores": {
+            " A": -56.52194595336914,
+            " B": -58.21613311767578
+          }
+        },
+        "fresh": {
+          "chosen": " A",
+          "correct": true,
+          "expected_margin": 1.5975608825683594,
+          "scores": {
+            " A": -54.42991256713867,
+            " B": -56.02747344970703
+          }
+        }
+      }
+    },
+    {
+      "pair": "hypothesis",
+      "variant": "B",
+      "expected": " B",
+      "state_tokens": 19,
+      "probe_tokens": 18,
+      "restore_max_abs_diff": 0.0,
+      "replay_max_abs_diff": 0.00020599365234375,
+      "conditions": {
+        "native": {
+          "chosen": " A",
+          "correct": false,
+          "expected_margin": -1.8186721801757812,
+          "scores": {
+            " A": -57.83903503417969,
+            " B": -59.65770721435547
+          }
+        },
+        "restored": {
+          "chosen": " A",
+          "correct": false,
+          "expected_margin": -1.8186721801757812,
+          "scores": {
+            " A": -57.83903503417969,
+            " B": -59.65770721435547
+          }
+        },
+        "replay": {
+          "chosen": " A",
+          "correct": false,
+          "expected_margin": -1.8186416625976562,
+          "scores": {
+            " A": -57.83905792236328,
+            " B": -59.65769958496094
+          }
+        },
+        "fresh": {
+          "chosen": " A",
+          "correct": false,
+          "expected_margin": -1.5975608825683594,
+          "scores": {
+            " A": -54.42991256713867,
+            " B": -56.02747344970703
+          }
+        }
+      }
+    },
+    {
+      "pair": "plan",
+      "variant": "A",
+      "expected": " A",
+      "state_tokens": 21,
+      "probe_tokens": 19,
+      "restore_max_abs_diff": 0.0,
+      "replay_max_abs_diff": 0.00028228759765625,
+      "conditions": {
+        "native": {
+          "chosen": " A",
+          "correct": true,
+          "expected_margin": 0.6601448059082031,
+          "scores": {
+            " A": -42.4825325012207,
+            " B": -43.142677307128906
+          }
+        },
+        "restored": {
+          "chosen": " A",
+          "correct": true,
+          "expected_margin": 0.6601448059082031,
+          "scores": {
+            " A": -42.4825325012207,
+            " B": -43.142677307128906
+          }
+        },
+        "replay": {
+          "chosen": " A",
+          "correct": true,
+          "expected_margin": 0.6601600646972656,
+          "scores": {
+            " A": -42.48241424560547,
+            " B": -43.142574310302734
+          }
+        },
+        "fresh": {
+          "chosen": " A",
+          "correct": true,
+          "expected_margin": 0.7022476196289062,
+          "scores": {
+            " A": -27.800443649291992,
+            " B": -28.5026912689209
+          }
+        }
+      }
+    },
+    {
+      "pair": "plan",
+      "variant": "B",
+      "expected": " B",
+      "state_tokens": 22,
+      "probe_tokens": 19,
+      "restore_max_abs_diff": 0.0,
+      "replay_max_abs_diff": 0.00022125244140625,
+      "conditions": {
+        "native": {
+          "chosen": " A",
+          "correct": false,
+          "expected_margin": -0.6991691589355469,
+          "scores": {
+            " A": -45.17211151123047,
+            " B": -45.871280670166016
+          }
+        },
+        "restored": {
+          "chosen": " A",
+          "correct": false,
+          "expected_margin": -0.6991691589355469,
+          "scores": {
+            " A": -45.17211151123047,
+            " B": -45.871280670166016
+          }
+        },
+        "replay": {
+          "chosen": " A",
+          "correct": false,
+          "expected_margin": -0.699188232421875,
+          "scores": {
+            " A": -45.17210388183594,
+            " B": -45.87129211425781
+          }
+        },
+        "fresh": {
+          "chosen": " A",
+          "correct": false,
+          "expected_margin": -0.7022476196289062,
+          "scores": {
+            " A": -27.800443649291992,
+            " B": -28.5026912689209
+          }
+        }
+      }
+    }
+  ],
+  "claim_boundary": "Balanced paired forced-choice probe on Mamba-1 130M. It reduces answer-prior confounding but is still not a general reasoning or VELA identity test."
+}
