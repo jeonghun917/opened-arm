@@ -1,6 +1,7 @@
 {
   "status": "EXPERIMENT_ONLY_NO_WINNER",
   "suite": "vela-cpu-candidates-v1",
+  "requested_run": "2026-08-23T01:58+09:00",
   "candidates": [
     {
       "id": "Z3",
