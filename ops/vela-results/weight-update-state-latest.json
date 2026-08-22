@@ -1,0 +1,310 @@
+{
+  "status": "WEIGHT_UPDATE_STATE_COMPAT_PROBE",
+  "model": "state-spaces/mamba-130m-hf",
+  "device": "cpu",
+  "torch_version": "2.13.0+cu130",
+  "transformers_version": "4.57.6",
+  "prefix_tokens": 24,
+  "continuation_tokens": 1,
+  "updated_parameter": "backbone.layers[0].mixer.x_proj.weight",
+  "old_state_signature": {
+    "tensor_count": 48,
+    "numel": 737280,
+    "l2": 402.22401278783224,
+    "shapes": [
+      [
+        1,
+        1536,
+        4
+      ],
+      [
+        1,
+        1536,
+        4
+      ],
+      [
+        1,
+        1536,
+        4
+      ],
+      [
+        1,
+        1536,
+        4
+      ],
+      [
+        1,
+        1536,
+        4
+      ],
+      [
+        1,
+        1536,
+        4
+      ],
+      [
+        1,
+        1536,
+        4
+      ],
+      [
+        1,
+        1536,
+        4
+      ]
+    ]
+  },
+  "rows": [
+    {
+      "weight_scale_delta": 0.0,
+      "new_state_signature": {
+        "tensor_count": 48,
+        "numel": 737280,
+        "l2": 402.22401278783224,
+        "shapes": [
+          [
+            1,
+            1536,
+            4
+          ],
+          [
+            1,
+            1536,
+            4
+          ],
+          [
+            1,
+            1536,
+            4
+          ],
+          [
+            1,
+            1536,
+            4
+          ],
+          [
+            1,
+            1536,
+            4
+          ],
+          [
+            1,
+            1536,
+            4
+          ],
+          [
+            1,
+            1536,
+            4
+          ],
+          [
+            1,
+            1536,
+            4
+          ]
+        ]
+      },
+      "old_vs_new_prefill_state": {
+        "comparable": true,
+        "l2": 0.0,
+        "rms": 0.0,
+        "max_abs": 0.0,
+        "numel": 737280
+      },
+      "new_native_vs_imported_state_logits": {
+        "max_abs": 0.0,
+        "rms": 0.0,
+        "argmax_same": true
+      }
+    },
+    {
+      "weight_scale_delta": 0.0001,
+      "new_state_signature": {
+        "tensor_count": 48,
+        "numel": 737280,
+        "l2": 402.225268063292,
+        "shapes": [
+          [
+            1,
+            1536,
+            4
+          ],
+          [
+            1,
+            1536,
+            4
+          ],
+          [
+            1,
+            1536,
+            4
+          ],
+          [
+            1,
+            1536,
+            4
+          ],
+          [
+            1,
+            1536,
+            4
+          ],
+          [
+            1,
+            1536,
+            4
+          ],
+          [
+            1,
+            1536,
+            4
+          ],
+          [
+            1,
+            1536,
+            4
+          ]
+        ]
+      },
+      "old_vs_new_prefill_state": {
+        "comparable": true,
+        "l2": 0.03271745133917484,
+        "rms": 3.8103356898404416e-05,
+        "max_abs": 0.0011920928955078125,
+        "numel": 737280
+      },
+      "new_native_vs_imported_state_logits": {
+        "max_abs": 0.001068115234375,
+        "rms": 0.00043306086445227265,
+        "argmax_same": true
+      }
+    },
+    {
+      "weight_scale_delta": 0.001,
+      "new_state_signature": {
+        "tensor_count": 48,
+        "numel": 737280,
+        "l2": 402.2365689166138,
+        "shapes": [
+          [
+            1,
+            1536,
+            4
+          ],
+          [
+            1,
+            1536,
+            4
+          ],
+          [
+            1,
+            1536,
+            4
+          ],
+          [
+            1,
+            1536,
+            4
+          ],
+          [
+            1,
+            1536,
+            4
+          ],
+          [
+            1,
+            1536,
+            4
+          ],
+          [
+            1,
+            1536,
+            4
+          ],
+          [
+            1,
+            1536,
+            4
+          ]
+        ]
+      },
+      "old_vs_new_prefill_state": {
+        "comparable": true,
+        "l2": 0.3271954656399905,
+        "rms": 0.00038105797036495605,
+        "max_abs": 0.0119171142578125,
+        "numel": 737280
+      },
+      "new_native_vs_imported_state_logits": {
+        "max_abs": 0.010498046875,
+        "rms": 0.0042485729791224,
+        "argmax_same": true
+      }
+    },
+    {
+      "weight_scale_delta": 0.01,
+      "new_state_signature": {
+        "tensor_count": 48,
+        "numel": 737280,
+        "l2": 402.34343584926154,
+        "shapes": [
+          [
+            1,
+            1536,
+            4
+          ],
+          [
+            1,
+            1536,
+            4
+          ],
+          [
+            1,
+            1536,
+            4
+          ],
+          [
+            1,
+            1536,
+            4
+          ],
+          [
+            1,
+            1536,
+            4
+          ],
+          [
+            1,
+            1536,
+            4
+          ],
+          [
+            1,
+            1536,
+            4
+          ],
+          [
+            1,
+            1536,
+            4
+          ]
+        ]
+      },
+      "old_vs_new_prefill_state": {
+        "comparable": true,
+        "l2": 3.2695457372780528,
+        "rms": 0.0038077742313012467,
+        "max_abs": 0.11957550048828125,
+        "numel": 737280
+      },
+      "new_native_vs_imported_state_logits": {
+        "max_abs": 0.10346221923828125,
+        "rms": 0.041646815836429596,
+        "argmax_same": true
+      }
+    }
+  ],
+  "control_exact": true,
+  "interpretation": "For each nonzero row, W2-native continuation and W1-state-import continuation use the same updated weights W2. Their difference therefore isolates incompatibility between the old active state and the state W2 would have produced by replaying the same prefix.",
+  "claim_boundary": "Controlled parameter perturbation, not capability training. This measures direct active-state portability across a same-architecture weight update; it does not show that a learned upgrade improves reasoning or that a state mapper is impossible."
+}
