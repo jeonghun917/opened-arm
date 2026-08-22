@@ -1,0 +1,31 @@
+{
+  "status": "EXPERIMENT_ONLY_NO_WINNER",
+  "suite": "vela-cpu-candidates-v1",
+  "candidates": [
+    {
+      "id": "Z3",
+      "role": "constraint_verification_specialist",
+      "state_semantics_tested": false,
+      "runtime_feasibility_only": true
+    },
+    {
+      "id": "ONA",
+      "role": "reasoning_goal_belief_candidate",
+      "state_semantics_tested": false,
+      "runtime_feasibility_only": true
+    },
+    {
+      "id": "Soar-9.6.5",
+      "role": "integrated_cognitive_architecture_candidate",
+      "state_semantics_tested": false,
+      "runtime_feasibility_only": true
+    },
+    {
+      "id": "Fast-Downward",
+      "role": "planning_search_specialist",
+      "state_semantics_tested": false,
+      "runtime_feasibility_only": true
+    }
+  ],
+  "promotion_rule": "A candidate must first run successfully. State/checkpoint semantics and VELA integration are separate later gates."
+}

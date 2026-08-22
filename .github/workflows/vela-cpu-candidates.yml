@@ -1,0 +1,78 @@
+name: VELA CPU candidate feasibility
+
+on:
+  push:
+    branches: [vela-experiment-infra]
+    paths:
+      - 'experiments/vela-active-state/cpu-candidates-v1/**'
+      - '.github/workflows/vela-cpu-candidates.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  cpu-feasibility:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: vela-experiment-infra
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Z3 specialist
+        id: z3
+        continue-on-error: true
+        run: |
+          python -m pip install -q z3-solver
+          python experiments/vela-active-state/cpu-candidates-v1/z3_smoke.py
+
+      - name: ONA build and reasoning
+        id: ona
+        continue-on-error: true
+        run: bash experiments/vela-active-state/cpu-candidates-v1/ona_smoke.sh
+
+      - name: Soar Python runtime
+        id: soar
+        continue-on-error: true
+        run: |
+          python -m pip install -q 'soar-sml==9.6.5'
+          python experiments/vela-active-state/cpu-candidates-v1/soar_import_smoke.py
+
+      - name: Fast Downward build and plan
+        id: fd
+        continue-on-error: true
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq cmake g++ make
+          bash experiments/vela-active-state/cpu-candidates-v1/fast_downward_smoke.sh
+
+      - name: Write result snapshot
+        if: always()
+        run: |
+          mkdir -p ops/vela-results
+          cat > ops/vela-results/cpu-candidates-latest.md <<EOF
+          # VELA CPU candidate feasibility — latest
+
+          source commit: ${GITHUB_SHA}
+
+          - Z3: ${{ steps.z3.outcome }}
+          - ONA: ${{ steps.ona.outcome }}
+          - Soar: ${{ steps.soar.outcome }}
+          - Fast Downward: ${{ steps.fd.outcome }}
+
+          Interpretation: runtime/build feasibility only. No engine winner, continuity proof, or architecture freeze.
+          EOF
+
+      - name: Commit result snapshot
+        if: always()
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add ops/vela-results/cpu-candidates-latest.md
+          git diff --cached --quiet || git commit -m 'Record VELA CPU candidate feasibility result [skip ci]'
+          git push origin HEAD:vela-experiment-infra
