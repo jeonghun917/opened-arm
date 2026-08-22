@@ -3,9 +3,10 @@
   "device": "cpu",
   "dtype": "torch.float32",
   "state_tensor_count": 5,
-  "restore_max_abs_diff": 12.36583423614502,
+  "restore_max_abs_diff": 0.0,
   "fresh_max_abs_diff": 13.489563941955566,
-  "restore_equivalent": false,
+  "restore_equivalent": true,
   "fresh_is_different": true,
+  "fix_note": "Each continuation receives an independent clone of the same pre-continuation recurrent state; this avoids CPU .to('cpu') aliasing/in-place mutation confounds.",
   "claim_boundary": "This tests real RWKV recurrent-state checkpoint/restore equivalence. It does not establish VELA identity or overall cognitive superiority."
 }
