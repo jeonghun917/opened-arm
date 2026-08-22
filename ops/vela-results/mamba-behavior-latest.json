@@ -1,0 +1,253 @@
+{
+  "status": "M1_BEHAVIORAL_PROBE_ONLY",
+  "model": "state-spaces/mamba-130m-hf",
+  "device": "cpu",
+  "torch_version": "2.13.0+cu130",
+  "transformers_version": "4.57.6",
+  "fixture_count": 5,
+  "accuracy": {
+    "native": 1.0,
+    "restored": 1.0,
+    "replay": 1.0,
+    "fresh": 1.0
+  },
+  "max_native_vs_restored_logit_diff": 0.0,
+  "max_native_vs_replay_logit_diff": 0.0003204345703125,
+  "restored_matches_native_fixtures": 5,
+  "full_replay_matches_native_fixtures": 0,
+  "fixtures_with_state_influence_on_expected_margin": 5,
+  "prefix_tokens_avoided_by_checkpoint_per_full_pass": 83,
+  "fixtures": [
+    {
+      "id": "F1_CODEWORD",
+      "state_tokens": 17,
+      "probe_tokens": 21,
+      "restore_max_abs_diff": 0.0,
+      "replay_max_abs_diff": 0.000209808349609375,
+      "native_minus_fresh_margin": -0.2821998596191406,
+      "conditions": {
+        "native": {
+          "scores": {
+            " A": 36.08323287963867,
+            " B": 35.718101501464844
+          },
+          "chosen": " A",
+          "correct": true,
+          "expected_margin": 0.3651313781738281
+        },
+        "restored": {
+          "scores": {
+            " A": 36.08323287963867,
+            " B": 35.718101501464844
+          },
+          "chosen": " A",
+          "correct": true,
+          "expected_margin": 0.3651313781738281
+        },
+        "replay": {
+          "scores": {
+            " A": 36.08324432373047,
+            " B": 35.71812057495117
+          },
+          "chosen": " A",
+          "correct": true,
+          "expected_margin": 0.3651237487792969
+        },
+        "fresh": {
+          "scores": {
+            " A": 39.96506118774414,
+            " B": 39.31772994995117
+          },
+          "chosen": " A",
+          "correct": true,
+          "expected_margin": 0.6473312377929688
+        }
+      }
+    },
+    {
+      "id": "F2_CORRECTION",
+      "state_tokens": 17,
+      "probe_tokens": 19,
+      "restore_max_abs_diff": 0.0,
+      "replay_max_abs_diff": 0.00023555755615234375,
+      "native_minus_fresh_margin": -0.353424072265625,
+      "conditions": {
+        "native": {
+          "scores": {
+            " A": 23.86846160888672,
+            " B": 22.871536254882812
+          },
+          "chosen": " A",
+          "correct": true,
+          "expected_margin": 0.9969253540039062
+        },
+        "restored": {
+          "scores": {
+            " A": 23.86846160888672,
+            " B": 22.871536254882812
+          },
+          "chosen": " A",
+          "correct": true,
+          "expected_margin": 0.9969253540039062
+        },
+        "replay": {
+          "scores": {
+            " A": 23.868379592895508,
+            " B": 22.871448516845703
+          },
+          "chosen": " A",
+          "correct": true,
+          "expected_margin": 0.9969310760498047
+        },
+        "fresh": {
+          "scores": {
+            " A": 38.344520568847656,
+            " B": 36.994171142578125
+          },
+          "chosen": " A",
+          "correct": true,
+          "expected_margin": 1.3503494262695312
+        }
+      }
+    },
+    {
+      "id": "F3_SCOPE",
+      "state_tokens": 17,
+      "probe_tokens": 18,
+      "restore_max_abs_diff": 0.0,
+      "replay_max_abs_diff": 0.0003204345703125,
+      "native_minus_fresh_margin": -0.20258331298828125,
+      "conditions": {
+        "native": {
+          "scores": {
+            " A": -50.548274993896484,
+            " B": -51.730777740478516
+          },
+          "chosen": " A",
+          "correct": true,
+          "expected_margin": 1.1825027465820312
+        },
+        "restored": {
+          "scores": {
+            " A": -50.548274993896484,
+            " B": -51.730777740478516
+          },
+          "chosen": " A",
+          "correct": true,
+          "expected_margin": 1.1825027465820312
+        },
+        "replay": {
+          "scores": {
+            " A": -50.54838180541992,
+            " B": -51.73084259033203
+          },
+          "chosen": " A",
+          "correct": true,
+          "expected_margin": 1.1824607849121094
+        },
+        "fresh": {
+          "scores": {
+            " A": -46.858680725097656,
+            " B": -48.24376678466797
+          },
+          "chosen": " A",
+          "correct": true,
+          "expected_margin": 1.3850860595703125
+        }
+      }
+    },
+    {
+      "id": "F4_HYPOTHESIS",
+      "state_tokens": 18,
+      "probe_tokens": 16,
+      "restore_max_abs_diff": 0.0,
+      "replay_max_abs_diff": 0.0001983642578125,
+      "native_minus_fresh_margin": 0.12032318115234375,
+      "conditions": {
+        "native": {
+          "scores": {
+            " A": -54.649192810058594,
+            " B": -55.84935760498047
+          },
+          "chosen": " A",
+          "correct": true,
+          "expected_margin": 1.200164794921875
+        },
+        "restored": {
+          "scores": {
+            " A": -54.649192810058594,
+            " B": -55.84935760498047
+          },
+          "chosen": " A",
+          "correct": true,
+          "expected_margin": 1.200164794921875
+        },
+        "replay": {
+          "scores": {
+            " A": -54.6491813659668,
+            " B": -55.84935760498047
+          },
+          "chosen": " A",
+          "correct": true,
+          "expected_margin": 1.2001762390136719
+        },
+        "fresh": {
+          "scores": {
+            " A": -54.27522277832031,
+            " B": -55.355064392089844
+          },
+          "chosen": " A",
+          "correct": true,
+          "expected_margin": 1.0798416137695312
+        }
+      }
+    },
+    {
+      "id": "F5_PLAN",
+      "state_tokens": 14,
+      "probe_tokens": 19,
+      "restore_max_abs_diff": 0.0,
+      "replay_max_abs_diff": 0.00022125244140625,
+      "native_minus_fresh_margin": -0.17172622680664062,
+      "conditions": {
+        "native": {
+          "scores": {
+            " A": -46.06618881225586,
+            " B": -46.52882766723633
+          },
+          "chosen": " A",
+          "correct": true,
+          "expected_margin": 0.46263885498046875
+        },
+        "restored": {
+          "scores": {
+            " A": -46.06618881225586,
+            " B": -46.52882766723633
+          },
+          "chosen": " A",
+          "correct": true,
+          "expected_margin": 0.46263885498046875
+        },
+        "replay": {
+          "scores": {
+            " A": -46.06617736816406,
+            " B": -46.52880859375
+          },
+          "chosen": " A",
+          "correct": true,
+          "expected_margin": 0.4626312255859375
+        },
+        "fresh": {
+          "scores": {
+            " A": -41.99359130859375,
+            " B": -42.62795639038086
+          },
+          "chosen": " A",
+          "correct": true,
+          "expected_margin": 0.6343650817871094
+        }
+      }
+    }
+  ],
+  "claim_boundary": "Simple forced-choice probe on Mamba-1 130M. It tests behavioral preservation of serialized causal state, not VELA identity, general reasoning quality, or Mamba-3."
+}
