@@ -21,6 +21,7 @@ def _write_report(report: dict) -> None:
 
 
 def run():
+    transformers_version = None
     try:
         from transformers import AutoModelForCausalLM, AutoTokenizer, __version__ as transformers_version
 
@@ -42,28 +43,35 @@ def run():
             pre = model(first, use_cache=True, return_dict=True)
             cache = getattr(pre, "cache_params", None)
             if cache is None:
-                # Newer Transformers may expose the cache through past_key_values.
                 cache = getattr(pre, "past_key_values", None)
             if cache is None:
                 raise RuntimeError(
                     f"Mamba model returned no causal cache; output type={type(pre).__name__}, keys={list(pre.keys())}"
                 )
 
-            cache_arg = "cache_params" if hasattr(pre, "cache_params") and pre.cache_params is not None else "past_key_values"
+            cache_arg = "cache_params" if getattr(pre, "cache_params", None) is not None else "past_key_values"
+            # Transformers 4.57-era Mamba requires a nonzero cache_position when a populated cache is passed.
+            # For a one-token continuation, the absolute prefix length is the correct manual decode position.
+            cache_position = torch.tensor([int(first.shape[1])], dtype=torch.long, device=device)
 
             with tempfile.TemporaryDirectory() as td:
                 cp = Path(td) / "mamba_cache.pt"
-                # Serialize before native continuation mutates the live cache.
                 torch.save(cache, cp)
+
                 native_kwargs = {cache_arg: cache}
+                if cache_arg == "cache_params":
+                    native_kwargs["cache_position"] = cache_position
                 native = model(
                     second,
                     **native_kwargs,
                     use_cache=True,
                     return_dict=True,
                 ).logits.detach().float().cpu()
+
                 restored_cache = torch.load(cp, map_location="cpu", weights_only=False)
                 restored_kwargs = {cache_arg: restored_cache}
+                if cache_arg == "cache_params":
+                    restored_kwargs["cache_position"] = cache_position.clone()
                 restored = model(
                     second,
                     **restored_kwargs,
@@ -85,6 +93,7 @@ def run():
             "continuation_tokens": int(second.shape[1]),
             "cache_type": type(cache).__name__,
             "cache_argument": cache_arg,
+            "cache_position": cache_position.cpu().tolist(),
             "restore_max_abs_diff": restore_diff,
             "fresh_max_abs_diff": fresh_diff,
             "restore_equivalent": restore_diff <= 1e-5,
@@ -109,6 +118,7 @@ def run():
             "status": "M0_PROBE_ERROR",
             "model": MODEL_ID,
             "torch_version": torch.__version__,
+            "transformers_version": transformers_version,
             "error_type": type(exc).__name__,
             "error": str(exc),
             "traceback_tail": traceback.format_exc().splitlines()[-18:],
