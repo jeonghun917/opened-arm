@@ -24,13 +24,26 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install DMTCP
+      - name: Build pinned DMTCP from source
         id: dmtcp
         continue-on-error: true
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y -qq dmtcp
-          dmtcp_launch --version
+          sudo apt-get install -y -qq git gcc g++ make
+          SRC="$RUNNER_TEMP/dmtcp-src"
+          PREFIX="$RUNNER_TEMP/dmtcp-install"
+          rm -rf "$SRC" "$PREFIX"
+          mkdir -p "$SRC"
+          git -C "$SRC" init -q
+          git -C "$SRC" remote add origin https://github.com/dmtcp/dmtcp.git
+          git -C "$SRC" fetch -q --depth 1 origin 77fe7abf95323b335243d713091f4fbfdc387a7b
+          git -C "$SRC" checkout -q FETCH_HEAD
+          cd "$SRC"
+          ./configure --prefix="$PREFIX"
+          make -j2
+          make install
+          "$PREFIX/bin/dmtcp_launch" --version
+          echo "$PREFIX/bin" >> "$GITHUB_PATH"
 
       - name: ONA whole-process checkpoint equivalence
         id: ona
