@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.env
+.env.*
+secrets/
+runs/*.json
+!runs/.gitkeep
