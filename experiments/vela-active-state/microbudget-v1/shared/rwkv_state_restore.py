@@ -8,8 +8,11 @@ MODEL_ID = "RWKV/rwkv-4-169m-pile"
 def clone_state_to_cpu(state):
     return [x.detach().cpu().clone() for x in state]
 
-def move_state(state, device):
-    return [x.to(device) for x in state]
+def independent_state(state, device):
+    # Important on CPU: Tensor.to('cpu') may return the same tensor object.
+    # RWKV forward can mutate the supplied recurrent state, so every branch
+    # must receive an independent clone from the same pre-continuation state.
+    return [x.to(device).clone() for x in state]
 
 def run():
     from transformers import AutoTokenizer, AutoModelForCausalLM
@@ -26,37 +29,48 @@ def run():
     ids = tokenizer(text, return_tensors="pt").input_ids.to(device)
     split = max(2, ids.shape[1] // 2)
     first, second = ids[:, :split], ids[:, split:]
+
     with torch.no_grad():
         out1 = model(first, use_cache=True, return_dict=True)
-        state_cpu = clone_state_to_cpu(out1.state)
-        native = model(
-            second,
-            state=move_state(state_cpu, device),
-            use_cache=True,
-            return_dict=True,
-        ).logits.detach().float().cpu()
+        base_state_cpu = clone_state_to_cpu(out1.state)
+
+        # Serialize the exact pre-continuation state before either branch runs.
         with tempfile.TemporaryDirectory() as td:
             cp = Path(td) / "rwkv_state.pt"
-            torch.save(state_cpu, cp)
+            torch.save(base_state_cpu, cp)
             reloaded = torch.load(cp, map_location="cpu")
-            restored = model(
+
+            native_state = independent_state(base_state_cpu, device)
+            restored_state = independent_state(reloaded, device)
+
+            native = model(
                 second,
-                state=move_state(reloaded, device),
+                state=native_state,
                 use_cache=True,
                 return_dict=True,
             ).logits.detach().float().cpu()
+
+            restored = model(
+                second,
+                state=restored_state,
+                use_cache=True,
+                return_dict=True,
+            ).logits.detach().float().cpu()
+
         fresh = model(second, use_cache=True, return_dict=True).logits.detach().float().cpu()
+
     restore_diff = float((native - restored).abs().max())
     fresh_diff = float((native - fresh).abs().max())
     report = {
         "model": MODEL_ID,
         "device": device,
         "dtype": str(dtype),
-        "state_tensor_count": len(state_cpu),
+        "state_tensor_count": len(base_state_cpu),
         "restore_max_abs_diff": restore_diff,
         "fresh_max_abs_diff": fresh_diff,
         "restore_equivalent": restore_diff <= 1e-5,
         "fresh_is_different": fresh_diff > 1e-5,
+        "fix_note": "Each continuation receives an independent clone of the same pre-continuation recurrent state; this avoids CPU .to('cpu') aliasing/in-place mutation confounds.",
         "claim_boundary": (
             "This tests real RWKV recurrent-state checkpoint/restore equivalence. "
             "It does not establish VELA identity or overall cognitive superiority."
