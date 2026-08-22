@@ -1,6 +1,6 @@
 # VELA candidate persistence classification v1
 
-Status: NONBINDING_RESEARCH / EXPERIMENT_PREP / NO_WINNER
+Status: NONBINDING_RESEARCH / EMPIRICALLY_CHECKED_SCOPE / NO_WINNER
 
 ## ONA / OpenNARS for Applications
 
@@ -10,8 +10,22 @@ Classification for the VELA continuity experiment:
 
 - `persistentNAR.py`: **external declarative-memory reconstruction path**.
 - It is useful as a durable-memory organ/reference control.
-- It is **not** evidence that the native ONA process restores its full causally active inference/control state.
-- A future ONA continuity test must therefore distinguish same-process continuation from `mem.json` reload and from any genuine native/process checkpoint mechanism.
+- It is **not** a native full causal-state checkpoint.
+
+Empirical state-scope result on the isolated CPU fixture:
+
+- same-process ONA retained the active cycling belief and active goal;
+- durable-memory-style fresh reload did **not** retain either live queue state;
+- the durable declarative concept was retained;
+- matched pre-cut transcript replay rebuilt the observable live state, but by re-execution.
+
+External whole-process checkpoint reference (DMTCP):
+
+- checkpoint command succeeded;
+- restart succeeded in a new process instance;
+- native and restored observable belief/goal queue signatures were identical for the fixture.
+
+Interpretation: ONA's ordinary persistence path behaves like partial reconstruction, while preserving the full causally active runtime state is sufficient to reproduce this fixture's continuation. DMTCP is only a reference mechanism, not a proposed VELA architecture.
 
 Source: https://github.com/opennars/OpenNARS-for-Applications/blob/master/misc/Python/persistentNAR.py
 
@@ -25,7 +39,20 @@ Classification for the VELA continuity experiment:
 
 - `save agent`: **partial durable semantic/procedural state**, not a full Active-State checkpoint.
 - `save/load rete-net`: **runtime structure persistence**, not sufficient by itself for same-state continuation.
-- A future Soar continuity test must compare same-process continuation against fresh `save agent` restoration and, separately, a fuller working-memory/process checkpoint if one can be exposed.
+
+Empirical state-scope result on the isolated CPU fixture:
+
+- `save agent` created a valid artifact and restored the test production;
+- it did **not** restore the live input-link working-memory marker;
+- matched external working-state replay rebuilt that marker.
+
+External whole-process checkpoint reference (DMTCP):
+
+- checkpoint command succeeded;
+- restart succeeded in a new process instance;
+- the live input marker, loaded production, and printed agent-state signature were identical between native and restored continuation.
+
+Interpretation: Soar's ordinary `save agent` path is partial durable-state restoration, while a fuller causal runtime checkpoint can preserve the tested live state. This does not establish that DMTCP, process identity, or Soar itself should become VELA's final substrate.
 
 Source: https://github.com/SoarGroup/Soar/blob/development/Core/CLI/src/cli_load_save.cpp
 
@@ -34,13 +61,13 @@ Source: https://github.com/SoarGroup/Soar/blob/development/Core/CLI/src/cli_load
 - Z3: treat solver context as a specialist computation state. Rebuilding the context is acceptable unless later experiments show solver-internal continuation adds independent value.
 - Fast Downward: treat search/planning state as a specialist state. It can later be checkpointed for efficiency experiments, but it is not treated as VELA identity state by default.
 
-## Experimental consequence
+## Current experimental consequence
 
-For ONA and Soar, a persistence feature name must not be counted as continuity evidence. The next matched-control test is:
+The earlier open comparison now has one concrete result:
 
-1. same-process continuation;
-2. fresh runtime from the product's ordinary save/reload path;
-3. full causally active checkpoint restoration if available;
-4. matched future input/event stream.
+1. ordinary product save/reload can omit live causally active state;
+2. matched transcript/working-state replay can reconstruct the visible state;
+3. whole-process checkpoint restoration can reproduce the native observable state for both tested ONA and Soar fixtures;
+4. therefore fresh OS process identity is not, by itself, the relevant boundary in these fixtures; the preserved causal state is.
 
-If ordinary save/reload diverges but full checkpoint matches same-process continuation, the missing value is transient causal state. If ordinary save/reload already matches, no independent advantage should be attributed to process identity.
+This is a mechanism result only. It does **not** prove cognitive continuity, identity, or engine superiority. The next useful gate is behavioral: hold future inputs fixed and test whether preserved engine state changes decision trajectory, correction response, scope adherence, and recomputation on real multi-step fixtures.
