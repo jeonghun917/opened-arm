@@ -1,0 +1,635 @@
+{
+  "status": "RWKV7_REAL_WEIGHT_SEMANTIC_BALANCED_PROBE",
+  "source_commit": "524481d5099b38d9bc8ef1e89209161b86c8011b",
+  "weight_revision": "1e5090cdd819629ff8755e0e04f4db83f0bb9dbb",
+  "weight_file": "rwkv7-g1a-0.1b-20250728-ctx4096.pth",
+  "weight_sha256": "964f01cc4673273bbcf1b9c3cdc243d58af97bffeab51cb20c752eeaf048a3c6",
+  "device": "cpu",
+  "dtype": "float32",
+  "fixture_count": 10,
+  "accuracy": {
+    "native": 0.7,
+    "restored": 0.7,
+    "replay": 0.7,
+    "fresh": 0.5
+  },
+  "max_native_vs_restored_score_diff": 0.0,
+  "max_native_vs_replay_score_diff": 0.0,
+  "native_pairs_correct_and_flipping": 3,
+  "fresh_pairs_flipping": 0,
+  "pair_summary": {
+    "codeword": {
+      "native": {
+        "choices": [
+          " ALPHA",
+          " BETA"
+        ],
+        "choice_flips_with_state": true,
+        "both_variants_correct": true
+      },
+      "restored": {
+        "choices": [
+          " ALPHA",
+          " BETA"
+        ],
+        "choice_flips_with_state": true,
+        "both_variants_correct": true
+      },
+      "replay": {
+        "choices": [
+          " ALPHA",
+          " BETA"
+        ],
+        "choice_flips_with_state": true,
+        "both_variants_correct": true
+      },
+      "fresh": {
+        "choices": [
+          " ALPHA",
+          " ALPHA"
+        ],
+        "choice_flips_with_state": false,
+        "both_variants_correct": false
+      }
+    },
+    "correction": {
+      "native": {
+        "choices": [
+          " RED",
+          " RED"
+        ],
+        "choice_flips_with_state": false,
+        "both_variants_correct": false
+      },
+      "restored": {
+        "choices": [
+          " RED",
+          " RED"
+        ],
+        "choice_flips_with_state": false,
+        "both_variants_correct": false
+      },
+      "replay": {
+        "choices": [
+          " RED",
+          " RED"
+        ],
+        "choice_flips_with_state": false,
+        "both_variants_correct": false
+      },
+      "fresh": {
+        "choices": [
+          " RED",
+          " RED"
+        ],
+        "choice_flips_with_state": false,
+        "both_variants_correct": false
+      }
+    },
+    "hypothesis": {
+      "native": {
+        "choices": [
+          " one",
+          " two"
+        ],
+        "choice_flips_with_state": true,
+        "both_variants_correct": true
+      },
+      "restored": {
+        "choices": [
+          " one",
+          " two"
+        ],
+        "choice_flips_with_state": true,
+        "both_variants_correct": true
+      },
+      "replay": {
+        "choices": [
+          " one",
+          " two"
+        ],
+        "choice_flips_with_state": true,
+        "both_variants_correct": true
+      },
+      "fresh": {
+        "choices": [
+          " one",
+          " one"
+        ],
+        "choice_flips_with_state": false,
+        "both_variants_correct": false
+      }
+    },
+    "plan": {
+      "native": {
+        "choices": [
+          " commit",
+          " collect"
+        ],
+        "choice_flips_with_state": true,
+        "both_variants_correct": true
+      },
+      "restored": {
+        "choices": [
+          " commit",
+          " collect"
+        ],
+        "choice_flips_with_state": true,
+        "both_variants_correct": true
+      },
+      "replay": {
+        "choices": [
+          " commit",
+          " collect"
+        ],
+        "choice_flips_with_state": true,
+        "both_variants_correct": true
+      },
+      "fresh": {
+        "choices": [
+          " collect",
+          " collect"
+        ],
+        "choice_flips_with_state": false,
+        "both_variants_correct": false
+      }
+    },
+    "scope": {
+      "native": {
+        "choices": [
+          " Venus",
+          " Mars"
+        ],
+        "choice_flips_with_state": true,
+        "both_variants_correct": false
+      },
+      "restored": {
+        "choices": [
+          " Venus",
+          " Mars"
+        ],
+        "choice_flips_with_state": true,
+        "both_variants_correct": false
+      },
+      "replay": {
+        "choices": [
+          " Venus",
+          " Mars"
+        ],
+        "choice_flips_with_state": true,
+        "both_variants_correct": false
+      },
+      "fresh": {
+        "choices": [
+          " Mars",
+          " Mars"
+        ],
+        "choice_flips_with_state": false,
+        "both_variants_correct": false
+      }
+    }
+  },
+  "rows": [
+    {
+      "pair": "codeword",
+      "variant": "A",
+      "expected": " ALPHA",
+      "prefix_tokens": 12,
+      "conditions": {
+        "native": {
+          "scores": {
+            " ALPHA": -1.482359659858048,
+            " BETA": -3.6411451678723097
+          },
+          "chosen": " ALPHA",
+          "correct": true,
+          "expected_margin": 2.1587855080142617
+        },
+        "restored": {
+          "scores": {
+            " ALPHA": -1.482359659858048,
+            " BETA": -3.6411451678723097
+          },
+          "chosen": " ALPHA",
+          "correct": true,
+          "expected_margin": 2.1587855080142617
+        },
+        "replay": {
+          "scores": {
+            " ALPHA": -1.482359659858048,
+            " BETA": -3.6411451678723097
+          },
+          "chosen": " ALPHA",
+          "correct": true,
+          "expected_margin": 2.1587855080142617
+        },
+        "fresh": {
+          "scores": {
+            " ALPHA": -10.811428785324097,
+            " BETA": -12.556529104709625
+          },
+          "chosen": " ALPHA",
+          "correct": true,
+          "expected_margin": 1.7451003193855286
+        }
+      }
+    },
+    {
+      "pair": "codeword",
+      "variant": "B",
+      "expected": " BETA",
+      "prefix_tokens": 12,
+      "conditions": {
+        "native": {
+          "scores": {
+            " ALPHA": -4.269425328820944,
+            " BETA": -1.474518995732069
+          },
+          "chosen": " BETA",
+          "correct": true,
+          "expected_margin": 2.794906333088875
+        },
+        "restored": {
+          "scores": {
+            " ALPHA": -4.269425328820944,
+            " BETA": -1.474518995732069
+          },
+          "chosen": " BETA",
+          "correct": true,
+          "expected_margin": 2.794906333088875
+        },
+        "replay": {
+          "scores": {
+            " ALPHA": -4.269425328820944,
+            " BETA": -1.474518995732069
+          },
+          "chosen": " BETA",
+          "correct": true,
+          "expected_margin": 2.794906333088875
+        },
+        "fresh": {
+          "scores": {
+            " ALPHA": -10.811428785324097,
+            " BETA": -12.556529104709625
+          },
+          "chosen": " ALPHA",
+          "correct": false,
+          "expected_margin": -1.7451003193855286
+        }
+      }
+    },
+    {
+      "pair": "correction",
+      "variant": "A",
+      "expected": " BLUE",
+      "prefix_tokens": 16,
+      "conditions": {
+        "native": {
+          "scores": {
+            " BLUE": -2.0447504555340856,
+            " RED": -1.0196335315704346
+          },
+          "chosen": " RED",
+          "correct": false,
+          "expected_margin": -1.025116923963651
+        },
+        "restored": {
+          "scores": {
+            " BLUE": -2.0447504555340856,
+            " RED": -1.0196335315704346
+          },
+          "chosen": " RED",
+          "correct": false,
+          "expected_margin": -1.025116923963651
+        },
+        "replay": {
+          "scores": {
+            " BLUE": -2.0447504555340856,
+            " RED": -1.0196335315704346
+          },
+          "chosen": " RED",
+          "correct": false,
+          "expected_margin": -1.025116923963651
+        },
+        "fresh": {
+          "scores": {
+            " BLUE": -8.555171504616737,
+            " RED": -7.239797592163086
+          },
+          "chosen": " RED",
+          "correct": false,
+          "expected_margin": -1.3153739124536514
+        }
+      }
+    },
+    {
+      "pair": "correction",
+      "variant": "B",
+      "expected": " RED",
+      "prefix_tokens": 16,
+      "conditions": {
+        "native": {
+          "scores": {
+            " BLUE": -2.2787482757121325,
+            " RED": -1.059744954109192
+          },
+          "chosen": " RED",
+          "correct": true,
+          "expected_margin": 1.2190033216029406
+        },
+        "restored": {
+          "scores": {
+            " BLUE": -2.2787482757121325,
+            " RED": -1.059744954109192
+          },
+          "chosen": " RED",
+          "correct": true,
+          "expected_margin": 1.2190033216029406
+        },
+        "replay": {
+          "scores": {
+            " BLUE": -2.2787482757121325,
+            " RED": -1.059744954109192
+          },
+          "chosen": " RED",
+          "correct": true,
+          "expected_margin": 1.2190033216029406
+        },
+        "fresh": {
+          "scores": {
+            " BLUE": -8.555171504616737,
+            " RED": -7.239797592163086
+          },
+          "chosen": " RED",
+          "correct": true,
+          "expected_margin": 1.3153739124536514
+        }
+      }
+    },
+    {
+      "pair": "scope",
+      "variant": "A",
+      "expected": " Mars",
+      "prefix_tokens": 13,
+      "conditions": {
+        "native": {
+          "scores": {
+            " Mars": -3.4075734615325928,
+            " Venus": -3.262359380722046
+          },
+          "chosen": " Venus",
+          "correct": false,
+          "expected_margin": -0.14521408081054688
+        },
+        "restored": {
+          "scores": {
+            " Mars": -3.4075734615325928,
+            " Venus": -3.262359380722046
+          },
+          "chosen": " Venus",
+          "correct": false,
+          "expected_margin": -0.14521408081054688
+        },
+        "replay": {
+          "scores": {
+            " Mars": -3.4075734615325928,
+            " Venus": -3.262359380722046
+          },
+          "chosen": " Venus",
+          "correct": false,
+          "expected_margin": -0.14521408081054688
+        },
+        "fresh": {
+          "scores": {
+            " Mars": -12.84330940246582,
+            " Venus": -15.621461868286133
+          },
+          "chosen": " Mars",
+          "correct": true,
+          "expected_margin": 2.7781524658203125
+        }
+      }
+    },
+    {
+      "pair": "scope",
+      "variant": "B",
+      "expected": " Venus",
+      "prefix_tokens": 13,
+      "conditions": {
+        "native": {
+          "scores": {
+            " Mars": -3.021934986114502,
+            " Venus": -3.8537349700927734
+          },
+          "chosen": " Mars",
+          "correct": false,
+          "expected_margin": -0.8317999839782715
+        },
+        "restored": {
+          "scores": {
+            " Mars": -3.021934986114502,
+            " Venus": -3.8537349700927734
+          },
+          "chosen": " Mars",
+          "correct": false,
+          "expected_margin": -0.8317999839782715
+        },
+        "replay": {
+          "scores": {
+            " Mars": -3.021934986114502,
+            " Venus": -3.8537349700927734
+          },
+          "chosen": " Mars",
+          "correct": false,
+          "expected_margin": -0.8317999839782715
+        },
+        "fresh": {
+          "scores": {
+            " Mars": -12.84330940246582,
+            " Venus": -15.621461868286133
+          },
+          "chosen": " Mars",
+          "correct": false,
+          "expected_margin": -2.7781524658203125
+        }
+      }
+    },
+    {
+      "pair": "hypothesis",
+      "variant": "A",
+      "expected": " one",
+      "prefix_tokens": 15,
+      "conditions": {
+        "native": {
+          "scores": {
+            " one": -6.115319728851318,
+            " two": -6.241850852966309
+          },
+          "chosen": " one",
+          "correct": true,
+          "expected_margin": 0.12653112411499023
+        },
+        "restored": {
+          "scores": {
+            " one": -6.115319728851318,
+            " two": -6.241850852966309
+          },
+          "chosen": " one",
+          "correct": true,
+          "expected_margin": 0.12653112411499023
+        },
+        "replay": {
+          "scores": {
+            " one": -6.115319728851318,
+            " two": -6.241850852966309
+          },
+          "chosen": " one",
+          "correct": true,
+          "expected_margin": 0.12653112411499023
+        },
+        "fresh": {
+          "scores": {
+            " one": -7.404123306274414,
+            " two": -7.982493877410889
+          },
+          "chosen": " one",
+          "correct": true,
+          "expected_margin": 0.5783705711364746
+        }
+      }
+    },
+    {
+      "pair": "hypothesis",
+      "variant": "B",
+      "expected": " two",
+      "prefix_tokens": 15,
+      "conditions": {
+        "native": {
+          "scores": {
+            " one": -6.046592712402344,
+            " two": -5.6443867683410645
+          },
+          "chosen": " two",
+          "correct": true,
+          "expected_margin": 0.4022059440612793
+        },
+        "restored": {
+          "scores": {
+            " one": -6.046592712402344,
+            " two": -5.6443867683410645
+          },
+          "chosen": " two",
+          "correct": true,
+          "expected_margin": 0.4022059440612793
+        },
+        "replay": {
+          "scores": {
+            " one": -6.046592712402344,
+            " two": -5.6443867683410645
+          },
+          "chosen": " two",
+          "correct": true,
+          "expected_margin": 0.4022059440612793
+        },
+        "fresh": {
+          "scores": {
+            " one": -7.404123306274414,
+            " two": -7.982493877410889
+          },
+          "chosen": " one",
+          "correct": false,
+          "expected_margin": -0.5783705711364746
+        }
+      }
+    },
+    {
+      "pair": "plan",
+      "variant": "A",
+      "expected": " commit",
+      "prefix_tokens": 16,
+      "conditions": {
+        "native": {
+          "scores": {
+            " commit": -2.2145891189575195,
+            " collect": -2.628828763961792
+          },
+          "chosen": " commit",
+          "correct": true,
+          "expected_margin": 0.41423964500427246
+        },
+        "restored": {
+          "scores": {
+            " commit": -2.2145891189575195,
+            " collect": -2.628828763961792
+          },
+          "chosen": " commit",
+          "correct": true,
+          "expected_margin": 0.41423964500427246
+        },
+        "replay": {
+          "scores": {
+            " commit": -2.2145891189575195,
+            " collect": -2.628828763961792
+          },
+          "chosen": " commit",
+          "correct": true,
+          "expected_margin": 0.41423964500427246
+        },
+        "fresh": {
+          "scores": {
+            " commit": -11.127357482910156,
+            " collect": -7.601415634155273
+          },
+          "chosen": " collect",
+          "correct": false,
+          "expected_margin": -3.525941848754883
+        }
+      }
+    },
+    {
+      "pair": "plan",
+      "variant": "B",
+      "expected": " collect",
+      "prefix_tokens": 14,
+      "conditions": {
+        "native": {
+          "scores": {
+            " commit": -4.284875869750977,
+            " collect": -3.85652494430542
+          },
+          "chosen": " collect",
+          "correct": true,
+          "expected_margin": 0.42835092544555664
+        },
+        "restored": {
+          "scores": {
+            " commit": -4.284875869750977,
+            " collect": -3.85652494430542
+          },
+          "chosen": " collect",
+          "correct": true,
+          "expected_margin": 0.42835092544555664
+        },
+        "replay": {
+          "scores": {
+            " commit": -4.284875869750977,
+            " collect": -3.85652494430542
+          },
+          "chosen": " collect",
+          "correct": true,
+          "expected_margin": 0.42835092544555664
+        },
+        "fresh": {
+          "scores": {
+            " commit": -11.127357482910156,
+            " collect": -7.601415634155273
+          },
+          "chosen": " collect",
+          "correct": true,
+          "expected_margin": 3.525941848754883
+        }
+      }
+    }
+  ],
+  "claim_boundary": "Actual released RWKV-7 0.1B weights + pinned official RNN equations and tokenizer. Small semantic state smoke only; not general reasoning, identity, or engine-selection evidence."
+}
