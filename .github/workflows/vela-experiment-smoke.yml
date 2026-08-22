@@ -1,5 +1,6 @@
 name: VELA experiment smoke
 
+# run-request: 2026-08-23T02:05+09:00
 on:
   push:
     branches: [vela-experiment-infra]
