@@ -1,0 +1,125 @@
+name: VELA full process checkpoint reference
+
+on:
+  push:
+    branches: [vela-experiment-infra]
+    paths:
+      - 'experiments/vela-active-state/process-checkpoint-v1/**'
+      - '.github/workflows/vela-process-checkpoint.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  process-checkpoint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: vela-experiment-infra
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install DMTCP
+        id: dmtcp
+        continue-on-error: true
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq dmtcp
+          dmtcp_launch --version
+
+      - name: ONA whole-process checkpoint equivalence
+        id: ona
+        continue-on-error: true
+        run: |
+          command -v dmtcp_launch
+          SRC="$RUNNER_TEMP/vela-ona-checkpoint-src"
+          WORK="$RUNNER_TEMP/vela-ona-checkpoint-run"
+          rm -rf "$SRC"
+          mkdir -p "$SRC"
+          git -C "$SRC" init -q
+          git -C "$SRC" remote add origin https://github.com/opennars/OpenNARS-for-Applications.git
+          git -C "$SRC" fetch -q --depth 1 origin dc4efd0abd520cdb79bf53bfa3c285ebb24f2e8a
+          git -C "$SRC" checkout -q FETCH_HEAD
+          cd "$SRC"
+          ./build.sh
+          cd "$GITHUB_WORKSPACE"
+          mkdir -p ops/vela-results
+          python experiments/vela-active-state/process-checkpoint-v1/run_dmtcp_pair.py \
+            --workdir "$WORK" --port 7781 \
+            --result ops/vela-results/ona-dmtcp-latest.json -- \
+            python "$GITHUB_WORKSPACE/experiments/vela-active-state/process-checkpoint-v1/ona_checkpoint_target.py" \
+            "$SRC/NAR" "$WORK"
+
+      - name: Soar whole-process checkpoint equivalence
+        id: soar
+        continue-on-error: true
+        run: |
+          command -v dmtcp_launch
+          python -m pip install -q 'soar-sml==9.6.5'
+          WORK="$RUNNER_TEMP/vela-soar-checkpoint-run"
+          mkdir -p ops/vela-results
+          python experiments/vela-active-state/process-checkpoint-v1/run_dmtcp_pair.py \
+            --workdir "$WORK" --port 7782 \
+            --result ops/vela-results/soar-dmtcp-latest.json -- \
+            python "$GITHUB_WORKSPACE/experiments/vela-active-state/process-checkpoint-v1/soar_checkpoint_target.py" \
+            "$WORK"
+
+      - name: Write checkpoint comparison snapshot
+        if: always()
+        env:
+          DMTCP_OUTCOME: ${{ steps.dmtcp.outcome }}
+          ONA_OUTCOME: ${{ steps.ona.outcome }}
+          SOAR_OUTCOME: ${{ steps.soar.outcome }}
+        run: |
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+
+          root = Path('ops/vela-results')
+          root.mkdir(parents=True, exist_ok=True)
+
+          def load(name):
+              p = root / name
+              try:
+                  return json.loads(p.read_text(encoding='utf-8'))
+              except Exception as exc:
+                  return {'status': 'NO_VALID_RESULT', 'error': f'{type(exc).__name__}: {exc}'}
+
+          ona = load('ona-dmtcp-latest.json')
+          soar = load('soar-dmtcp-latest.json')
+          lines = [
+              '# VELA full-process checkpoint reference — latest',
+              '',
+              f'source commit: {os.environ.get("GITHUB_SHA", "unknown")}',
+              '',
+              f'- DMTCP install: {os.environ.get("DMTCP_OUTCOME")}',
+              f'- ONA checkpoint workflow: {os.environ.get("ONA_OUTCOME")}',
+              f'  - checkpoint command ok: {ona.get("checkpoint_command_ok")}',
+              f'  - restart script created: {ona.get("restart_script_created")}',
+              f'  - state signature equivalent: {ona.get("state_signature_equivalent")}',
+              f'- Soar checkpoint workflow: {os.environ.get("SOAR_OUTCOME")}',
+              f'  - checkpoint command ok: {soar.get("checkpoint_command_ok")}',
+              f'  - restart script created: {soar.get("restart_script_created")}',
+              f'  - state signature equivalent: {soar.get("state_signature_equivalent")}',
+              '',
+              'Interpretation boundary: DMTCP is an external whole-process reference mechanism. PASS means full runtime-state preservation was sufficient for this fixture; it is not an engine selection or VELA identity proof.',
+              '',
+          ]
+          (root / 'process-checkpoint-latest.md').write_text('\n'.join(lines), encoding='utf-8')
+          PY
+
+      - name: Commit checkpoint result snapshots
+        if: always()
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add ops/vela-results/process-checkpoint-latest.md
+          [[ -f ops/vela-results/ona-dmtcp-latest.json ]] && git add ops/vela-results/ona-dmtcp-latest.json || true
+          [[ -f ops/vela-results/soar-dmtcp-latest.json ]] && git add ops/vela-results/soar-dmtcp-latest.json || true
+          git diff --cached --quiet || git commit -m 'Record VELA full-process checkpoint reference [skip ci]'
+          git push origin HEAD:vela-experiment-infra
