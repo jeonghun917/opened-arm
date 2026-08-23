@@ -1,0 +1,52 @@
+name: VELA functional causal-event detector v3
+
+on:
+  push:
+    branches: [vela-experiment-infra]
+    paths:
+      - 'experiments/vela-active-state/causal-anchor-v3/**'
+      - '.github/workflows/vela-causal-anchor-v3.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: vela-causal-anchor-v3
+  cancel-in-progress: false
+
+jobs:
+  causal-anchor-v3:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: vela-experiment-infra
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install runtime
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install 'torch>=2.2,<3' 'transformers>=4.57,<4.58'
+      - name: Run functional event detector and semantic checkpoint probes
+        env:
+          HF_HUB_DISABLE_TELEMETRY: '1'
+          VELA_RESULT_PATH: ops/vela-results/causal-anchor-v3-latest.json
+        run: python experiments/vela-active-state/causal-anchor-v3/mamba_causal_anchor_v3.py
+      - name: Commit result snapshot
+        if: always()
+        run: |
+          if [[ ! -f ops/vela-results/causal-anchor-v3-latest.json ]]; then
+            mkdir -p ops/vela-results
+            printf '{"status":"FAIL_BEFORE_RESULT","source_commit":"%s"}\n' "$GITHUB_SHA" > ops/vela-results/causal-anchor-v3-latest.json
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add ops/vela-results/causal-anchor-v3-latest.json
+          git diff --cached --quiet || git commit -m 'Record VELA causal anchor v3 [skip ci]'
+          for n in 1 2 3 4; do
+            git pull --rebase origin vela-experiment-infra && git push origin HEAD:vela-experiment-infra && break
+            sleep $((n*3))
+          done
