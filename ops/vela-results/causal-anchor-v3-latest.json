@@ -11,9 +11,9 @@
     "baseline_control": 0.75,
     "after_control": 0.75,
     "epoch_loss": [
-      1.7653111815452576,
-      0.46972360741347075,
-      0.09346337559691165
+      1.7653138376772404,
+      0.46971781249158084,
+      0.09344111729296856
     ]
   },
   "detector": {
@@ -54,11 +54,11 @@
           "start": 15,
           "end": 29,
           "text": "Correction: the current codeword is BETA, not ALPHA. ",
-          "state_rms": 0.041581999566012634,
+          "state_rms": 0.0415863738558381,
           "decision_flips": 0,
-          "score_rms": 0.7276837326262557,
-          "margin_shift_sum": 2.85117734259984,
-          "detector_score": 1.0128014668862397,
+          "score_rms": 0.7277232248359802,
+          "margin_shift_sum": 2.8513621549936943,
+          "detector_score": 1.0128594403353497,
           "per_probe": [
             {
               "id": "codeword",
@@ -91,11 +91,11 @@
           "start": 61,
           "end": 65,
           "text": "External action remains blocked.",
-          "state_rms": 0.03917781189729644,
+          "state_rms": 0.03917481094019918,
           "decision_flips": 0,
-          "score_rms": 0.4665778812808646,
-          "margin_shift_sum": 1.2423392110067653,
-          "detector_score": 0.5908118023815411,
+          "score_rms": 0.4667585837353304,
+          "margin_shift_sum": 1.242919817523216,
+          "detector_score": 0.591050565487652,
           "per_probe": [
             {
               "id": "codeword",
@@ -128,11 +128,11 @@
           "start": 7,
           "end": 15,
           "text": "The old codeword was ALPHA. ",
-          "state_rms": 0.05067613134042299,
+          "state_rms": 0.050678508490738974,
           "decision_flips": 0,
-          "score_rms": 0.2628437183165218,
-          "margin_shift_sum": 0.6309239524416625,
-          "detector_score": 0.3259361135606881,
+          "score_rms": 0.26294375071827397,
+          "margin_shift_sum": 0.6307031223550439,
+          "detector_score": 0.3260140629537784,
           "per_probe": [
             {
               "id": "codeword",
@@ -165,11 +165,11 @@
           "start": 0,
           "end": 7,
           "text": "Project Orion remains active. ",
-          "state_rms": 0.036840169945073,
+          "state_rms": 0.03684559841077103,
           "decision_flips": 0,
-          "score_rms": 0.20958292648653518,
-          "margin_shift_sum": 0.6992022693157196,
-          "detector_score": 0.27950315341810716,
+          "score_rms": 0.20960888967016542,
+          "margin_shift_sum": 0.6987630724906921,
+          "detector_score": 0.2794851969192346,
           "per_probe": [
             {
               "id": "codeword",
@@ -202,11 +202,11 @@
           "start": 54,
           "end": 61,
           "text": "Hypothesis one is weakened. ",
-          "state_rms": 0.04230069978566359,
+          "state_rms": 0.042306121463230775,
           "decision_flips": 0,
-          "score_rms": 0.19902521569086368,
-          "margin_shift_sum": 0.2959934444661485,
-          "detector_score": 0.22862456013747853,
+          "score_rms": 0.19909100207905192,
+          "margin_shift_sum": 0.29576709354296327,
+          "detector_score": 0.22866771143334824,
           "per_probe": [
             {
               "id": "codeword",
@@ -239,11 +239,11 @@
           "start": 29,
           "end": 39,
           "text": "Unrelated telemetry packet 17 was archived. ",
-          "state_rms": 0.03350815735896297,
+          "state_rms": 0.0335130640384667,
           "decision_flips": 0,
-          "score_rms": 0.14105223838356762,
-          "margin_shift_sum": 0.27982441523636226,
-          "detector_score": 0.16903467990720383,
+          "score_rms": 0.14114534383878563,
+          "margin_shift_sum": 0.2798489726119442,
+          "detector_score": 0.16913024109998004,
           "per_probe": [
             {
               "id": "codeword",
@@ -276,11 +276,11 @@
           "start": 39,
           "end": 44,
           "text": "Verification is incomplete. ",
-          "state_rms": 0.03707462346797252,
+          "state_rms": 0.03707761645856827,
           "decision_flips": 0,
-          "score_rms": 0.13247033712727604,
-          "margin_shift_sum": 0.21482423195266165,
-          "detector_score": 0.1539527603225422,
+          "score_rms": 0.1324362692820046,
+          "margin_shift_sum": 0.21487728055217303,
+          "detector_score": 0.15392399733722192,
           "per_probe": [
             {
               "id": "codeword",
@@ -313,11 +313,11 @@
           "start": 44,
           "end": 54,
           "text": "A historical memo mentions ALPHA but is obsolete. ",
-          "state_rms": 0.03282561587626902,
+          "state_rms": 0.03282952503920637,
           "decision_flips": 0,
-          "score_rms": 0.06624579669707709,
-          "margin_shift_sum": 0.24523315842088778,
-          "detector_score": 0.09076911253916586,
+          "score_rms": 0.0661969647498768,
+          "margin_shift_sum": 0.24510953786375467,
+          "detector_score": 0.09070791853625226,
           "per_probe": [
             {
               "id": "codeword",
@@ -350,15 +350,15 @@
         "anchor_pos": 15,
         "replayed_tokens": 50,
         "state_error_vs_w2_native": {
-          "rms": 0.014512209430252868,
-          "l2": 12.46091012726742,
-          "max_abs": 0.7582130432128906,
+          "rms": 0.014513496552835986,
+          "l2": 12.46201531520645,
+          "max_abs": 0.7555255889892578,
           "numel": 737280
         },
         "functional_vs_w2_native": {
           "decision_agreement": 1.0,
           "expected_accuracy": 1.0,
-          "score_rms_error": 0.1533125385405268
+          "score_rms_error": 0.15334329520834844
         },
         "probe_rows": [
           {
@@ -367,8 +367,8 @@
             "expected": " BETA",
             "correct": true,
             "scores": {
-              " BETA": -0.2196864610450575,
-              " ALPHA": -1.7338776970282197
+              " BETA": -0.21979082873440348,
+              " ALPHA": -1.7334291101433337
             }
           },
           {
@@ -377,8 +377,8 @@
             "expected": " incomplete",
             "correct": true,
             "scores": {
-              " incomplete": -5.433505535125732,
-              " complete": -7.419412136077881
+              " incomplete": -5.433143615722656,
+              " complete": -7.419071197509766
             }
           },
           {
@@ -387,8 +387,8 @@
             "expected": " active",
             "correct": true,
             "scores": {
-              " active": -2.6097474098205566,
-              " paused": -8.20413589477539
+              " active": -2.6097028255462646,
+              " paused": -8.204450607299805
             }
           },
           {
@@ -397,8 +397,8 @@
             "expected": " blocked",
             "correct": true,
             "scores": {
-              " blocked": -6.772091865539551,
-              " allowed": -12.345725059509277
+              " blocked": -6.770037651062012,
+              " allowed": -12.344292640686035
             }
           }
         ]
@@ -407,15 +407,15 @@
         "anchor_pos": 15,
         "replayed_tokens": 50,
         "state_error_vs_w2_native": {
-          "rms": 0.014512209430252868,
-          "l2": 12.46091012726742,
-          "max_abs": 0.7582130432128906,
+          "rms": 0.014513496552835986,
+          "l2": 12.46201531520645,
+          "max_abs": 0.7555255889892578,
           "numel": 737280
         },
         "functional_vs_w2_native": {
           "decision_agreement": 1.0,
           "expected_accuracy": 1.0,
-          "score_rms_error": 0.1533125385405268
+          "score_rms_error": 0.15334329520834844
         },
         "probe_rows": [
           {
@@ -424,8 +424,8 @@
             "expected": " BETA",
             "correct": true,
             "scores": {
-              " BETA": -0.2196864610450575,
-              " ALPHA": -1.7338776970282197
+              " BETA": -0.21979082873440348,
+              " ALPHA": -1.7334291101433337
             }
           },
           {
@@ -434,8 +434,8 @@
             "expected": " incomplete",
             "correct": true,
             "scores": {
-              " incomplete": -5.433505535125732,
-              " complete": -7.419412136077881
+              " incomplete": -5.433143615722656,
+              " complete": -7.419071197509766
             }
           },
           {
@@ -444,8 +444,8 @@
             "expected": " active",
             "correct": true,
             "scores": {
-              " active": -2.6097474098205566,
-              " paused": -8.20413589477539
+              " active": -2.6097028255462646,
+              " paused": -8.204450607299805
             }
           },
           {
@@ -454,8 +454,8 @@
             "expected": " blocked",
             "correct": true,
             "scores": {
-              " blocked": -6.772091865539551,
-              " allowed": -12.345725059509277
+              " blocked": -6.770037651062012,
+              " allowed": -12.344292640686035
             }
           }
         ]
@@ -465,15 +465,15 @@
           "anchor_pos": 15,
           "replayed_tokens": 50,
           "state_error_vs_w2_native": {
-            "rms": 0.014512209430252868,
-            "l2": 12.46091012726742,
-            "max_abs": 0.7582130432128906,
+            "rms": 0.014513496552835986,
+            "l2": 12.46201531520645,
+            "max_abs": 0.7555255889892578,
             "numel": 737280
           },
           "functional_vs_w2_native": {
             "decision_agreement": 1.0,
             "expected_accuracy": 1.0,
-            "score_rms_error": 0.1533125385405268
+            "score_rms_error": 0.15334329520834844
           },
           "probe_rows": [
             {
@@ -482,8 +482,8 @@
               "expected": " BETA",
               "correct": true,
               "scores": {
-                " BETA": -0.2196864610450575,
-                " ALPHA": -1.7338776970282197
+                " BETA": -0.21979082873440348,
+                " ALPHA": -1.7334291101433337
               }
             },
             {
@@ -492,8 +492,8 @@
               "expected": " incomplete",
               "correct": true,
               "scores": {
-                " incomplete": -5.433505535125732,
-                " complete": -7.419412136077881
+                " incomplete": -5.433143615722656,
+                " complete": -7.419071197509766
               }
             },
             {
@@ -502,8 +502,8 @@
               "expected": " active",
               "correct": true,
               "scores": {
-                " active": -2.6097474098205566,
-                " paused": -8.20413589477539
+                " active": -2.6097028255462646,
+                " paused": -8.204450607299805
               }
             },
             {
@@ -512,8 +512,8 @@
               "expected": " blocked",
               "correct": true,
               "scores": {
-                " blocked": -6.772091865539551,
-                " allowed": -12.345725059509277
+                " blocked": -6.770037651062012,
+                " allowed": -12.344292640686035
               }
             }
           ],
@@ -525,15 +525,15 @@
           "anchor_pos": 15,
           "replayed_tokens": 50,
           "state_error_vs_w2_native": {
-            "rms": 0.014512209430252868,
-            "l2": 12.46091012726742,
-            "max_abs": 0.7582130432128906,
+            "rms": 0.014513496552835986,
+            "l2": 12.46201531520645,
+            "max_abs": 0.7555255889892578,
             "numel": 737280
           },
           "functional_vs_w2_native": {
             "decision_agreement": 1.0,
             "expected_accuracy": 1.0,
-            "score_rms_error": 0.1533125385405268
+            "score_rms_error": 0.15334329520834844
           },
           "probe_rows": [
             {
@@ -542,8 +542,8 @@
               "expected": " BETA",
               "correct": true,
               "scores": {
-                " BETA": -0.2196864610450575,
-                " ALPHA": -1.7338776970282197
+                " BETA": -0.21979082873440348,
+                " ALPHA": -1.7334291101433337
               }
             },
             {
@@ -552,8 +552,8 @@
               "expected": " incomplete",
               "correct": true,
               "scores": {
-                " incomplete": -5.433505535125732,
-                " complete": -7.419412136077881
+                " incomplete": -5.433143615722656,
+                " complete": -7.419071197509766
               }
             },
             {
@@ -562,8 +562,8 @@
               "expected": " active",
               "correct": true,
               "scores": {
-                " active": -2.6097474098205566,
-                " paused": -8.20413589477539
+                " active": -2.6097028255462646,
+                " paused": -8.204450607299805
               }
             },
             {
@@ -572,8 +572,8 @@
               "expected": " blocked",
               "correct": true,
               "scores": {
-                " blocked": -6.772091865539551,
-                " allowed": -12.345725059509277
+                " blocked": -6.770037651062012,
+                " allowed": -12.344292640686035
               }
             }
           ],
@@ -585,15 +585,15 @@
           "anchor_pos": 0,
           "replayed_tokens": 65,
           "state_error_vs_w2_native": {
-            "rms": 0.04058584264455341,
-            "l2": 34.849037981695204,
-            "max_abs": 8.45535945892334,
+            "rms": 0.04059035443430441,
+            "l2": 34.852912030431234,
+            "max_abs": 8.456296920776367,
             "numel": 737280
           },
           "functional_vs_w2_native": {
             "decision_agreement": 1.0,
             "expected_accuracy": 1.0,
-            "score_rms_error": 0.34107377277394835
+            "score_rms_error": 0.3408692475485334
           },
           "probe_rows": [
             {
@@ -602,8 +602,8 @@
               "expected": " BETA",
               "correct": true,
               "scores": {
-                " BETA": -0.10071232484187931,
-                " ALPHA": -2.373943519371096
+                " BETA": -0.1008492739056237,
+                " ALPHA": -2.3726505745435134
               }
             },
             {
@@ -612,8 +612,8 @@
               "expected": " incomplete",
               "correct": true,
               "scores": {
-                " incomplete": -4.785341262817383,
-                " complete": -7.529644012451172
+                " incomplete": -4.785274028778076,
+                " complete": -7.529323101043701
               }
             },
             {
@@ -622,8 +622,8 @@
               "expected": " active",
               "correct": true,
               "scores": {
-                " active": -2.6496667861938477,
-                " paused": -8.243950843811035
+                " active": -2.649411678314209,
+                " paused": -8.244028091430664
               }
             },
             {
@@ -632,8 +632,8 @@
               "expected": " blocked",
               "correct": true,
               "scores": {
-                " blocked": -6.125184059143066,
-                " allowed": -12.172098159790039
+                " blocked": -6.123624801635742,
+                " allowed": -12.170902252197266
               }
             }
           ],
@@ -645,15 +645,15 @@
           "anchor_pos": 0,
           "replayed_tokens": 65,
           "state_error_vs_w2_native": {
-            "rms": 0.04058584264455341,
-            "l2": 34.849037981695204,
-            "max_abs": 8.45535945892334,
+            "rms": 0.04059035443430441,
+            "l2": 34.852912030431234,
+            "max_abs": 8.456296920776367,
             "numel": 737280
           },
           "functional_vs_w2_native": {
             "decision_agreement": 1.0,
             "expected_accuracy": 1.0,
-            "score_rms_error": 0.34107377277394835
+            "score_rms_error": 0.3408692475485334
           },
           "probe_rows": [
             {
@@ -662,8 +662,8 @@
               "expected": " BETA",
               "correct": true,
               "scores": {
-                " BETA": -0.10071232484187931,
-                " ALPHA": -2.373943519371096
+                " BETA": -0.1008492739056237,
+                " ALPHA": -2.3726505745435134
               }
             },
             {
@@ -672,8 +672,8 @@
               "expected": " incomplete",
               "correct": true,
               "scores": {
-                " incomplete": -4.785341262817383,
-                " complete": -7.529644012451172
+                " incomplete": -4.785274028778076,
+                " complete": -7.529323101043701
               }
             },
             {
@@ -682,8 +682,8 @@
               "expected": " active",
               "correct": true,
               "scores": {
-                " active": -2.6496667861938477,
-                " paused": -8.243950843811035
+                " active": -2.649411678314209,
+                " paused": -8.244028091430664
               }
             },
             {
@@ -692,8 +692,8 @@
               "expected": " blocked",
               "correct": true,
               "scores": {
-                " blocked": -6.125184059143066,
-                " allowed": -12.172098159790039
+                " blocked": -6.123624801635742,
+                " allowed": -12.170902252197266
               }
             }
           ],
@@ -709,8 +709,8 @@
           "expected": " BETA",
           "correct": true,
           "scores": {
-            " BETA": -0.19958955308538862,
-            " ALPHA": -1.80885288445279
+            " BETA": -0.19975053030066192,
+            " ALPHA": -1.8080669231712818
           }
         },
         {
@@ -719,8 +719,8 @@
           "expected": " incomplete",
           "correct": true,
           "scores": {
-            " incomplete": -5.4711713790893555,
-            " complete": -7.43386173248291
+            " incomplete": -5.470958709716797,
+            " complete": -7.433570861816406
           }
         },
         {
@@ -729,8 +729,8 @@
           "expected": " active",
           "correct": true,
           "scores": {
-            " active": -2.4830117225646973,
-            " paused": -8.235016822814941
+            " active": -2.4829764366149902,
+            " paused": -8.235276222229004
           }
         },
         {
@@ -739,8 +739,8 @@
           "expected": " blocked",
           "correct": true,
           "scores": {
-            " blocked": -6.429335594177246,
-            " allowed": -12.131510734558105
+            " blocked": -6.427270889282227,
+            " allowed": -12.129812240600586
           }
         }
       ]
@@ -757,11 +757,11 @@
           "start": 30,
           "end": 43,
           "text": "Correction: the current codeword is RED, not BLUE. ",
-          "state_rms": 0.04623326227807612,
+          "state_rms": 0.04623502282736761,
           "decision_flips": 0,
-          "score_rms": 0.5650240403524535,
-          "margin_shift_sum": 2.268548923311755,
-          "detector_score": 0.791878932683629,
+          "score_rms": 0.5651768951659091,
+          "margin_shift_sum": 2.2689384086988866,
+          "detector_score": 0.7920707360357977,
           "per_probe": [
             {
               "id": "codeword",
@@ -794,11 +794,11 @@
           "start": 60,
           "end": 64,
           "text": "External action remains blocked.",
-          "state_rms": 0.038731052036317604,
+          "state_rms": 0.038729272043056276,
           "decision_flips": 0,
-          "score_rms": 0.45362232832723404,
-          "margin_shift_sum": 1.2456531112547964,
-          "detector_score": 0.5781876394527137,
+          "score_rms": 0.45380688877731956,
+          "margin_shift_sum": 1.2462000135565177,
+          "detector_score": 0.5784268901329713,
           "per_probe": [
             {
               "id": "codeword",
@@ -831,11 +831,11 @@
           "start": 7,
           "end": 15,
           "text": "The old codeword was BLUE. ",
-          "state_rms": 0.04292051945073253,
+          "state_rms": 0.0429221966467927,
           "decision_flips": 0,
-          "score_rms": 0.3277048109792013,
-          "margin_shift_sum": 1.018033642321825,
-          "detector_score": 0.4295081752113838,
+          "score_rms": 0.3279424774682352,
+          "margin_shift_sum": 1.0189631087705493,
+          "detector_score": 0.4298387883452901,
           "per_probe": [
             {
               "id": "codeword",
@@ -868,11 +868,11 @@
           "start": 53,
           "end": 60,
           "text": "Hypothesis one is weakened. ",
-          "state_rms": 0.04358274412523305,
+          "state_rms": 0.04358845434236753,
           "decision_flips": 0,
-          "score_rms": 0.23793664101450163,
-          "margin_shift_sum": 0.27632450545206666,
-          "detector_score": 0.2655690915597083,
+          "score_rms": 0.23798266773423607,
+          "margin_shift_sum": 0.2761243531713262,
+          "detector_score": 0.2655951030513687,
           "per_probe": [
             {
               "id": "codeword",
@@ -905,11 +905,11 @@
           "start": 0,
           "end": 7,
           "text": "Project Helios remains active. ",
-          "state_rms": 0.03772253511547717,
+          "state_rms": 0.0377301262704363,
           "decision_flips": 0,
-          "score_rms": 0.19702448959473365,
-          "margin_shift_sum": 0.6416757106781006,
-          "detector_score": 0.2611920606625437,
+          "score_rms": 0.19703179185192368,
+          "margin_shift_sum": 0.6416807174682617,
+          "detector_score": 0.26119986359874986,
           "per_probe": [
             {
               "id": "codeword",
@@ -942,11 +942,11 @@
           "start": 15,
           "end": 25,
           "text": "Unrelated telemetry packet 21 was archived. ",
-          "state_rms": 0.03347225440031541,
+          "state_rms": 0.03347539020622209,
           "decision_flips": 0,
-          "score_rms": 0.16641449264323518,
-          "margin_shift_sum": 0.416085401782766,
-          "detector_score": 0.2080230328215118,
+          "score_rms": 0.16653699323451776,
+          "margin_shift_sum": 0.4164580467622727,
+          "detector_score": 0.20818279791074504,
           "per_probe": [
             {
               "id": "codeword",
@@ -979,11 +979,11 @@
           "start": 25,
           "end": 30,
           "text": "Verification is incomplete. ",
-          "state_rms": 0.04065277709184835,
+          "state_rms": 0.04065759914139132,
           "decision_flips": 0,
-          "score_rms": 0.17263666983328801,
-          "margin_shift_sum": 0.3327348765451461,
-          "detector_score": 0.20591015748780261,
+          "score_rms": 0.17267414460810274,
+          "margin_shift_sum": 0.3327052529202774,
+          "detector_score": 0.2059446699001305,
           "per_probe": [
             {
               "id": "codeword",
@@ -1016,11 +1016,11 @@
           "start": 43,
           "end": 53,
           "text": "A historical memo mentions BLUE but is obsolete. ",
-          "state_rms": 0.03190180213408956,
+          "state_rms": 0.03190607820648546,
           "decision_flips": 0,
-          "score_rms": 0.055852108682704925,
-          "margin_shift_sum": 0.17891753977164626,
-          "detector_score": 0.07374386265986956,
+          "score_rms": 0.055825071315583834,
+          "margin_shift_sum": 0.1786087891086936,
+          "detector_score": 0.07368595022645319,
           "per_probe": [
             {
               "id": "codeword",
@@ -1053,15 +1053,15 @@
         "anchor_pos": 30,
         "replayed_tokens": 34,
         "state_error_vs_w2_native": {
-          "rms": 0.01946520793221325,
-          "l2": 16.71380280291723,
-          "max_abs": 1.1280345916748047,
+          "rms": 0.01946685788095656,
+          "l2": 16.715219531576206,
+          "max_abs": 1.1258983612060547,
           "numel": 737280
         },
         "functional_vs_w2_native": {
           "decision_agreement": 1.0,
           "expected_accuracy": 1.0,
-          "score_rms_error": 0.15079521568198898
+          "score_rms_error": 0.1508087648446709
         },
         "probe_rows": [
           {
@@ -1070,8 +1070,8 @@
             "expected": " RED",
             "correct": true,
             "scores": {
-              " RED": -0.4451330900192261,
-              " BLUE": -1.1019143111770973
+              " RED": -0.4447365999221802,
+              " BLUE": -1.1026369552128017
             }
           },
           {
@@ -1080,8 +1080,8 @@
             "expected": " incomplete",
             "correct": true,
             "scores": {
-              " incomplete": -6.427197456359863,
-              " complete": -7.889370918273926
+              " incomplete": -6.4266204833984375,
+              " complete": -7.888797760009766
             }
           },
           {
@@ -1090,8 +1090,8 @@
             "expected": " active",
             "correct": true,
             "scores": {
-              " active": -2.9544050693511963,
-              " paused": -9.226934432983398
+              " active": -2.954146385192871,
+              " paused": -9.227158546447754
             }
           },
           {
@@ -1100,8 +1100,8 @@
             "expected": " blocked",
             "correct": true,
             "scores": {
-              " blocked": -7.23216438293457,
-              " allowed": -12.844486236572266
+              " blocked": -7.230082035064697,
+              " allowed": -12.8429594039917
             }
           }
         ]
@@ -1110,15 +1110,15 @@
         "anchor_pos": 30,
         "replayed_tokens": 34,
         "state_error_vs_w2_native": {
-          "rms": 0.01946520793221325,
-          "l2": 16.71380280291723,
-          "max_abs": 1.1280345916748047,
+          "rms": 0.01946685788095656,
+          "l2": 16.715219531576206,
+          "max_abs": 1.1258983612060547,
           "numel": 737280
         },
         "functional_vs_w2_native": {
           "decision_agreement": 1.0,
           "expected_accuracy": 1.0,
-          "score_rms_error": 0.15079521568198898
+          "score_rms_error": 0.1508087648446709
         },
         "probe_rows": [
           {
@@ -1127,8 +1127,8 @@
             "expected": " RED",
             "correct": true,
             "scores": {
-              " RED": -0.4451330900192261,
-              " BLUE": -1.1019143111770973
+              " RED": -0.4447365999221802,
+              " BLUE": -1.1026369552128017
             }
           },
           {
@@ -1137,8 +1137,8 @@
             "expected": " incomplete",
             "correct": true,
             "scores": {
-              " incomplete": -6.427197456359863,
-              " complete": -7.889370918273926
+              " incomplete": -6.4266204833984375,
+              " complete": -7.888797760009766
             }
           },
           {
@@ -1147,8 +1147,8 @@
             "expected": " active",
             "correct": true,
             "scores": {
-              " active": -2.9544050693511963,
-              " paused": -9.226934432983398
+              " active": -2.954146385192871,
+              " paused": -9.227158546447754
             }
           },
           {
@@ -1157,8 +1157,8 @@
             "expected": " blocked",
             "correct": true,
             "scores": {
-              " blocked": -7.23216438293457,
-              " allowed": -12.844486236572266
+              " blocked": -7.230082035064697,
+              " allowed": -12.8429594039917
             }
           }
         ]
@@ -1168,15 +1168,15 @@
           "anchor_pos": 30,
           "replayed_tokens": 34,
           "state_error_vs_w2_native": {
-            "rms": 0.01946520793221325,
-            "l2": 16.71380280291723,
-            "max_abs": 1.1280345916748047,
+            "rms": 0.01946685788095656,
+            "l2": 16.715219531576206,
+            "max_abs": 1.1258983612060547,
             "numel": 737280
           },
           "functional_vs_w2_native": {
             "decision_agreement": 1.0,
             "expected_accuracy": 1.0,
-            "score_rms_error": 0.15079521568198898
+            "score_rms_error": 0.1508087648446709
           },
           "probe_rows": [
             {
@@ -1185,8 +1185,8 @@
               "expected": " RED",
               "correct": true,
               "scores": {
-                " RED": -0.4451330900192261,
-                " BLUE": -1.1019143111770973
+                " RED": -0.4447365999221802,
+                " BLUE": -1.1026369552128017
               }
             },
             {
@@ -1195,8 +1195,8 @@
               "expected": " incomplete",
               "correct": true,
               "scores": {
-                " incomplete": -6.427197456359863,
-                " complete": -7.889370918273926
+                " incomplete": -6.4266204833984375,
+                " complete": -7.888797760009766
               }
             },
             {
@@ -1205,8 +1205,8 @@
               "expected": " active",
               "correct": true,
               "scores": {
-                " active": -2.9544050693511963,
-                " paused": -9.226934432983398
+                " active": -2.954146385192871,
+                " paused": -9.227158546447754
               }
             },
             {
@@ -1215,8 +1215,8 @@
               "expected": " blocked",
               "correct": true,
               "scores": {
-                " blocked": -7.23216438293457,
-                " allowed": -12.844486236572266
+                " blocked": -7.230082035064697,
+                " allowed": -12.8429594039917
               }
             }
           ],
@@ -1228,15 +1228,15 @@
           "anchor_pos": 30,
           "replayed_tokens": 34,
           "state_error_vs_w2_native": {
-            "rms": 0.01946520793221325,
-            "l2": 16.71380280291723,
-            "max_abs": 1.1280345916748047,
+            "rms": 0.01946685788095656,
+            "l2": 16.715219531576206,
+            "max_abs": 1.1258983612060547,
             "numel": 737280
           },
           "functional_vs_w2_native": {
             "decision_agreement": 1.0,
             "expected_accuracy": 1.0,
-            "score_rms_error": 0.15079521568198898
+            "score_rms_error": 0.1508087648446709
           },
           "probe_rows": [
             {
@@ -1245,8 +1245,8 @@
               "expected": " RED",
               "correct": true,
               "scores": {
-                " RED": -0.4451330900192261,
-                " BLUE": -1.1019143111770973
+                " RED": -0.4447365999221802,
+                " BLUE": -1.1026369552128017
               }
             },
             {
@@ -1255,8 +1255,8 @@
               "expected": " incomplete",
               "correct": true,
               "scores": {
-                " incomplete": -6.427197456359863,
-                " complete": -7.889370918273926
+                " incomplete": -6.4266204833984375,
+                " complete": -7.888797760009766
               }
             },
             {
@@ -1265,8 +1265,8 @@
               "expected": " active",
               "correct": true,
               "scores": {
-                " active": -2.9544050693511963,
-                " paused": -9.226934432983398
+                " active": -2.954146385192871,
+                " paused": -9.227158546447754
               }
             },
             {
@@ -1275,8 +1275,8 @@
               "expected": " blocked",
               "correct": true,
               "scores": {
-                " blocked": -7.23216438293457,
-                " allowed": -12.844486236572266
+                " blocked": -7.230082035064697,
+                " allowed": -12.8429594039917
               }
             }
           ],
@@ -1288,15 +1288,15 @@
           "anchor_pos": 30,
           "replayed_tokens": 34,
           "state_error_vs_w2_native": {
-            "rms": 0.01946520793221325,
-            "l2": 16.71380280291723,
-            "max_abs": 1.1280345916748047,
+            "rms": 0.01946685788095656,
+            "l2": 16.715219531576206,
+            "max_abs": 1.1258983612060547,
             "numel": 737280
           },
           "functional_vs_w2_native": {
             "decision_agreement": 1.0,
             "expected_accuracy": 1.0,
-            "score_rms_error": 0.15079521568198898
+            "score_rms_error": 0.1508087648446709
           },
           "probe_rows": [
             {
@@ -1305,8 +1305,8 @@
               "expected": " RED",
               "correct": true,
               "scores": {
-                " RED": -0.4451330900192261,
-                " BLUE": -1.1019143111770973
+                " RED": -0.4447365999221802,
+                " BLUE": -1.1026369552128017
               }
             },
             {
@@ -1315,8 +1315,8 @@
               "expected": " incomplete",
               "correct": true,
               "scores": {
-                " incomplete": -6.427197456359863,
-                " complete": -7.889370918273926
+                " incomplete": -6.4266204833984375,
+                " complete": -7.888797760009766
               }
             },
             {
@@ -1325,8 +1325,8 @@
               "expected": " active",
               "correct": true,
               "scores": {
-                " active": -2.9544050693511963,
-                " paused": -9.226934432983398
+                " active": -2.954146385192871,
+                " paused": -9.227158546447754
               }
             },
             {
@@ -1335,8 +1335,8 @@
               "expected": " blocked",
               "correct": true,
               "scores": {
-                " blocked": -7.23216438293457,
-                " allowed": -12.844486236572266
+                " blocked": -7.230082035064697,
+                " allowed": -12.8429594039917
               }
             }
           ],
@@ -1348,15 +1348,15 @@
           "anchor_pos": 0,
           "replayed_tokens": 64,
           "state_error_vs_w2_native": {
-            "rms": 0.03940944376828301,
-            "l2": 33.83892296499313,
-            "max_abs": 9.418657302856445,
+            "rms": 0.03941659013836273,
+            "l2": 33.84505919640073,
+            "max_abs": 9.419999122619629,
             "numel": 737280
           },
           "functional_vs_w2_native": {
             "decision_agreement": 1.0,
             "expected_accuracy": 1.0,
-            "score_rms_error": 0.42908117993151695
+            "score_rms_error": 0.42897327517882106
           },
           "probe_rows": [
             {
@@ -1365,8 +1365,8 @@
               "expected": " RED",
               "correct": true,
               "scores": {
-                " RED": -0.33836543560028076,
-                " BLUE": -1.2754250447032973
+                " RED": -0.3379800319671631,
+                " BLUE": -1.2763925469480455
               }
             },
             {
@@ -1375,8 +1375,8 @@
               "expected": " incomplete",
               "correct": true,
               "scores": {
-                " incomplete": -5.864319324493408,
-                " complete": -8.396329879760742
+                " incomplete": -5.863672256469727,
+                " complete": -8.395483016967773
               }
             },
             {
@@ -1385,8 +1385,8 @@
               "expected": " active",
               "correct": true,
               "scores": {
-                " active": -2.970381736755371,
-                " paused": -9.190617561340332
+                " active": -2.9701430797576904,
+                " paused": -9.190644264221191
               }
             },
             {
@@ -1395,8 +1395,8 @@
               "expected": " blocked",
               "correct": true,
               "scores": {
-                " blocked": -6.045441627502441,
-                " allowed": -12.779970169067383
+                " blocked": -6.043824195861816,
+                " allowed": -12.778454780578613
               }
             }
           ],
@@ -1412,8 +1412,8 @@
           "expected": " RED",
           "correct": true,
           "scores": {
-            " RED": -0.4053410291671753,
-            " BLUE": -1.178133191773668
+            " RED": -0.4049510955810547,
+            " BLUE": -1.1789125744253397
           }
         },
         {
@@ -1422,8 +1422,8 @@
           "expected": " incomplete",
           "correct": true,
           "scores": {
-            " incomplete": -6.246038436889648,
-            " complete": -7.87421989440918
+            " incomplete": -6.245282173156738,
+            " complete": -7.873427391052246
           }
         },
         {
@@ -1432,8 +1432,8 @@
           "expected": " active",
           "correct": true,
           "scores": {
-            " active": -2.917171001434326,
-            " paused": -9.405740737915039
+            " active": -2.9169580936431885,
+            " paused": -9.40568733215332
           }
         },
         {
@@ -1442,8 +1442,8 @@
           "expected": " blocked",
           "correct": true,
           "scores": {
-            " blocked": -7.023046016693115,
-            " allowed": -12.59074592590332
+            " blocked": -7.021080017089844,
+            " allowed": -12.589014053344727
           }
         }
       ]
@@ -1460,11 +1460,11 @@
           "start": 48,
           "end": 62,
           "text": "Correction: the current codeword is HIGH, not LOW. ",
-          "state_rms": 0.04329683182865553,
+          "state_rms": 0.043298735204508214,
           "decision_flips": 1,
-          "score_rms": 0.3447832982925537,
-          "margin_shift_sum": 1.5778260570077691,
-          "detector_score": 1000.5025659039933,
+          "score_rms": 0.34477666868784546,
+          "margin_shift_sum": 1.5780231990793254,
+          "detector_score": 1000.5025789885957,
           "per_probe": [
             {
               "id": "codeword",
@@ -1497,11 +1497,11 @@
           "start": 62,
           "end": 66,
           "text": "External action remains blocked.",
-          "state_rms": 0.038394070870590415,
+          "state_rms": 0.03839492421117914,
           "decision_flips": 0,
-          "score_rms": 0.5333132071562777,
-          "margin_shift_sum": 1.3117563324049115,
-          "detector_score": 0.6644888403967689,
+          "score_rms": 0.5335255150060871,
+          "margin_shift_sum": 1.3123094633338042,
+          "detector_score": 0.6647564613394675,
           "per_probe": [
             {
               "id": "codeword",
@@ -1534,11 +1534,11 @@
           "start": 38,
           "end": 48,
           "text": "A historical memo mentions LOW but is obsolete. ",
-          "state_rms": 0.039841167596117576,
+          "state_rms": 0.03984624606888786,
           "decision_flips": 0,
-          "score_rms": 0.24473417616659562,
-          "margin_shift_sum": 0.6051346163731068,
-          "detector_score": 0.3052476378039063,
+          "score_rms": 0.24482901572003996,
+          "margin_shift_sum": 0.6050233195419423,
+          "detector_score": 0.3053313476742342,
           "per_probe": [
             {
               "id": "codeword",
@@ -1571,11 +1571,11 @@
           "start": 0,
           "end": 8,
           "text": "Project Icarus remains active. ",
-          "state_rms": 0.03699953968131139,
+          "state_rms": 0.037002187934875495,
           "decision_flips": 0,
-          "score_rms": 0.13869703662700525,
-          "margin_shift_sum": 0.6108269691467285,
-          "detector_score": 0.1997797335416781,
+          "score_rms": 0.13871604273678265,
+          "margin_shift_sum": 0.6110765933990479,
+          "detector_score": 0.19982370207668743,
           "per_probe": [
             {
               "id": "codeword",
@@ -1608,11 +1608,11 @@
           "start": 16,
           "end": 26,
           "text": "Unrelated telemetry packet 31 was archived. ",
-          "state_rms": 0.032761719793553794,
+          "state_rms": 0.03276546081048788,
           "decision_flips": 0,
-          "score_rms": 0.14545331316007293,
-          "margin_shift_sum": 0.47796590020880103,
-          "detector_score": 0.19324990318095303,
+          "score_rms": 0.145552289929174,
+          "margin_shift_sum": 0.4782479184214026,
+          "detector_score": 0.19337708177131424,
           "per_probe": [
             {
               "id": "codeword",
@@ -1645,11 +1645,11 @@
           "start": 8,
           "end": 16,
           "text": "The old codeword was LOW. ",
-          "state_rms": 0.0423440776317491,
+          "state_rms": 0.04234535476266434,
           "decision_flips": 0,
-          "score_rms": 0.13842271977240095,
-          "margin_shift_sum": 0.4990517410915345,
-          "detector_score": 0.1883278938815544,
+          "score_rms": 0.1385044034561783,
+          "margin_shift_sum": 0.49910581740550697,
+          "detector_score": 0.188414985196729,
           "per_probe": [
             {
               "id": "codeword",
@@ -1682,11 +1682,11 @@
           "start": 26,
           "end": 31,
           "text": "Verification is incomplete. ",
-          "state_rms": 0.030578342308028444,
+          "state_rms": 0.030583772696068604,
           "decision_flips": 0,
-          "score_rms": 0.12652415853192384,
-          "margin_shift_sum": 0.437411765975412,
-          "detector_score": 0.17026533512946504,
+          "score_rms": 0.12651823224528616,
+          "margin_shift_sum": 0.4373029869166203,
+          "detector_score": 0.1702485309369482,
           "per_probe": [
             {
               "id": "codeword",
@@ -1719,11 +1719,11 @@
           "start": 31,
           "end": 38,
           "text": "Hypothesis one is weakened. ",
-          "state_rms": 0.04208520217783308,
+          "state_rms": 0.042091726735191425,
           "decision_flips": 0,
-          "score_rms": 0.08544003311120754,
-          "margin_shift_sum": 0.49681246117688715,
-          "detector_score": 0.13512127922889627,
+          "score_rms": 0.08544698622040303,
+          "margin_shift_sum": 0.4967868011444807,
+          "detector_score": 0.1351256663348511,
           "per_probe": [
             {
               "id": "codeword",
@@ -1756,15 +1756,15 @@
         "anchor_pos": 48,
         "replayed_tokens": 18,
         "state_error_vs_w2_native": {
-          "rms": 0.02694523786951901,
-          "l2": 23.136531281720107,
-          "max_abs": 1.5323219299316406,
+          "rms": 0.026947451938261417,
+          "l2": 23.138432392074623,
+          "max_abs": 1.5310955047607422,
           "numel": 737280
         },
         "functional_vs_w2_native": {
           "decision_agreement": 1.0,
           "expected_accuracy": 1.0,
-          "score_rms_error": 0.2903706516243719
+          "score_rms_error": 0.2903616721536816
         },
         "probe_rows": [
           {
@@ -1773,8 +1773,8 @@
             "expected": " HIGH",
             "correct": true,
             "scores": {
-              " HIGH": -0.4852646955405362,
-              " LOW": -1.1561866192496382
+              " HIGH": -0.4853578574839048,
+              " LOW": -1.1561130663612857
             }
           },
           {
@@ -1783,8 +1783,8 @@
             "expected": " incomplete",
             "correct": true,
             "scores": {
-              " incomplete": -6.478987216949463,
-              " complete": -8.069742202758789
+              " incomplete": -6.478373050689697,
+              " complete": -8.06900691986084
             }
           },
           {
@@ -1793,8 +1793,8 @@
             "expected": " active",
             "correct": true,
             "scores": {
-              " active": -2.9686360359191895,
-              " paused": -7.729689121246338
+              " active": -2.9682605266571045,
+              " paused": -7.729729652404785
             }
           },
           {
@@ -1803,8 +1803,8 @@
             "expected": " blocked",
             "correct": true,
             "scores": {
-              " blocked": -6.846148490905762,
-              " allowed": -11.984591484069824
+              " blocked": -6.844330787658691,
+              " allowed": -11.983111381530762
             }
           }
         ]
@@ -1813,15 +1813,15 @@
         "anchor_pos": 48,
         "replayed_tokens": 18,
         "state_error_vs_w2_native": {
-          "rms": 0.02694523786951901,
-          "l2": 23.136531281720107,
-          "max_abs": 1.5323219299316406,
+          "rms": 0.026947451938261417,
+          "l2": 23.138432392074623,
+          "max_abs": 1.5310955047607422,
           "numel": 737280
         },
         "functional_vs_w2_native": {
           "decision_agreement": 1.0,
           "expected_accuracy": 1.0,
-          "score_rms_error": 0.2903706516243719
+          "score_rms_error": 0.2903616721536816
         },
         "probe_rows": [
           {
@@ -1830,8 +1830,8 @@
             "expected": " HIGH",
             "correct": true,
             "scores": {
-              " HIGH": -0.4852646955405362,
-              " LOW": -1.1561866192496382
+              " HIGH": -0.4853578574839048,
+              " LOW": -1.1561130663612857
             }
           },
           {
@@ -1840,8 +1840,8 @@
             "expected": " incomplete",
             "correct": true,
             "scores": {
-              " incomplete": -6.478987216949463,
-              " complete": -8.069742202758789
+              " incomplete": -6.478373050689697,
+              " complete": -8.06900691986084
             }
           },
           {
@@ -1850,8 +1850,8 @@
             "expected": " active",
             "correct": true,
             "scores": {
-              " active": -2.9686360359191895,
-              " paused": -7.729689121246338
+              " active": -2.9682605266571045,
+              " paused": -7.729729652404785
             }
           },
           {
@@ -1860,8 +1860,8 @@
             "expected": " blocked",
             "correct": true,
             "scores": {
-              " blocked": -6.846148490905762,
-              " allowed": -11.984591484069824
+              " blocked": -6.844330787658691,
+              " allowed": -11.983111381530762
             }
           }
         ]
@@ -1871,15 +1871,15 @@
           "anchor_pos": 48,
           "replayed_tokens": 18,
           "state_error_vs_w2_native": {
-            "rms": 0.02694523786951901,
-            "l2": 23.136531281720107,
-            "max_abs": 1.5323219299316406,
+            "rms": 0.026947451938261417,
+            "l2": 23.138432392074623,
+            "max_abs": 1.5310955047607422,
             "numel": 737280
           },
           "functional_vs_w2_native": {
             "decision_agreement": 1.0,
             "expected_accuracy": 1.0,
-            "score_rms_error": 0.2903706516243719
+            "score_rms_error": 0.2903616721536816
           },
           "probe_rows": [
             {
@@ -1888,8 +1888,8 @@
               "expected": " HIGH",
               "correct": true,
               "scores": {
-                " HIGH": -0.4852646955405362,
-                " LOW": -1.1561866192496382
+                " HIGH": -0.4853578574839048,
+                " LOW": -1.1561130663612857
               }
             },
             {
@@ -1898,8 +1898,8 @@
               "expected": " incomplete",
               "correct": true,
               "scores": {
-                " incomplete": -6.478987216949463,
-                " complete": -8.069742202758789
+                " incomplete": -6.478373050689697,
+                " complete": -8.06900691986084
               }
             },
             {
@@ -1908,8 +1908,8 @@
               "expected": " active",
               "correct": true,
               "scores": {
-                " active": -2.9686360359191895,
-                " paused": -7.729689121246338
+                " active": -2.9682605266571045,
+                " paused": -7.729729652404785
               }
             },
             {
@@ -1918,8 +1918,8 @@
               "expected": " blocked",
               "correct": true,
               "scores": {
-                " blocked": -6.846148490905762,
-                " allowed": -11.984591484069824
+                " blocked": -6.844330787658691,
+                " allowed": -11.983111381530762
               }
             }
           ],
@@ -1931,15 +1931,15 @@
           "anchor_pos": 48,
           "replayed_tokens": 18,
           "state_error_vs_w2_native": {
-            "rms": 0.02694523786951901,
-            "l2": 23.136531281720107,
-            "max_abs": 1.5323219299316406,
+            "rms": 0.026947451938261417,
+            "l2": 23.138432392074623,
+            "max_abs": 1.5310955047607422,
             "numel": 737280
           },
           "functional_vs_w2_native": {
             "decision_agreement": 1.0,
             "expected_accuracy": 1.0,
-            "score_rms_error": 0.2903706516243719
+            "score_rms_error": 0.2903616721536816
           },
           "probe_rows": [
             {
@@ -1948,8 +1948,8 @@
               "expected": " HIGH",
               "correct": true,
               "scores": {
-                " HIGH": -0.4852646955405362,
-                " LOW": -1.1561866192496382
+                " HIGH": -0.4853578574839048,
+                " LOW": -1.1561130663612857
               }
             },
             {
@@ -1958,8 +1958,8 @@
               "expected": " incomplete",
               "correct": true,
               "scores": {
-                " incomplete": -6.478987216949463,
-                " complete": -8.069742202758789
+                " incomplete": -6.478373050689697,
+                " complete": -8.06900691986084
               }
             },
             {
@@ -1968,8 +1968,8 @@
               "expected": " active",
               "correct": true,
               "scores": {
-                " active": -2.9686360359191895,
-                " paused": -7.729689121246338
+                " active": -2.9682605266571045,
+                " paused": -7.729729652404785
               }
             },
             {
@@ -1978,8 +1978,8 @@
               "expected": " blocked",
               "correct": true,
               "scores": {
-                " blocked": -6.846148490905762,
-                " allowed": -11.984591484069824
+                " blocked": -6.844330787658691,
+                " allowed": -11.983111381530762
               }
             }
           ],
@@ -1991,15 +1991,15 @@
           "anchor_pos": 31,
           "replayed_tokens": 35,
           "state_error_vs_w2_native": {
-            "rms": 0.021156034818811873,
-            "l2": 18.165631483858867,
-            "max_abs": 1.3684749603271484,
+            "rms": 0.021157956726225436,
+            "l2": 18.167281729858168,
+            "max_abs": 1.3674240112304688,
             "numel": 737280
           },
           "functional_vs_w2_native": {
             "decision_agreement": 1.0,
             "expected_accuracy": 1.0,
-            "score_rms_error": 0.18808789028086154
+            "score_rms_error": 0.1881564255531965
           },
           "probe_rows": [
             {
@@ -2008,8 +2008,8 @@
               "expected": " HIGH",
               "correct": true,
               "scores": {
-                " HIGH": -0.5474938036059029,
-                " LOW": -1.0245444996398874
+                " HIGH": -0.5475654481560923,
+                " LOW": -1.0244974113884382
               }
             },
             {
@@ -2018,8 +2018,8 @@
               "expected": " incomplete",
               "correct": true,
               "scores": {
-                " incomplete": -6.607065200805664,
-                " complete": -8.408906936645508
+                " incomplete": -6.606513977050781,
+                " complete": -8.408191680908203
               }
             },
             {
@@ -2028,8 +2028,8 @@
               "expected": " active",
               "correct": true,
               "scores": {
-                " active": -3.048137664794922,
-                " paused": -7.972034454345703
+                " active": -3.047769069671631,
+                " paused": -7.972100734710693
               }
             },
             {
@@ -2038,8 +2038,8 @@
               "expected": " blocked",
               "correct": true,
               "scores": {
-                " blocked": -6.814390659332275,
-                " allowed": -11.816375732421875
+                " blocked": -6.812448024749756,
+                " allowed": -11.814910888671875
               }
             }
           ],
@@ -2051,15 +2051,15 @@
           "anchor_pos": 0,
           "replayed_tokens": 66,
           "state_error_vs_w2_native": {
-            "rms": 0.04014558405447622,
-            "l2": 34.47100989782033,
-            "max_abs": 9.187363624572754,
+            "rms": 0.04014929316147731,
+            "l2": 34.47419472293019,
+            "max_abs": 9.187475204467773,
             "numel": 737280
           },
           "functional_vs_w2_native": {
             "decision_agreement": 1.0,
             "expected_accuracy": 1.0,
-            "score_rms_error": 0.3346441762134564
+            "score_rms_error": 0.334554159412838
           },
           "probe_rows": [
             {
@@ -2068,8 +2068,8 @@
               "expected": " HIGH",
               "correct": true,
               "scores": {
-                " HIGH": -0.6267326904635411,
-                " LOW": -0.8324278410291299
+                " HIGH": -0.6268266869883519,
+                " LOW": -0.8324453053064644
               }
             },
             {
@@ -2078,8 +2078,8 @@
               "expected": " incomplete",
               "correct": true,
               "scores": {
-                " incomplete": -5.82161283493042,
-                " complete": -8.598854064941406
+                " incomplete": -5.8210673332214355,
+                " complete": -8.598017692565918
               }
             },
             {
@@ -2088,8 +2088,8 @@
               "expected": " active",
               "correct": true,
               "scores": {
-                " active": -3.2684032917022705,
-                " paused": -8.023484230041504
+                " active": -3.268115758895874,
+                " paused": -8.02324104309082
               }
             },
             {
@@ -2098,8 +2098,8 @@
               "expected": " blocked",
               "correct": true,
               "scores": {
-                " blocked": -5.868006229400635,
-                " allowed": -11.541247367858887
+                " blocked": -5.86620569229126,
+                " allowed": -11.53972339630127
               }
             }
           ],
@@ -2115,8 +2115,8 @@
           "expected": " HIGH",
           "correct": true,
           "scores": {
-            " HIGH": -0.6502829506061971,
-            " LOW": -0.8731886398745701
+            " HIGH": -0.6502677515381947,
+            " LOW": -0.8732612374005839
           }
         },
         {
@@ -2125,8 +2125,8 @@
           "expected": " incomplete",
           "correct": true,
           "scores": {
-            " incomplete": -6.35961389541626,
-            " complete": -8.318639755249023
+            " incomplete": -6.358794689178467,
+            " complete": -8.317692756652832
           }
         },
         {
@@ -2135,8 +2135,8 @@
           "expected": " active",
           "correct": true,
           "scores": {
-            " active": -3.182309150695801,
-            " paused": -8.160967826843262
+            " active": -3.182009220123291,
+            " paused": -8.160704612731934
           }
         },
         {
@@ -2145,8 +2145,8 @@
           "expected": " blocked",
           "correct": true,
           "scores": {
-            " blocked": -6.574576377868652,
-            " allowed": -11.553786277770996
+            " blocked": -6.572607040405273,
+            " allowed": -11.551980972290039
           }
         }
       ]
@@ -2163,11 +2163,11 @@
           "start": 53,
           "end": 67,
           "text": "Correction: the current codeword is WEST, not EAST. ",
-          "state_rms": 0.038657806775959806,
+          "state_rms": 0.038662481612213556,
           "decision_flips": 1,
-          "score_rms": 0.3945537262137084,
-          "margin_shift_sum": 1.6093532995437272,
-          "detector_score": 1000.5554890561681,
+          "score_rms": 0.3946291513192815,
+          "margin_shift_sum": 1.6096589221269824,
+          "detector_score": 1000.555595043532,
           "per_probe": [
             {
               "id": "codeword",
@@ -2200,11 +2200,11 @@
           "start": 46,
           "end": 53,
           "text": "Two unrelated sensors were recalibrated. ",
-          "state_rms": 0.03872157007524848,
+          "state_rms": 0.03872705184485906,
           "decision_flips": 1,
-          "score_rms": 0.1446074295375554,
-          "margin_shift_sum": 0.7359566530794837,
-          "detector_score": 1000.2182030948455,
+          "score_rms": 0.14462114282559918,
+          "margin_shift_sum": 0.7360027421964332,
+          "detector_score": 1000.2182214170452,
           "per_probe": [
             {
               "id": "codeword",
@@ -2237,11 +2237,11 @@
           "start": 74,
           "end": 78,
           "text": "External action remains blocked.",
-          "state_rms": 0.037993284130667604,
+          "state_rms": 0.03799283005554826,
           "decision_flips": 0,
-          "score_rms": 0.522143338668121,
-          "margin_shift_sum": 1.4743231638567522,
-          "detector_score": 0.6695756550537962,
+          "score_rms": 0.5222674384518098,
+          "margin_shift_sum": 1.474633346660994,
+          "detector_score": 0.6697307731179092,
           "per_probe": [
             {
               "id": "codeword",
@@ -2274,48 +2274,11 @@
           "start": 7,
           "end": 15,
           "text": "The old codeword was EAST. ",
-          "state_rms": 0.04247556760642599,
+          "state_rms": 0.0424767317885931,
           "decision_flips": 0,
-          "score_rms": 0.23436546613031697,
-          "margin_shift_sum": 0.5267108416301198,
-          "detector_score": 0.287036550293329,
-          "per_probe": [
-            {
-              "id": "codeword",
-              "old_choice": " EAST",
-              "new_choice": " EAST",
-              "decision_flip": false
-            },
-            {
-              "id": "verification",
-              "old_choice": " complete",
-              "new_choice": " complete",
-              "decision_flip": false
-            },
-            {
-              "id": "project",
-              "old_choice": " active",
-              "new_choice": " active",
-              "decision_flip": false
-            },
-            {
-              "id": "action",
-              "old_choice": " blocked",
-              "new_choice": " blocked",
-              "decision_flip": false
-            }
-          ]
-        },
-        {
-          "segment": 4,
-          "start": 36,
-          "end": 46,
-          "text": "A historical memo mentions EAST but is obsolete. ",
-          "state_rms": 0.036512509282286706,
-          "decision_flips": 0,
-          "score_rms": 0.1689957367127608,
-          "margin_shift_sum": 0.6681739318009932,
-          "detector_score": 0.23581312989286013,
+          "score_rms": 0.23445100476397718,
+          "margin_shift_sum": 0.5270208015281241,
+          "detector_score": 0.2871530849167896,
           "per_probe": [
             {
               "id": "codeword",
@@ -2348,11 +2311,48 @@
           "start": 15,
           "end": 31,
           "text": "A note says weather moved eastward; this is unrelated to the codeword. ",
-          "state_rms": 0.03521392287182605,
+          "state_rms": 0.035222061194305744,
           "decision_flips": 0,
-          "score_rms": 0.1689762356026376,
-          "margin_shift_sum": 0.6668258545105346,
-          "detector_score": 0.23565882105369107,
+          "score_rms": 0.16904672952193303,
+          "margin_shift_sum": 0.6671398517210037,
+          "detector_score": 0.2357607146940334,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " EAST",
+              "new_choice": " EAST",
+              "decision_flip": false
+            },
+            {
+              "id": "verification",
+              "old_choice": " complete",
+              "new_choice": " complete",
+              "decision_flip": false
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        },
+        {
+          "segment": 4,
+          "start": 36,
+          "end": 46,
+          "text": "A historical memo mentions EAST but is obsolete. ",
+          "state_rms": 0.03651619323809349,
+          "decision_flips": 0,
+          "score_rms": 0.16895622086328663,
+          "margin_shift_sum": 0.6679994094592985,
+          "detector_score": 0.2357561618092165,
           "per_probe": [
             {
               "id": "codeword",
@@ -2385,11 +2385,11 @@
           "start": 0,
           "end": 7,
           "text": "Project Juno remains active. ",
-          "state_rms": 0.03675088315649519,
+          "state_rms": 0.03675657883389704,
           "decision_flips": 0,
-          "score_rms": 0.15583493675446586,
-          "margin_shift_sum": 0.3953465223312378,
-          "detector_score": 0.19536958898758963,
+          "score_rms": 0.15586335646623026,
+          "margin_shift_sum": 0.3949702978134155,
+          "detector_score": 0.19536038624757182,
           "per_probe": [
             {
               "id": "codeword",
@@ -2422,11 +2422,11 @@
           "start": 67,
           "end": 74,
           "text": "Hypothesis one is weakened. ",
-          "state_rms": 0.043168940920946024,
+          "state_rms": 0.043174315900208406,
           "decision_flips": 0,
-          "score_rms": 0.11259231413152732,
-          "margin_shift_sum": 0.46868662239285186,
-          "detector_score": 0.1594609763708125,
+          "score_rms": 0.11259513268755679,
+          "margin_shift_sum": 0.4685484592919238,
+          "detector_score": 0.15944997861674917,
           "per_probe": [
             {
               "id": "codeword",
@@ -2459,11 +2459,11 @@
           "start": 31,
           "end": 36,
           "text": "Verification is incomplete. ",
-          "state_rms": 0.03622734281370463,
+          "state_rms": 0.03623098665014332,
           "decision_flips": 0,
-          "score_rms": 0.10557232053630958,
-          "margin_shift_sum": 0.2127614596101921,
-          "detector_score": 0.12684846649732878,
+          "score_rms": 0.10554874386187635,
+          "margin_shift_sum": 0.21292717536562122,
+          "detector_score": 0.12684146139843847,
           "per_probe": [
             {
               "id": "codeword",
@@ -2496,15 +2496,15 @@
         "anchor_pos": 53,
         "replayed_tokens": 25,
         "state_error_vs_w2_native": {
-          "rms": 0.02272981666507419,
-          "l2": 19.51695942881797,
-          "max_abs": 1.0804557800292969,
+          "rms": 0.022730445393454396,
+          "l2": 19.517499286506617,
+          "max_abs": 1.078878402709961,
           "numel": 737280
         },
         "functional_vs_w2_native": {
           "decision_agreement": 1.0,
           "expected_accuracy": 1.0,
-          "score_rms_error": 0.14519421917649644
+          "score_rms_error": 0.14523757297249584
         },
         "probe_rows": [
           {
@@ -2513,8 +2513,8 @@
             "expected": " WEST",
             "correct": true,
             "scores": {
-              " WEST": -0.19902227935381234,
-              " EAST": -1.8788549560122192
+              " WEST": -0.19895772635936737,
+              " EAST": -1.8792483462020755
             }
           },
           {
@@ -2523,8 +2523,8 @@
             "expected": " incomplete",
             "correct": true,
             "scores": {
-              " incomplete": -5.820476531982422,
-              " complete": -6.917015075683594
+              " incomplete": -5.82021427154541,
+              " complete": -6.9168596267700195
             }
           },
           {
@@ -2533,8 +2533,8 @@
             "expected": " active",
             "correct": true,
             "scores": {
-              " active": -2.759006977081299,
-              " paused": -8.63975715637207
+              " active": -2.7589902877807617,
+              " paused": -8.640007972717285
             }
           },
           {
@@ -2543,8 +2543,8 @@
             "expected": " blocked",
             "correct": true,
             "scores": {
-              " blocked": -6.968403339385986,
-              " allowed": -12.170379638671875
+              " blocked": -6.966898441314697,
+              " allowed": -12.168939590454102
             }
           }
         ]
@@ -2553,15 +2553,15 @@
         "anchor_pos": 53,
         "replayed_tokens": 25,
         "state_error_vs_w2_native": {
-          "rms": 0.02272981666507419,
-          "l2": 19.51695942881797,
-          "max_abs": 1.0804557800292969,
+          "rms": 0.022730445393454396,
+          "l2": 19.517499286506617,
+          "max_abs": 1.078878402709961,
           "numel": 737280
         },
         "functional_vs_w2_native": {
           "decision_agreement": 1.0,
           "expected_accuracy": 1.0,
-          "score_rms_error": 0.14519421917649644
+          "score_rms_error": 0.14523757297249584
         },
         "probe_rows": [
           {
@@ -2570,8 +2570,8 @@
             "expected": " WEST",
             "correct": true,
             "scores": {
-              " WEST": -0.19902227935381234,
-              " EAST": -1.8788549560122192
+              " WEST": -0.19895772635936737,
+              " EAST": -1.8792483462020755
             }
           },
           {
@@ -2580,8 +2580,8 @@
             "expected": " incomplete",
             "correct": true,
             "scores": {
-              " incomplete": -5.820476531982422,
-              " complete": -6.917015075683594
+              " incomplete": -5.82021427154541,
+              " complete": -6.9168596267700195
             }
           },
           {
@@ -2590,8 +2590,8 @@
             "expected": " active",
             "correct": true,
             "scores": {
-              " active": -2.759006977081299,
-              " paused": -8.63975715637207
+              " active": -2.7589902877807617,
+              " paused": -8.640007972717285
             }
           },
           {
@@ -2600,8 +2600,8 @@
             "expected": " blocked",
             "correct": true,
             "scores": {
-              " blocked": -6.968403339385986,
-              " allowed": -12.170379638671875
+              " blocked": -6.966898441314697,
+              " allowed": -12.168939590454102
             }
           }
         ]
@@ -2611,15 +2611,15 @@
           "anchor_pos": 53,
           "replayed_tokens": 25,
           "state_error_vs_w2_native": {
-            "rms": 0.02272981666507419,
-            "l2": 19.51695942881797,
-            "max_abs": 1.0804557800292969,
+            "rms": 0.022730445393454396,
+            "l2": 19.517499286506617,
+            "max_abs": 1.078878402709961,
             "numel": 737280
           },
           "functional_vs_w2_native": {
             "decision_agreement": 1.0,
             "expected_accuracy": 1.0,
-            "score_rms_error": 0.14519421917649644
+            "score_rms_error": 0.14523757297249584
           },
           "probe_rows": [
             {
@@ -2628,8 +2628,8 @@
               "expected": " WEST",
               "correct": true,
               "scores": {
-                " WEST": -0.19902227935381234,
-                " EAST": -1.8788549560122192
+                " WEST": -0.19895772635936737,
+                " EAST": -1.8792483462020755
               }
             },
             {
@@ -2638,8 +2638,8 @@
               "expected": " incomplete",
               "correct": true,
               "scores": {
-                " incomplete": -5.820476531982422,
-                " complete": -6.917015075683594
+                " incomplete": -5.82021427154541,
+                " complete": -6.9168596267700195
               }
             },
             {
@@ -2648,8 +2648,8 @@
               "expected": " active",
               "correct": true,
               "scores": {
-                " active": -2.759006977081299,
-                " paused": -8.63975715637207
+                " active": -2.7589902877807617,
+                " paused": -8.640007972717285
               }
             },
             {
@@ -2658,8 +2658,8 @@
               "expected": " blocked",
               "correct": true,
               "scores": {
-                " blocked": -6.968403339385986,
-                " allowed": -12.170379638671875
+                " blocked": -6.966898441314697,
+                " allowed": -12.168939590454102
               }
             }
           ],
@@ -2671,15 +2671,15 @@
           "anchor_pos": 53,
           "replayed_tokens": 25,
           "state_error_vs_w2_native": {
-            "rms": 0.02272981666507419,
-            "l2": 19.51695942881797,
-            "max_abs": 1.0804557800292969,
+            "rms": 0.022730445393454396,
+            "l2": 19.517499286506617,
+            "max_abs": 1.078878402709961,
             "numel": 737280
           },
           "functional_vs_w2_native": {
             "decision_agreement": 1.0,
             "expected_accuracy": 1.0,
-            "score_rms_error": 0.14519421917649644
+            "score_rms_error": 0.14523757297249584
           },
           "probe_rows": [
             {
@@ -2688,8 +2688,8 @@
               "expected": " WEST",
               "correct": true,
               "scores": {
-                " WEST": -0.19902227935381234,
-                " EAST": -1.8788549560122192
+                " WEST": -0.19895772635936737,
+                " EAST": -1.8792483462020755
               }
             },
             {
@@ -2698,8 +2698,8 @@
               "expected": " incomplete",
               "correct": true,
               "scores": {
-                " incomplete": -5.820476531982422,
-                " complete": -6.917015075683594
+                " incomplete": -5.82021427154541,
+                " complete": -6.9168596267700195
               }
             },
             {
@@ -2708,8 +2708,8 @@
               "expected": " active",
               "correct": true,
               "scores": {
-                " active": -2.759006977081299,
-                " paused": -8.63975715637207
+                " active": -2.7589902877807617,
+                " paused": -8.640007972717285
               }
             },
             {
@@ -2718,8 +2718,8 @@
               "expected": " blocked",
               "correct": true,
               "scores": {
-                " blocked": -6.968403339385986,
-                " allowed": -12.170379638671875
+                " blocked": -6.966898441314697,
+                " allowed": -12.168939590454102
               }
             }
           ],
@@ -2731,15 +2731,15 @@
           "anchor_pos": 36,
           "replayed_tokens": 42,
           "state_error_vs_w2_native": {
-            "rms": 0.017367998771345157,
-            "l2": 14.91303394017047,
-            "max_abs": 0.9934215545654297,
+            "rms": 0.01736891468839339,
+            "l2": 14.913820392438602,
+            "max_abs": 0.9911899566650391,
             "numel": 737280
           },
           "functional_vs_w2_native": {
             "decision_agreement": 1.0,
             "expected_accuracy": 1.0,
-            "score_rms_error": 0.19201046790737375
+            "score_rms_error": 0.19215672115327181
           },
           "probe_rows": [
             {
@@ -2748,8 +2748,8 @@
               "expected": " WEST",
               "correct": true,
               "scores": {
-                " WEST": -0.2360018655890599,
-                " EAST": -1.6888726488687098
+                " WEST": -0.23591142892837524,
+                " EAST": -1.68930478207767
               }
             },
             {
@@ -2758,8 +2758,8 @@
               "expected": " incomplete",
               "correct": true,
               "scores": {
-                " incomplete": -6.014865875244141,
-                " complete": -7.099193572998047
+                " incomplete": -6.014606475830078,
+                " complete": -7.099067687988281
               }
             },
             {
@@ -2768,8 +2768,8 @@
               "expected": " active",
               "correct": true,
               "scores": {
-                " active": -2.7963666915893555,
-                " paused": -8.78249454498291
+                " active": -2.7964072227478027,
+                " paused": -8.78271484375
               }
             },
             {
@@ -2778,8 +2778,8 @@
               "expected": " blocked",
               "correct": true,
               "scores": {
-                " blocked": -7.100284099578857,
-                " allowed": -12.205260276794434
+                " blocked": -7.0988993644714355,
+                " allowed": -12.203920364379883
               }
             }
           ],
@@ -2791,15 +2791,15 @@
           "anchor_pos": 0,
           "replayed_tokens": 78,
           "state_error_vs_w2_native": {
-            "rms": 0.040436098095406804,
-            "l2": 34.72045980909289,
-            "max_abs": 9.49384880065918,
+            "rms": 0.040440078967485305,
+            "l2": 34.72387798531455,
+            "max_abs": 9.494115829467773,
             "numel": 737280
           },
           "functional_vs_w2_native": {
             "decision_agreement": 1.0,
             "expected_accuracy": 1.0,
-            "score_rms_error": 0.3677668960153071
+            "score_rms_error": 0.36761418941243607
           },
           "probe_rows": [
             {
@@ -2808,8 +2808,8 @@
               "expected": " WEST",
               "correct": true,
               "scores": {
-                " WEST": -0.16291692026425153,
-                " EAST": -1.964095070026815
+                " WEST": -0.16284207068383694,
+                " EAST": -1.9646043310058303
               }
             },
             {
@@ -2818,8 +2818,8 @@
               "expected": " incomplete",
               "correct": true,
               "scores": {
-                " incomplete": -4.978326797485352,
-                " complete": -6.759675979614258
+                " incomplete": -4.9781389236450195,
+                " complete": -6.759451866149902
               }
             },
             {
@@ -2828,8 +2828,8 @@
               "expected": " active",
               "correct": true,
               "scores": {
-                " active": -2.9151601791381836,
-                " paused": -8.505707740783691
+                " active": -2.915156841278076,
+                " paused": -8.506092071533203
               }
             },
             {
@@ -2838,8 +2838,8 @@
               "expected": " blocked",
               "correct": true,
               "scores": {
-                " blocked": -6.236282825469971,
-                " allowed": -11.836113929748535
+                " blocked": -6.23507833480835,
+                " allowed": -11.834481239318848
               }
             }
           ],
@@ -2855,8 +2855,8 @@
           "expected": " WEST",
           "correct": true,
           "scores": {
-            " WEST": -0.23065778554882854,
-            " EAST": -1.6872598780319095
+            " WEST": -0.23059682385064662,
+            " EAST": -1.6875805500894785
           }
         },
         {
@@ -2865,8 +2865,8 @@
           "expected": " incomplete",
           "correct": true,
           "scores": {
-            " incomplete": -5.6909356117248535,
-            " complete": -6.92760705947876
+            " incomplete": -5.690378665924072,
+            " complete": -6.927225589752197
           }
         },
         {
@@ -2875,8 +2875,8 @@
           "expected": " active",
           "correct": true,
           "scores": {
-            " active": -2.731987476348877,
-            " paused": -8.861358642578125
+            " active": -2.73189377784729,
+            " paused": -8.861501693725586
           }
         },
         {
@@ -2885,8 +2885,8 @@
           "expected": " blocked",
           "correct": true,
           "scores": {
-            " blocked": -6.744338512420654,
-            " allowed": -12.052032470703125
+            " blocked": -6.742911338806152,
+            " allowed": -12.050257682800293
           }
         }
       ]
