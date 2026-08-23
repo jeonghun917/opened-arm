@@ -1,1 +1,365 @@
-{"status":"FAIL_BEFORE_RESULT","source_commit":"d2bb2b2549d32384e71e4977459a442a59f5894c"}
+{
+  "status": "VELA_SEQUENTIAL_W1_W2_W3_CHAINED_SOURCE_CLEAN_V3",
+  "model": "state-spaces/mamba-130m-hf",
+  "torch_version": "2.13.0+cu130",
+  "transformers_version": "4.57.6",
+  "generations": {
+    "W1": {
+      "training_epoch": 0,
+      "accuracy": 0.3333333333333333
+    },
+    "W2": {
+      "training_epoch": 1,
+      "accuracy": 0.75
+    },
+    "W3": {
+      "training_epoch": 3,
+      "accuracy": 0.9166666666666666
+    },
+    "epoch_mean_loss": [
+      1.7653111815452576,
+      0.46972360741347075,
+      0.09346337559691165
+    ]
+  },
+  "fixture_design": {
+    "selection_rule": "Fixed before anchor scoring: one W2-wrong/W3-correct held-out color correction, placed as the final W2-era event after 0/2/4 predetermined neutral events. No selector result is used to choose or exclude fixtures.",
+    "target_precondition": true,
+    "target_key": [
+      "color",
+      "A"
+    ],
+    "distractor_counts": [
+      0,
+      2,
+      4
+    ]
+  },
+  "gate": {
+    "strict_two_step_capability_gain": true,
+    "fixture_count": 3,
+    "w3_native_valid_fixture_count": 3,
+    "w2_origin_hop2_anchor_count": 3,
+    "fixture_pass_count": 3,
+    "suite_pass": true
+  },
+  "fixtures": [
+    {
+      "fixture": "color_final_after_0_w2_neutral_events",
+      "history_tokens": 83,
+      "w2_era_start_pos": 65,
+      "target_event_index": 8,
+      "target_event_anchor_pos": 65,
+      "fixed_target": {
+        "pair": "color",
+        "variant": "A",
+        "expected": " BLUE",
+        "w2_heldout_correct": false,
+        "w3_heldout_correct": true
+      },
+      "hop1_w1_to_w2_prefix": {
+        "selected_anchor_event": 7,
+        "anchor_pos": 61,
+        "vs_w2_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 0.75,
+          "score_rms_error": 0.31080409101427636
+        },
+        "state_error_vs_w2_native_prefix": {
+          "rms": 0.03159123949837465,
+          "l2": 27.125821060547352,
+          "max_abs": 1.6249065399169922,
+          "numel": 737280
+        }
+      },
+      "w2_carried_before_w3": {
+        "state_error_vs_w2_native_full": {
+          "rms": 0.016689627024785745,
+          "l2": 14.330549969870782,
+          "max_abs": 0.5743468999862671,
+          "numel": 737280
+        },
+        "origin_at_w2_era_start": "W2",
+        "origin_at_final_before_w3": "W2"
+      },
+      "w3_native_probe_rows": [
+        {
+          "id": "w3_only_color_correction",
+          "chosen": " BLUE",
+          "expected": " BLUE",
+          "correct": true,
+          "scores": {
+            " BLUE": -0.2686164043843746,
+            " RED": -1.5852546691894531
+          }
+        }
+      ],
+      "w3_native_expected_accuracy": 1.0,
+      "hop2_actual_chained_lineage_to_w3": {
+        "selected_anchor_event": 8,
+        "anchor_pos": 65,
+        "anchor_source_generation": "W2",
+        "anchor_is_in_w2_era": true,
+        "selected_segments": [
+          0,
+          2,
+          8
+        ],
+        "prune_trace": [
+          {
+            "from_segment": 0,
+            "candidate_later_segment": 2,
+            "same_functional_signature": true
+          },
+          {
+            "from_segment": 2,
+            "candidate_later_segment": 8,
+            "same_functional_signature": true
+          }
+        ],
+        "vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 0.06751784435523842
+        }
+      },
+      "final_chain_w3": {
+        "functional_vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 0.06751784435523842
+        },
+        "state_error_vs_w3_native": {
+          "rms": 0.026873197588185523,
+          "l2": 23.074673886707032,
+          "max_abs": 1.0160460472106934,
+          "numel": 737280
+        },
+        "lineage_origin_at_final": "W3"
+      },
+      "direct_w1_to_w3_control": {
+        "selected_anchor_event": 8,
+        "anchor_pos": 65,
+        "vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 0.08961425386360103
+        },
+        "chain_vs_direct_decision_agreement": 1.0
+      },
+      "fixture_pass": true
+    },
+    {
+      "fixture": "color_final_after_2_w2_neutral_events",
+      "history_tokens": 109,
+      "w2_era_start_pos": 65,
+      "target_event_index": 10,
+      "target_event_anchor_pos": 92,
+      "fixed_target": {
+        "pair": "color",
+        "variant": "A",
+        "expected": " BLUE",
+        "w2_heldout_correct": false,
+        "w3_heldout_correct": true
+      },
+      "hop1_w1_to_w2_prefix": {
+        "selected_anchor_event": 7,
+        "anchor_pos": 61,
+        "vs_w2_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 0.75,
+          "score_rms_error": 0.31080409101427636
+        },
+        "state_error_vs_w2_native_prefix": {
+          "rms": 0.03159123949837465,
+          "l2": 27.125821060547352,
+          "max_abs": 1.6249065399169922,
+          "numel": 737280
+        }
+      },
+      "w2_carried_before_w3": {
+        "state_error_vs_w2_native_full": {
+          "rms": 0.015233625766360033,
+          "l2": 13.080354338831372,
+          "max_abs": 0.5347561836242676,
+          "numel": 737280
+        },
+        "origin_at_w2_era_start": "W2",
+        "origin_at_final_before_w3": "W2"
+      },
+      "w3_native_probe_rows": [
+        {
+          "id": "w3_only_color_correction",
+          "chosen": " BLUE",
+          "expected": " BLUE",
+          "correct": true,
+          "scores": {
+            " BLUE": -0.2259704819880426,
+            " RED": -1.6760858297348022
+          }
+        }
+      ],
+      "w3_native_expected_accuracy": 1.0,
+      "hop2_actual_chained_lineage_to_w3": {
+        "selected_anchor_event": 10,
+        "anchor_pos": 92,
+        "anchor_source_generation": "W2",
+        "anchor_is_in_w2_era": true,
+        "selected_segments": [
+          0,
+          2,
+          10
+        ],
+        "prune_trace": [
+          {
+            "from_segment": 0,
+            "candidate_later_segment": 2,
+            "same_functional_signature": true
+          },
+          {
+            "from_segment": 2,
+            "candidate_later_segment": 10,
+            "same_functional_signature": true
+          }
+        ],
+        "vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 0.2061136431884159
+        }
+      },
+      "final_chain_w3": {
+        "functional_vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 0.2061136431884159
+        },
+        "state_error_vs_w3_native": {
+          "rms": 0.02599620342378884,
+          "l2": 22.321642756801772,
+          "max_abs": 0.7826159000396729,
+          "numel": 737280
+        },
+        "lineage_origin_at_final": "W3"
+      },
+      "direct_w1_to_w3_control": {
+        "selected_anchor_event": 10,
+        "anchor_pos": 92,
+        "vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 0.23613970681631838
+        },
+        "chain_vs_direct_decision_agreement": 1.0
+      },
+      "fixture_pass": true
+    },
+    {
+      "fixture": "color_final_after_4_w2_neutral_events",
+      "history_tokens": 131,
+      "w2_era_start_pos": 65,
+      "target_event_index": 12,
+      "target_event_anchor_pos": 114,
+      "fixed_target": {
+        "pair": "color",
+        "variant": "A",
+        "expected": " BLUE",
+        "w2_heldout_correct": false,
+        "w3_heldout_correct": true
+      },
+      "hop1_w1_to_w2_prefix": {
+        "selected_anchor_event": 7,
+        "anchor_pos": 61,
+        "vs_w2_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 0.75,
+          "score_rms_error": 0.31080409101427636
+        },
+        "state_error_vs_w2_native_prefix": {
+          "rms": 0.03159123949837465,
+          "l2": 27.125821060547352,
+          "max_abs": 1.6249065399169922,
+          "numel": 737280
+        }
+      },
+      "w2_carried_before_w3": {
+        "state_error_vs_w2_native_full": {
+          "rms": 0.014059795450722092,
+          "l2": 12.072444816981847,
+          "max_abs": 0.5506091117858887,
+          "numel": 737280
+        },
+        "origin_at_w2_era_start": "W2",
+        "origin_at_final_before_w3": "W2"
+      },
+      "w3_native_probe_rows": [
+        {
+          "id": "w3_only_color_correction",
+          "chosen": " BLUE",
+          "expected": " BLUE",
+          "correct": true,
+          "scores": {
+            " BLUE": -0.23099054861813784,
+            " RED": -1.6495261192321777
+          }
+        }
+      ],
+      "w3_native_expected_accuracy": 1.0,
+      "hop2_actual_chained_lineage_to_w3": {
+        "selected_anchor_event": 12,
+        "anchor_pos": 114,
+        "anchor_source_generation": "W2",
+        "anchor_is_in_w2_era": true,
+        "selected_segments": [
+          0,
+          2,
+          12
+        ],
+        "prune_trace": [
+          {
+            "from_segment": 0,
+            "candidate_later_segment": 2,
+            "same_functional_signature": true
+          },
+          {
+            "from_segment": 2,
+            "candidate_later_segment": 12,
+            "same_functional_signature": true
+          }
+        ],
+        "vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 0.19147202495015744
+        }
+      },
+      "final_chain_w3": {
+        "functional_vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 0.19147202495015744
+        },
+        "state_error_vs_w3_native": {
+          "rms": 0.02586484601586557,
+          "l2": 22.20885270491137,
+          "max_abs": 0.929930567741394,
+          "numel": 737280
+        },
+        "lineage_origin_at_final": "W3"
+      },
+      "direct_w1_to_w3_control": {
+        "selected_anchor_event": 12,
+        "anchor_pos": 114,
+        "vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 0.22347420927208073
+        },
+        "chain_vs_direct_decision_agreement": 1.0
+      },
+      "fixture_pass": true
+    }
+  ],
+  "success_definition": "All three predeclared clean fixtures must have W3-native expected accuracy 1/1, carry a nonzero W1->W2 migration-state difference into the W2 era, and the unchanged target-free selector must naturally choose a W2-origin hop2 checkpoint and reach 100% W3-native decision agreement. Direct W1->W3 remains control only.",
+  "claim_boundary": "Three synthetic Mamba-130M chained-source fixtures using one fixed W3-only color correction under three predetermined W2-era neutral-history lengths. No claim of generic long-history robustness, final-backbone fitness, or identity continuity."
+}
