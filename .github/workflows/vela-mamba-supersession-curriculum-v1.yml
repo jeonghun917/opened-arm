@@ -1,0 +1,52 @@
+name: VELA Mamba supersession curriculum v1
+
+on:
+  push:
+    branches: [vela-experiment-infra]
+    paths:
+      - 'experiments/vela-active-state/mamba-supersession-curriculum-v1/**'
+      - '.github/workflows/vela-mamba-supersession-curriculum-v1.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: vela-mamba-supersession-curriculum-v1
+  cancel-in-progress: true
+
+jobs:
+  curriculum-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: vela-experiment-infra
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install runtime
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install 'torch>=2.2,<3' 'transformers>=4.57,<4.58'
+      - name: Run supersession curriculum test
+        env:
+          HF_HUB_DISABLE_TELEMETRY: '1'
+          VELA_RESULT_PATH: ops/vela-results/mamba-supersession-curriculum-v1-latest.json
+        run: python experiments/vela-active-state/mamba-supersession-curriculum-v1/mamba_supersession_curriculum.py
+      - name: Commit result snapshot
+        if: always()
+        run: |
+          if [[ ! -f ops/vela-results/mamba-supersession-curriculum-v1-latest.json ]]; then
+            mkdir -p ops/vela-results
+            printf '{"status":"FAIL_BEFORE_RESULT","source_commit":"%s"}\n' "$GITHUB_SHA" > ops/vela-results/mamba-supersession-curriculum-v1-latest.json
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add ops/vela-results/mamba-supersession-curriculum-v1-latest.json
+          git diff --cached --quiet || git commit -m 'Record VELA Mamba supersession curriculum v1 [skip ci]'
+          for n in 1 2 3 4; do
+            git pull --rebase origin vela-experiment-infra && git push origin HEAD:vela-experiment-infra && break
+            sleep $((n*3))
+          done
