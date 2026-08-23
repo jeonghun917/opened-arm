@@ -1,0 +1,2897 @@
+{
+  "status": "VELA_FUNCTIONAL_CAUSAL_EVENT_DETECTOR_V3",
+  "model": "state-spaces/mamba-130m-hf",
+  "torch_version": "2.13.0+cu130",
+  "transformers_version": "4.57.6",
+  "capability": {
+    "baseline_accuracy": 0.3333333333333333,
+    "after_accuracy": 0.9166666666666666,
+    "baseline_correction": 0.125,
+    "after_correction": 1.0,
+    "baseline_control": 0.75,
+    "after_control": 0.75,
+    "epoch_loss": [
+      1.7653111815452576,
+      0.46972360741347075,
+      0.09346337559691165
+    ]
+  },
+  "detector": {
+    "definition": "For each event, compare semantic probe decisions after W1 vs W2 processes that event from the same actual W1 pre-event checkpoint; decision flips dominate the score.",
+    "uses_w2_native_for_ranking": false,
+    "top1_critical_event_accuracy": 1.0
+  },
+  "semantic_checkpoint_sparsity": {
+    "intervals_events": [
+      1,
+      2,
+      4,
+      8
+    ],
+    "full_functional_agreement_rate": {
+      "1": 1.0,
+      "2": 1.0,
+      "4": 1.0,
+      "8": 1.0
+    },
+    "mean_replay_fraction": {
+      "1": 0.4734302156177156,
+      "2": 0.4734302156177156,
+      "4": 0.6500036421911422,
+      "8": 1.0
+    }
+  },
+  "fixtures": [
+    {
+      "fixture": "early",
+      "tokens": 65,
+      "oracle_critical_segment": 2,
+      "detected_segment": 2,
+      "detector_hit": true,
+      "ranked_event_scores": [
+        {
+          "segment": 2,
+          "start": 15,
+          "end": 29,
+          "text": "Correction: the current codeword is BETA, not ALPHA. ",
+          "state_rms": 0.041581999566012634,
+          "decision_flips": 0,
+          "score_rms": 0.7276837326262557,
+          "margin_shift_sum": 2.85117734259984,
+          "detector_score": 1.0128014668862397,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " BETA",
+              "new_choice": " BETA",
+              "decision_flip": false
+            },
+            {
+              "id": "verification",
+              "old_choice": " incomplete",
+              "new_choice": " incomplete",
+              "decision_flip": false
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        },
+        {
+          "segment": 7,
+          "start": 61,
+          "end": 65,
+          "text": "External action remains blocked.",
+          "state_rms": 0.03917781189729644,
+          "decision_flips": 0,
+          "score_rms": 0.4665778812808646,
+          "margin_shift_sum": 1.2423392110067653,
+          "detector_score": 0.5908118023815411,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " ALPHA",
+              "new_choice": " ALPHA",
+              "decision_flip": false
+            },
+            {
+              "id": "verification",
+              "old_choice": " incomplete",
+              "new_choice": " incomplete",
+              "decision_flip": false
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        },
+        {
+          "segment": 1,
+          "start": 7,
+          "end": 15,
+          "text": "The old codeword was ALPHA. ",
+          "state_rms": 0.05067613134042299,
+          "decision_flips": 0,
+          "score_rms": 0.2628437183165218,
+          "margin_shift_sum": 0.6309239524416625,
+          "detector_score": 0.3259361135606881,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " ALPHA",
+              "new_choice": " ALPHA",
+              "decision_flip": false
+            },
+            {
+              "id": "verification",
+              "old_choice": " complete",
+              "new_choice": " complete",
+              "decision_flip": false
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        },
+        {
+          "segment": 0,
+          "start": 0,
+          "end": 7,
+          "text": "Project Orion remains active. ",
+          "state_rms": 0.036840169945073,
+          "decision_flips": 0,
+          "score_rms": 0.20958292648653518,
+          "margin_shift_sum": 0.6992022693157196,
+          "detector_score": 0.27950315341810716,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " ALPHA",
+              "new_choice": " ALPHA",
+              "decision_flip": false
+            },
+            {
+              "id": "verification",
+              "old_choice": " complete",
+              "new_choice": " complete",
+              "decision_flip": false
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        },
+        {
+          "segment": 6,
+          "start": 54,
+          "end": 61,
+          "text": "Hypothesis one is weakened. ",
+          "state_rms": 0.04230069978566359,
+          "decision_flips": 0,
+          "score_rms": 0.19902521569086368,
+          "margin_shift_sum": 0.2959934444661485,
+          "detector_score": 0.22862456013747853,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " ALPHA",
+              "new_choice": " ALPHA",
+              "decision_flip": false
+            },
+            {
+              "id": "verification",
+              "old_choice": " incomplete",
+              "new_choice": " incomplete",
+              "decision_flip": false
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        },
+        {
+          "segment": 3,
+          "start": 29,
+          "end": 39,
+          "text": "Unrelated telemetry packet 17 was archived. ",
+          "state_rms": 0.03350815735896297,
+          "decision_flips": 0,
+          "score_rms": 0.14105223838356762,
+          "margin_shift_sum": 0.27982441523636226,
+          "detector_score": 0.16903467990720383,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " BETA",
+              "new_choice": " BETA",
+              "decision_flip": false
+            },
+            {
+              "id": "verification",
+              "old_choice": " complete",
+              "new_choice": " complete",
+              "decision_flip": false
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        },
+        {
+          "segment": 4,
+          "start": 39,
+          "end": 44,
+          "text": "Verification is incomplete. ",
+          "state_rms": 0.03707462346797252,
+          "decision_flips": 0,
+          "score_rms": 0.13247033712727604,
+          "margin_shift_sum": 0.21482423195266165,
+          "detector_score": 0.1539527603225422,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " BETA",
+              "new_choice": " BETA",
+              "decision_flip": false
+            },
+            {
+              "id": "verification",
+              "old_choice": " complete",
+              "new_choice": " complete",
+              "decision_flip": false
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        },
+        {
+          "segment": 5,
+          "start": 44,
+          "end": 54,
+          "text": "A historical memo mentions ALPHA but is obsolete. ",
+          "state_rms": 0.03282561587626902,
+          "decision_flips": 0,
+          "score_rms": 0.06624579669707709,
+          "margin_shift_sum": 0.24523315842088778,
+          "detector_score": 0.09076911253916586,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " ALPHA",
+              "new_choice": " ALPHA",
+              "decision_flip": false
+            },
+            {
+              "id": "verification",
+              "old_choice": " complete",
+              "new_choice": " complete",
+              "decision_flip": false
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        }
+      ],
+      "exact_detected_anchor": {
+        "anchor_pos": 15,
+        "replayed_tokens": 50,
+        "state_error_vs_w2_native": {
+          "rms": 0.014512209430252868,
+          "l2": 12.46091012726742,
+          "max_abs": 0.7582130432128906,
+          "numel": 737280
+        },
+        "functional_vs_w2_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 0.1533125385405268
+        },
+        "probe_rows": [
+          {
+            "id": "codeword",
+            "chosen": " BETA",
+            "expected": " BETA",
+            "correct": true,
+            "scores": {
+              " BETA": -0.2196864610450575,
+              " ALPHA": -1.7338776970282197
+            }
+          },
+          {
+            "id": "verification",
+            "chosen": " incomplete",
+            "expected": " incomplete",
+            "correct": true,
+            "scores": {
+              " incomplete": -5.433505535125732,
+              " complete": -7.419412136077881
+            }
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true,
+            "scores": {
+              " active": -2.6097474098205566,
+              " paused": -8.20413589477539
+            }
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true,
+            "scores": {
+              " blocked": -6.772091865539551,
+              " allowed": -12.345725059509277
+            }
+          }
+        ]
+      },
+      "oracle_anchor": {
+        "anchor_pos": 15,
+        "replayed_tokens": 50,
+        "state_error_vs_w2_native": {
+          "rms": 0.014512209430252868,
+          "l2": 12.46091012726742,
+          "max_abs": 0.7582130432128906,
+          "numel": 737280
+        },
+        "functional_vs_w2_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 0.1533125385405268
+        },
+        "probe_rows": [
+          {
+            "id": "codeword",
+            "chosen": " BETA",
+            "expected": " BETA",
+            "correct": true,
+            "scores": {
+              " BETA": -0.2196864610450575,
+              " ALPHA": -1.7338776970282197
+            }
+          },
+          {
+            "id": "verification",
+            "chosen": " incomplete",
+            "expected": " incomplete",
+            "correct": true,
+            "scores": {
+              " incomplete": -5.433505535125732,
+              " complete": -7.419412136077881
+            }
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true,
+            "scores": {
+              " active": -2.6097474098205566,
+              " paused": -8.20413589477539
+            }
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true,
+            "scores": {
+              " blocked": -6.772091865539551,
+              " allowed": -12.345725059509277
+            }
+          }
+        ]
+      },
+      "semantic_checkpoint_sparsity": {
+        "1": {
+          "anchor_pos": 15,
+          "replayed_tokens": 50,
+          "state_error_vs_w2_native": {
+            "rms": 0.014512209430252868,
+            "l2": 12.46091012726742,
+            "max_abs": 0.7582130432128906,
+            "numel": 737280
+          },
+          "functional_vs_w2_native": {
+            "decision_agreement": 1.0,
+            "expected_accuracy": 1.0,
+            "score_rms_error": 0.1533125385405268
+          },
+          "probe_rows": [
+            {
+              "id": "codeword",
+              "chosen": " BETA",
+              "expected": " BETA",
+              "correct": true,
+              "scores": {
+                " BETA": -0.2196864610450575,
+                " ALPHA": -1.7338776970282197
+              }
+            },
+            {
+              "id": "verification",
+              "chosen": " incomplete",
+              "expected": " incomplete",
+              "correct": true,
+              "scores": {
+                " incomplete": -5.433505535125732,
+                " complete": -7.419412136077881
+              }
+            },
+            {
+              "id": "project",
+              "chosen": " active",
+              "expected": " active",
+              "correct": true,
+              "scores": {
+                " active": -2.6097474098205566,
+                " paused": -8.20413589477539
+              }
+            },
+            {
+              "id": "action",
+              "chosen": " blocked",
+              "expected": " blocked",
+              "correct": true,
+              "scores": {
+                " blocked": -6.772091865539551,
+                " allowed": -12.345725059509277
+              }
+            }
+          ],
+          "checkpoint_every_n_events": 1,
+          "stored_checkpoint_count": 8,
+          "anchor_event_index": 2
+        },
+        "2": {
+          "anchor_pos": 15,
+          "replayed_tokens": 50,
+          "state_error_vs_w2_native": {
+            "rms": 0.014512209430252868,
+            "l2": 12.46091012726742,
+            "max_abs": 0.7582130432128906,
+            "numel": 737280
+          },
+          "functional_vs_w2_native": {
+            "decision_agreement": 1.0,
+            "expected_accuracy": 1.0,
+            "score_rms_error": 0.1533125385405268
+          },
+          "probe_rows": [
+            {
+              "id": "codeword",
+              "chosen": " BETA",
+              "expected": " BETA",
+              "correct": true,
+              "scores": {
+                " BETA": -0.2196864610450575,
+                " ALPHA": -1.7338776970282197
+              }
+            },
+            {
+              "id": "verification",
+              "chosen": " incomplete",
+              "expected": " incomplete",
+              "correct": true,
+              "scores": {
+                " incomplete": -5.433505535125732,
+                " complete": -7.419412136077881
+              }
+            },
+            {
+              "id": "project",
+              "chosen": " active",
+              "expected": " active",
+              "correct": true,
+              "scores": {
+                " active": -2.6097474098205566,
+                " paused": -8.20413589477539
+              }
+            },
+            {
+              "id": "action",
+              "chosen": " blocked",
+              "expected": " blocked",
+              "correct": true,
+              "scores": {
+                " blocked": -6.772091865539551,
+                " allowed": -12.345725059509277
+              }
+            }
+          ],
+          "checkpoint_every_n_events": 2,
+          "stored_checkpoint_count": 4,
+          "anchor_event_index": 2
+        },
+        "4": {
+          "anchor_pos": 0,
+          "replayed_tokens": 65,
+          "state_error_vs_w2_native": {
+            "rms": 0.04058584264455341,
+            "l2": 34.849037981695204,
+            "max_abs": 8.45535945892334,
+            "numel": 737280
+          },
+          "functional_vs_w2_native": {
+            "decision_agreement": 1.0,
+            "expected_accuracy": 1.0,
+            "score_rms_error": 0.34107377277394835
+          },
+          "probe_rows": [
+            {
+              "id": "codeword",
+              "chosen": " BETA",
+              "expected": " BETA",
+              "correct": true,
+              "scores": {
+                " BETA": -0.10071232484187931,
+                " ALPHA": -2.373943519371096
+              }
+            },
+            {
+              "id": "verification",
+              "chosen": " incomplete",
+              "expected": " incomplete",
+              "correct": true,
+              "scores": {
+                " incomplete": -4.785341262817383,
+                " complete": -7.529644012451172
+              }
+            },
+            {
+              "id": "project",
+              "chosen": " active",
+              "expected": " active",
+              "correct": true,
+              "scores": {
+                " active": -2.6496667861938477,
+                " paused": -8.243950843811035
+              }
+            },
+            {
+              "id": "action",
+              "chosen": " blocked",
+              "expected": " blocked",
+              "correct": true,
+              "scores": {
+                " blocked": -6.125184059143066,
+                " allowed": -12.172098159790039
+              }
+            }
+          ],
+          "checkpoint_every_n_events": 4,
+          "stored_checkpoint_count": 2,
+          "anchor_event_index": 0
+        },
+        "8": {
+          "anchor_pos": 0,
+          "replayed_tokens": 65,
+          "state_error_vs_w2_native": {
+            "rms": 0.04058584264455341,
+            "l2": 34.849037981695204,
+            "max_abs": 8.45535945892334,
+            "numel": 737280
+          },
+          "functional_vs_w2_native": {
+            "decision_agreement": 1.0,
+            "expected_accuracy": 1.0,
+            "score_rms_error": 0.34107377277394835
+          },
+          "probe_rows": [
+            {
+              "id": "codeword",
+              "chosen": " BETA",
+              "expected": " BETA",
+              "correct": true,
+              "scores": {
+                " BETA": -0.10071232484187931,
+                " ALPHA": -2.373943519371096
+              }
+            },
+            {
+              "id": "verification",
+              "chosen": " incomplete",
+              "expected": " incomplete",
+              "correct": true,
+              "scores": {
+                " incomplete": -4.785341262817383,
+                " complete": -7.529644012451172
+              }
+            },
+            {
+              "id": "project",
+              "chosen": " active",
+              "expected": " active",
+              "correct": true,
+              "scores": {
+                " active": -2.6496667861938477,
+                " paused": -8.243950843811035
+              }
+            },
+            {
+              "id": "action",
+              "chosen": " blocked",
+              "expected": " blocked",
+              "correct": true,
+              "scores": {
+                " blocked": -6.125184059143066,
+                " allowed": -12.172098159790039
+              }
+            }
+          ],
+          "checkpoint_every_n_events": 8,
+          "stored_checkpoint_count": 1,
+          "anchor_event_index": 0
+        }
+      },
+      "w2_native_probe": [
+        {
+          "id": "codeword",
+          "chosen": " BETA",
+          "expected": " BETA",
+          "correct": true,
+          "scores": {
+            " BETA": -0.19958955308538862,
+            " ALPHA": -1.80885288445279
+          }
+        },
+        {
+          "id": "verification",
+          "chosen": " incomplete",
+          "expected": " incomplete",
+          "correct": true,
+          "scores": {
+            " incomplete": -5.4711713790893555,
+            " complete": -7.43386173248291
+          }
+        },
+        {
+          "id": "project",
+          "chosen": " active",
+          "expected": " active",
+          "correct": true,
+          "scores": {
+            " active": -2.4830117225646973,
+            " paused": -8.235016822814941
+          }
+        },
+        {
+          "id": "action",
+          "chosen": " blocked",
+          "expected": " blocked",
+          "correct": true,
+          "scores": {
+            " blocked": -6.429335594177246,
+            " allowed": -12.131510734558105
+          }
+        }
+      ]
+    },
+    {
+      "fixture": "middle",
+      "tokens": 64,
+      "oracle_critical_segment": 4,
+      "detected_segment": 4,
+      "detector_hit": true,
+      "ranked_event_scores": [
+        {
+          "segment": 4,
+          "start": 30,
+          "end": 43,
+          "text": "Correction: the current codeword is RED, not BLUE. ",
+          "state_rms": 0.04623326227807612,
+          "decision_flips": 0,
+          "score_rms": 0.5650240403524535,
+          "margin_shift_sum": 2.268548923311755,
+          "detector_score": 0.791878932683629,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " RED",
+              "new_choice": " RED",
+              "decision_flip": false
+            },
+            {
+              "id": "verification",
+              "old_choice": " complete",
+              "new_choice": " complete",
+              "decision_flip": false
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        },
+        {
+          "segment": 7,
+          "start": 60,
+          "end": 64,
+          "text": "External action remains blocked.",
+          "state_rms": 0.038731052036317604,
+          "decision_flips": 0,
+          "score_rms": 0.45362232832723404,
+          "margin_shift_sum": 1.2456531112547964,
+          "detector_score": 0.5781876394527137,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " BLUE",
+              "new_choice": " BLUE",
+              "decision_flip": false
+            },
+            {
+              "id": "verification",
+              "old_choice": " incomplete",
+              "new_choice": " incomplete",
+              "decision_flip": false
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        },
+        {
+          "segment": 1,
+          "start": 7,
+          "end": 15,
+          "text": "The old codeword was BLUE. ",
+          "state_rms": 0.04292051945073253,
+          "decision_flips": 0,
+          "score_rms": 0.3277048109792013,
+          "margin_shift_sum": 1.018033642321825,
+          "detector_score": 0.4295081752113838,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " BLUE",
+              "new_choice": " BLUE",
+              "decision_flip": false
+            },
+            {
+              "id": "verification",
+              "old_choice": " complete",
+              "new_choice": " complete",
+              "decision_flip": false
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        },
+        {
+          "segment": 6,
+          "start": 53,
+          "end": 60,
+          "text": "Hypothesis one is weakened. ",
+          "state_rms": 0.04358274412523305,
+          "decision_flips": 0,
+          "score_rms": 0.23793664101450163,
+          "margin_shift_sum": 0.27632450545206666,
+          "detector_score": 0.2655690915597083,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " BLUE",
+              "new_choice": " BLUE",
+              "decision_flip": false
+            },
+            {
+              "id": "verification",
+              "old_choice": " incomplete",
+              "new_choice": " incomplete",
+              "decision_flip": false
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        },
+        {
+          "segment": 0,
+          "start": 0,
+          "end": 7,
+          "text": "Project Helios remains active. ",
+          "state_rms": 0.03772253511547717,
+          "decision_flips": 0,
+          "score_rms": 0.19702448959473365,
+          "margin_shift_sum": 0.6416757106781006,
+          "detector_score": 0.2611920606625437,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " RED",
+              "new_choice": " RED",
+              "decision_flip": false
+            },
+            {
+              "id": "verification",
+              "old_choice": " complete",
+              "new_choice": " complete",
+              "decision_flip": false
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        },
+        {
+          "segment": 2,
+          "start": 15,
+          "end": 25,
+          "text": "Unrelated telemetry packet 21 was archived. ",
+          "state_rms": 0.03347225440031541,
+          "decision_flips": 0,
+          "score_rms": 0.16641449264323518,
+          "margin_shift_sum": 0.416085401782766,
+          "detector_score": 0.2080230328215118,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " BLUE",
+              "new_choice": " BLUE",
+              "decision_flip": false
+            },
+            {
+              "id": "verification",
+              "old_choice": " complete",
+              "new_choice": " complete",
+              "decision_flip": false
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        },
+        {
+          "segment": 3,
+          "start": 25,
+          "end": 30,
+          "text": "Verification is incomplete. ",
+          "state_rms": 0.04065277709184835,
+          "decision_flips": 0,
+          "score_rms": 0.17263666983328801,
+          "margin_shift_sum": 0.3327348765451461,
+          "detector_score": 0.20591015748780261,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " BLUE",
+              "new_choice": " BLUE",
+              "decision_flip": false
+            },
+            {
+              "id": "verification",
+              "old_choice": " complete",
+              "new_choice": " complete",
+              "decision_flip": false
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        },
+        {
+          "segment": 5,
+          "start": 43,
+          "end": 53,
+          "text": "A historical memo mentions BLUE but is obsolete. ",
+          "state_rms": 0.03190180213408956,
+          "decision_flips": 0,
+          "score_rms": 0.055852108682704925,
+          "margin_shift_sum": 0.17891753977164626,
+          "detector_score": 0.07374386265986956,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " BLUE",
+              "new_choice": " BLUE",
+              "decision_flip": false
+            },
+            {
+              "id": "verification",
+              "old_choice": " complete",
+              "new_choice": " complete",
+              "decision_flip": false
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        }
+      ],
+      "exact_detected_anchor": {
+        "anchor_pos": 30,
+        "replayed_tokens": 34,
+        "state_error_vs_w2_native": {
+          "rms": 0.01946520793221325,
+          "l2": 16.71380280291723,
+          "max_abs": 1.1280345916748047,
+          "numel": 737280
+        },
+        "functional_vs_w2_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 0.15079521568198898
+        },
+        "probe_rows": [
+          {
+            "id": "codeword",
+            "chosen": " RED",
+            "expected": " RED",
+            "correct": true,
+            "scores": {
+              " RED": -0.4451330900192261,
+              " BLUE": -1.1019143111770973
+            }
+          },
+          {
+            "id": "verification",
+            "chosen": " incomplete",
+            "expected": " incomplete",
+            "correct": true,
+            "scores": {
+              " incomplete": -6.427197456359863,
+              " complete": -7.889370918273926
+            }
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true,
+            "scores": {
+              " active": -2.9544050693511963,
+              " paused": -9.226934432983398
+            }
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true,
+            "scores": {
+              " blocked": -7.23216438293457,
+              " allowed": -12.844486236572266
+            }
+          }
+        ]
+      },
+      "oracle_anchor": {
+        "anchor_pos": 30,
+        "replayed_tokens": 34,
+        "state_error_vs_w2_native": {
+          "rms": 0.01946520793221325,
+          "l2": 16.71380280291723,
+          "max_abs": 1.1280345916748047,
+          "numel": 737280
+        },
+        "functional_vs_w2_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 0.15079521568198898
+        },
+        "probe_rows": [
+          {
+            "id": "codeword",
+            "chosen": " RED",
+            "expected": " RED",
+            "correct": true,
+            "scores": {
+              " RED": -0.4451330900192261,
+              " BLUE": -1.1019143111770973
+            }
+          },
+          {
+            "id": "verification",
+            "chosen": " incomplete",
+            "expected": " incomplete",
+            "correct": true,
+            "scores": {
+              " incomplete": -6.427197456359863,
+              " complete": -7.889370918273926
+            }
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true,
+            "scores": {
+              " active": -2.9544050693511963,
+              " paused": -9.226934432983398
+            }
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true,
+            "scores": {
+              " blocked": -7.23216438293457,
+              " allowed": -12.844486236572266
+            }
+          }
+        ]
+      },
+      "semantic_checkpoint_sparsity": {
+        "1": {
+          "anchor_pos": 30,
+          "replayed_tokens": 34,
+          "state_error_vs_w2_native": {
+            "rms": 0.01946520793221325,
+            "l2": 16.71380280291723,
+            "max_abs": 1.1280345916748047,
+            "numel": 737280
+          },
+          "functional_vs_w2_native": {
+            "decision_agreement": 1.0,
+            "expected_accuracy": 1.0,
+            "score_rms_error": 0.15079521568198898
+          },
+          "probe_rows": [
+            {
+              "id": "codeword",
+              "chosen": " RED",
+              "expected": " RED",
+              "correct": true,
+              "scores": {
+                " RED": -0.4451330900192261,
+                " BLUE": -1.1019143111770973
+              }
+            },
+            {
+              "id": "verification",
+              "chosen": " incomplete",
+              "expected": " incomplete",
+              "correct": true,
+              "scores": {
+                " incomplete": -6.427197456359863,
+                " complete": -7.889370918273926
+              }
+            },
+            {
+              "id": "project",
+              "chosen": " active",
+              "expected": " active",
+              "correct": true,
+              "scores": {
+                " active": -2.9544050693511963,
+                " paused": -9.226934432983398
+              }
+            },
+            {
+              "id": "action",
+              "chosen": " blocked",
+              "expected": " blocked",
+              "correct": true,
+              "scores": {
+                " blocked": -7.23216438293457,
+                " allowed": -12.844486236572266
+              }
+            }
+          ],
+          "checkpoint_every_n_events": 1,
+          "stored_checkpoint_count": 8,
+          "anchor_event_index": 4
+        },
+        "2": {
+          "anchor_pos": 30,
+          "replayed_tokens": 34,
+          "state_error_vs_w2_native": {
+            "rms": 0.01946520793221325,
+            "l2": 16.71380280291723,
+            "max_abs": 1.1280345916748047,
+            "numel": 737280
+          },
+          "functional_vs_w2_native": {
+            "decision_agreement": 1.0,
+            "expected_accuracy": 1.0,
+            "score_rms_error": 0.15079521568198898
+          },
+          "probe_rows": [
+            {
+              "id": "codeword",
+              "chosen": " RED",
+              "expected": " RED",
+              "correct": true,
+              "scores": {
+                " RED": -0.4451330900192261,
+                " BLUE": -1.1019143111770973
+              }
+            },
+            {
+              "id": "verification",
+              "chosen": " incomplete",
+              "expected": " incomplete",
+              "correct": true,
+              "scores": {
+                " incomplete": -6.427197456359863,
+                " complete": -7.889370918273926
+              }
+            },
+            {
+              "id": "project",
+              "chosen": " active",
+              "expected": " active",
+              "correct": true,
+              "scores": {
+                " active": -2.9544050693511963,
+                " paused": -9.226934432983398
+              }
+            },
+            {
+              "id": "action",
+              "chosen": " blocked",
+              "expected": " blocked",
+              "correct": true,
+              "scores": {
+                " blocked": -7.23216438293457,
+                " allowed": -12.844486236572266
+              }
+            }
+          ],
+          "checkpoint_every_n_events": 2,
+          "stored_checkpoint_count": 4,
+          "anchor_event_index": 4
+        },
+        "4": {
+          "anchor_pos": 30,
+          "replayed_tokens": 34,
+          "state_error_vs_w2_native": {
+            "rms": 0.01946520793221325,
+            "l2": 16.71380280291723,
+            "max_abs": 1.1280345916748047,
+            "numel": 737280
+          },
+          "functional_vs_w2_native": {
+            "decision_agreement": 1.0,
+            "expected_accuracy": 1.0,
+            "score_rms_error": 0.15079521568198898
+          },
+          "probe_rows": [
+            {
+              "id": "codeword",
+              "chosen": " RED",
+              "expected": " RED",
+              "correct": true,
+              "scores": {
+                " RED": -0.4451330900192261,
+                " BLUE": -1.1019143111770973
+              }
+            },
+            {
+              "id": "verification",
+              "chosen": " incomplete",
+              "expected": " incomplete",
+              "correct": true,
+              "scores": {
+                " incomplete": -6.427197456359863,
+                " complete": -7.889370918273926
+              }
+            },
+            {
+              "id": "project",
+              "chosen": " active",
+              "expected": " active",
+              "correct": true,
+              "scores": {
+                " active": -2.9544050693511963,
+                " paused": -9.226934432983398
+              }
+            },
+            {
+              "id": "action",
+              "chosen": " blocked",
+              "expected": " blocked",
+              "correct": true,
+              "scores": {
+                " blocked": -7.23216438293457,
+                " allowed": -12.844486236572266
+              }
+            }
+          ],
+          "checkpoint_every_n_events": 4,
+          "stored_checkpoint_count": 2,
+          "anchor_event_index": 4
+        },
+        "8": {
+          "anchor_pos": 0,
+          "replayed_tokens": 64,
+          "state_error_vs_w2_native": {
+            "rms": 0.03940944376828301,
+            "l2": 33.83892296499313,
+            "max_abs": 9.418657302856445,
+            "numel": 737280
+          },
+          "functional_vs_w2_native": {
+            "decision_agreement": 1.0,
+            "expected_accuracy": 1.0,
+            "score_rms_error": 0.42908117993151695
+          },
+          "probe_rows": [
+            {
+              "id": "codeword",
+              "chosen": " RED",
+              "expected": " RED",
+              "correct": true,
+              "scores": {
+                " RED": -0.33836543560028076,
+                " BLUE": -1.2754250447032973
+              }
+            },
+            {
+              "id": "verification",
+              "chosen": " incomplete",
+              "expected": " incomplete",
+              "correct": true,
+              "scores": {
+                " incomplete": -5.864319324493408,
+                " complete": -8.396329879760742
+              }
+            },
+            {
+              "id": "project",
+              "chosen": " active",
+              "expected": " active",
+              "correct": true,
+              "scores": {
+                " active": -2.970381736755371,
+                " paused": -9.190617561340332
+              }
+            },
+            {
+              "id": "action",
+              "chosen": " blocked",
+              "expected": " blocked",
+              "correct": true,
+              "scores": {
+                " blocked": -6.045441627502441,
+                " allowed": -12.779970169067383
+              }
+            }
+          ],
+          "checkpoint_every_n_events": 8,
+          "stored_checkpoint_count": 1,
+          "anchor_event_index": 0
+        }
+      },
+      "w2_native_probe": [
+        {
+          "id": "codeword",
+          "chosen": " RED",
+          "expected": " RED",
+          "correct": true,
+          "scores": {
+            " RED": -0.4053410291671753,
+            " BLUE": -1.178133191773668
+          }
+        },
+        {
+          "id": "verification",
+          "chosen": " incomplete",
+          "expected": " incomplete",
+          "correct": true,
+          "scores": {
+            " incomplete": -6.246038436889648,
+            " complete": -7.87421989440918
+          }
+        },
+        {
+          "id": "project",
+          "chosen": " active",
+          "expected": " active",
+          "correct": true,
+          "scores": {
+            " active": -2.917171001434326,
+            " paused": -9.405740737915039
+          }
+        },
+        {
+          "id": "action",
+          "chosen": " blocked",
+          "expected": " blocked",
+          "correct": true,
+          "scores": {
+            " blocked": -7.023046016693115,
+            " allowed": -12.59074592590332
+          }
+        }
+      ]
+    },
+    {
+      "fixture": "late",
+      "tokens": 66,
+      "oracle_critical_segment": 6,
+      "detected_segment": 6,
+      "detector_hit": true,
+      "ranked_event_scores": [
+        {
+          "segment": 6,
+          "start": 48,
+          "end": 62,
+          "text": "Correction: the current codeword is HIGH, not LOW. ",
+          "state_rms": 0.04329683182865553,
+          "decision_flips": 1,
+          "score_rms": 0.3447832982925537,
+          "margin_shift_sum": 1.5778260570077691,
+          "detector_score": 1000.5025659039933,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " LOW",
+              "new_choice": " HIGH",
+              "decision_flip": true
+            },
+            {
+              "id": "verification",
+              "old_choice": " incomplete",
+              "new_choice": " incomplete",
+              "decision_flip": false
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        },
+        {
+          "segment": 7,
+          "start": 62,
+          "end": 66,
+          "text": "External action remains blocked.",
+          "state_rms": 0.038394070870590415,
+          "decision_flips": 0,
+          "score_rms": 0.5333132071562777,
+          "margin_shift_sum": 1.3117563324049115,
+          "detector_score": 0.6644888403967689,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " LOW",
+              "new_choice": " LOW",
+              "decision_flip": false
+            },
+            {
+              "id": "verification",
+              "old_choice": " incomplete",
+              "new_choice": " incomplete",
+              "decision_flip": false
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        },
+        {
+          "segment": 5,
+          "start": 38,
+          "end": 48,
+          "text": "A historical memo mentions LOW but is obsolete. ",
+          "state_rms": 0.039841167596117576,
+          "decision_flips": 0,
+          "score_rms": 0.24473417616659562,
+          "margin_shift_sum": 0.6051346163731068,
+          "detector_score": 0.3052476378039063,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " LOW",
+              "new_choice": " LOW",
+              "decision_flip": false
+            },
+            {
+              "id": "verification",
+              "old_choice": " incomplete",
+              "new_choice": " incomplete",
+              "decision_flip": false
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        },
+        {
+          "segment": 0,
+          "start": 0,
+          "end": 8,
+          "text": "Project Icarus remains active. ",
+          "state_rms": 0.03699953968131139,
+          "decision_flips": 0,
+          "score_rms": 0.13869703662700525,
+          "margin_shift_sum": 0.6108269691467285,
+          "detector_score": 0.1997797335416781,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " HIGH",
+              "new_choice": " HIGH",
+              "decision_flip": false
+            },
+            {
+              "id": "verification",
+              "old_choice": " complete",
+              "new_choice": " complete",
+              "decision_flip": false
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        },
+        {
+          "segment": 2,
+          "start": 16,
+          "end": 26,
+          "text": "Unrelated telemetry packet 31 was archived. ",
+          "state_rms": 0.032761719793553794,
+          "decision_flips": 0,
+          "score_rms": 0.14545331316007293,
+          "margin_shift_sum": 0.47796590020880103,
+          "detector_score": 0.19324990318095303,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " LOW",
+              "new_choice": " LOW",
+              "decision_flip": false
+            },
+            {
+              "id": "verification",
+              "old_choice": " complete",
+              "new_choice": " complete",
+              "decision_flip": false
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        },
+        {
+          "segment": 1,
+          "start": 8,
+          "end": 16,
+          "text": "The old codeword was LOW. ",
+          "state_rms": 0.0423440776317491,
+          "decision_flips": 0,
+          "score_rms": 0.13842271977240095,
+          "margin_shift_sum": 0.4990517410915345,
+          "detector_score": 0.1883278938815544,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " LOW",
+              "new_choice": " LOW",
+              "decision_flip": false
+            },
+            {
+              "id": "verification",
+              "old_choice": " complete",
+              "new_choice": " complete",
+              "decision_flip": false
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        },
+        {
+          "segment": 3,
+          "start": 26,
+          "end": 31,
+          "text": "Verification is incomplete. ",
+          "state_rms": 0.030578342308028444,
+          "decision_flips": 0,
+          "score_rms": 0.12652415853192384,
+          "margin_shift_sum": 0.437411765975412,
+          "detector_score": 0.17026533512946504,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " LOW",
+              "new_choice": " LOW",
+              "decision_flip": false
+            },
+            {
+              "id": "verification",
+              "old_choice": " complete",
+              "new_choice": " complete",
+              "decision_flip": false
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        },
+        {
+          "segment": 4,
+          "start": 31,
+          "end": 38,
+          "text": "Hypothesis one is weakened. ",
+          "state_rms": 0.04208520217783308,
+          "decision_flips": 0,
+          "score_rms": 0.08544003311120754,
+          "margin_shift_sum": 0.49681246117688715,
+          "detector_score": 0.13512127922889627,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " LOW",
+              "new_choice": " LOW",
+              "decision_flip": false
+            },
+            {
+              "id": "verification",
+              "old_choice": " complete",
+              "new_choice": " complete",
+              "decision_flip": false
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        }
+      ],
+      "exact_detected_anchor": {
+        "anchor_pos": 48,
+        "replayed_tokens": 18,
+        "state_error_vs_w2_native": {
+          "rms": 0.02694523786951901,
+          "l2": 23.136531281720107,
+          "max_abs": 1.5323219299316406,
+          "numel": 737280
+        },
+        "functional_vs_w2_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 0.2903706516243719
+        },
+        "probe_rows": [
+          {
+            "id": "codeword",
+            "chosen": " HIGH",
+            "expected": " HIGH",
+            "correct": true,
+            "scores": {
+              " HIGH": -0.4852646955405362,
+              " LOW": -1.1561866192496382
+            }
+          },
+          {
+            "id": "verification",
+            "chosen": " incomplete",
+            "expected": " incomplete",
+            "correct": true,
+            "scores": {
+              " incomplete": -6.478987216949463,
+              " complete": -8.069742202758789
+            }
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true,
+            "scores": {
+              " active": -2.9686360359191895,
+              " paused": -7.729689121246338
+            }
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true,
+            "scores": {
+              " blocked": -6.846148490905762,
+              " allowed": -11.984591484069824
+            }
+          }
+        ]
+      },
+      "oracle_anchor": {
+        "anchor_pos": 48,
+        "replayed_tokens": 18,
+        "state_error_vs_w2_native": {
+          "rms": 0.02694523786951901,
+          "l2": 23.136531281720107,
+          "max_abs": 1.5323219299316406,
+          "numel": 737280
+        },
+        "functional_vs_w2_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 0.2903706516243719
+        },
+        "probe_rows": [
+          {
+            "id": "codeword",
+            "chosen": " HIGH",
+            "expected": " HIGH",
+            "correct": true,
+            "scores": {
+              " HIGH": -0.4852646955405362,
+              " LOW": -1.1561866192496382
+            }
+          },
+          {
+            "id": "verification",
+            "chosen": " incomplete",
+            "expected": " incomplete",
+            "correct": true,
+            "scores": {
+              " incomplete": -6.478987216949463,
+              " complete": -8.069742202758789
+            }
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true,
+            "scores": {
+              " active": -2.9686360359191895,
+              " paused": -7.729689121246338
+            }
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true,
+            "scores": {
+              " blocked": -6.846148490905762,
+              " allowed": -11.984591484069824
+            }
+          }
+        ]
+      },
+      "semantic_checkpoint_sparsity": {
+        "1": {
+          "anchor_pos": 48,
+          "replayed_tokens": 18,
+          "state_error_vs_w2_native": {
+            "rms": 0.02694523786951901,
+            "l2": 23.136531281720107,
+            "max_abs": 1.5323219299316406,
+            "numel": 737280
+          },
+          "functional_vs_w2_native": {
+            "decision_agreement": 1.0,
+            "expected_accuracy": 1.0,
+            "score_rms_error": 0.2903706516243719
+          },
+          "probe_rows": [
+            {
+              "id": "codeword",
+              "chosen": " HIGH",
+              "expected": " HIGH",
+              "correct": true,
+              "scores": {
+                " HIGH": -0.4852646955405362,
+                " LOW": -1.1561866192496382
+              }
+            },
+            {
+              "id": "verification",
+              "chosen": " incomplete",
+              "expected": " incomplete",
+              "correct": true,
+              "scores": {
+                " incomplete": -6.478987216949463,
+                " complete": -8.069742202758789
+              }
+            },
+            {
+              "id": "project",
+              "chosen": " active",
+              "expected": " active",
+              "correct": true,
+              "scores": {
+                " active": -2.9686360359191895,
+                " paused": -7.729689121246338
+              }
+            },
+            {
+              "id": "action",
+              "chosen": " blocked",
+              "expected": " blocked",
+              "correct": true,
+              "scores": {
+                " blocked": -6.846148490905762,
+                " allowed": -11.984591484069824
+              }
+            }
+          ],
+          "checkpoint_every_n_events": 1,
+          "stored_checkpoint_count": 8,
+          "anchor_event_index": 6
+        },
+        "2": {
+          "anchor_pos": 48,
+          "replayed_tokens": 18,
+          "state_error_vs_w2_native": {
+            "rms": 0.02694523786951901,
+            "l2": 23.136531281720107,
+            "max_abs": 1.5323219299316406,
+            "numel": 737280
+          },
+          "functional_vs_w2_native": {
+            "decision_agreement": 1.0,
+            "expected_accuracy": 1.0,
+            "score_rms_error": 0.2903706516243719
+          },
+          "probe_rows": [
+            {
+              "id": "codeword",
+              "chosen": " HIGH",
+              "expected": " HIGH",
+              "correct": true,
+              "scores": {
+                " HIGH": -0.4852646955405362,
+                " LOW": -1.1561866192496382
+              }
+            },
+            {
+              "id": "verification",
+              "chosen": " incomplete",
+              "expected": " incomplete",
+              "correct": true,
+              "scores": {
+                " incomplete": -6.478987216949463,
+                " complete": -8.069742202758789
+              }
+            },
+            {
+              "id": "project",
+              "chosen": " active",
+              "expected": " active",
+              "correct": true,
+              "scores": {
+                " active": -2.9686360359191895,
+                " paused": -7.729689121246338
+              }
+            },
+            {
+              "id": "action",
+              "chosen": " blocked",
+              "expected": " blocked",
+              "correct": true,
+              "scores": {
+                " blocked": -6.846148490905762,
+                " allowed": -11.984591484069824
+              }
+            }
+          ],
+          "checkpoint_every_n_events": 2,
+          "stored_checkpoint_count": 4,
+          "anchor_event_index": 6
+        },
+        "4": {
+          "anchor_pos": 31,
+          "replayed_tokens": 35,
+          "state_error_vs_w2_native": {
+            "rms": 0.021156034818811873,
+            "l2": 18.165631483858867,
+            "max_abs": 1.3684749603271484,
+            "numel": 737280
+          },
+          "functional_vs_w2_native": {
+            "decision_agreement": 1.0,
+            "expected_accuracy": 1.0,
+            "score_rms_error": 0.18808789028086154
+          },
+          "probe_rows": [
+            {
+              "id": "codeword",
+              "chosen": " HIGH",
+              "expected": " HIGH",
+              "correct": true,
+              "scores": {
+                " HIGH": -0.5474938036059029,
+                " LOW": -1.0245444996398874
+              }
+            },
+            {
+              "id": "verification",
+              "chosen": " incomplete",
+              "expected": " incomplete",
+              "correct": true,
+              "scores": {
+                " incomplete": -6.607065200805664,
+                " complete": -8.408906936645508
+              }
+            },
+            {
+              "id": "project",
+              "chosen": " active",
+              "expected": " active",
+              "correct": true,
+              "scores": {
+                " active": -3.048137664794922,
+                " paused": -7.972034454345703
+              }
+            },
+            {
+              "id": "action",
+              "chosen": " blocked",
+              "expected": " blocked",
+              "correct": true,
+              "scores": {
+                " blocked": -6.814390659332275,
+                " allowed": -11.816375732421875
+              }
+            }
+          ],
+          "checkpoint_every_n_events": 4,
+          "stored_checkpoint_count": 2,
+          "anchor_event_index": 4
+        },
+        "8": {
+          "anchor_pos": 0,
+          "replayed_tokens": 66,
+          "state_error_vs_w2_native": {
+            "rms": 0.04014558405447622,
+            "l2": 34.47100989782033,
+            "max_abs": 9.187363624572754,
+            "numel": 737280
+          },
+          "functional_vs_w2_native": {
+            "decision_agreement": 1.0,
+            "expected_accuracy": 1.0,
+            "score_rms_error": 0.3346441762134564
+          },
+          "probe_rows": [
+            {
+              "id": "codeword",
+              "chosen": " HIGH",
+              "expected": " HIGH",
+              "correct": true,
+              "scores": {
+                " HIGH": -0.6267326904635411,
+                " LOW": -0.8324278410291299
+              }
+            },
+            {
+              "id": "verification",
+              "chosen": " incomplete",
+              "expected": " incomplete",
+              "correct": true,
+              "scores": {
+                " incomplete": -5.82161283493042,
+                " complete": -8.598854064941406
+              }
+            },
+            {
+              "id": "project",
+              "chosen": " active",
+              "expected": " active",
+              "correct": true,
+              "scores": {
+                " active": -3.2684032917022705,
+                " paused": -8.023484230041504
+              }
+            },
+            {
+              "id": "action",
+              "chosen": " blocked",
+              "expected": " blocked",
+              "correct": true,
+              "scores": {
+                " blocked": -5.868006229400635,
+                " allowed": -11.541247367858887
+              }
+            }
+          ],
+          "checkpoint_every_n_events": 8,
+          "stored_checkpoint_count": 1,
+          "anchor_event_index": 0
+        }
+      },
+      "w2_native_probe": [
+        {
+          "id": "codeword",
+          "chosen": " HIGH",
+          "expected": " HIGH",
+          "correct": true,
+          "scores": {
+            " HIGH": -0.6502829506061971,
+            " LOW": -0.8731886398745701
+          }
+        },
+        {
+          "id": "verification",
+          "chosen": " incomplete",
+          "expected": " incomplete",
+          "correct": true,
+          "scores": {
+            " incomplete": -6.35961389541626,
+            " complete": -8.318639755249023
+          }
+        },
+        {
+          "id": "project",
+          "chosen": " active",
+          "expected": " active",
+          "correct": true,
+          "scores": {
+            " active": -3.182309150695801,
+            " paused": -8.160967826843262
+          }
+        },
+        {
+          "id": "action",
+          "chosen": " blocked",
+          "expected": " blocked",
+          "correct": true,
+          "scores": {
+            " blocked": -6.574576377868652,
+            " allowed": -11.553786277770996
+          }
+        }
+      ]
+    },
+    {
+      "fixture": "distractor_heavy",
+      "tokens": 78,
+      "oracle_critical_segment": 6,
+      "detected_segment": 6,
+      "detector_hit": true,
+      "ranked_event_scores": [
+        {
+          "segment": 6,
+          "start": 53,
+          "end": 67,
+          "text": "Correction: the current codeword is WEST, not EAST. ",
+          "state_rms": 0.038657806775959806,
+          "decision_flips": 1,
+          "score_rms": 0.3945537262137084,
+          "margin_shift_sum": 1.6093532995437272,
+          "detector_score": 1000.5554890561681,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " EAST",
+              "new_choice": " WEST",
+              "decision_flip": true
+            },
+            {
+              "id": "verification",
+              "old_choice": " complete",
+              "new_choice": " complete",
+              "decision_flip": false
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        },
+        {
+          "segment": 5,
+          "start": 46,
+          "end": 53,
+          "text": "Two unrelated sensors were recalibrated. ",
+          "state_rms": 0.03872157007524848,
+          "decision_flips": 1,
+          "score_rms": 0.1446074295375554,
+          "margin_shift_sum": 0.7359566530794837,
+          "detector_score": 1000.2182030948455,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " EAST",
+              "new_choice": " EAST",
+              "decision_flip": false
+            },
+            {
+              "id": "verification",
+              "old_choice": " incomplete",
+              "new_choice": " complete",
+              "decision_flip": true
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        },
+        {
+          "segment": 8,
+          "start": 74,
+          "end": 78,
+          "text": "External action remains blocked.",
+          "state_rms": 0.037993284130667604,
+          "decision_flips": 0,
+          "score_rms": 0.522143338668121,
+          "margin_shift_sum": 1.4743231638567522,
+          "detector_score": 0.6695756550537962,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " WEST",
+              "new_choice": " WEST",
+              "decision_flip": false
+            },
+            {
+              "id": "verification",
+              "old_choice": " incomplete",
+              "new_choice": " incomplete",
+              "decision_flip": false
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        },
+        {
+          "segment": 1,
+          "start": 7,
+          "end": 15,
+          "text": "The old codeword was EAST. ",
+          "state_rms": 0.04247556760642599,
+          "decision_flips": 0,
+          "score_rms": 0.23436546613031697,
+          "margin_shift_sum": 0.5267108416301198,
+          "detector_score": 0.287036550293329,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " EAST",
+              "new_choice": " EAST",
+              "decision_flip": false
+            },
+            {
+              "id": "verification",
+              "old_choice": " complete",
+              "new_choice": " complete",
+              "decision_flip": false
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        },
+        {
+          "segment": 4,
+          "start": 36,
+          "end": 46,
+          "text": "A historical memo mentions EAST but is obsolete. ",
+          "state_rms": 0.036512509282286706,
+          "decision_flips": 0,
+          "score_rms": 0.1689957367127608,
+          "margin_shift_sum": 0.6681739318009932,
+          "detector_score": 0.23581312989286013,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " EAST",
+              "new_choice": " EAST",
+              "decision_flip": false
+            },
+            {
+              "id": "verification",
+              "old_choice": " complete",
+              "new_choice": " complete",
+              "decision_flip": false
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        },
+        {
+          "segment": 2,
+          "start": 15,
+          "end": 31,
+          "text": "A note says weather moved eastward; this is unrelated to the codeword. ",
+          "state_rms": 0.03521392287182605,
+          "decision_flips": 0,
+          "score_rms": 0.1689762356026376,
+          "margin_shift_sum": 0.6668258545105346,
+          "detector_score": 0.23565882105369107,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " EAST",
+              "new_choice": " EAST",
+              "decision_flip": false
+            },
+            {
+              "id": "verification",
+              "old_choice": " complete",
+              "new_choice": " complete",
+              "decision_flip": false
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        },
+        {
+          "segment": 0,
+          "start": 0,
+          "end": 7,
+          "text": "Project Juno remains active. ",
+          "state_rms": 0.03675088315649519,
+          "decision_flips": 0,
+          "score_rms": 0.15583493675446586,
+          "margin_shift_sum": 0.3953465223312378,
+          "detector_score": 0.19536958898758963,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " EAST",
+              "new_choice": " EAST",
+              "decision_flip": false
+            },
+            {
+              "id": "verification",
+              "old_choice": " complete",
+              "new_choice": " complete",
+              "decision_flip": false
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        },
+        {
+          "segment": 7,
+          "start": 67,
+          "end": 74,
+          "text": "Hypothesis one is weakened. ",
+          "state_rms": 0.043168940920946024,
+          "decision_flips": 0,
+          "score_rms": 0.11259231413152732,
+          "margin_shift_sum": 0.46868662239285186,
+          "detector_score": 0.1594609763708125,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " WEST",
+              "new_choice": " WEST",
+              "decision_flip": false
+            },
+            {
+              "id": "verification",
+              "old_choice": " incomplete",
+              "new_choice": " incomplete",
+              "decision_flip": false
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        },
+        {
+          "segment": 3,
+          "start": 31,
+          "end": 36,
+          "text": "Verification is incomplete. ",
+          "state_rms": 0.03622734281370463,
+          "decision_flips": 0,
+          "score_rms": 0.10557232053630958,
+          "margin_shift_sum": 0.2127614596101921,
+          "detector_score": 0.12684846649732878,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " EAST",
+              "new_choice": " EAST",
+              "decision_flip": false
+            },
+            {
+              "id": "verification",
+              "old_choice": " complete",
+              "new_choice": " complete",
+              "decision_flip": false
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        }
+      ],
+      "exact_detected_anchor": {
+        "anchor_pos": 53,
+        "replayed_tokens": 25,
+        "state_error_vs_w2_native": {
+          "rms": 0.02272981666507419,
+          "l2": 19.51695942881797,
+          "max_abs": 1.0804557800292969,
+          "numel": 737280
+        },
+        "functional_vs_w2_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 0.14519421917649644
+        },
+        "probe_rows": [
+          {
+            "id": "codeword",
+            "chosen": " WEST",
+            "expected": " WEST",
+            "correct": true,
+            "scores": {
+              " WEST": -0.19902227935381234,
+              " EAST": -1.8788549560122192
+            }
+          },
+          {
+            "id": "verification",
+            "chosen": " incomplete",
+            "expected": " incomplete",
+            "correct": true,
+            "scores": {
+              " incomplete": -5.820476531982422,
+              " complete": -6.917015075683594
+            }
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true,
+            "scores": {
+              " active": -2.759006977081299,
+              " paused": -8.63975715637207
+            }
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true,
+            "scores": {
+              " blocked": -6.968403339385986,
+              " allowed": -12.170379638671875
+            }
+          }
+        ]
+      },
+      "oracle_anchor": {
+        "anchor_pos": 53,
+        "replayed_tokens": 25,
+        "state_error_vs_w2_native": {
+          "rms": 0.02272981666507419,
+          "l2": 19.51695942881797,
+          "max_abs": 1.0804557800292969,
+          "numel": 737280
+        },
+        "functional_vs_w2_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 0.14519421917649644
+        },
+        "probe_rows": [
+          {
+            "id": "codeword",
+            "chosen": " WEST",
+            "expected": " WEST",
+            "correct": true,
+            "scores": {
+              " WEST": -0.19902227935381234,
+              " EAST": -1.8788549560122192
+            }
+          },
+          {
+            "id": "verification",
+            "chosen": " incomplete",
+            "expected": " incomplete",
+            "correct": true,
+            "scores": {
+              " incomplete": -5.820476531982422,
+              " complete": -6.917015075683594
+            }
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true,
+            "scores": {
+              " active": -2.759006977081299,
+              " paused": -8.63975715637207
+            }
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true,
+            "scores": {
+              " blocked": -6.968403339385986,
+              " allowed": -12.170379638671875
+            }
+          }
+        ]
+      },
+      "semantic_checkpoint_sparsity": {
+        "1": {
+          "anchor_pos": 53,
+          "replayed_tokens": 25,
+          "state_error_vs_w2_native": {
+            "rms": 0.02272981666507419,
+            "l2": 19.51695942881797,
+            "max_abs": 1.0804557800292969,
+            "numel": 737280
+          },
+          "functional_vs_w2_native": {
+            "decision_agreement": 1.0,
+            "expected_accuracy": 1.0,
+            "score_rms_error": 0.14519421917649644
+          },
+          "probe_rows": [
+            {
+              "id": "codeword",
+              "chosen": " WEST",
+              "expected": " WEST",
+              "correct": true,
+              "scores": {
+                " WEST": -0.19902227935381234,
+                " EAST": -1.8788549560122192
+              }
+            },
+            {
+              "id": "verification",
+              "chosen": " incomplete",
+              "expected": " incomplete",
+              "correct": true,
+              "scores": {
+                " incomplete": -5.820476531982422,
+                " complete": -6.917015075683594
+              }
+            },
+            {
+              "id": "project",
+              "chosen": " active",
+              "expected": " active",
+              "correct": true,
+              "scores": {
+                " active": -2.759006977081299,
+                " paused": -8.63975715637207
+              }
+            },
+            {
+              "id": "action",
+              "chosen": " blocked",
+              "expected": " blocked",
+              "correct": true,
+              "scores": {
+                " blocked": -6.968403339385986,
+                " allowed": -12.170379638671875
+              }
+            }
+          ],
+          "checkpoint_every_n_events": 1,
+          "stored_checkpoint_count": 9,
+          "anchor_event_index": 6
+        },
+        "2": {
+          "anchor_pos": 53,
+          "replayed_tokens": 25,
+          "state_error_vs_w2_native": {
+            "rms": 0.02272981666507419,
+            "l2": 19.51695942881797,
+            "max_abs": 1.0804557800292969,
+            "numel": 737280
+          },
+          "functional_vs_w2_native": {
+            "decision_agreement": 1.0,
+            "expected_accuracy": 1.0,
+            "score_rms_error": 0.14519421917649644
+          },
+          "probe_rows": [
+            {
+              "id": "codeword",
+              "chosen": " WEST",
+              "expected": " WEST",
+              "correct": true,
+              "scores": {
+                " WEST": -0.19902227935381234,
+                " EAST": -1.8788549560122192
+              }
+            },
+            {
+              "id": "verification",
+              "chosen": " incomplete",
+              "expected": " incomplete",
+              "correct": true,
+              "scores": {
+                " incomplete": -5.820476531982422,
+                " complete": -6.917015075683594
+              }
+            },
+            {
+              "id": "project",
+              "chosen": " active",
+              "expected": " active",
+              "correct": true,
+              "scores": {
+                " active": -2.759006977081299,
+                " paused": -8.63975715637207
+              }
+            },
+            {
+              "id": "action",
+              "chosen": " blocked",
+              "expected": " blocked",
+              "correct": true,
+              "scores": {
+                " blocked": -6.968403339385986,
+                " allowed": -12.170379638671875
+              }
+            }
+          ],
+          "checkpoint_every_n_events": 2,
+          "stored_checkpoint_count": 5,
+          "anchor_event_index": 6
+        },
+        "4": {
+          "anchor_pos": 36,
+          "replayed_tokens": 42,
+          "state_error_vs_w2_native": {
+            "rms": 0.017367998771345157,
+            "l2": 14.91303394017047,
+            "max_abs": 0.9934215545654297,
+            "numel": 737280
+          },
+          "functional_vs_w2_native": {
+            "decision_agreement": 1.0,
+            "expected_accuracy": 1.0,
+            "score_rms_error": 0.19201046790737375
+          },
+          "probe_rows": [
+            {
+              "id": "codeword",
+              "chosen": " WEST",
+              "expected": " WEST",
+              "correct": true,
+              "scores": {
+                " WEST": -0.2360018655890599,
+                " EAST": -1.6888726488687098
+              }
+            },
+            {
+              "id": "verification",
+              "chosen": " incomplete",
+              "expected": " incomplete",
+              "correct": true,
+              "scores": {
+                " incomplete": -6.014865875244141,
+                " complete": -7.099193572998047
+              }
+            },
+            {
+              "id": "project",
+              "chosen": " active",
+              "expected": " active",
+              "correct": true,
+              "scores": {
+                " active": -2.7963666915893555,
+                " paused": -8.78249454498291
+              }
+            },
+            {
+              "id": "action",
+              "chosen": " blocked",
+              "expected": " blocked",
+              "correct": true,
+              "scores": {
+                " blocked": -7.100284099578857,
+                " allowed": -12.205260276794434
+              }
+            }
+          ],
+          "checkpoint_every_n_events": 4,
+          "stored_checkpoint_count": 3,
+          "anchor_event_index": 4
+        },
+        "8": {
+          "anchor_pos": 0,
+          "replayed_tokens": 78,
+          "state_error_vs_w2_native": {
+            "rms": 0.040436098095406804,
+            "l2": 34.72045980909289,
+            "max_abs": 9.49384880065918,
+            "numel": 737280
+          },
+          "functional_vs_w2_native": {
+            "decision_agreement": 1.0,
+            "expected_accuracy": 1.0,
+            "score_rms_error": 0.3677668960153071
+          },
+          "probe_rows": [
+            {
+              "id": "codeword",
+              "chosen": " WEST",
+              "expected": " WEST",
+              "correct": true,
+              "scores": {
+                " WEST": -0.16291692026425153,
+                " EAST": -1.964095070026815
+              }
+            },
+            {
+              "id": "verification",
+              "chosen": " incomplete",
+              "expected": " incomplete",
+              "correct": true,
+              "scores": {
+                " incomplete": -4.978326797485352,
+                " complete": -6.759675979614258
+              }
+            },
+            {
+              "id": "project",
+              "chosen": " active",
+              "expected": " active",
+              "correct": true,
+              "scores": {
+                " active": -2.9151601791381836,
+                " paused": -8.505707740783691
+              }
+            },
+            {
+              "id": "action",
+              "chosen": " blocked",
+              "expected": " blocked",
+              "correct": true,
+              "scores": {
+                " blocked": -6.236282825469971,
+                " allowed": -11.836113929748535
+              }
+            }
+          ],
+          "checkpoint_every_n_events": 8,
+          "stored_checkpoint_count": 2,
+          "anchor_event_index": 0
+        }
+      },
+      "w2_native_probe": [
+        {
+          "id": "codeword",
+          "chosen": " WEST",
+          "expected": " WEST",
+          "correct": true,
+          "scores": {
+            " WEST": -0.23065778554882854,
+            " EAST": -1.6872598780319095
+          }
+        },
+        {
+          "id": "verification",
+          "chosen": " incomplete",
+          "expected": " incomplete",
+          "correct": true,
+          "scores": {
+            " incomplete": -5.6909356117248535,
+            " complete": -6.92760705947876
+          }
+        },
+        {
+          "id": "project",
+          "chosen": " active",
+          "expected": " active",
+          "correct": true,
+          "scores": {
+            " active": -2.731987476348877,
+            " paused": -8.861358642578125
+          }
+        },
+        {
+          "id": "action",
+          "chosen": " blocked",
+          "expected": " blocked",
+          "correct": true,
+          "scores": {
+            " blocked": -6.744338512420654,
+            " allowed": -12.052032470703125
+          }
+        }
+      ]
+    }
+  ],
+  "success_definition": "Prefer an event detector that identifies upgrade-reinterpreted causal events without W2-native target access and an event-boundary checkpoint scheme that preserves W2-native functional decisions with bounded replay.",
+  "claim_boundary": "Four synthetic histories and a narrow Mamba-130M correction upgrade. The semantic probe bank stands in for VELA canonical active-state slots; this is not generic causal discovery, identity proof, or architecture promotion."
+}
