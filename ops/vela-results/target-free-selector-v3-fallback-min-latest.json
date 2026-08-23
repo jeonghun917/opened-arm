@@ -1,0 +1,132 @@
+{
+  "status": "VELA_TARGET_FREE_SELECTOR_FORCED_MISS_FALLBACK_V1",
+  "model": "state-spaces/mamba-130m-hf",
+  "torch_version": "2.13.0+cu130",
+  "transformers_version": "4.57.6",
+  "capability": {
+    "baseline": 0.3333333333333333,
+    "after": 0.9166666666666666,
+    "correction_before": 0.125,
+    "correction_after": 1.0,
+    "control_before": 0.75,
+    "control_after": 0.75,
+    "epoch_loss": [
+      1.7653111815452576,
+      0.46972360741347075,
+      0.09346337559691165
+    ]
+  },
+  "forced_miss_fallback": {
+    "fixture_count": 3,
+    "valid_fixture_count": 3,
+    "eligible_forced_miss_count": 3,
+    "validation_detected_count": 3,
+    "validation_detection_rate": 1.0,
+    "fallback_attempt_count": 3,
+    "fallback_recovery_count": 3,
+    "fallback_recovery_rate": 1.0,
+    "residual_unsafe_after_fallback_count": 0,
+    "suite_pass": true
+  },
+  "validator": "Hand-specified fixture invariants/probe expectations only; no W2-native state is used by validation. The oracle frontier is evaluation-only and is used solely to inject a known unsafe late anchor for this failure-path test.",
+  "fixtures": [
+    {
+      "fixture": "single_early",
+      "fixture_valid": true,
+      "eligible_for_forced_miss": true,
+      "history_tokens": 65,
+      "oracle_latest_safe_anchor": {
+        "event_index": 2,
+        "anchor_pos": 15,
+        "replay_fraction": 0.7692307692307693
+      },
+      "injected_unsafe_late_anchor": {
+        "event_index": 3,
+        "anchor_pos": 29,
+        "replay_fraction": 0.5538461538461539,
+        "vs_w2_native": {
+          "decision_agreement": 0.75,
+          "expected_accuracy": 0.75,
+          "score_rms_error": 0.6468553970320615
+        },
+        "invariant_pass": false
+      },
+      "validation_detected": true,
+      "fallback_attempted": true,
+      "fallback_full_replay": {
+        "invariant_pass": true,
+        "vs_w2_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 0.0
+        }
+      }
+    },
+    {
+      "fixture": "single_middle",
+      "fixture_valid": true,
+      "eligible_for_forced_miss": true,
+      "history_tokens": 64,
+      "oracle_latest_safe_anchor": {
+        "event_index": 4,
+        "anchor_pos": 30,
+        "replay_fraction": 0.53125
+      },
+      "injected_unsafe_late_anchor": {
+        "event_index": 5,
+        "anchor_pos": 43,
+        "replay_fraction": 0.328125,
+        "vs_w2_native": {
+          "decision_agreement": 0.75,
+          "expected_accuracy": 0.75,
+          "score_rms_error": 0.5110075278971894
+        },
+        "invariant_pass": false
+      },
+      "validation_detected": true,
+      "fallback_attempted": true,
+      "fallback_full_replay": {
+        "invariant_pass": true,
+        "vs_w2_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 0.0
+        }
+      }
+    },
+    {
+      "fixture": "single_late",
+      "fixture_valid": true,
+      "eligible_for_forced_miss": true,
+      "history_tokens": 66,
+      "oracle_latest_safe_anchor": {
+        "event_index": 6,
+        "anchor_pos": 48,
+        "replay_fraction": 0.2727272727272727
+      },
+      "injected_unsafe_late_anchor": {
+        "event_index": 7,
+        "anchor_pos": 62,
+        "replay_fraction": 0.06060606060606061,
+        "vs_w2_native": {
+          "decision_agreement": 0.75,
+          "expected_accuracy": 0.75,
+          "score_rms_error": 0.36479892127962144
+        },
+        "invariant_pass": false
+      },
+      "validation_detected": true,
+      "fallback_attempted": true,
+      "fallback_full_replay": {
+        "invariant_pass": true,
+        "vs_w2_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 0.0
+        }
+      }
+    }
+  ],
+  "success_definition": "On at least three nontrivial valid fixtures with a known unsafe later anchor, post-replay validation must detect every injected selector miss and conservative full replay must recover every case with zero residual unsafe state.",
+  "claim_boundary": "Synthetic Mamba-130M failure-injection test. It validates control-flow mechanics for validation->full-replay fallback under hand-specified invariants; it does not prove generic miss detection, causal discovery, or identity continuity."
+}
