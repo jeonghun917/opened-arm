@@ -8,12 +8,17 @@ on:
         required: true
         default: vela-foundation-runtime
         type: string
+  push:
+    branches:
+      - vela-foundation-ci
+    paths:
+      - .github/workflows/vela-foundation-ci.yml
 
 permissions:
   contents: read
 
 concurrency:
-  group: vela-foundation-ci-${{ inputs.ars_ref }}
+  group: vela-foundation-ci-${{ inputs.ars_ref || 'vela-foundation-runtime' }}
   cancel-in-progress: false
 
 jobs:
@@ -25,7 +30,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: jeonghun917/Ars-Mentis
-          ref: ${{ inputs.ars_ref }}
+          ref: ${{ inputs.ars_ref || 'vela-foundation-runtime' }}
           token: ${{ secrets.ARS_MENTIS_READ_TOKEN }}
           path: ars-mentis
           persist-credentials: false
