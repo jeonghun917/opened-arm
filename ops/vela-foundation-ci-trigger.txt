@@ -1,4 +1,4 @@
 VELA foundation CI trigger.
-Run: 2026-08-24 event-log restart recovery hardening.
-Ars-Mentis target: vela-foundation-runtime @ 7f5b47d39f058808a7f36440c2593430df031605
-Trigger revision: 4
+Run: 2026-08-24 semantic-change analysis and live-cause replay scope integration.
+Ars-Mentis target: vela-foundation-runtime @ 772baa13b44b73050dcea208516d4cb9e66db2c4
+Trigger revision: 5
