@@ -15,7 +15,7 @@ on:
       - ops/vela-foundation-ci-trigger.txt
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: vela-foundation-ci-${{ inputs.ars_ref || 'vela-foundation-runtime' }}
@@ -26,6 +26,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
+      - name: Checkout public runner-control branch
+        uses: actions/checkout@v4
+        with:
+          ref: vela-foundation-ci
+          path: runner-control
+          persist-credentials: true
+
       - name: Checkout private Ars-Mentis source
         uses: actions/checkout@v4
         with:
@@ -41,17 +48,52 @@ jobs:
           python-version: '3.11'
 
       - name: Run VELA foundation tests
-        working-directory: ars-mentis
         shell: bash
         run: |
           set +e
-          PYTHONPATH=src python -m unittest discover -s tests -v > /tmp/vela-foundation-test.log 2>&1
+          (cd ars-mentis && PYTHONPATH=src python -m unittest discover -s tests -v) > /tmp/vela-foundation-test.log 2>&1
           status=$?
           set -e
           count=$(grep -c '^test_' /tmp/vela-foundation-test.log || true)
+          source_commit=$(git -C ars-mentis rev-parse HEAD)
+          mkdir -p runner-control/ops
+          SOURCE_COMMIT="$source_commit" TEST_STATUS="$status" TEST_COUNT="$count" python - <<'PY'
+          import json, os
+          payload = {
+              "status": "PASS" if os.environ["TEST_STATUS"] == "0" else "FAIL",
+              "test_count": int(os.environ["TEST_COUNT"]),
+              "source_repository": "jeonghun917/Ars-Mentis",
+              "source_ref": "vela-foundation-runtime",
+              "source_commit": os.environ["SOURCE_COMMIT"],
+              "runner": "ubuntu-latest",
+              "python": "3.11",
+              "claim_boundary": "Public summary only; private source and traceback are not committed or printed.",
+          }
+          with open("runner-control/ops/vela-foundation-ci-latest.json", "w", encoding="utf-8") as f:
+              json.dump(payload, f, indent=2, sort_keys=True)
+              f.write("\n")
+          PY
           if [ "$status" -eq 0 ]; then
             echo "VELA foundation tests: PASS (${count} tests)"
           else
             echo "::error::VELA foundation tests failed. Detailed traceback is intentionally suppressed on this public runner."
             exit "$status"
           fi
+
+      - name: Commit public result snapshot
+        if: always()
+        working-directory: runner-control
+        shell: bash
+        run: |
+          if [[ ! -f ops/vela-foundation-ci-latest.json ]]; then
+            mkdir -p ops
+            printf '{"status":"FAIL_BEFORE_RESULT","source_ref":"vela-foundation-runtime"}\n' > ops/vela-foundation-ci-latest.json
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add ops/vela-foundation-ci-latest.json
+          git diff --cached --quiet || git commit -m 'Record VELA foundation CI result [skip ci]'
+          for n in 1 2 3 4; do
+            git pull --rebase origin vela-foundation-ci && git push origin HEAD:vela-foundation-ci && break
+            sleep $((n*3))
+          done
