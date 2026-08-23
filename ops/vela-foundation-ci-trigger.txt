@@ -1,2 +1,3 @@
 VELA foundation CI trigger.
-Update this file on branch vela-foundation-ci to run the isolated foundation test workflow.
+Run: 2026-08-24 promoted baseline durable-state/recovery update.
+Ars-Mentis target: vela-foundation-runtime @ 58b5d5e775188cd586b83bdf14e8039cd3bdc0b4
