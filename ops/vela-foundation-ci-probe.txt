@@ -1,0 +1,3 @@
+VELA foundation CI isolated probe.
+Base: vela-foundation-ci
+Purpose: verify private Ars-Mentis read-only checkout and foundation unit tests.
