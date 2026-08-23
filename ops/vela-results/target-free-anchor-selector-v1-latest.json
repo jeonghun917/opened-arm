@@ -1,0 +1,1204 @@
+{
+  "status": "VELA_TARGET_FREE_ANCHOR_SELECTOR_V1",
+  "model": "state-spaces/mamba-130m-hf",
+  "torch_version": "2.13.0+cu130",
+  "transformers_version": "4.57.6",
+  "capability": {
+    "baseline": 0.3333333333333333,
+    "after": 0.9166666666666666,
+    "correction_before": 0.125,
+    "correction_after": 1.0,
+    "control_before": 0.75,
+    "control_after": 0.75,
+    "epoch_loss": [
+      1.7653111815452576,
+      0.46972360741347075,
+      0.09346337559691165
+    ]
+  },
+  "selector": "Robust semantic-drift outliers identify candidate events; begin at earliest candidate, then prune forward when a later-candidate W2 replay has the same current functional decision signature. W2-native is evaluation-only.",
+  "valid_fixture_count": 6,
+  "valid_functional_success_count": 6,
+  "valid_functional_success_rate": 1.0,
+  "fixtures": [
+    {
+      "fixture": "independent_persistent",
+      "history_tokens": 70,
+      "fixture_valid": true,
+      "w2_native_expected_accuracy": 1.0,
+      "detector_stats": {
+        "median": 0.3052798542139526,
+        "mad": 0.15032784839085583,
+        "threshold": 0.6059355509956643
+      },
+      "selected_causal_segments": [
+        2
+      ],
+      "selected_causal_event_texts": [
+        "Correction: the current codeword is BETA, not ALPHA. "
+      ],
+      "prune_trace": [],
+      "target_free_selected_anchor": {
+        "event_index": 2,
+        "anchor_pos": 15,
+        "replayed_tokens": 55,
+        "replay_fraction": 0.7857142857142857
+      },
+      "selected_vs_w2_native": {
+        "decision_agreement": 1.0,
+        "expected_accuracy": 1.0,
+        "score_rms_error": 0.11530360703461466
+      },
+      "oracle_latest_safe_anchor": {
+        "event_index": 2,
+        "anchor_pos": 15,
+        "replay_fraction": 0.7857142857142857
+      },
+      "target_free_matches_oracle_latest": true,
+      "target_free_functional_success": true,
+      "semantic_drift_top4": [
+        {
+          "segment": 2,
+          "start": 15,
+          "end": 29,
+          "text": "Correction: the current codeword is BETA, not ALPHA. ",
+          "state_rms": 0.041915751877457115,
+          "decision_flips": 0,
+          "score_rms": 0.7359067303671206,
+          "margin_shift_sum": 2.813552525432897,
+          "detector_score": 1.0172619829104104,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " BETA",
+              "new_choice": " BETA",
+              "decision_flip": false
+            },
+            {
+              "id": "verification",
+              "old_choice": " incomplete",
+              "new_choice": " incomplete",
+              "decision_flip": false
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        },
+        {
+          "segment": 7,
+          "start": 66,
+          "end": 70,
+          "text": "External action remains blocked.",
+          "state_rms": 0.038639064121590794,
+          "decision_flips": 0,
+          "score_rms": 0.43830469192434063,
+          "margin_shift_sum": 1.1008424795654719,
+          "detector_score": 0.5483889398808879,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " ALPHA",
+              "new_choice": " ALPHA",
+              "decision_flip": false
+            },
+            {
+              "id": "verification",
+              "old_choice": " incomplete",
+              "new_choice": " incomplete",
+              "decision_flip": false
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        },
+        {
+          "segment": 5,
+          "start": 44,
+          "end": 56,
+          "text": "Correction: the current verification status is incomplete, not complete. ",
+          "state_rms": 0.04134457332335961,
+          "decision_flips": 0,
+          "score_rms": 0.39530331806087105,
+          "margin_shift_sum": 0.5519987796287751,
+          "detector_score": 0.45050319602374855,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " ALPHA",
+              "new_choice": " ALPHA",
+              "decision_flip": false
+            },
+            {
+              "id": "verification",
+              "old_choice": " incomplete",
+              "new_choice": " incomplete",
+              "decision_flip": false
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        },
+        {
+          "segment": 1,
+          "start": 7,
+          "end": 15,
+          "text": "The old codeword was ALPHA. ",
+          "state_rms": 0.0510353085522253,
+          "decision_flips": 0,
+          "score_rms": 0.33197749829228634,
+          "margin_shift_sum": 0.8449213397689164,
+          "detector_score": 0.416469632269178,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " ALPHA",
+              "new_choice": " ALPHA",
+              "decision_flip": false
+            },
+            {
+              "id": "verification",
+              "old_choice": " complete",
+              "new_choice": " complete",
+              "decision_flip": false
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "fixture": "late_overwrite_with_long_prefix",
+      "history_tokens": 95,
+      "fixture_valid": true,
+      "w2_native_expected_accuracy": 1.0,
+      "detector_stats": {
+        "median": 0.2311724402407205,
+        "mad": 0.15739203566142795,
+        "threshold": 0.5459565115635764
+      },
+      "selected_causal_segments": [
+        2,
+        8,
+        10
+      ],
+      "selected_causal_event_texts": [
+        "Correction: the current codeword is HIGH, not LOW. ",
+        "New correction: the current codeword is WEST, not HIGH. ",
+        "External action remains blocked."
+      ],
+      "prune_trace": [
+        {
+          "from_segment": 2,
+          "candidate_later_segment": 8,
+          "same_functional_signature": true
+        },
+        {
+          "from_segment": 8,
+          "candidate_later_segment": 10,
+          "same_functional_signature": false
+        }
+      ],
+      "target_free_selected_anchor": {
+        "event_index": 8,
+        "anchor_pos": 71,
+        "replayed_tokens": 24,
+        "replay_fraction": 0.25263157894736843
+      },
+      "selected_vs_w2_native": {
+        "decision_agreement": 1.0,
+        "expected_accuracy": 1.0,
+        "score_rms_error": 0.22180437531689692
+      },
+      "oracle_latest_safe_anchor": {
+        "event_index": 8,
+        "anchor_pos": 71,
+        "replay_fraction": 0.25263157894736843
+      },
+      "target_free_matches_oracle_latest": true,
+      "target_free_functional_success": true,
+      "semantic_drift_top4": [
+        {
+          "segment": 8,
+          "start": 71,
+          "end": 86,
+          "text": "New correction: the current codeword is WEST, not HIGH. ",
+          "state_rms": 0.0404666663373201,
+          "decision_flips": 1,
+          "score_rms": 0.49223892655092605,
+          "margin_shift_sum": 0.17880511283874512,
+          "detector_score": 1000.5101194378349,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " LOW",
+              "new_choice": " WEST",
+              "decision_flip": true
+            },
+            {
+              "id": "verification",
+              "old_choice": " complete",
+              "new_choice": " complete",
+              "decision_flip": false
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        },
+        {
+          "segment": 2,
+          "start": 15,
+          "end": 29,
+          "text": "Correction: the current codeword is HIGH, not LOW. ",
+          "state_rms": 0.040053188335109624,
+          "decision_flips": 1,
+          "score_rms": 0.4256732447339367,
+          "margin_shift_sum": 0.47596168518066406,
+          "detector_score": 1000.4732694132521,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " LOW",
+              "new_choice": " HIGH",
+              "decision_flip": true
+            },
+            {
+              "id": "verification",
+              "old_choice": " complete",
+              "new_choice": " complete",
+              "decision_flip": false
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        },
+        {
+          "segment": 10,
+          "start": 91,
+          "end": 95,
+          "text": "External action remains blocked.",
+          "state_rms": 0.03943192941801461,
+          "decision_flips": 0,
+          "score_rms": 0.5119174233957361,
+          "margin_shift_sum": 1.1801865100860596,
+          "detector_score": 0.6299360744043421,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " LOW",
+              "new_choice": " LOW",
+              "decision_flip": false
+            },
+            {
+              "id": "verification",
+              "old_choice": " incomplete",
+              "new_choice": " incomplete",
+              "decision_flip": false
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        },
+        {
+          "segment": 1,
+          "start": 7,
+          "end": 15,
+          "text": "The old codeword was LOW. ",
+          "state_rms": 0.047645436941804974,
+          "decision_flips": 0,
+          "score_rms": 0.32884743904615227,
+          "margin_shift_sum": 0.6460529565811157,
+          "detector_score": 0.39345273470426384,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " LOW",
+              "new_choice": " LOW",
+              "decision_flip": false
+            },
+            {
+              "id": "verification",
+              "old_choice": " complete",
+              "new_choice": " complete",
+              "decision_flip": false
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "fixture": "single_early",
+      "history_tokens": 65,
+      "fixture_valid": true,
+      "w2_native_expected_accuracy": 1.0,
+      "detector_stats": {
+        "median": 0.20564137794695186,
+        "mad": 0.08328364597138344,
+        "threshold": 0.37220866988971874
+      },
+      "selected_causal_segments": [
+        2,
+        7
+      ],
+      "selected_causal_event_texts": [
+        "Correction: the current codeword is BETA, not ALPHA. ",
+        "External action remains blocked."
+      ],
+      "prune_trace": [
+        {
+          "from_segment": 2,
+          "candidate_later_segment": 7,
+          "same_functional_signature": false
+        }
+      ],
+      "target_free_selected_anchor": {
+        "event_index": 2,
+        "anchor_pos": 15,
+        "replayed_tokens": 50,
+        "replay_fraction": 0.7692307692307693
+      },
+      "selected_vs_w2_native": {
+        "decision_agreement": 1.0,
+        "expected_accuracy": 1.0,
+        "score_rms_error": 0.1533125385405268
+      },
+      "oracle_latest_safe_anchor": {
+        "event_index": 2,
+        "anchor_pos": 15,
+        "replay_fraction": 0.7692307692307693
+      },
+      "target_free_matches_oracle_latest": true,
+      "target_free_functional_success": true,
+      "semantic_drift_top4": [
+        {
+          "segment": 2,
+          "start": 15,
+          "end": 29,
+          "text": "Correction: the current codeword is BETA, not ALPHA. ",
+          "state_rms": 0.04158200085912691,
+          "decision_flips": 0,
+          "score_rms": 0.727684429644445,
+          "margin_shift_sum": 2.8511984426440904,
+          "detector_score": 1.012804273908854,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " BETA",
+              "new_choice": " BETA",
+              "decision_flip": false
+            },
+            {
+              "id": "verification",
+              "old_choice": " incomplete",
+              "new_choice": " incomplete",
+              "decision_flip": false
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        },
+        {
+          "segment": 7,
+          "start": 61,
+          "end": 65,
+          "text": "External action remains blocked.",
+          "state_rms": 0.0391778130275912,
+          "decision_flips": 0,
+          "score_rms": 0.4665803208347846,
+          "margin_shift_sum": 1.2423259191709803,
+          "detector_score": 0.5908129127518826,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " ALPHA",
+              "new_choice": " ALPHA",
+              "decision_flip": false
+            },
+            {
+              "id": "verification",
+              "old_choice": " incomplete",
+              "new_choice": " incomplete",
+              "decision_flip": false
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        },
+        {
+          "segment": 1,
+          "start": 7,
+          "end": 15,
+          "text": "The old codeword was ALPHA. ",
+          "state_rms": 0.05067614769276663,
+          "decision_flips": 0,
+          "score_rms": 0.2628423632942581,
+          "margin_shift_sum": 0.6309391078539193,
+          "detector_score": 0.32593627407965003,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " ALPHA",
+              "new_choice": " ALPHA",
+              "decision_flip": false
+            },
+            {
+              "id": "verification",
+              "old_choice": " complete",
+              "new_choice": " complete",
+              "decision_flip": false
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        },
+        {
+          "segment": 6,
+          "start": 54,
+          "end": 61,
+          "text": "Hypothesis one is weakened. ",
+          "state_rms": 0.04230068227123798,
+          "decision_flips": 0,
+          "score_rms": 0.19901744433018007,
+          "margin_shift_sum": 0.2959821195836412,
+          "detector_score": 0.2286156562885442,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " ALPHA",
+              "new_choice": " ALPHA",
+              "decision_flip": false
+            },
+            {
+              "id": "verification",
+              "old_choice": " incomplete",
+              "new_choice": " incomplete",
+              "decision_flip": false
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "fixture": "single_middle",
+      "history_tokens": 64,
+      "fixture_valid": true,
+      "w2_native_expected_accuracy": 1.0,
+      "detector_stats": {
+        "median": 0.25551730468440315,
+        "mad": 0.11179153337633456,
+        "threshold": 0.4791003714370723
+      },
+      "selected_causal_segments": [
+        4,
+        7
+      ],
+      "selected_causal_event_texts": [
+        "Correction: the current codeword is RED, not BLUE. ",
+        "External action remains blocked."
+      ],
+      "prune_trace": [
+        {
+          "from_segment": 4,
+          "candidate_later_segment": 7,
+          "same_functional_signature": false
+        }
+      ],
+      "target_free_selected_anchor": {
+        "event_index": 4,
+        "anchor_pos": 30,
+        "replayed_tokens": 34,
+        "replay_fraction": 0.53125
+      },
+      "selected_vs_w2_native": {
+        "decision_agreement": 1.0,
+        "expected_accuracy": 1.0,
+        "score_rms_error": 0.15079521568198898
+      },
+      "oracle_latest_safe_anchor": {
+        "event_index": 4,
+        "anchor_pos": 30,
+        "replay_fraction": 0.53125
+      },
+      "target_free_matches_oracle_latest": true,
+      "target_free_functional_success": true,
+      "semantic_drift_top4": [
+        {
+          "segment": 4,
+          "start": 30,
+          "end": 43,
+          "text": "Correction: the current codeword is RED, not BLUE. ",
+          "state_rms": 0.04623327500484958,
+          "decision_flips": 0,
+          "score_rms": 0.5650248852242574,
+          "margin_shift_sum": 2.2685284193139523,
+          "detector_score": 0.7918777271556526,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " RED",
+              "new_choice": " RED",
+              "decision_flip": false
+            },
+            {
+              "id": "verification",
+              "old_choice": " complete",
+              "new_choice": " complete",
+              "decision_flip": false
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        },
+        {
+          "segment": 7,
+          "start": 60,
+          "end": 64,
+          "text": "External action remains blocked.",
+          "state_rms": 0.03873106355454227,
+          "decision_flips": 0,
+          "score_rms": 0.4536234431005784,
+          "margin_shift_sum": 1.2456602936144918,
+          "detector_score": 0.5781894724620276,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " BLUE",
+              "new_choice": " BLUE",
+              "decision_flip": false
+            },
+            {
+              "id": "verification",
+              "old_choice": " incomplete",
+              "new_choice": " incomplete",
+              "decision_flip": false
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        },
+        {
+          "segment": 1,
+          "start": 7,
+          "end": 15,
+          "text": "The old codeword was BLUE. ",
+          "state_rms": 0.04292051742721903,
+          "decision_flips": 0,
+          "score_rms": 0.32769631600470556,
+          "margin_shift_sum": 1.018009196035564,
+          "detector_score": 0.429497235608262,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " BLUE",
+              "new_choice": " BLUE",
+              "decision_flip": false
+            },
+            {
+              "id": "verification",
+              "old_choice": " complete",
+              "new_choice": " complete",
+              "decision_flip": false
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        },
+        {
+          "segment": 6,
+          "start": 53,
+          "end": 60,
+          "text": "Hypothesis one is weakened. ",
+          "state_rms": 0.04358268956200743,
+          "decision_flips": 0,
+          "score_rms": 0.23793688609765135,
+          "margin_shift_sum": 0.2763101407326758,
+          "detector_score": 0.2655679001709189,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " BLUE",
+              "new_choice": " BLUE",
+              "decision_flip": false
+            },
+            {
+              "id": "verification",
+              "old_choice": " incomplete",
+              "new_choice": " incomplete",
+              "decision_flip": false
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "fixture": "single_late",
+      "history_tokens": 66,
+      "fixture_valid": true,
+      "w2_native_expected_accuracy": 1.0,
+      "detector_stats": {
+        "median": 0.19078796141279164,
+        "mad": 0.048550884339118555,
+        "threshold": 0.28788973009102875
+      },
+      "selected_causal_segments": [
+        5,
+        6,
+        7
+      ],
+      "selected_causal_event_texts": [
+        "A historical memo mentions LOW but is obsolete. ",
+        "Correction: the current codeword is HIGH, not LOW. ",
+        "External action remains blocked."
+      ],
+      "prune_trace": [
+        {
+          "from_segment": 5,
+          "candidate_later_segment": 6,
+          "same_functional_signature": true
+        },
+        {
+          "from_segment": 6,
+          "candidate_later_segment": 7,
+          "same_functional_signature": false
+        }
+      ],
+      "target_free_selected_anchor": {
+        "event_index": 6,
+        "anchor_pos": 48,
+        "replayed_tokens": 18,
+        "replay_fraction": 0.2727272727272727
+      },
+      "selected_vs_w2_native": {
+        "decision_agreement": 1.0,
+        "expected_accuracy": 1.0,
+        "score_rms_error": 0.2903706516243719
+      },
+      "oracle_latest_safe_anchor": {
+        "event_index": 6,
+        "anchor_pos": 48,
+        "replay_fraction": 0.2727272727272727
+      },
+      "target_free_matches_oracle_latest": true,
+      "target_free_functional_success": true,
+      "semantic_drift_top4": [
+        {
+          "segment": 6,
+          "start": 48,
+          "end": 62,
+          "text": "Correction: the current codeword is HIGH, not LOW. ",
+          "state_rms": 0.043296832736456056,
+          "decision_flips": 1,
+          "score_rms": 0.34478450516550935,
+          "margin_shift_sum": 1.577812407485908,
+          "detector_score": 1000.5025657459141,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " LOW",
+              "new_choice": " HIGH",
+              "decision_flip": true
+            },
+            {
+              "id": "verification",
+              "old_choice": " incomplete",
+              "new_choice": " incomplete",
+              "decision_flip": false
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        },
+        {
+          "segment": 7,
+          "start": 62,
+          "end": 66,
+          "text": "External action remains blocked.",
+          "state_rms": 0.038394088532665634,
+          "decision_flips": 0,
+          "score_rms": 0.5333139418229805,
+          "margin_shift_sum": 1.3117624716833234,
+          "detector_score": 0.6644901889913128,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " LOW",
+              "new_choice": " LOW",
+              "decision_flip": false
+            },
+            {
+              "id": "verification",
+              "old_choice": " incomplete",
+              "new_choice": " incomplete",
+              "decision_flip": false
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        },
+        {
+          "segment": 5,
+          "start": 38,
+          "end": 48,
+          "text": "A historical memo mentions LOW but is obsolete. ",
+          "state_rms": 0.03984116255490402,
+          "decision_flips": 0,
+          "score_rms": 0.2447325714589153,
+          "margin_shift_sum": 0.605138550279662,
+          "detector_score": 0.3052464264868815,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " LOW",
+              "new_choice": " LOW",
+              "decision_flip": false
+            },
+            {
+              "id": "verification",
+              "old_choice": " incomplete",
+              "new_choice": " incomplete",
+              "decision_flip": false
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        },
+        {
+          "segment": 2,
+          "start": 16,
+          "end": 26,
+          "text": "Unrelated telemetry packet 31 was archived. ",
+          "state_rms": 0.032761692871570755,
+          "decision_flips": 0,
+          "score_rms": 0.14544827006511024,
+          "margin_shift_sum": 0.47796628763899207,
+          "detector_score": 0.19324489882900944,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " LOW",
+              "new_choice": " LOW",
+              "decision_flip": false
+            },
+            {
+              "id": "verification",
+              "old_choice": " complete",
+              "new_choice": " complete",
+              "decision_flip": false
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "fixture": "single_distractor_heavy",
+      "history_tokens": 78,
+      "fixture_valid": true,
+      "w2_native_expected_accuracy": 1.0,
+      "detector_stats": {
+        "median": 0.23581269674316982,
+        "mad": 0.0763515636664063,
+        "threshold": 0.3885158240759824
+      },
+      "selected_causal_segments": [
+        5,
+        6,
+        8
+      ],
+      "selected_causal_event_texts": [
+        "Two unrelated sensors were recalibrated. ",
+        "Correction: the current codeword is WEST, not EAST. ",
+        "External action remains blocked."
+      ],
+      "prune_trace": [
+        {
+          "from_segment": 5,
+          "candidate_later_segment": 6,
+          "same_functional_signature": true
+        },
+        {
+          "from_segment": 6,
+          "candidate_later_segment": 8,
+          "same_functional_signature": true
+        }
+      ],
+      "target_free_selected_anchor": {
+        "event_index": 8,
+        "anchor_pos": 74,
+        "replayed_tokens": 4,
+        "replay_fraction": 0.05128205128205128
+      },
+      "selected_vs_w2_native": {
+        "decision_agreement": 1.0,
+        "expected_accuracy": 1.0,
+        "score_rms_error": 0.437374598101247
+      },
+      "oracle_latest_safe_anchor": {
+        "event_index": 8,
+        "anchor_pos": 74,
+        "replay_fraction": 0.05128205128205128
+      },
+      "target_free_matches_oracle_latest": true,
+      "target_free_functional_success": true,
+      "semantic_drift_top4": [
+        {
+          "segment": 6,
+          "start": 53,
+          "end": 67,
+          "text": "Correction: the current codeword is WEST, not EAST. ",
+          "state_rms": 0.03865781759819574,
+          "decision_flips": 1,
+          "score_rms": 0.3945552408921507,
+          "margin_shift_sum": 1.609366889402736,
+          "detector_score": 1000.5554919298324,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " EAST",
+              "new_choice": " WEST",
+              "decision_flip": true
+            },
+            {
+              "id": "verification",
+              "old_choice": " complete",
+              "new_choice": " complete",
+              "decision_flip": false
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        },
+        {
+          "segment": 5,
+          "start": 46,
+          "end": 53,
+          "text": "Two unrelated sensors were recalibrated. ",
+          "state_rms": 0.03872157419559707,
+          "decision_flips": 1,
+          "score_rms": 0.1446124015763597,
+          "margin_shift_sum": 0.735982968530152,
+          "detector_score": 1000.2182106984294,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " EAST",
+              "new_choice": " EAST",
+              "decision_flip": false
+            },
+            {
+              "id": "verification",
+              "old_choice": " incomplete",
+              "new_choice": " complete",
+              "decision_flip": true
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        },
+        {
+          "segment": 8,
+          "start": 74,
+          "end": 78,
+          "text": "External action remains blocked.",
+          "state_rms": 0.037993303806679854,
+          "decision_flips": 0,
+          "score_rms": 0.5221453750383723,
+          "margin_shift_sum": 1.474289785255678,
+          "detector_score": 0.6695743535639401,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " WEST",
+              "new_choice": " WEST",
+              "decision_flip": false
+            },
+            {
+              "id": "verification",
+              "old_choice": " incomplete",
+              "new_choice": " incomplete",
+              "decision_flip": false
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        },
+        {
+          "segment": 1,
+          "start": 7,
+          "end": 15,
+          "text": "The old codeword was EAST. ",
+          "state_rms": 0.0424755481031087,
+          "decision_flips": 0,
+          "score_rms": 0.23436116472133553,
+          "margin_shift_sum": 0.526667594735045,
+          "detector_score": 0.28702792419484,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " EAST",
+              "new_choice": " EAST",
+              "decision_flip": false
+            },
+            {
+              "id": "verification",
+              "old_choice": " complete",
+              "new_choice": " complete",
+              "decision_flip": false
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "success_definition": "A deployable-style selector must choose without W2-native full-history access, then be judged afterward against W2-native functional decisions.",
+  "claim_boundary": "Six small synthetic Mamba-130M histories. Fixed semantic probes and a fixed robust-outlier rule; this is an engineering proof-of-concept, not generic causal discovery or identity proof."
+}
