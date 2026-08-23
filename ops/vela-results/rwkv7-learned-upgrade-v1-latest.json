@@ -1,16 +1,362 @@
 {
-  "status": "RWKV7_LEARNED_UPGRADE_ERROR",
-  "error_type": "ModuleNotFoundError",
-  "error": "No module named 'numpy'",
-  "traceback_tail": [
-    "Traceback (most recent call last):",
-    "  File \"/home/runner/work/opened-arm/opened-arm/experiments/vela-active-state/rwkv7-learned-upgrade-v1/rwkv7_learned_upgrade.py\", line 199, in run",
-    "    model,args,ns=load_reference(weight_path)",
-    "                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^",
-    "  File \"/home/runner/work/opened-arm/opened-arm/experiments/vela-active-state/rwkv7-learned-upgrade-v1/rwkv7_learned_upgrade.py\", line 109, in load_reference",
-    "    ns={\"__name__\":\"rwkv7_grad_reference\"}; exec(compile(source,SOURCE_PATH,\"exec\"),ns,ns)",
-    "                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
-    "  File \"RWKV-v7/rwkv_v7_demo_rnn.py\", line 5, in <module>",
-    "ModuleNotFoundError: No module named 'numpy'"
-  ]
+  "status": "RWKV7_LEARNED_UPGRADE_MIGRATION_V1",
+  "source_commit": "524481d5099b38d9bc8ef1e89209161b86c8011b",
+  "weight_revision": "1e5090cdd819629ff8755e0e04f4db83f0bb9dbb",
+  "weight_file": "rwkv7-g1a-0.1b-20250728-ctx4096.pth",
+  "weight_sha256": "964f01cc4673273bbcf1b9c3cdc243d58af97bffeab51cb20c752eeaf048a3c6",
+  "training": {
+    "trainable": "all blocks.*.att.key.weight",
+    "lr": 5e-05,
+    "epochs": 2,
+    "train_examples": 12,
+    "epoch_loss": [
+      0.5247769551497186,
+      0.000239383984686962
+    ]
+  },
+  "capability": {
+    "baseline": {
+      "accuracy": 0.375,
+      "correction_accuracy": 0.16666666666666666,
+      "control_accuracy": 1.0,
+      "rows": [
+        {
+          "id": "color-A",
+          "chosen": " RED",
+          "expected": " BLUE",
+          "correct": false,
+          "scores": {
+            " BLUE": -1.423016435932368,
+            " RED": -1.137955665588379
+          }
+        },
+        {
+          "id": "color-B",
+          "chosen": " RED",
+          "expected": " RED",
+          "correct": true,
+          "scores": {
+            " BLUE": -1.3219199031591415,
+            " RED": -1.3075402975082397
+          }
+        },
+        {
+          "id": "code-A",
+          "chosen": " ALPHA",
+          "expected": " BETA",
+          "correct": false,
+          "scores": {
+            " BETA": -4.71557541936636,
+            " ALPHA": -3.5978066097013652
+          }
+        },
+        {
+          "id": "code-B",
+          "chosen": " BETA",
+          "expected": " ALPHA",
+          "correct": false,
+          "scores": {
+            " BETA": -3.0483181597664952,
+            " ALPHA": -3.7884333645924926
+          }
+        },
+        {
+          "id": "level-A",
+          "chosen": " LOW",
+          "expected": " HIGH",
+          "correct": false,
+          "scores": {
+            " HIGH": -4.994536399841309,
+            " LOW": -4.418239519000053
+          }
+        },
+        {
+          "id": "level-B",
+          "chosen": " HIGH",
+          "expected": " LOW",
+          "correct": false,
+          "scores": {
+            " HIGH": -3.9809858798980713,
+            " LOW": -4.992652349174023
+          }
+        },
+        {
+          "id": "control-A",
+          "chosen": " ALPHA",
+          "expected": " ALPHA",
+          "correct": true,
+          "scores": {
+            " ALPHA": -2.2508742893114686,
+            " BETA": -4.841908827424049
+          }
+        },
+        {
+          "id": "control-B",
+          "chosen": " BETA",
+          "expected": " BETA",
+          "correct": true,
+          "scores": {
+            " ALPHA": -5.8460275530815125,
+            " BETA": -2.8455593083053827
+          }
+        }
+      ]
+    },
+    "after": {
+      "accuracy": 1.0,
+      "correction_accuracy": 1.0,
+      "control_accuracy": 1.0,
+      "rows": [
+        {
+          "id": "color-A",
+          "chosen": " BLUE",
+          "expected": " BLUE",
+          "correct": true,
+          "scores": {
+            " BLUE": -0.0004855464931097231,
+            " RED": -16.21246337890625
+          }
+        },
+        {
+          "id": "color-B",
+          "chosen": " RED",
+          "expected": " RED",
+          "correct": true,
+          "scores": {
+            " BLUE": -19.584506057202816,
+            " RED": -6.48477507638745e-05
+          }
+        },
+        {
+          "id": "code-A",
+          "chosen": " BETA",
+          "expected": " BETA",
+          "correct": true,
+          "scores": {
+            " BETA": -0.00010549710350460373,
+            " ALPHA": -24.714911335242505
+          }
+        },
+        {
+          "id": "code-B",
+          "chosen": " ALPHA",
+          "expected": " ALPHA",
+          "correct": true,
+          "scores": {
+            " BETA": -21.455929158568324,
+            " ALPHA": -4.470284784474643e-05
+          }
+        },
+        {
+          "id": "level-A",
+          "chosen": " HIGH",
+          "expected": " HIGH",
+          "correct": true,
+          "scores": {
+            " HIGH": -0.05412563309073448,
+            " LOW": -3.828405194915831
+          }
+        },
+        {
+          "id": "level-B",
+          "chosen": " LOW",
+          "expected": " LOW",
+          "correct": true,
+          "scores": {
+            " HIGH": -2.987053871154785,
+            " LOW": -0.08893039636313915
+          }
+        },
+        {
+          "id": "control-A",
+          "chosen": " ALPHA",
+          "expected": " ALPHA",
+          "correct": true,
+          "scores": {
+            " ALPHA": -1.19920428248588,
+            " BETA": -3.09786094725132
+          }
+        },
+        {
+          "id": "control-B",
+          "chosen": " BETA",
+          "expected": " BETA",
+          "correct": true,
+          "scores": {
+            " ALPHA": -7.1400535106658936,
+            " BETA": -0.21479621529579163
+          }
+        }
+      ]
+    },
+    "overall_gain": 0.625,
+    "correction_gain": 0.8333333333333334,
+    "control_gain": 0.0
+  },
+  "migration": {
+    "direct_old_state": {
+      "state_error": {
+        "rms": 0.08003864506248377,
+        "l2": 62.422754528893876,
+        "max_abs": 8.661636352539062,
+        "numel": 608256
+      },
+      "functional": {
+        "decision_agreement": 0.75,
+        "expected_accuracy": 0.75
+      },
+      "probe": [
+        {
+          "id": "codeword",
+          "chosen": " ALPHA",
+          "expected": " BETA",
+          "correct": false,
+          "scores": {
+            " BETA": -1.1299256477504969,
+            " ALPHA": -0.9420111109502614
+          }
+        },
+        {
+          "id": "verification",
+          "chosen": " incomplete",
+          "expected": " incomplete",
+          "correct": true,
+          "scores": {
+            " incomplete": -3.732311248779297,
+            " complete": -4.679642677307129
+          }
+        },
+        {
+          "id": "project",
+          "chosen": " active",
+          "expected": " active",
+          "correct": true,
+          "scores": {
+            " active": -2.2500643730163574,
+            " paused": -8.092628479003906
+          }
+        },
+        {
+          "id": "hypothesis",
+          "chosen": " weakened",
+          "expected": " weakened",
+          "correct": true,
+          "scores": {
+            " weakened": -13.551199913024902,
+            " strengthened": -14.92182445526123
+          }
+        }
+      ]
+    },
+    "before_correction_anchor": {
+      "state_error": {
+        "rms": 0.08496505935917421,
+        "l2": 66.26490290746611,
+        "max_abs": 5.771335601806641,
+        "numel": 608256
+      },
+      "functional": {
+        "decision_agreement": 1.0,
+        "expected_accuracy": 1.0
+      },
+      "probe": [
+        {
+          "id": "codeword",
+          "chosen": " BETA",
+          "expected": " BETA",
+          "correct": true,
+          "scores": {
+            " BETA": -0.06798510765656829,
+            " ALPHA": -3.4444169342750683
+          }
+        },
+        {
+          "id": "verification",
+          "chosen": " incomplete",
+          "expected": " incomplete",
+          "correct": true,
+          "scores": {
+            " incomplete": -3.2711057662963867,
+            " complete": -4.884871959686279
+          }
+        },
+        {
+          "id": "project",
+          "chosen": " active",
+          "expected": " active",
+          "correct": true,
+          "scores": {
+            " active": -1.9094537496566772,
+            " paused": -8.564361572265625
+          }
+        },
+        {
+          "id": "hypothesis",
+          "chosen": " weakened",
+          "expected": " weakened",
+          "correct": true,
+          "scores": {
+            " weakened": -12.856232643127441,
+            " strengthened": -14.341450691223145
+          }
+        }
+      ]
+    },
+    "w2_native": {
+      "state_error": {
+        "rms": 0.0,
+        "l2": 0.0,
+        "max_abs": 0.0,
+        "numel": 608256
+      },
+      "functional": {
+        "decision_agreement": 1.0,
+        "expected_accuracy": 1.0
+      },
+      "probe": [
+        {
+          "id": "codeword",
+          "chosen": " BETA",
+          "expected": " BETA",
+          "correct": true,
+          "scores": {
+            " BETA": -0.008540303446352482,
+            " ALPHA": -6.473859982477734
+          }
+        },
+        {
+          "id": "verification",
+          "chosen": " incomplete",
+          "expected": " incomplete",
+          "correct": true,
+          "scores": {
+            " incomplete": -3.3598458766937256,
+            " complete": -5.166720390319824
+          }
+        },
+        {
+          "id": "project",
+          "chosen": " active",
+          "expected": " active",
+          "correct": true,
+          "scores": {
+            " active": -2.694749355316162,
+            " paused": -9.650094985961914
+          }
+        },
+        {
+          "id": "hypothesis",
+          "chosen": " weakened",
+          "expected": " weakened",
+          "correct": true,
+          "scores": {
+            " weakened": -11.285394668579102,
+            " strengthened": -12.907438278198242
+          }
+        }
+      ]
+    }
+  },
+  "success_definition": "Cross-architecture replication requires a real held-out capability gain and compares migrated W2 against W2-native after the same causal history, not against W1 output.",
+  "claim_boundary": "Actual released RWKV-7 0.1B weights and pinned official RNN equations, with a narrow learned update to recurrent key projections. Small synthetic evidence only; not a backbone promotion or identity proof."
 }
