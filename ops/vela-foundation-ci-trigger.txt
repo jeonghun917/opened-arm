@@ -1,4 +1,4 @@
 VELA foundation CI trigger.
-Run: 2026-08-24 validated replay fallback executor.
-Ars-Mentis target: vela-foundation-runtime @ 22fcf4843b9c4da441a944fa732ccc35f80b533c
-Trigger revision: 3
+Run: 2026-08-24 event-log restart recovery hardening.
+Ars-Mentis target: vela-foundation-runtime @ 7f5b47d39f058808a7f36440c2593430df031605
+Trigger revision: 4
