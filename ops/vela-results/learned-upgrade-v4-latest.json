@@ -1,0 +1,559 @@
+{
+  "status": "LEARNED_UPGRADE_DECISION_FIDELITY",
+  "model": "state-spaces/mamba-130m-hf",
+  "torch_version": "2.13.0+cu130",
+  "transformers_version": "4.57.6",
+  "training": {
+    "trainable_pattern": "*.mixer.x_proj.weight",
+    "lr": 0.0001,
+    "epochs": 3,
+    "train_examples": 16,
+    "epoch_mean_loss": [
+      1.7653103712946177,
+      0.46971735171973705,
+      0.09344085355405696
+    ]
+  },
+  "capability": {
+    "baseline_accuracy": 0.3333333333333333,
+    "after_accuracy": 0.9166666666666666,
+    "baseline_correction_accuracy": 0.125,
+    "after_correction_accuracy": 1.0,
+    "baseline_control_accuracy": 0.75,
+    "after_control_accuracy": 0.75
+  },
+  "migration": {
+    "history_tokens": 59,
+    "target": "W2-native after same causal history",
+    "w1_probe_before_upgrade": [
+      {
+        "id": "codeword",
+        "expected": " BETA",
+        "chosen": " ALPHA",
+        "correct": false,
+        "margin": -1.659647183958441,
+        "scores": {
+          " BETA": -2.612269492354244,
+          " ALPHA": -0.952622308395803
+        }
+      },
+      {
+        "id": "verification",
+        "expected": " incomplete",
+        "chosen": " complete",
+        "correct": false,
+        "margin": -0.12821578979492188,
+        "scores": {
+          " incomplete": -7.121716499328613,
+          " complete": -6.993500709533691
+        }
+      },
+      {
+        "id": "project",
+        "expected": " active",
+        "chosen": " active",
+        "correct": true,
+        "margin": 4.662353515625,
+        "scores": {
+          " active": -4.066908836364746,
+          " paused": -8.729262351989746
+        }
+      },
+      {
+        "id": "hypothesis",
+        "expected": " weakened",
+        "chosen": " weakened",
+        "correct": true,
+        "margin": 0.1342010498046875,
+        "scores": {
+          " weakened": -15.193031311035156,
+          " strengthened": -15.327232360839844
+        }
+      }
+    ],
+    "w2_native_probe": [
+      {
+        "id": "codeword",
+        "expected": " BETA",
+        "chosen": " BETA",
+        "correct": true,
+        "margin": 1.6363252932642354,
+        "scores": {
+          " BETA": -0.19153947006270755,
+          " ALPHA": -1.827864763326943
+        }
+      },
+      {
+        "id": "verification",
+        "expected": " incomplete",
+        "chosen": " incomplete",
+        "correct": true,
+        "margin": 0.8521308898925781,
+        "scores": {
+          " incomplete": -5.815443992614746,
+          " complete": -6.667574882507324
+        }
+      },
+      {
+        "id": "project",
+        "expected": " active",
+        "chosen": " active",
+        "correct": true,
+        "margin": 6.326472759246826,
+        "scores": {
+          " active": -2.8883414268493652,
+          " paused": -9.214814186096191
+        }
+      },
+      {
+        "id": "hypothesis",
+        "expected": " weakened",
+        "chosen": " strengthened",
+        "correct": false,
+        "margin": -0.10144805908203125,
+        "scores": {
+          " weakened": -14.857287406921387,
+          " strengthened": -14.755839347839355
+        }
+      }
+    ],
+    "rows": [
+      {
+        "w2_replayed_recent_tokens": 0,
+        "w1_history_tokens_kept_without_recompute": 59,
+        "state_error_vs_w2_native": {
+          "rms": 0.056571591356467395,
+          "l2": 48.57520276546584,
+          "max_abs": 14.055339813232422,
+          "numel": 737280
+        },
+        "probe_comparison_vs_w2_native": {
+          "decision_agreement": 0.75,
+          "score_rms_error": 0.6521590431179543,
+          "mean_margin_abs_error": 0.7565752497139329,
+          "expected_accuracy": 0.5
+        },
+        "probe_rows": [
+          {
+            "id": "codeword",
+            "expected": " BETA",
+            "chosen": " ALPHA",
+            "correct": false,
+            "margin": -0.7955414442694746,
+            "scores": {
+              " BETA": -1.2332224533311091,
+              " ALPHA": -0.43768100906163454
+            }
+          },
+          {
+            "id": "verification",
+            "expected": " incomplete",
+            "chosen": " incomplete",
+            "correct": true,
+            "margin": 0.5643291473388672,
+            "scores": {
+              " incomplete": -6.202771186828613,
+              " complete": -6.7671003341674805
+            }
+          },
+          {
+            "id": "project",
+            "expected": " active",
+            "chosen": " active",
+            "correct": true,
+            "margin": 6.090778350830078,
+            "scores": {
+              " active": -2.7634992599487305,
+              " paused": -8.854277610778809
+            }
+          },
+          {
+            "id": "hypothesis",
+            "expected": " weakened",
+            "chosen": " strengthened",
+            "correct": false,
+            "margin": -0.17238616943359375,
+            "scores": {
+              " weakened": -15.088665962219238,
+              " strengthened": -14.916279792785645
+            }
+          }
+        ]
+      },
+      {
+        "w2_replayed_recent_tokens": 2,
+        "w1_history_tokens_kept_without_recompute": 57,
+        "state_error_vs_w2_native": {
+          "rms": 0.04613628916234946,
+          "l2": 39.614929457894476,
+          "max_abs": 1.488515853881836,
+          "numel": 737280
+        },
+        "probe_comparison_vs_w2_native": {
+          "decision_agreement": 0.75,
+          "score_rms_error": 0.6398193602519316,
+          "mean_margin_abs_error": 0.7450512711038755,
+          "expected_accuracy": 0.5
+        },
+        "probe_rows": [
+          {
+            "id": "codeword",
+            "expected": " BETA",
+            "chosen": " ALPHA",
+            "correct": false,
+            "margin": -0.7415300330030732,
+            "scores": {
+              " BETA": -1.1942751106689684,
+              " ALPHA": -0.4527450776658952
+            }
+          },
+          {
+            "id": "verification",
+            "expected": " incomplete",
+            "chosen": " incomplete",
+            "correct": true,
+            "margin": 0.6237068176269531,
+            "scores": {
+              " incomplete": -6.1384687423706055,
+              " complete": -6.762175559997559
+            }
+          },
+          {
+            "id": "project",
+            "expected": " active",
+            "chosen": " active",
+            "correct": true,
+            "margin": 6.040796279907227,
+            "scores": {
+              " active": -2.791073799133301,
+              " paused": -8.831870079040527
+            }
+          },
+          {
+            "id": "hypothesis",
+            "expected": " weakened",
+            "chosen": " strengthened",
+            "correct": false,
+            "margin": -0.189697265625,
+            "scores": {
+              " weakened": -15.130783081054688,
+              " strengthened": -14.941085815429688
+            }
+          }
+        ]
+      },
+      {
+        "w2_replayed_recent_tokens": 4,
+        "w1_history_tokens_kept_without_recompute": 55,
+        "state_error_vs_w2_native": {
+          "rms": 0.036330879751129905,
+          "l2": 31.195513653464488,
+          "max_abs": 1.3060264587402344,
+          "numel": 737280
+        },
+        "probe_comparison_vs_w2_native": {
+          "decision_agreement": 0.75,
+          "score_rms_error": 0.6380350379943213,
+          "mean_margin_abs_error": 0.739201110041904,
+          "expected_accuracy": 0.5
+        },
+        "probe_rows": [
+          {
+            "id": "codeword",
+            "expected": " BETA",
+            "chosen": " ALPHA",
+            "correct": false,
+            "margin": -0.7323715609963983,
+            "scores": {
+              " BETA": -1.1868794860783964,
+              " ALPHA": -0.4545079250819981
+            }
+          },
+          {
+            "id": "verification",
+            "expected": " incomplete",
+            "chosen": " incomplete",
+            "correct": true,
+            "margin": 0.6310634613037109,
+            "scores": {
+              " incomplete": -6.110828399658203,
+              " complete": -6.741891860961914
+            }
+          },
+          {
+            "id": "project",
+            "expected": " active",
+            "chosen": " active",
+            "correct": true,
+            "margin": 6.06483268737793,
+            "scores": {
+              " active": -2.7622203826904297,
+              " paused": -8.82705307006836
+            }
+          },
+          {
+            "id": "hypothesis",
+            "expected": " weakened",
+            "chosen": " strengthened",
+            "correct": false,
+            "margin": -0.20684814453125,
+            "scores": {
+              " weakened": -15.15009593963623,
+              " strengthened": -14.94324779510498
+            }
+          }
+        ]
+      },
+      {
+        "w2_replayed_recent_tokens": 8,
+        "w1_history_tokens_kept_without_recompute": 51,
+        "state_error_vs_w2_native": {
+          "rms": 0.03188546241388029,
+          "l2": 27.378455597357128,
+          "max_abs": 1.3545417785644531,
+          "numel": 737280
+        },
+        "probe_comparison_vs_w2_native": {
+          "decision_agreement": 0.75,
+          "score_rms_error": 0.6428283891077174,
+          "mean_margin_abs_error": 0.7515151862899074,
+          "expected_accuracy": 0.5
+        },
+        "probe_rows": [
+          {
+            "id": "codeword",
+            "expected": " BETA",
+            "chosen": " ALPHA",
+            "correct": false,
+            "margin": -0.7530674659792567,
+            "scores": {
+              " BETA": -1.2005942776013399,
+              " ALPHA": -0.4475268116220832
+            }
+          },
+          {
+            "id": "verification",
+            "expected": " incomplete",
+            "chosen": " incomplete",
+            "correct": true,
+            "margin": 0.6379241943359375,
+            "scores": {
+              " incomplete": -6.101222991943359,
+              " complete": -6.739147186279297
+            }
+          },
+          {
+            "id": "project",
+            "expected": " active",
+            "chosen": " active",
+            "correct": true,
+            "margin": 6.052509546279907,
+            "scores": {
+              " active": -2.763099431991577,
+              " paused": -8.815608978271484
+            }
+          },
+          {
+            "id": "hypothesis",
+            "expected": " weakened",
+            "chosen": " strengthened",
+            "correct": false,
+            "margin": -0.22994613647460938,
+            "scores": {
+              " weakened": -15.158394813537598,
+              " strengthened": -14.928448677062988
+            }
+          }
+        ]
+      },
+      {
+        "w2_replayed_recent_tokens": 16,
+        "w1_history_tokens_kept_without_recompute": 43,
+        "state_error_vs_w2_native": {
+          "rms": 0.024218213007500697,
+          "l2": 20.794971102083014,
+          "max_abs": 1.1822376251220703,
+          "numel": 737280
+        },
+        "probe_comparison_vs_w2_native": {
+          "decision_agreement": 0.75,
+          "score_rms_error": 0.6096692749447701,
+          "mean_margin_abs_error": 0.6772025604150258,
+          "expected_accuracy": 0.5
+        },
+        "probe_rows": [
+          {
+            "id": "codeword",
+            "expected": " BETA",
+            "chosen": " ALPHA",
+            "correct": false,
+            "margin": -0.7193343422404723,
+            "scores": {
+              " BETA": -1.1770931209466653,
+              " ALPHA": -0.45775877870619297
+            }
+          },
+          {
+            "id": "verification",
+            "expected": " incomplete",
+            "chosen": " incomplete",
+            "correct": true,
+            "margin": 0.713775634765625,
+            "scores": {
+              " incomplete": -5.9629058837890625,
+              " complete": -6.6766815185546875
+            }
+          },
+          {
+            "id": "project",
+            "expected": " active",
+            "chosen": " active",
+            "correct": true,
+            "margin": 6.1281492710113525,
+            "scores": {
+              " active": -2.7881524562835693,
+              " paused": -8.916301727294922
+            }
+          },
+          {
+            "id": "hypothesis",
+            "expected": " weakened",
+            "chosen": " strengthened",
+            "correct": false,
+            "margin": -0.0849761962890625,
+            "scores": {
+              " weakened": -14.804579734802246,
+              " strengthened": -14.719603538513184
+            }
+          }
+        ]
+      },
+      {
+        "w2_replayed_recent_tokens": 32,
+        "w1_history_tokens_kept_without_recompute": 27,
+        "state_error_vs_w2_native": {
+          "rms": 0.019406626761706087,
+          "l2": 16.66350207480631,
+          "max_abs": 1.1627912521362305,
+          "numel": 737280
+        },
+        "probe_comparison_vs_w2_native": {
+          "decision_agreement": 0.75,
+          "score_rms_error": 0.6034933770677177,
+          "mean_margin_abs_error": 0.6333296589727979,
+          "expected_accuracy": 0.5
+        },
+        "probe_rows": [
+          {
+            "id": "codeword",
+            "expected": " BETA",
+            "chosen": " ALPHA",
+            "correct": false,
+            "margin": -0.7252828514465364,
+            "scores": {
+              " BETA": -1.1825455164798768,
+              " ALPHA": -0.45726266503334045
+            }
+          },
+          {
+            "id": "verification",
+            "expected": " incomplete",
+            "chosen": " incomplete",
+            "correct": true,
+            "margin": 0.7974281311035156,
+            "scores": {
+              " incomplete": -5.742094039916992,
+              " complete": -6.539522171020508
+            }
+          },
+          {
+            "id": "project",
+            "expected": " active",
+            "chosen": " active",
+            "correct": true,
+            "margin": 6.210838317871094,
+            "scores": {
+              " active": -2.8868894577026367,
+              " paused": -9.09772777557373
+            }
+          },
+          {
+            "id": "hypothesis",
+            "expected": " weakened",
+            "chosen": " strengthened",
+            "correct": false,
+            "margin": -0.10007476806640625,
+            "scores": {
+              " weakened": -14.763056755065918,
+              " strengthened": -14.662981986999512
+            }
+          }
+        ]
+      },
+      {
+        "w2_replayed_recent_tokens": 59,
+        "w1_history_tokens_kept_without_recompute": 0,
+        "state_error_vs_w2_native": {
+          "rms": 0.0,
+          "l2": 0.0,
+          "max_abs": 0.0,
+          "numel": 737280
+        },
+        "probe_comparison_vs_w2_native": {
+          "decision_agreement": 1.0,
+          "score_rms_error": 0.0,
+          "mean_margin_abs_error": 0.0,
+          "expected_accuracy": 0.75
+        },
+        "probe_rows": [
+          {
+            "id": "codeword",
+            "expected": " BETA",
+            "chosen": " BETA",
+            "correct": true,
+            "margin": 1.6363252932642354,
+            "scores": {
+              " BETA": -0.19153947006270755,
+              " ALPHA": -1.827864763326943
+            }
+          },
+          {
+            "id": "verification",
+            "expected": " incomplete",
+            "chosen": " incomplete",
+            "correct": true,
+            "margin": 0.8521308898925781,
+            "scores": {
+              " incomplete": -5.815443992614746,
+              " complete": -6.667574882507324
+            }
+          },
+          {
+            "id": "project",
+            "expected": " active",
+            "chosen": " active",
+            "correct": true,
+            "margin": 6.326472759246826,
+            "scores": {
+              " active": -2.8883414268493652,
+              " paused": -9.214814186096191
+            }
+          },
+          {
+            "id": "hypothesis",
+            "expected": " weakened",
+            "chosen": " strengthened",
+            "correct": false,
+            "margin": -0.10144805908203125,
+            "scores": {
+              " weakened": -14.857287406921387,
+              " strengthened": -14.755839347839355
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "success_definition": "W2 must improve held-out capability, while migrated W2 is compared to W2-native decisions/margins rather than to W1 outputs.",
+  "claim_boundary": "Narrow synthetic learned upgrade and task-relevant migration probe. This is stronger than raw-logit matching but still not broad reasoning, identity, or consciousness evidence."
+}
