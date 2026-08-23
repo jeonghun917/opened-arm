@@ -18,6 +18,14 @@ v1 = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(v1)
 sel, dep, v3, v4, fa = v1.sel, v1.dep, v1.v3, v1.v4, v1.fa
 
+# The shared causal-dependency helper performs in-place recurrent-cache updates.
+# Training remains outside this path; migration/replay is inference-only.
+_orig_run_slice = dep.run_slice
+def _safe_run_slice(model, ids, start, end, cache):
+    with torch.no_grad():
+        return _orig_run_slice(model, ids, start, end, cache)
+dep.run_slice = _safe_run_slice
+
 PREFIX_FX = next(fx for fx in sel.FIXTURES if fx["id"] == "single_early")
 VARIANTS = ["w2_event_early", "w2_event_middle", "w2_event_late"]
 EPS = 1e-8
