@@ -13,12 +13,17 @@ on:
       - vela-foundation-ci
     paths:
       - .github/workflows/vela-foundation-ci.yml
+  pull_request:
+    branches:
+      - vela-foundation-ci
+    paths:
+      - ops/vela-foundation-ci-probe.txt
 
 permissions:
   contents: read
 
 concurrency:
-  group: vela-foundation-ci-${{ inputs.ars_ref || 'vela-foundation-runtime' }}
+  group: vela-foundation-ci-${{ inputs.ars_ref || 'vela-foundation-runtime' }}-${{ github.event.pull_request.number || github.run_id }}
   cancel-in-progress: false
 
 jobs:
