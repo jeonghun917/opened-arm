@@ -1,16 +1,21 @@
 {
   "status": "RWKV7_LEARNED_UPGRADE_ERROR",
-  "error_type": "ModuleNotFoundError",
-  "error": "No module named 'numpy'",
+  "error_type": "AttributeError",
+  "error": "'NoneType' object has no attribute 'float'",
   "traceback_tail": [
     "Traceback (most recent call last):",
-    "  File \"/home/runner/work/opened-arm/opened-arm/experiments/vela-active-state/rwkv7-learned-upgrade-v1/rwkv7_learned_upgrade.py\", line 199, in run",
-    "    model,args,ns=load_reference(weight_path)",
-    "                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^",
-    "  File \"/home/runner/work/opened-arm/opened-arm/experiments/vela-active-state/rwkv7-learned-upgrade-v1/rwkv7_learned_upgrade.py\", line 109, in load_reference",
-    "    ns={\"__name__\":\"rwkv7_grad_reference\"}; exec(compile(source,SOURCE_PATH,\"exec\"),ns,ns)",
-    "                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
-    "  File \"RWKV-v7/rwkv_v7_demo_rnn.py\", line 5, in <module>",
-    "ModuleNotFoundError: No module named 'numpy'"
+    "  File \"/home/runner/work/opened-arm/opened-arm/experiments/vela-active-state/rwkv7-learned-upgrade-v1/rwkv7_learned_upgrade.py\", line 206, in run",
+    "    baseline=eval_model(model,ns,tok)",
+    "             ^^^^^^^^^^^^^^^^^^^^^^^^",
+    "  File \"/home/runner/work/opened-arm/opened-arm/experiments/vela-active-state/rwkv7-learned-upgrade-v1/rwkv7_learned_upgrade.py\", line 158, in eval_model",
+    "    scores={c:candidate_score(model,ns,tok,st,\"\",c) for c in fx[\"candidates\"]}; chosen=max(scores,key=scores.get); ok=chosen==fx[\"expected\"]",
+    "           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+    "  File \"/home/runner/work/opened-arm/opened-arm/experiments/vela-active-state/rwkv7-learned-upgrade-v1/rwkv7_learned_upgrade.py\", line 158, in <dictcomp>",
+    "    scores={c:candidate_score(model,ns,tok,st,\"\",c) for c in fx[\"candidates\"]}; chosen=max(scores,key=scores.get); ok=chosen==fx[\"expected\"]",
+    "              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+    "  File \"/home/runner/work/opened-arm/opened-arm/experiments/vela-active-state/rwkv7-learned-upgrade-v1/rwkv7_learned_upgrade.py\", line 149, in candidate_score",
+    "    total+=float(torch.log_softmax(out.float(),dim=-1)[tid])",
+    "                                   ^^^^^^^^^",
+    "AttributeError: 'NoneType' object has no attribute 'float'"
   ]
 }
