@@ -34,7 +34,7 @@ jobs:
         env:
           HF_HUB_DISABLE_TELEMETRY: '1'
           VELA_RESULT_PATH: ops/vela-results/sequential-w1-w2-w3-v1-latest.json
-        run: python experiments/vela-active-state/sequential-upgrade-v1/mamba_w1_w2_w3_chain.py
+        run: python experiments/vela-active-state/sequential-upgrade-v1/mamba_w1_w2_w3_chain_safe_runner.py
       - name: Commit result snapshot
         if: always()
         run: |
