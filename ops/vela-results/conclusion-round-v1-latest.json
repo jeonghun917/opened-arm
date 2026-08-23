@@ -1,0 +1,3087 @@
+{
+  "status": "VELA_CORE_HYPOTHESIS_CONCLUSION_ROUND_V1",
+  "model": "state-spaces/mamba-130m-hf",
+  "torch_version": "2.13.0+cu130",
+  "transformers_version": "4.57.6",
+  "experiments": {
+    "E1_primary_capability_gain": {
+      "baseline": {
+        "accuracy": 0.3333333333333333,
+        "correction_accuracy": 0.125,
+        "control_accuracy": 0.75,
+        "pair_summary": {
+          "codeword-control": {
+            "both_correct": true,
+            "choices": [
+              " ALPHA",
+              " BETA"
+            ],
+            "choice_flips": true
+          },
+          "codeword-correction": {
+            "both_correct": false,
+            "choices": [
+              " ALPHA",
+              " BETA"
+            ],
+            "choice_flips": true
+          },
+          "color": {
+            "both_correct": false,
+            "choices": [
+              " RED",
+              " BLUE"
+            ],
+            "choice_flips": true
+          },
+          "level": {
+            "both_correct": false,
+            "choices": [
+              " HIGH",
+              " HIGH"
+            ],
+            "choice_flips": false
+          },
+          "motion": {
+            "both_correct": false,
+            "choices": [
+              " START",
+              " STOP"
+            ],
+            "choice_flips": true
+          },
+          "plan-control": {
+            "both_correct": false,
+            "choices": [
+              " commit",
+              " commit"
+            ],
+            "choice_flips": false
+          }
+        },
+        "rows": [
+          {
+            "pair": "color",
+            "variant": "A",
+            "kind": "correction",
+            "expected": " BLUE",
+            "chosen": " RED",
+            "correct": false,
+            "margin": -1.346188809722662,
+            "scores": {
+              " BLUE": -2.11148127540946,
+              " RED": -0.7652924656867981
+            }
+          },
+          {
+            "pair": "color",
+            "variant": "B",
+            "kind": "correction",
+            "expected": " RED",
+            "chosen": " BLUE",
+            "correct": false,
+            "margin": -0.329918272793293,
+            "scores": {
+              " BLUE": -1.1411760970950127,
+              " RED": -1.4710943698883057
+            }
+          },
+          {
+            "pair": "codeword-correction",
+            "variant": "A",
+            "kind": "correction",
+            "expected": " BETA",
+            "chosen": " ALPHA",
+            "correct": false,
+            "margin": -0.670372111722827,
+            "scores": {
+              " BETA": -2.206990865059197,
+              " ALPHA": -1.53661875333637
+            }
+          },
+          {
+            "pair": "codeword-correction",
+            "variant": "B",
+            "kind": "correction",
+            "expected": " ALPHA",
+            "chosen": " BETA",
+            "correct": false,
+            "margin": -2.1007193247787654,
+            "scores": {
+              " BETA": -0.9525676635093987,
+              " ALPHA": -3.053286988288164
+            }
+          },
+          {
+            "pair": "level",
+            "variant": "A",
+            "kind": "correction",
+            "expected": " HIGH",
+            "chosen": " HIGH",
+            "correct": true,
+            "margin": 0.941772073507309,
+            "scores": {
+              " HIGH": -4.410445854067802,
+              " LOW": -5.352217927575111
+            }
+          },
+          {
+            "pair": "level",
+            "variant": "B",
+            "kind": "correction",
+            "expected": " LOW",
+            "chosen": " HIGH",
+            "correct": false,
+            "margin": -0.5158971697092056,
+            "scores": {
+              " HIGH": -4.71245651692152,
+              " LOW": -5.228353686630726
+            }
+          },
+          {
+            "pair": "motion",
+            "variant": "A",
+            "kind": "correction",
+            "expected": " STOP",
+            "chosen": " START",
+            "correct": false,
+            "margin": -0.4205511538311839,
+            "scores": {
+              " STOP": -2.042754980735481,
+              " START": -1.6222038269042969
+            }
+          },
+          {
+            "pair": "motion",
+            "variant": "B",
+            "kind": "correction",
+            "expected": " START",
+            "chosen": " STOP",
+            "correct": false,
+            "margin": -0.03817039169371128,
+            "scores": {
+              " STOP": -1.537554806098342,
+              " START": -1.5757251977920532
+            }
+          },
+          {
+            "pair": "codeword-control",
+            "variant": "A",
+            "kind": "control",
+            "expected": " ALPHA",
+            "chosen": " ALPHA",
+            "correct": true,
+            "margin": 6.691531419754028,
+            "scores": {
+              " ALPHA": -1.1355123817920685,
+              " BETA": -7.827043801546097
+            }
+          },
+          {
+            "pair": "codeword-control",
+            "variant": "B",
+            "kind": "control",
+            "expected": " BETA",
+            "chosen": " BETA",
+            "correct": true,
+            "margin": 3.9907003697007895,
+            "scores": {
+              " ALPHA": -5.021690368652344,
+              " BETA": -1.0309899989515543
+            }
+          },
+          {
+            "pair": "plan-control",
+            "variant": "A",
+            "kind": "control",
+            "expected": " commit",
+            "chosen": " commit",
+            "correct": true,
+            "margin": 0.6712570190429688,
+            "scores": {
+              " commit": -4.267392158508301,
+              " collect": -4.9386491775512695
+            }
+          },
+          {
+            "pair": "plan-control",
+            "variant": "B",
+            "kind": "control",
+            "expected": " collect",
+            "chosen": " commit",
+            "correct": false,
+            "margin": -1.2698326110839844,
+            "scores": {
+              " commit": -4.173771858215332,
+              " collect": -5.443604469299316
+            }
+          }
+        ]
+      },
+      "after": {
+        "accuracy": 0.9166666666666666,
+        "correction_accuracy": 1.0,
+        "control_accuracy": 0.75,
+        "pair_summary": {
+          "codeword-control": {
+            "both_correct": true,
+            "choices": [
+              " ALPHA",
+              " BETA"
+            ],
+            "choice_flips": true
+          },
+          "codeword-correction": {
+            "both_correct": true,
+            "choices": [
+              " BETA",
+              " ALPHA"
+            ],
+            "choice_flips": true
+          },
+          "color": {
+            "both_correct": true,
+            "choices": [
+              " BLUE",
+              " RED"
+            ],
+            "choice_flips": true
+          },
+          "level": {
+            "both_correct": true,
+            "choices": [
+              " HIGH",
+              " LOW"
+            ],
+            "choice_flips": true
+          },
+          "motion": {
+            "both_correct": true,
+            "choices": [
+              " STOP",
+              " START"
+            ],
+            "choice_flips": true
+          },
+          "plan-control": {
+            "both_correct": false,
+            "choices": [
+              " commit",
+              " commit"
+            ],
+            "choice_flips": false
+          }
+        },
+        "rows": [
+          {
+            "pair": "color",
+            "variant": "A",
+            "kind": "correction",
+            "expected": " BLUE",
+            "chosen": " BLUE",
+            "correct": true,
+            "margin": 5.60794178629294,
+            "scores": {
+              " BLUE": -0.013747056480497122,
+              " RED": -5.6216888427734375
+            }
+          },
+          {
+            "pair": "color",
+            "variant": "B",
+            "kind": "correction",
+            "expected": " RED",
+            "chosen": " RED",
+            "correct": true,
+            "margin": 4.2710583712905645,
+            "scores": {
+              " BLUE": -4.2877908404916525,
+              " RED": -0.01673246920108795
+            }
+          },
+          {
+            "pair": "codeword-correction",
+            "variant": "A",
+            "kind": "correction",
+            "expected": " BETA",
+            "chosen": " BETA",
+            "correct": true,
+            "margin": 5.749033820582554,
+            "scores": {
+              " BETA": -0.011240692576393485,
+              " ALPHA": -5.760274513158947
+            }
+          },
+          {
+            "pair": "codeword-correction",
+            "variant": "B",
+            "kind": "correction",
+            "expected": " ALPHA",
+            "chosen": " ALPHA",
+            "correct": true,
+            "margin": 1.2117272324394435,
+            "scores": {
+              " BETA": -1.5534807268995792,
+              " ALPHA": -0.3417534944601357
+            }
+          },
+          {
+            "pair": "level",
+            "variant": "A",
+            "kind": "correction",
+            "expected": " HIGH",
+            "chosen": " HIGH",
+            "correct": true,
+            "margin": 2.8074628091417253,
+            "scores": {
+              " HIGH": -0.0888096415437758,
+              " LOW": -2.896272450685501
+            }
+          },
+          {
+            "pair": "level",
+            "variant": "B",
+            "kind": "correction",
+            "expected": " LOW",
+            "chosen": " LOW",
+            "correct": true,
+            "margin": 2.8801830974407494,
+            "scores": {
+              " HIGH": -2.9590008347295225,
+              " LOW": -0.07881773728877306
+            }
+          },
+          {
+            "pair": "motion",
+            "variant": "A",
+            "kind": "correction",
+            "expected": " STOP",
+            "chosen": " STOP",
+            "correct": true,
+            "margin": 4.870896167005412,
+            "scores": {
+              " STOP": -0.047805958543904126,
+              " START": -4.918702125549316
+            }
+          },
+          {
+            "pair": "motion",
+            "variant": "B",
+            "kind": "correction",
+            "expected": " START",
+            "chosen": " START",
+            "correct": true,
+            "margin": 3.7104111090302467,
+            "scores": {
+              " STOP": -3.746078658849001,
+              " START": -0.035667549818754196
+            }
+          },
+          {
+            "pair": "codeword-control",
+            "variant": "A",
+            "kind": "control",
+            "expected": " ALPHA",
+            "chosen": " ALPHA",
+            "correct": true,
+            "margin": 7.416549572721124,
+            "scores": {
+              " ALPHA": -0.451635604724288,
+              " BETA": -7.868185177445412
+            }
+          },
+          {
+            "pair": "codeword-control",
+            "variant": "B",
+            "kind": "control",
+            "expected": " BETA",
+            "chosen": " BETA",
+            "correct": true,
+            "margin": 6.6163866656133905,
+            "scores": {
+              " ALPHA": -6.66118947416544,
+              " BETA": -0.0448028085520491
+            }
+          },
+          {
+            "pair": "plan-control",
+            "variant": "A",
+            "kind": "control",
+            "expected": " commit",
+            "chosen": " commit",
+            "correct": true,
+            "margin": 3.5403517484664917,
+            "scores": {
+              " commit": -0.69764244556427,
+              " collect": -4.237994194030762
+            }
+          },
+          {
+            "pair": "plan-control",
+            "variant": "B",
+            "kind": "control",
+            "expected": " collect",
+            "chosen": " commit",
+            "correct": false,
+            "margin": -4.588470697402954,
+            "scores": {
+              " commit": -0.6370561122894287,
+              " collect": -5.225526809692383
+            }
+          }
+        ]
+      }
+    },
+    "E2_training_strength_curve": {
+      "epochs": [
+        {
+          "epoch": 1,
+          "mean_train_loss": 1.7653111815452576,
+          "capability": {
+            "accuracy": 0.75,
+            "correction_accuracy": 0.75,
+            "control_accuracy": 0.75,
+            "pair_summary": {
+              "codeword-control": {
+                "both_correct": true,
+                "choices": [
+                  " ALPHA",
+                  " BETA"
+                ],
+                "choice_flips": true
+              },
+              "codeword-correction": {
+                "both_correct": false,
+                "choices": [
+                  " BETA",
+                  " BETA"
+                ],
+                "choice_flips": false
+              },
+              "color": {
+                "both_correct": false,
+                "choices": [
+                  " RED",
+                  " RED"
+                ],
+                "choice_flips": false
+              },
+              "level": {
+                "both_correct": true,
+                "choices": [
+                  " HIGH",
+                  " LOW"
+                ],
+                "choice_flips": true
+              },
+              "motion": {
+                "both_correct": true,
+                "choices": [
+                  " STOP",
+                  " START"
+                ],
+                "choice_flips": true
+              },
+              "plan-control": {
+                "both_correct": false,
+                "choices": [
+                  " commit",
+                  " commit"
+                ],
+                "choice_flips": false
+              }
+            },
+            "rows": [
+              {
+                "pair": "color",
+                "variant": "A",
+                "kind": "correction",
+                "expected": " BLUE",
+                "chosen": " RED",
+                "correct": false,
+                "margin": -0.15686575137078762,
+                "scores": {
+                  " BLUE": -0.8769876714795828,
+                  " RED": -0.7201219201087952
+                }
+              },
+              {
+                "pair": "color",
+                "variant": "B",
+                "kind": "correction",
+                "expected": " RED",
+                "chosen": " RED",
+                "correct": true,
+                "margin": 0.2911625364795327,
+                "scores": {
+                  " BLUE": -0.9564047316089272,
+                  " RED": -0.6652421951293945
+                }
+              },
+              {
+                "pair": "codeword-correction",
+                "variant": "A",
+                "kind": "correction",
+                "expected": " BETA",
+                "chosen": " BETA",
+                "correct": true,
+                "margin": 1.2839416339993477,
+                "scores": {
+                  " BETA": -0.38690578704699874,
+                  " ALPHA": -1.6708474210463464
+                }
+              },
+              {
+                "pair": "codeword-correction",
+                "variant": "B",
+                "kind": "correction",
+                "expected": " ALPHA",
+                "chosen": " BETA",
+                "correct": false,
+                "margin": -1.5616773708024994,
+                "scores": {
+                  " BETA": -0.3501024794531986,
+                  " ALPHA": -1.911779850255698
+                }
+              },
+              {
+                "pair": "level",
+                "variant": "A",
+                "kind": "correction",
+                "expected": " HIGH",
+                "chosen": " HIGH",
+                "correct": true,
+                "margin": 0.46395828388631344,
+                "scores": {
+                  " HIGH": -1.734541056677699,
+                  " LOW": -2.1984993405640125
+                }
+              },
+              {
+                "pair": "level",
+                "variant": "B",
+                "kind": "correction",
+                "expected": " LOW",
+                "chosen": " LOW",
+                "correct": true,
+                "margin": 0.3572798892855644,
+                "scores": {
+                  " HIGH": -2.065946181304753,
+                  " LOW": -1.7086662920191884
+                }
+              },
+              {
+                "pair": "motion",
+                "variant": "A",
+                "kind": "correction",
+                "expected": " STOP",
+                "chosen": " STOP",
+                "correct": true,
+                "margin": 0.33219876093789935,
+                "scores": {
+                  " STOP": -0.8835164089687169,
+                  " START": -1.2157151699066162
+                }
+              },
+              {
+                "pair": "motion",
+                "variant": "B",
+                "kind": "correction",
+                "expected": " START",
+                "chosen": " START",
+                "correct": true,
+                "margin": 1.1976360469125211,
+                "scores": {
+                  " STOP": -1.6191304116509855,
+                  " START": -0.42149436473846436
+                }
+              },
+              {
+                "pair": "codeword-control",
+                "variant": "A",
+                "kind": "control",
+                "expected": " ALPHA",
+                "chosen": " ALPHA",
+                "correct": true,
+                "margin": 7.0608503092080355,
+                "scores": {
+                  " ALPHA": -0.631709648296237,
+                  " BETA": -7.6925599575042725
+                }
+              },
+              {
+                "pair": "codeword-control",
+                "variant": "B",
+                "kind": "control",
+                "expected": " BETA",
+                "chosen": " BETA",
+                "correct": true,
+                "margin": 5.282444986049086,
+                "scores": {
+                  " ALPHA": -5.4960601925849915,
+                  " BETA": -0.2136152065359056
+                }
+              },
+              {
+                "pair": "plan-control",
+                "variant": "A",
+                "kind": "control",
+                "expected": " commit",
+                "chosen": " commit",
+                "correct": true,
+                "margin": 1.8364450931549072,
+                "scores": {
+                  " commit": -2.2180049419403076,
+                  " collect": -4.054450035095215
+                }
+              },
+              {
+                "pair": "plan-control",
+                "variant": "B",
+                "kind": "control",
+                "expected": " collect",
+                "chosen": " commit",
+                "correct": false,
+                "margin": -2.878917694091797,
+                "scores": {
+                  " commit": -2.077920913696289,
+                  " collect": -4.956838607788086
+                }
+              }
+            ]
+          },
+          "direct_w1_state_error_vs_w2_native": {
+            "rms": 0.04175471923403472,
+            "l2": 35.852693986068324,
+            "max_abs": 7.812625885009766,
+            "numel": 737280
+          },
+          "direct_w1_probe_vs_w2_native": {
+            "decision_agreement": 1.0,
+            "expected_accuracy": 0.8333333333333334,
+            "score_rms_error": 0.2739880654608907
+          }
+        },
+        {
+          "epoch": 2,
+          "mean_train_loss": 0.46972360741347075,
+          "capability": {
+            "accuracy": 0.8333333333333334,
+            "correction_accuracy": 0.875,
+            "control_accuracy": 0.75,
+            "pair_summary": {
+              "codeword-control": {
+                "both_correct": true,
+                "choices": [
+                  " ALPHA",
+                  " BETA"
+                ],
+                "choice_flips": true
+              },
+              "codeword-correction": {
+                "both_correct": false,
+                "choices": [
+                  " BETA",
+                  " BETA"
+                ],
+                "choice_flips": false
+              },
+              "color": {
+                "both_correct": true,
+                "choices": [
+                  " BLUE",
+                  " RED"
+                ],
+                "choice_flips": true
+              },
+              "level": {
+                "both_correct": true,
+                "choices": [
+                  " HIGH",
+                  " LOW"
+                ],
+                "choice_flips": true
+              },
+              "motion": {
+                "both_correct": true,
+                "choices": [
+                  " STOP",
+                  " START"
+                ],
+                "choice_flips": true
+              },
+              "plan-control": {
+                "both_correct": false,
+                "choices": [
+                  " commit",
+                  " commit"
+                ],
+                "choice_flips": false
+              }
+            },
+            "rows": [
+              {
+                "pair": "color",
+                "variant": "A",
+                "kind": "correction",
+                "expected": " BLUE",
+                "chosen": " BLUE",
+                "correct": true,
+                "margin": 2.1803530994802713,
+                "scores": {
+                  " BLUE": -0.13125497661530972,
+                  " RED": -2.311608076095581
+                }
+              },
+              {
+                "pair": "color",
+                "variant": "B",
+                "kind": "correction",
+                "expected": " RED",
+                "chosen": " RED",
+                "correct": true,
+                "margin": 2.1253196629695594,
+                "scores": {
+                  " BLUE": -2.252416643779725,
+                  " RED": -0.1270969808101654
+                }
+              },
+              {
+                "pair": "codeword-correction",
+                "variant": "A",
+                "kind": "correction",
+                "expected": " BETA",
+                "chosen": " BETA",
+                "correct": true,
+                "margin": 3.5878732330165803,
+                "scores": {
+                  " BETA": -0.04652349022217095,
+                  " ALPHA": -3.6343967232387513
+                }
+              },
+              {
+                "pair": "codeword-correction",
+                "variant": "B",
+                "kind": "correction",
+                "expected": " ALPHA",
+                "chosen": " BETA",
+                "correct": false,
+                "margin": -0.38642715697642416,
+                "scores": {
+                  " BETA": -0.6132141699781641,
+                  " ALPHA": -0.9996413269545883
+                }
+              },
+              {
+                "pair": "level",
+                "variant": "A",
+                "kind": "correction",
+                "expected": " HIGH",
+                "chosen": " HIGH",
+                "correct": true,
+                "margin": 1.108325189910829,
+                "scores": {
+                  " HIGH": -0.42776541877537966,
+                  " LOW": -1.5360906086862087
+                }
+              },
+              {
+                "pair": "level",
+                "variant": "B",
+                "kind": "correction",
+                "expected": " LOW",
+                "chosen": " LOW",
+                "correct": true,
+                "margin": 1.6635665595531464,
+                "scores": {
+                  " HIGH": -1.9412597063928843,
+                  " LOW": -0.2776931468397379
+                }
+              },
+              {
+                "pair": "motion",
+                "variant": "A",
+                "kind": "correction",
+                "expected": " STOP",
+                "chosen": " STOP",
+                "correct": true,
+                "margin": 2.2262842358322814,
+                "scores": {
+                  " STOP": -0.2273307143477723,
+                  " START": -2.4536149501800537
+                }
+              },
+              {
+                "pair": "motion",
+                "variant": "B",
+                "kind": "correction",
+                "expected": " START",
+                "chosen": " START",
+                "correct": true,
+                "margin": 2.591222268063575,
+                "scores": {
+                  " STOP": -2.693581771571189,
+                  " START": -0.10235950350761414
+                }
+              },
+              {
+                "pair": "codeword-control",
+                "variant": "A",
+                "kind": "control",
+                "expected": " ALPHA",
+                "chosen": " ALPHA",
+                "correct": true,
+                "margin": 7.388836330734193,
+                "scores": {
+                  " ALPHA": -0.4372221762314439,
+                  " BETA": -7.826058506965637
+                }
+              },
+              {
+                "pair": "codeword-control",
+                "variant": "B",
+                "kind": "control",
+                "expected": " BETA",
+                "chosen": " BETA",
+                "correct": true,
+                "margin": 6.379793661879376,
+                "scores": {
+                  " ALPHA": -6.437644116580486,
+                  " BETA": -0.05785045470111072
+                }
+              },
+              {
+                "pair": "plan-control",
+                "variant": "A",
+                "kind": "control",
+                "expected": " commit",
+                "chosen": " commit",
+                "correct": true,
+                "margin": 2.7814865112304688,
+                "scores": {
+                  " commit": -1.1972720623016357,
+                  " collect": -3.9787585735321045
+                }
+              },
+              {
+                "pair": "plan-control",
+                "variant": "B",
+                "kind": "control",
+                "expected": " collect",
+                "chosen": " commit",
+                "correct": false,
+                "margin": -3.9284859895706177,
+                "scores": {
+                  " commit": -1.0792168378829956,
+                  " collect": -5.007702827453613
+                }
+              }
+            ]
+          },
+          "direct_w1_state_error_vs_w2_native": {
+            "rms": 0.05191900866560294,
+            "l2": 44.58026215706451,
+            "max_abs": 11.734386444091797,
+            "numel": 737280
+          },
+          "direct_w1_probe_vs_w2_native": {
+            "decision_agreement": 0.6666666666666666,
+            "expected_accuracy": 0.6666666666666666,
+            "score_rms_error": 0.37353259583230014
+          }
+        },
+        {
+          "epoch": 3,
+          "mean_train_loss": 0.09346337559691165,
+          "capability": {
+            "accuracy": 0.9166666666666666,
+            "correction_accuracy": 1.0,
+            "control_accuracy": 0.75,
+            "pair_summary": {
+              "codeword-control": {
+                "both_correct": true,
+                "choices": [
+                  " ALPHA",
+                  " BETA"
+                ],
+                "choice_flips": true
+              },
+              "codeword-correction": {
+                "both_correct": true,
+                "choices": [
+                  " BETA",
+                  " ALPHA"
+                ],
+                "choice_flips": true
+              },
+              "color": {
+                "both_correct": true,
+                "choices": [
+                  " BLUE",
+                  " RED"
+                ],
+                "choice_flips": true
+              },
+              "level": {
+                "both_correct": true,
+                "choices": [
+                  " HIGH",
+                  " LOW"
+                ],
+                "choice_flips": true
+              },
+              "motion": {
+                "both_correct": true,
+                "choices": [
+                  " STOP",
+                  " START"
+                ],
+                "choice_flips": true
+              },
+              "plan-control": {
+                "both_correct": false,
+                "choices": [
+                  " commit",
+                  " commit"
+                ],
+                "choice_flips": false
+              }
+            },
+            "rows": [
+              {
+                "pair": "color",
+                "variant": "A",
+                "kind": "correction",
+                "expected": " BLUE",
+                "chosen": " BLUE",
+                "correct": true,
+                "margin": 5.60794178629294,
+                "scores": {
+                  " BLUE": -0.013747056480497122,
+                  " RED": -5.6216888427734375
+                }
+              },
+              {
+                "pair": "color",
+                "variant": "B",
+                "kind": "correction",
+                "expected": " RED",
+                "chosen": " RED",
+                "correct": true,
+                "margin": 4.2710583712905645,
+                "scores": {
+                  " BLUE": -4.2877908404916525,
+                  " RED": -0.01673246920108795
+                }
+              },
+              {
+                "pair": "codeword-correction",
+                "variant": "A",
+                "kind": "correction",
+                "expected": " BETA",
+                "chosen": " BETA",
+                "correct": true,
+                "margin": 5.749033820582554,
+                "scores": {
+                  " BETA": -0.011240692576393485,
+                  " ALPHA": -5.760274513158947
+                }
+              },
+              {
+                "pair": "codeword-correction",
+                "variant": "B",
+                "kind": "correction",
+                "expected": " ALPHA",
+                "chosen": " ALPHA",
+                "correct": true,
+                "margin": 1.2117272324394435,
+                "scores": {
+                  " BETA": -1.5534807268995792,
+                  " ALPHA": -0.3417534944601357
+                }
+              },
+              {
+                "pair": "level",
+                "variant": "A",
+                "kind": "correction",
+                "expected": " HIGH",
+                "chosen": " HIGH",
+                "correct": true,
+                "margin": 2.8074628091417253,
+                "scores": {
+                  " HIGH": -0.0888096415437758,
+                  " LOW": -2.896272450685501
+                }
+              },
+              {
+                "pair": "level",
+                "variant": "B",
+                "kind": "correction",
+                "expected": " LOW",
+                "chosen": " LOW",
+                "correct": true,
+                "margin": 2.8801830974407494,
+                "scores": {
+                  " HIGH": -2.9590008347295225,
+                  " LOW": -0.07881773728877306
+                }
+              },
+              {
+                "pair": "motion",
+                "variant": "A",
+                "kind": "correction",
+                "expected": " STOP",
+                "chosen": " STOP",
+                "correct": true,
+                "margin": 4.870896167005412,
+                "scores": {
+                  " STOP": -0.047805958543904126,
+                  " START": -4.918702125549316
+                }
+              },
+              {
+                "pair": "motion",
+                "variant": "B",
+                "kind": "correction",
+                "expected": " START",
+                "chosen": " START",
+                "correct": true,
+                "margin": 3.7104111090302467,
+                "scores": {
+                  " STOP": -3.746078658849001,
+                  " START": -0.035667549818754196
+                }
+              },
+              {
+                "pair": "codeword-control",
+                "variant": "A",
+                "kind": "control",
+                "expected": " ALPHA",
+                "chosen": " ALPHA",
+                "correct": true,
+                "margin": 7.416549572721124,
+                "scores": {
+                  " ALPHA": -0.451635604724288,
+                  " BETA": -7.868185177445412
+                }
+              },
+              {
+                "pair": "codeword-control",
+                "variant": "B",
+                "kind": "control",
+                "expected": " BETA",
+                "chosen": " BETA",
+                "correct": true,
+                "margin": 6.6163866656133905,
+                "scores": {
+                  " ALPHA": -6.66118947416544,
+                  " BETA": -0.0448028085520491
+                }
+              },
+              {
+                "pair": "plan-control",
+                "variant": "A",
+                "kind": "control",
+                "expected": " commit",
+                "chosen": " commit",
+                "correct": true,
+                "margin": 3.5403517484664917,
+                "scores": {
+                  " commit": -0.69764244556427,
+                  " collect": -4.237994194030762
+                }
+              },
+              {
+                "pair": "plan-control",
+                "variant": "B",
+                "kind": "control",
+                "expected": " collect",
+                "chosen": " commit",
+                "correct": false,
+                "margin": -4.588470697402954,
+                "scores": {
+                  " commit": -0.6370561122894287,
+                  " collect": -5.225526809692383
+                }
+              }
+            ]
+          },
+          "direct_w1_state_error_vs_w2_native": {
+            "rms": 0.05656379877259334,
+            "l2": 48.56851166251695,
+            "max_abs": 14.055648803710938,
+            "numel": 737280
+          },
+          "direct_w1_probe_vs_w2_native": {
+            "decision_agreement": 0.8333333333333334,
+            "expected_accuracy": 0.6666666666666666,
+            "score_rms_error": 0.5409387166267516
+          }
+        }
+      ],
+      "weight_delta": {
+        "relative_l2": 0.013321301424081793,
+        "rms": 0.0012677001478580442,
+        "max_abs": 0.004417590796947479,
+        "numel": 2949120
+      }
+    },
+    "E3_seed_replication": {
+      "seed": 918,
+      "baseline_accuracy": 0.3333333333333333,
+      "after_accuracy": 0.9166666666666666,
+      "baseline_correction": 0.125,
+      "after_correction": 1.0,
+      "baseline_control": 0.75,
+      "after_control": 0.75,
+      "training": {
+        "epochs": [
+          {
+            "epoch": 1,
+            "mean_train_loss": 1.8867081850767136,
+            "capability": {
+              "accuracy": 0.8333333333333334,
+              "correction_accuracy": 0.875,
+              "control_accuracy": 0.75,
+              "pair_summary": {
+                "codeword-control": {
+                  "both_correct": true,
+                  "choices": [
+                    " ALPHA",
+                    " BETA"
+                  ],
+                  "choice_flips": true
+                },
+                "codeword-correction": {
+                  "both_correct": false,
+                  "choices": [
+                    " BETA",
+                    " BETA"
+                  ],
+                  "choice_flips": false
+                },
+                "color": {
+                  "both_correct": true,
+                  "choices": [
+                    " BLUE",
+                    " RED"
+                  ],
+                  "choice_flips": true
+                },
+                "level": {
+                  "both_correct": true,
+                  "choices": [
+                    " HIGH",
+                    " LOW"
+                  ],
+                  "choice_flips": true
+                },
+                "motion": {
+                  "both_correct": true,
+                  "choices": [
+                    " STOP",
+                    " START"
+                  ],
+                  "choice_flips": true
+                },
+                "plan-control": {
+                  "both_correct": false,
+                  "choices": [
+                    " commit",
+                    " commit"
+                  ],
+                  "choice_flips": false
+                }
+              },
+              "rows": [
+                {
+                  "pair": "color",
+                  "variant": "A",
+                  "kind": "correction",
+                  "expected": " BLUE",
+                  "chosen": " BLUE",
+                  "correct": true,
+                  "margin": 0.3257038164883852,
+                  "scores": {
+                    " BLUE": -0.6571949552744627,
+                    " RED": -0.9828987717628479
+                  }
+                },
+                {
+                  "pair": "color",
+                  "variant": "B",
+                  "kind": "correction",
+                  "expected": " RED",
+                  "chosen": " RED",
+                  "correct": true,
+                  "margin": 0.6306374371051788,
+                  "scores": {
+                    " BLUE": -1.1630352437496185,
+                    " RED": -0.5323978066444397
+                  }
+                },
+                {
+                  "pair": "codeword-correction",
+                  "variant": "A",
+                  "kind": "correction",
+                  "expected": " BETA",
+                  "chosen": " BETA",
+                  "correct": true,
+                  "margin": 1.3202928020618856,
+                  "scores": {
+                    " BETA": -0.38925612810999155,
+                    " ALPHA": -1.7095489301718771
+                  }
+                },
+                {
+                  "pair": "codeword-correction",
+                  "variant": "B",
+                  "kind": "correction",
+                  "expected": " ALPHA",
+                  "chosen": " BETA",
+                  "correct": false,
+                  "margin": -1.9343736011069268,
+                  "scores": {
+                    " BETA": -0.2754791851621121,
+                    " ALPHA": -2.209852786269039
+                  }
+                },
+                {
+                  "pair": "level",
+                  "variant": "A",
+                  "kind": "correction",
+                  "expected": " HIGH",
+                  "chosen": " HIGH",
+                  "correct": true,
+                  "margin": 0.7060437966138124,
+                  "scores": {
+                    " HIGH": -1.8438389021903276,
+                    " LOW": -2.54988269880414
+                  }
+                },
+                {
+                  "pair": "level",
+                  "variant": "B",
+                  "kind": "correction",
+                  "expected": " LOW",
+                  "chosen": " LOW",
+                  "correct": true,
+                  "margin": 0.1836118008941412,
+                  "scores": {
+                    " HIGH": -2.232292203232646,
+                    " LOW": -2.048680402338505
+                  }
+                },
+                {
+                  "pair": "motion",
+                  "variant": "A",
+                  "kind": "correction",
+                  "expected": " STOP",
+                  "chosen": " STOP",
+                  "correct": true,
+                  "margin": 0.8233142548706383,
+                  "scores": {
+                    " STOP": -0.7115655487868935,
+                    " START": -1.5348798036575317
+                  }
+                },
+                {
+                  "pair": "motion",
+                  "variant": "B",
+                  "kind": "correction",
+                  "expected": " START",
+                  "chosen": " START",
+                  "correct": true,
+                  "margin": 1.2350130518898368,
+                  "scores": {
+                    " STOP": -1.6372851571068168,
+                    " START": -0.40227210521698
+                  }
+                },
+                {
+                  "pair": "codeword-control",
+                  "variant": "A",
+                  "kind": "control",
+                  "expected": " ALPHA",
+                  "chosen": " ALPHA",
+                  "correct": true,
+                  "margin": 7.234322540462017,
+                  "scores": {
+                    " ALPHA": -0.6624187901616096,
+                    " BETA": -7.896741330623627
+                  }
+                },
+                {
+                  "pair": "codeword-control",
+                  "variant": "B",
+                  "kind": "control",
+                  "expected": " BETA",
+                  "chosen": " BETA",
+                  "correct": true,
+                  "margin": 5.210338947828859,
+                  "scores": {
+                    " ALPHA": -5.445967212319374,
+                    " BETA": -0.235628264490515
+                  }
+                },
+                {
+                  "pair": "plan-control",
+                  "variant": "A",
+                  "kind": "control",
+                  "expected": " commit",
+                  "chosen": " commit",
+                  "correct": true,
+                  "margin": 1.7497098445892334,
+                  "scores": {
+                    " commit": -2.357128381729126,
+                    " collect": -4.106838226318359
+                  }
+                },
+                {
+                  "pair": "plan-control",
+                  "variant": "B",
+                  "kind": "control",
+                  "expected": " collect",
+                  "chosen": " commit",
+                  "correct": false,
+                  "margin": -2.6872634887695312,
+                  "scores": {
+                    " commit": -2.298247814178467,
+                    " collect": -4.985511302947998
+                  }
+                }
+              ]
+            },
+            "direct_w1_state_error_vs_w2_native": {
+              "rms": 0.0398870583078976,
+              "l2": 34.249026738799394,
+              "max_abs": 6.201194763183594,
+              "numel": 737280
+            },
+            "direct_w1_probe_vs_w2_native": {
+              "decision_agreement": 1.0,
+              "expected_accuracy": 0.8333333333333334,
+              "score_rms_error": 0.2974878030876737
+            }
+          },
+          {
+            "epoch": 2,
+            "mean_train_loss": 0.4479653190355748,
+            "capability": {
+              "accuracy": 0.8333333333333334,
+              "correction_accuracy": 0.875,
+              "control_accuracy": 0.75,
+              "pair_summary": {
+                "codeword-control": {
+                  "both_correct": true,
+                  "choices": [
+                    " ALPHA",
+                    " BETA"
+                  ],
+                  "choice_flips": true
+                },
+                "codeword-correction": {
+                  "both_correct": false,
+                  "choices": [
+                    " BETA",
+                    " BETA"
+                  ],
+                  "choice_flips": false
+                },
+                "color": {
+                  "both_correct": true,
+                  "choices": [
+                    " BLUE",
+                    " RED"
+                  ],
+                  "choice_flips": true
+                },
+                "level": {
+                  "both_correct": true,
+                  "choices": [
+                    " HIGH",
+                    " LOW"
+                  ],
+                  "choice_flips": true
+                },
+                "motion": {
+                  "both_correct": true,
+                  "choices": [
+                    " STOP",
+                    " START"
+                  ],
+                  "choice_flips": true
+                },
+                "plan-control": {
+                  "both_correct": false,
+                  "choices": [
+                    " commit",
+                    " commit"
+                  ],
+                  "choice_flips": false
+                }
+              },
+              "rows": [
+                {
+                  "pair": "color",
+                  "variant": "A",
+                  "kind": "correction",
+                  "expected": " BLUE",
+                  "chosen": " BLUE",
+                  "correct": true,
+                  "margin": 2.589238304644823,
+                  "scores": {
+                    " BLUE": -0.09586415812373161,
+                    " RED": -2.6851024627685547
+                  }
+                },
+                {
+                  "pair": "color",
+                  "variant": "B",
+                  "kind": "correction",
+                  "expected": " RED",
+                  "chosen": " RED",
+                  "correct": true,
+                  "margin": 2.593216212000698,
+                  "scores": {
+                    " BLUE": -2.6797963245771825,
+                    " RED": -0.08658011257648468
+                  }
+                },
+                {
+                  "pair": "codeword-correction",
+                  "variant": "A",
+                  "kind": "correction",
+                  "expected": " BETA",
+                  "chosen": " BETA",
+                  "correct": true,
+                  "margin": 3.442067251657136,
+                  "scores": {
+                    " BETA": -0.06354156229645014,
+                    " ALPHA": -3.505608813953586
+                  }
+                },
+                {
+                  "pair": "codeword-correction",
+                  "variant": "B",
+                  "kind": "correction",
+                  "expected": " ALPHA",
+                  "chosen": " BETA",
+                  "correct": false,
+                  "margin": -0.6266558832721785,
+                  "scores": {
+                    " BETA": -0.5716833350015804,
+                    " ALPHA": -1.1983392182737589
+                  }
+                },
+                {
+                  "pair": "level",
+                  "variant": "A",
+                  "kind": "correction",
+                  "expected": " HIGH",
+                  "chosen": " HIGH",
+                  "correct": true,
+                  "margin": 0.9858812186866999,
+                  "scores": {
+                    " HIGH": -0.47582185827195644,
+                    " LOW": -1.4617030769586563
+                  }
+                },
+                {
+                  "pair": "level",
+                  "variant": "B",
+                  "kind": "correction",
+                  "expected": " LOW",
+                  "chosen": " LOW",
+                  "correct": true,
+                  "margin": 1.2457059994339943,
+                  "scores": {
+                    " HIGH": -1.634986356832087,
+                    " LOW": -0.38928035739809275
+                  }
+                },
+                {
+                  "pair": "motion",
+                  "variant": "A",
+                  "kind": "correction",
+                  "expected": " STOP",
+                  "chosen": " STOP",
+                  "correct": true,
+                  "margin": 2.758340851869434,
+                  "scores": {
+                    " STOP": -0.19832013407722116,
+                    " START": -2.9566609859466553
+                  }
+                },
+                {
+                  "pair": "motion",
+                  "variant": "B",
+                  "kind": "correction",
+                  "expected": " START",
+                  "chosen": " START",
+                  "correct": true,
+                  "margin": 2.608570208773017,
+                  "scores": {
+                    " STOP": -2.7153417970985174,
+                    " START": -0.10677158832550049
+                  }
+                },
+                {
+                  "pair": "codeword-control",
+                  "variant": "A",
+                  "kind": "control",
+                  "expected": " ALPHA",
+                  "chosen": " ALPHA",
+                  "correct": true,
+                  "margin": 7.414583461359143,
+                  "scores": {
+                    " ALPHA": -0.5058796238154173,
+                    " BETA": -7.9204630851745605
+                  }
+                },
+                {
+                  "pair": "codeword-control",
+                  "variant": "B",
+                  "kind": "control",
+                  "expected": " BETA",
+                  "chosen": " BETA",
+                  "correct": true,
+                  "margin": 5.9857074751053005,
+                  "scores": {
+                    " ALPHA": -6.079170346260071,
+                    " BETA": -0.09346287115477026
+                  }
+                },
+                {
+                  "pair": "plan-control",
+                  "variant": "A",
+                  "kind": "control",
+                  "expected": " commit",
+                  "chosen": " commit",
+                  "correct": true,
+                  "margin": 2.848224639892578,
+                  "scores": {
+                    " commit": -1.3304309844970703,
+                    " collect": -4.178655624389648
+                  }
+                },
+                {
+                  "pair": "plan-control",
+                  "variant": "B",
+                  "kind": "control",
+                  "expected": " collect",
+                  "chosen": " commit",
+                  "correct": false,
+                  "margin": -3.7774771451950073,
+                  "scores": {
+                    " commit": -1.2954145669937134,
+                    " collect": -5.072891712188721
+                  }
+                }
+              ]
+            },
+            "direct_w1_state_error_vs_w2_native": {
+              "rms": 0.05146282453931886,
+              "l2": 44.188559609879526,
+              "max_abs": 10.276187896728516,
+              "numel": 737280
+            },
+            "direct_w1_probe_vs_w2_native": {
+              "decision_agreement": 0.6666666666666666,
+              "expected_accuracy": 0.6666666666666666,
+              "score_rms_error": 0.41762956864257705
+            }
+          },
+          {
+            "epoch": 3,
+            "mean_train_loss": 0.07463992113480344,
+            "capability": {
+              "accuracy": 0.9166666666666666,
+              "correction_accuracy": 1.0,
+              "control_accuracy": 0.75,
+              "pair_summary": {
+                "codeword-control": {
+                  "both_correct": true,
+                  "choices": [
+                    " ALPHA",
+                    " BETA"
+                  ],
+                  "choice_flips": true
+                },
+                "codeword-correction": {
+                  "both_correct": true,
+                  "choices": [
+                    " BETA",
+                    " ALPHA"
+                  ],
+                  "choice_flips": true
+                },
+                "color": {
+                  "both_correct": true,
+                  "choices": [
+                    " BLUE",
+                    " RED"
+                  ],
+                  "choice_flips": true
+                },
+                "level": {
+                  "both_correct": true,
+                  "choices": [
+                    " HIGH",
+                    " LOW"
+                  ],
+                  "choice_flips": true
+                },
+                "motion": {
+                  "both_correct": true,
+                  "choices": [
+                    " STOP",
+                    " START"
+                  ],
+                  "choice_flips": true
+                },
+                "plan-control": {
+                  "both_correct": false,
+                  "choices": [
+                    " commit",
+                    " commit"
+                  ],
+                  "choice_flips": false
+                }
+              },
+              "rows": [
+                {
+                  "pair": "color",
+                  "variant": "A",
+                  "kind": "correction",
+                  "expected": " BLUE",
+                  "chosen": " BLUE",
+                  "correct": true,
+                  "margin": 6.205559010617435,
+                  "scores": {
+                    " BLUE": -0.008607630617916584,
+                    " RED": -6.214166641235352
+                  }
+                },
+                {
+                  "pair": "color",
+                  "variant": "B",
+                  "kind": "correction",
+                  "expected": " RED",
+                  "chosen": " RED",
+                  "correct": true,
+                  "margin": 5.408979521365836,
+                  "scores": {
+                    " BLUE": -5.415191495092586,
+                    " RED": -0.00621197372674942
+                  }
+                },
+                {
+                  "pair": "codeword-correction",
+                  "variant": "A",
+                  "kind": "correction",
+                  "expected": " BETA",
+                  "chosen": " BETA",
+                  "correct": true,
+                  "margin": 5.7486064763506874,
+                  "scores": {
+                    " BETA": -0.016556964023038745,
+                    " ALPHA": -5.765163440373726
+                  }
+                },
+                {
+                  "pair": "codeword-correction",
+                  "variant": "B",
+                  "kind": "correction",
+                  "expected": " ALPHA",
+                  "chosen": " ALPHA",
+                  "correct": true,
+                  "margin": 0.5621842722175643,
+                  "scores": {
+                    " BETA": -1.1433367925928906,
+                    " ALPHA": -0.5811525203753263
+                  }
+                },
+                {
+                  "pair": "level",
+                  "variant": "A",
+                  "kind": "correction",
+                  "expected": " HIGH",
+                  "chosen": " HIGH",
+                  "correct": true,
+                  "margin": 2.8357604607008398,
+                  "scores": {
+                    " HIGH": -0.08272115746513009,
+                    " LOW": -2.91848161816597
+                  }
+                },
+                {
+                  "pair": "level",
+                  "variant": "B",
+                  "kind": "correction",
+                  "expected": " LOW",
+                  "chosen": " LOW",
+                  "correct": true,
+                  "margin": 2.603362743742764,
+                  "scores": {
+                    " HIGH": -2.69973009172827,
+                    " LOW": -0.09636734798550606
+                  }
+                },
+                {
+                  "pair": "motion",
+                  "variant": "A",
+                  "kind": "correction",
+                  "expected": " STOP",
+                  "chosen": " STOP",
+                  "correct": true,
+                  "margin": 5.538435280061094,
+                  "scores": {
+                    " STOP": -0.03328532006707974,
+                    " START": -5.571720600128174
+                  }
+                },
+                {
+                  "pair": "motion",
+                  "variant": "B",
+                  "kind": "correction",
+                  "expected": " START",
+                  "chosen": " START",
+                  "correct": true,
+                  "margin": 4.241585168521851,
+                  "scores": {
+                    " STOP": -4.265223392751068,
+                    " START": -0.023638224229216576
+                  }
+                },
+                {
+                  "pair": "codeword-control",
+                  "variant": "A",
+                  "kind": "control",
+                  "expected": " ALPHA",
+                  "chosen": " ALPHA",
+                  "correct": true,
+                  "margin": 7.68145599309355,
+                  "scores": {
+                    " ALPHA": -0.4066768055781722,
+                    " BETA": -8.088132798671722
+                  }
+                },
+                {
+                  "pair": "codeword-control",
+                  "variant": "B",
+                  "kind": "control",
+                  "expected": " BETA",
+                  "chosen": " BETA",
+                  "correct": true,
+                  "margin": 6.505976835265756,
+                  "scores": {
+                    " ALPHA": -6.558176167309284,
+                    " BETA": -0.05219933204352856
+                  }
+                },
+                {
+                  "pair": "plan-control",
+                  "variant": "A",
+                  "kind": "control",
+                  "expected": " commit",
+                  "chosen": " commit",
+                  "correct": true,
+                  "margin": 3.930763363838196,
+                  "scores": {
+                    " commit": -0.6884959936141968,
+                    " collect": -4.619259357452393
+                  }
+                },
+                {
+                  "pair": "plan-control",
+                  "variant": "B",
+                  "kind": "control",
+                  "expected": " collect",
+                  "chosen": " commit",
+                  "correct": false,
+                  "margin": -4.800548613071442,
+                  "scores": {
+                    " commit": -0.6672453284263611,
+                    " collect": -5.467793941497803
+                  }
+                }
+              ]
+            },
+            "direct_w1_state_error_vs_w2_native": {
+              "rms": 0.06102063334954458,
+              "l2": 52.39537313267419,
+              "max_abs": 12.916263580322266,
+              "numel": 737280
+            },
+            "direct_w1_probe_vs_w2_native": {
+              "decision_agreement": 0.8333333333333334,
+              "expected_accuracy": 0.6666666666666666,
+              "score_rms_error": 0.6380916161484389
+            }
+          }
+        ],
+        "weight_delta": {
+          "relative_l2": 0.01341295588880077,
+          "rms": 0.0012764222970518197,
+          "max_abs": 0.0043816231191158295,
+          "numel": 2949120
+        }
+      },
+      "migration32_state_error": {
+        "rms": 0.019905867382000668,
+        "l2": 17.09217508502372,
+        "max_abs": 0.6214599609375,
+        "numel": 737280
+      }
+    },
+    "E4_long_horizon_future_dynamics": [
+      {
+        "initial_replayed_tokens": 0,
+        "trace": [
+          {
+            "future_tokens": 0,
+            "state_error": {
+              "rms": 0.05656379877259334,
+              "l2": 48.56851166251695,
+              "max_abs": 14.055648803710938,
+              "numel": 737280
+            },
+            "next_logit_rms": 2.678861141204834,
+            "next_argmax_same": true
+          },
+          {
+            "future_tokens": 4,
+            "state_error": {
+              "rms": 0.025947175310268255,
+              "l2": 22.279544762059782,
+              "max_abs": 0.569188117980957,
+              "numel": 737280
+            },
+            "next_logit_rms": 2.059413433074951,
+            "next_argmax_same": true
+          },
+          {
+            "future_tokens": 8,
+            "state_error": {
+              "rms": 0.02277929217604077,
+              "l2": 19.559441581423204,
+              "max_abs": 0.6015769243240356,
+              "numel": 737280
+            },
+            "next_logit_rms": 0.8064400553703308,
+            "next_argmax_same": true
+          },
+          {
+            "future_tokens": 16,
+            "state_error": {
+              "rms": 0.0359840655480995,
+              "l2": 30.89772160218574,
+              "max_abs": 1.878708839416504,
+              "numel": 737280
+            },
+            "next_logit_rms": 0.5154017210006714,
+            "next_argmax_same": true
+          },
+          {
+            "future_tokens": 32,
+            "state_error": {
+              "rms": 0.02880133658635065,
+              "l2": 24.730270636773806,
+              "max_abs": 1.811014175415039,
+              "numel": 737280
+            },
+            "next_logit_rms": 1.2373088598251343,
+            "next_argmax_same": true
+          },
+          {
+            "future_tokens": 51,
+            "state_error": {
+              "rms": 0.02098522408482289,
+              "l2": 18.01896482946424,
+              "max_abs": 1.3238754272460938,
+              "numel": 737280
+            },
+            "next_logit_rms": 0.4584479331970215,
+            "next_argmax_same": true
+          }
+        ]
+      },
+      {
+        "initial_replayed_tokens": 16,
+        "trace": [
+          {
+            "future_tokens": 0,
+            "state_error": {
+              "rms": 0.024217905549255434,
+              "l2": 20.794707103028937,
+              "max_abs": 1.1840133666992188,
+              "numel": 737280
+            },
+            "next_logit_rms": 1.8483779430389404,
+            "next_argmax_same": true
+          },
+          {
+            "future_tokens": 4,
+            "state_error": {
+              "rms": 0.018743794908369884,
+              "l2": 16.09436143542893,
+              "max_abs": 0.4350872039794922,
+              "numel": 737280
+            },
+            "next_logit_rms": 0.28639036417007446,
+            "next_argmax_same": true
+          },
+          {
+            "future_tokens": 8,
+            "state_error": {
+              "rms": 0.016979947053482092,
+              "l2": 14.579833292518353,
+              "max_abs": 0.4491004943847656,
+              "numel": 737280
+            },
+            "next_logit_rms": 0.23410071432590485,
+            "next_argmax_same": true
+          },
+          {
+            "future_tokens": 16,
+            "state_error": {
+              "rms": 0.030899282061750643,
+              "l2": 26.531671736069487,
+              "max_abs": 1.3754980564117432,
+              "numel": 737280
+            },
+            "next_logit_rms": 1.0520634651184082,
+            "next_argmax_same": true
+          },
+          {
+            "future_tokens": 32,
+            "state_error": {
+              "rms": 0.017778831072557556,
+              "l2": 15.26579513807009,
+              "max_abs": 0.7666385173797607,
+              "numel": 737280
+            },
+            "next_logit_rms": 1.8459690809249878,
+            "next_argmax_same": true
+          },
+          {
+            "future_tokens": 51,
+            "state_error": {
+              "rms": 0.01861974169195779,
+              "l2": 15.987843128334553,
+              "max_abs": 1.0703296661376953,
+              "numel": 737280
+            },
+            "next_logit_rms": 1.1152927875518799,
+            "next_argmax_same": true
+          }
+        ]
+      },
+      {
+        "initial_replayed_tokens": 32,
+        "trace": [
+          {
+            "future_tokens": 0,
+            "state_error": {
+              "rms": 0.019406122388145805,
+              "l2": 16.66306899439664,
+              "max_abs": 1.165553331375122,
+              "numel": 737280
+            },
+            "next_logit_rms": 0.6152816414833069,
+            "next_argmax_same": true
+          },
+          {
+            "future_tokens": 4,
+            "state_error": {
+              "rms": 0.014383874061925912,
+              "l2": 12.350714949988745,
+              "max_abs": 0.3670225143432617,
+              "numel": 737280
+            },
+            "next_logit_rms": 0.21000228822231293,
+            "next_argmax_same": true
+          },
+          {
+            "future_tokens": 8,
+            "state_error": {
+              "rms": 0.013310159923333975,
+              "l2": 11.428770193907773,
+              "max_abs": 0.5504169464111328,
+              "numel": 737280
+            },
+            "next_logit_rms": 0.3034600019454956,
+            "next_argmax_same": true
+          },
+          {
+            "future_tokens": 16,
+            "state_error": {
+              "rms": 0.026060728786376375,
+              "l2": 22.377047466056897,
+              "max_abs": 1.1224054098129272,
+              "numel": 737280
+            },
+            "next_logit_rms": 1.0957406759262085,
+            "next_argmax_same": true
+          },
+          {
+            "future_tokens": 32,
+            "state_error": {
+              "rms": 0.014619610670518873,
+              "l2": 12.553130213322808,
+              "max_abs": 0.6853954792022705,
+              "numel": 737280
+            },
+            "next_logit_rms": 1.4880458116531372,
+            "next_argmax_same": true
+          },
+          {
+            "future_tokens": 51,
+            "state_error": {
+              "rms": 0.014609930286271597,
+              "l2": 12.544818150388322,
+              "max_abs": 0.904876708984375,
+              "numel": 737280
+            },
+            "next_logit_rms": 1.0068238973617554,
+            "next_argmax_same": true
+          }
+        ]
+      },
+      {
+        "initial_replayed_tokens": 59,
+        "trace": [
+          {
+            "future_tokens": 0,
+            "state_error": {
+              "rms": 0.0,
+              "l2": 0.0,
+              "max_abs": 0.0,
+              "numel": 737280
+            },
+            "next_logit_rms": 0.0,
+            "next_argmax_same": true
+          },
+          {
+            "future_tokens": 4,
+            "state_error": {
+              "rms": 0.0,
+              "l2": 0.0,
+              "max_abs": 0.0,
+              "numel": 737280
+            },
+            "next_logit_rms": 0.0,
+            "next_argmax_same": true
+          },
+          {
+            "future_tokens": 8,
+            "state_error": {
+              "rms": 0.0,
+              "l2": 0.0,
+              "max_abs": 0.0,
+              "numel": 737280
+            },
+            "next_logit_rms": 0.0,
+            "next_argmax_same": true
+          },
+          {
+            "future_tokens": 16,
+            "state_error": {
+              "rms": 0.0,
+              "l2": 0.0,
+              "max_abs": 0.0,
+              "numel": 737280
+            },
+            "next_logit_rms": 0.0,
+            "next_argmax_same": true
+          },
+          {
+            "future_tokens": 32,
+            "state_error": {
+              "rms": 0.0,
+              "l2": 0.0,
+              "max_abs": 0.0,
+              "numel": 737280
+            },
+            "next_logit_rms": 0.0,
+            "next_argmax_same": true
+          },
+          {
+            "future_tokens": 51,
+            "state_error": {
+              "rms": 0.0,
+              "l2": 0.0,
+              "max_abs": 0.0,
+              "numel": 737280
+            },
+            "next_logit_rms": 0.0,
+            "next_argmax_same": true
+          }
+        ]
+      }
+    ],
+    "E5_history_cutpoint_sensitivity": [
+      {
+        "history": "main",
+        "tokens": 59,
+        "rows": [
+          {
+            "replayed_tokens": 0,
+            "replay_fraction": 0.0,
+            "state_error": {
+              "rms": 0.05656379877259334,
+              "l2": 48.56851166251695,
+              "max_abs": 14.055648803710938,
+              "numel": 737280
+            },
+            "hard_gate": {
+              "decision_agreement": 0.8333333333333334,
+              "expected_accuracy": 0.6666666666666666,
+              "score_rms_error": 0.5409387166267516
+            }
+          },
+          {
+            "replayed_tokens": 14,
+            "replay_fraction": 0.23728813559322035,
+            "state_error": {
+              "rms": 0.027206188365512893,
+              "l2": 23.36059645207708,
+              "max_abs": 1.487457275390625,
+              "numel": 737280
+            },
+            "hard_gate": {
+              "decision_agreement": 0.8333333333333334,
+              "expected_accuracy": 0.6666666666666666,
+              "score_rms_error": 0.5267122297604332
+            }
+          },
+          {
+            "replayed_tokens": 16,
+            "replay_fraction": 0.2711864406779661,
+            "state_error": {
+              "rms": 0.024217905549255434,
+              "l2": 20.794707103028937,
+              "max_abs": 1.1840133666992188,
+              "numel": 737280
+            },
+            "hard_gate": {
+              "decision_agreement": 0.8333333333333334,
+              "expected_accuracy": 0.6666666666666666,
+              "score_rms_error": 0.5259533648212109
+            }
+          },
+          {
+            "replayed_tokens": 29,
+            "replay_fraction": 0.4915254237288136,
+            "state_error": {
+              "rms": 0.020777214300013162,
+              "l2": 17.840357206237496,
+              "max_abs": 1.1289196014404297,
+              "numel": 737280
+            },
+            "hard_gate": {
+              "decision_agreement": 0.8333333333333334,
+              "expected_accuracy": 0.6666666666666666,
+              "score_rms_error": 0.5184636024536288
+            }
+          },
+          {
+            "replayed_tokens": 32,
+            "replay_fraction": 0.5423728813559322,
+            "state_error": {
+              "rms": 0.019406122388145805,
+              "l2": 16.66306899439664,
+              "max_abs": 1.165553331375122,
+              "numel": 737280
+            },
+            "hard_gate": {
+              "decision_agreement": 0.8333333333333334,
+              "expected_accuracy": 0.6666666666666666,
+              "score_rms_error": 0.5144184347651964
+            }
+          },
+          {
+            "replayed_tokens": 59,
+            "replay_fraction": 1.0,
+            "state_error": {
+              "rms": 0.0,
+              "l2": 0.0,
+              "max_abs": 0.0,
+              "numel": 737280
+            },
+            "hard_gate": {
+              "decision_agreement": 1.0,
+              "expected_accuracy": 0.8333333333333334,
+              "score_rms_error": 0.0
+            }
+          }
+        ]
+      },
+      {
+        "history": "short",
+        "tokens": 38,
+        "rows": [
+          {
+            "replayed_tokens": 0,
+            "replay_fraction": 0.0,
+            "state_error": {
+              "rms": 0.05382014114494293,
+              "l2": 46.21266975695069,
+              "max_abs": 11.645360946655273,
+              "numel": 737280
+            },
+            "hard_gate": {
+              "decision_agreement": 1.0,
+              "expected_accuracy": 0.8333333333333334,
+              "score_rms_error": 0.30581303061456644
+            }
+          },
+          {
+            "replayed_tokens": 9,
+            "replay_fraction": 0.23684210526315788,
+            "state_error": {
+              "rms": 0.027042893104201632,
+              "l2": 23.220382959073977,
+              "max_abs": 1.5108394622802734,
+              "numel": 737280
+            },
+            "hard_gate": {
+              "decision_agreement": 1.0,
+              "expected_accuracy": 0.8333333333333334,
+              "score_rms_error": 0.3943614320585965
+            }
+          },
+          {
+            "replayed_tokens": 16,
+            "replay_fraction": 0.42105263157894735,
+            "state_error": {
+              "rms": 0.024105466123341364,
+              "l2": 20.698160978346095,
+              "max_abs": 1.4120521545410156,
+              "numel": 737280
+            },
+            "hard_gate": {
+              "decision_agreement": 1.0,
+              "expected_accuracy": 0.8333333333333334,
+              "score_rms_error": 0.412203316373767
+            }
+          },
+          {
+            "replayed_tokens": 19,
+            "replay_fraction": 0.5,
+            "state_error": {
+              "rms": 0.022747274767177965,
+              "l2": 19.53194982999384,
+              "max_abs": 1.3800601959228516,
+              "numel": 737280
+            },
+            "hard_gate": {
+              "decision_agreement": 1.0,
+              "expected_accuracy": 0.8333333333333334,
+              "score_rms_error": 0.4390848322357931
+            }
+          },
+          {
+            "replayed_tokens": 32,
+            "replay_fraction": 0.8421052631578947,
+            "state_error": {
+              "rms": 0.012883355446722049,
+              "l2": 11.062294485950467,
+              "max_abs": 0.7451038360595703,
+              "numel": 737280
+            },
+            "hard_gate": {
+              "decision_agreement": 1.0,
+              "expected_accuracy": 0.8333333333333334,
+              "score_rms_error": 0.15798520979821581
+            }
+          },
+          {
+            "replayed_tokens": 38,
+            "replay_fraction": 1.0,
+            "state_error": {
+              "rms": 0.0,
+              "l2": 0.0,
+              "max_abs": 0.0,
+              "numel": 737280
+            },
+            "hard_gate": {
+              "decision_agreement": 1.0,
+              "expected_accuracy": 0.8333333333333334,
+              "score_rms_error": 0.0
+            }
+          }
+        ]
+      },
+      {
+        "history": "alternate_order",
+        "tokens": 46,
+        "rows": [
+          {
+            "replayed_tokens": 0,
+            "replay_fraction": 0.0,
+            "state_error": {
+              "rms": 0.057189508736375225,
+              "l2": 49.10577758759159,
+              "max_abs": 13.288200378417969,
+              "numel": 737280
+            },
+            "hard_gate": {
+              "decision_agreement": 1.0,
+              "expected_accuracy": 0.8333333333333334,
+              "score_rms_error": 0.9063242012246683
+            }
+          },
+          {
+            "replayed_tokens": 11,
+            "replay_fraction": 0.2391304347826087,
+            "state_error": {
+              "rms": 0.0292807522120303,
+              "l2": 25.141920913316,
+              "max_abs": 1.7441749572753906,
+              "numel": 737280
+            },
+            "hard_gate": {
+              "decision_agreement": 1.0,
+              "expected_accuracy": 0.8333333333333334,
+              "score_rms_error": 1.0198733619392013
+            }
+          },
+          {
+            "replayed_tokens": 16,
+            "replay_fraction": 0.34782608695652173,
+            "state_error": {
+              "rms": 0.027326598765156754,
+              "l2": 23.463986854176888,
+              "max_abs": 1.6587066650390625,
+              "numel": 737280
+            },
+            "hard_gate": {
+              "decision_agreement": 1.0,
+              "expected_accuracy": 0.8333333333333334,
+              "score_rms_error": 0.45552265838623024
+            }
+          },
+          {
+            "replayed_tokens": 23,
+            "replay_fraction": 0.5,
+            "state_error": {
+              "rms": 0.023874227801703046,
+              "l2": 20.49960816957058,
+              "max_abs": 1.6481189727783203,
+              "numel": 737280
+            },
+            "hard_gate": {
+              "decision_agreement": 1.0,
+              "expected_accuracy": 0.8333333333333334,
+              "score_rms_error": 0.3441001644398895
+            }
+          },
+          {
+            "replayed_tokens": 32,
+            "replay_fraction": 0.6956521739130435,
+            "state_error": {
+              "rms": 0.019928361634662037,
+              "l2": 17.111489777396407,
+              "max_abs": 1.272308349609375,
+              "numel": 737280
+            },
+            "hard_gate": {
+              "decision_agreement": 1.0,
+              "expected_accuracy": 0.8333333333333334,
+              "score_rms_error": 0.2585230082809787
+            }
+          },
+          {
+            "replayed_tokens": 46,
+            "replay_fraction": 1.0,
+            "state_error": {
+              "rms": 0.0,
+              "l2": 0.0,
+              "max_abs": 0.0,
+              "numel": 737280
+            },
+            "hard_gate": {
+              "decision_agreement": 1.0,
+              "expected_accuracy": 0.8333333333333334,
+              "score_rms_error": 0.0
+            }
+          }
+        ]
+      }
+    ],
+    "E6_restart_serialization_exactness": [
+      {
+        "replayed_tokens": 16,
+        "cache_max_abs_after_roundtrip": 0.0,
+        "next_logit_max_abs": 0.0,
+        "argmax_same": true
+      },
+      {
+        "replayed_tokens": 32,
+        "cache_max_abs_after_roundtrip": 0.0,
+        "next_logit_max_abs": 0.0,
+        "argmax_same": true
+      }
+    ],
+    "E7_hard_gate_decision_fidelity": [
+      {
+        "replayed_tokens": 0,
+        "state_error": {
+          "rms": 0.05656379877259334,
+          "l2": 48.56851166251695,
+          "max_abs": 14.055648803710938,
+          "numel": 737280
+        },
+        "hard_gate": {
+          "decision_agreement": 0.8333333333333334,
+          "expected_accuracy": 0.6666666666666666,
+          "score_rms_error": 0.5409387166267516
+        },
+        "probe_rows": [
+          {
+            "id": "codeword",
+            "expected": " BETA",
+            "chosen": " ALPHA",
+            "correct": false,
+            "margin": -0.7953511817322578,
+            "scores": {
+              " BETA": -1.233070223213872,
+              " ALPHA": -0.4377190414816141
+            }
+          },
+          {
+            "id": "verification",
+            "expected": " incomplete",
+            "chosen": " incomplete",
+            "correct": true,
+            "margin": 0.56427001953125,
+            "scores": {
+              " incomplete": -6.202965259552002,
+              " complete": -6.767235279083252
+            }
+          },
+          {
+            "id": "project",
+            "expected": " active",
+            "chosen": " active",
+            "correct": true,
+            "margin": 6.0903401374816895,
+            "scores": {
+              " active": -2.7637295722961426,
+              " paused": -8.854069709777832
+            }
+          },
+          {
+            "id": "action",
+            "expected": " blocked",
+            "chosen": " blocked",
+            "correct": true,
+            "margin": 2.060850143432617,
+            "scores": {
+              " blocked": -10.944268226623535,
+              " allowed": -13.005118370056152
+            }
+          },
+          {
+            "id": "hypothesis_one",
+            "expected": " weakened",
+            "chosen": " strengthened",
+            "correct": false,
+            "margin": -0.1721954345703125,
+            "scores": {
+              " weakened": -15.08962631225586,
+              " strengthened": -14.917430877685547
+            }
+          },
+          {
+            "id": "hypothesis_two",
+            "expected": " unresolved",
+            "chosen": " unresolved",
+            "correct": true,
+            "margin": 1.6903419494628906,
+            "scores": {
+              " unresolved": -11.621986389160156,
+              " resolved": -13.312328338623047
+            }
+          }
+        ]
+      },
+      {
+        "replayed_tokens": 16,
+        "state_error": {
+          "rms": 0.024217905549255434,
+          "l2": 20.794707103028937,
+          "max_abs": 1.1840133666992188,
+          "numel": 737280
+        },
+        "hard_gate": {
+          "decision_agreement": 0.8333333333333334,
+          "expected_accuracy": 0.6666666666666666,
+          "score_rms_error": 0.5259533648212109
+        },
+        "probe_rows": [
+          {
+            "id": "codeword",
+            "expected": " BETA",
+            "chosen": " ALPHA",
+            "correct": false,
+            "margin": -0.7190659090701956,
+            "scores": {
+              " BETA": -1.1768928494129796,
+              " ALPHA": -0.45782694034278393
+            }
+          },
+          {
+            "id": "verification",
+            "expected": " incomplete",
+            "chosen": " incomplete",
+            "correct": true,
+            "margin": 0.7137737274169922,
+            "scores": {
+              " incomplete": -5.963366508483887,
+              " complete": -6.677140235900879
+            }
+          },
+          {
+            "id": "project",
+            "expected": " active",
+            "chosen": " active",
+            "correct": true,
+            "margin": 6.127647399902344,
+            "scores": {
+              " active": -2.7885732650756836,
+              " paused": -8.916220664978027
+            }
+          },
+          {
+            "id": "action",
+            "expected": " blocked",
+            "chosen": " blocked",
+            "correct": true,
+            "margin": 1.9439373016357422,
+            "scores": {
+              " blocked": -11.106854438781738,
+              " allowed": -13.05079174041748
+            }
+          },
+          {
+            "id": "hypothesis_one",
+            "expected": " weakened",
+            "chosen": " strengthened",
+            "correct": false,
+            "margin": -0.08475494384765625,
+            "scores": {
+              " weakened": -14.805837631225586,
+              " strengthened": -14.72108268737793
+            }
+          },
+          {
+            "id": "hypothesis_two",
+            "expected": " unresolved",
+            "chosen": " unresolved",
+            "correct": true,
+            "margin": 1.7312774658203125,
+            "scores": {
+              " unresolved": -11.422201156616211,
+              " resolved": -13.153478622436523
+            }
+          }
+        ]
+      },
+      {
+        "replayed_tokens": 32,
+        "state_error": {
+          "rms": 0.019406122388145805,
+          "l2": 16.66306899439664,
+          "max_abs": 1.165553331375122,
+          "numel": 737280
+        },
+        "hard_gate": {
+          "decision_agreement": 0.8333333333333334,
+          "expected_accuracy": 0.6666666666666666,
+          "score_rms_error": 0.5144184347651964
+        },
+        "probe_rows": [
+          {
+            "id": "codeword",
+            "expected": " BETA",
+            "chosen": " ALPHA",
+            "correct": false,
+            "margin": -0.7250102473481093,
+            "scores": {
+              " BETA": -1.1823456025740597,
+              " ALPHA": -0.4573353552259505
+            }
+          },
+          {
+            "id": "verification",
+            "expected": " incomplete",
+            "chosen": " incomplete",
+            "correct": true,
+            "margin": 0.7974891662597656,
+            "scores": {
+              " incomplete": -5.742608547210693,
+              " complete": -6.540097713470459
+            }
+          },
+          {
+            "id": "project",
+            "expected": " active",
+            "chosen": " active",
+            "correct": true,
+            "margin": 6.210306644439697,
+            "scores": {
+              " active": -2.887281894683838,
+              " paused": -9.097588539123535
+            }
+          },
+          {
+            "id": "action",
+            "expected": " blocked",
+            "chosen": " blocked",
+            "correct": true,
+            "margin": 2.2773475646972656,
+            "scores": {
+              " blocked": -10.68040657043457,
+              " allowed": -12.957754135131836
+            }
+          },
+          {
+            "id": "hypothesis_one",
+            "expected": " weakened",
+            "chosen": " strengthened",
+            "correct": false,
+            "margin": -0.09985733032226562,
+            "scores": {
+              " weakened": -14.764540672302246,
+              " strengthened": -14.66468334197998
+            }
+          },
+          {
+            "id": "hypothesis_two",
+            "expected": " unresolved",
+            "chosen": " unresolved",
+            "correct": true,
+            "margin": 1.7102737426757812,
+            "scores": {
+              " unresolved": -11.373692512512207,
+              " resolved": -13.083966255187988
+            }
+          }
+        ]
+      },
+      {
+        "replayed_tokens": 59,
+        "state_error": {
+          "rms": 0.0,
+          "l2": 0.0,
+          "max_abs": 0.0,
+          "numel": 737280
+        },
+        "hard_gate": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 0.8333333333333334,
+          "score_rms_error": 0.0
+        },
+        "probe_rows": [
+          {
+            "id": "codeword",
+            "expected": " BETA",
+            "chosen": " BETA",
+            "correct": true,
+            "margin": 1.6369835867080837,
+            "scores": {
+              " BETA": -0.19142835214734077,
+              " ALPHA": -1.8284119388554245
+            }
+          },
+          {
+            "id": "verification",
+            "expected": " incomplete",
+            "chosen": " incomplete",
+            "correct": true,
+            "margin": 0.8522701263427734,
+            "scores": {
+              " incomplete": -5.816158294677734,
+              " complete": -6.668428421020508
+            }
+          },
+          {
+            "id": "project",
+            "expected": " active",
+            "chosen": " active",
+            "correct": true,
+            "margin": 6.325845241546631,
+            "scores": {
+              " active": -2.888881206512451,
+              " paused": -9.214726448059082
+            }
+          },
+          {
+            "id": "action",
+            "expected": " blocked",
+            "chosen": " blocked",
+            "correct": true,
+            "margin": 2.3674678802490234,
+            "scores": {
+              " blocked": -10.705571174621582,
+              " allowed": -13.073039054870605
+            }
+          },
+          {
+            "id": "hypothesis_one",
+            "expected": " weakened",
+            "chosen": " strengthened",
+            "correct": false,
+            "margin": -0.10124588012695312,
+            "scores": {
+              " weakened": -14.858701705932617,
+              " strengthened": -14.757455825805664
+            }
+          },
+          {
+            "id": "hypothesis_two",
+            "expected": " unresolved",
+            "chosen": " unresolved",
+            "correct": true,
+            "margin": 1.4365692138671875,
+            "scores": {
+              " unresolved": -11.83403491973877,
+              " resolved": -13.270604133605957
+            }
+          }
+        ]
+      }
+    ],
+    "E8_correction_event_timing": [
+      {
+        "timing": "correction_early",
+        "tokens": 59,
+        "rows": [
+          {
+            "replayed_tokens": 0,
+            "replay_fraction": 0.0,
+            "state_error": {
+              "rms": 0.05229728758739403,
+              "l2": 44.9050713923593,
+              "max_abs": 10.456722259521484,
+              "numel": 737280
+            },
+            "codeword_vs_native": {
+              "decision_agreement": 0.0,
+              "expected_accuracy": 0.0,
+              "score_rms_error": 1.135091605133916
+            },
+            "probe": {
+              "id": "codeword",
+              "expected": " BETA",
+              "chosen": " ALPHA",
+              "correct": false,
+              "margin": -0.6670735604129732,
+              "scores": {
+                " BETA": -1.1345903631299734,
+                " ALPHA": -0.46751680271700025
+              }
+            }
+          },
+          {
+            "replayed_tokens": 14,
+            "replay_fraction": 0.23728813559322035,
+            "state_error": {
+              "rms": 0.02812722506356511,
+              "l2": 24.15144470805789,
+              "max_abs": 1.3818130493164062,
+              "numel": 737280
+            },
+            "codeword_vs_native": {
+              "decision_agreement": 0.0,
+              "expected_accuracy": 0.0,
+              "score_rms_error": 1.1202812869927097
+            },
+            "probe": {
+              "id": "codeword",
+              "expected": " BETA",
+              "chosen": " ALPHA",
+              "correct": false,
+              "margin": -0.6347849413868971,
+              "scores": {
+                " BETA": -1.1120050892350264,
+                " ALPHA": -0.4772201478481293
+              }
+            }
+          },
+          {
+            "replayed_tokens": 16,
+            "replay_fraction": 0.2711864406779661,
+            "state_error": {
+              "rms": 0.026345392386236566,
+              "l2": 22.62147389549966,
+              "max_abs": 1.3441848754882812,
+              "numel": 737280
+            },
+            "codeword_vs_native": {
+              "decision_agreement": 0.0,
+              "expected_accuracy": 0.0,
+              "score_rms_error": 1.1293398883979064
+            },
+            "probe": {
+              "id": "codeword",
+              "expected": " BETA",
+              "chosen": " ALPHA",
+              "correct": false,
+              "margin": -0.6543912118795561,
+              "scores": {
+                " BETA": -1.1252820216614055,
+                " ALPHA": -0.4708908097818494
+              }
+            }
+          },
+          {
+            "replayed_tokens": 29,
+            "replay_fraction": 0.4915254237288136,
+            "state_error": {
+              "rms": 0.020648729865463535,
+              "l2": 17.730034033231316,
+              "max_abs": 1.3593196868896484,
+              "numel": 737280
+            },
+            "codeword_vs_native": {
+              "decision_agreement": 0.0,
+              "expected_accuracy": 0.0,
+              "score_rms_error": 1.108704311717315
+            },
+            "probe": {
+              "id": "codeword",
+              "expected": " BETA",
+              "chosen": " ALPHA",
+              "correct": false,
+              "margin": -0.6109661047230475,
+              "scores": {
+                " BETA": -1.0992581566679291,
+                " ALPHA": -0.4882920519448817
+              }
+            }
+          },
+          {
+            "replayed_tokens": 32,
+            "replay_fraction": 0.5423728813559322,
+            "state_error": {
+              "rms": 0.019075412535901542,
+              "l2": 16.379104945584956,
+              "max_abs": 1.3100357055664062,
+              "numel": 737280
+            },
+            "codeword_vs_native": {
+              "decision_agreement": 0.0,
+              "expected_accuracy": 0.0,
+              "score_rms_error": 1.125279008908847
+            },
+            "probe": {
+              "id": "codeword",
+              "expected": " BETA",
+              "chosen": " ALPHA",
+              "correct": false,
+              "margin": -0.6478080997912912,
+              "scores": {
+                " BETA": -1.1268456891848473,
+                " ALPHA": -0.4790375893935561
+              }
+            }
+          },
+          {
+            "replayed_tokens": 59,
+            "replay_fraction": 1.0,
+            "state_error": {
+              "rms": 0.0,
+              "l2": 0.0,
+              "max_abs": 0.0,
+              "numel": 737280
+            },
+            "codeword_vs_native": {
+              "decision_agreement": 1.0,
+              "expected_accuracy": 1.0,
+              "score_rms_error": 0.0
+            },
+            "probe": {
+              "id": "codeword",
+              "expected": " BETA",
+              "chosen": " BETA",
+              "correct": true,
+              "margin": 1.5714313950156793,
+              "scores": {
+                " BETA": -0.20430042978841811,
+                " ALPHA": -1.7757318248040974
+              }
+            }
+          }
+        ]
+      },
+      {
+        "timing": "correction_late",
+        "tokens": 59,
+        "rows": [
+          {
+            "replayed_tokens": 0,
+            "replay_fraction": 0.0,
+            "state_error": {
+              "rms": 0.06739346576382757,
+              "l2": 57.86740634389372,
+              "max_abs": 15.101539611816406,
+              "numel": 737280
+            },
+            "codeword_vs_native": {
+              "decision_agreement": 0.0,
+              "expected_accuracy": 0.0,
+              "score_rms_error": 1.203970911129207
+            },
+            "probe": {
+              "id": "codeword",
+              "expected": " BETA",
+              "chosen": " ALPHA",
+              "correct": false,
+              "margin": -0.4761086476937635,
+              "scores": {
+                " BETA": -0.9934222412266536,
+                " ALPHA": -0.5173135935328901
+              }
+            }
+          },
+          {
+            "replayed_tokens": 14,
+            "replay_fraction": 0.23728813559322035,
+            "state_error": {
+              "rms": 0.030661974554538854,
+              "l2": 26.327907620474,
+              "max_abs": 1.5428237915039062,
+              "numel": 737280
+            },
+            "codeword_vs_native": {
+              "decision_agreement": 1.0,
+              "expected_accuracy": 1.0,
+              "score_rms_error": 0.22358817461847305
+            },
+            "probe": {
+              "id": "codeword",
+              "expected": " BETA",
+              "chosen": " BETA",
+              "correct": true,
+              "margin": 2.198080633606878,
+              "scores": {
+                " BETA": -0.1145936102111591,
+                " ALPHA": -2.312674243818037
+              }
+            }
+          },
+          {
+            "replayed_tokens": 16,
+            "replay_fraction": 0.2711864406779661,
+            "state_error": {
+              "rms": 0.02474359321353142,
+              "l2": 21.24608887029455,
+              "max_abs": 1.5162906646728516,
+              "numel": 737280
+            },
+            "codeword_vs_native": {
+              "decision_agreement": 1.0,
+              "expected_accuracy": 1.0,
+              "score_rms_error": 0.1438124598498635
+            },
+            "probe": {
+              "id": "codeword",
+              "expected": " BETA",
+              "chosen": " BETA",
+              "correct": true,
+              "margin": 1.606242415131419,
+              "scores": {
+                " BETA": -0.19306141989363823,
+                " ALPHA": -1.7993038350250572
+              }
+            }
+          },
+          {
+            "replayed_tokens": 29,
+            "replay_fraction": 0.4915254237288136,
+            "state_error": {
+              "rms": 0.020128128008313134,
+              "l2": 17.283019194779758,
+              "max_abs": 1.2397899627685547,
+              "numel": 737280
+            },
+            "codeword_vs_native": {
+              "decision_agreement": 1.0,
+              "expected_accuracy": 1.0,
+              "score_rms_error": 0.11514098533509942
+            },
+            "probe": {
+              "id": "codeword",
+              "expected": " BETA",
+              "chosen": " BETA",
+              "correct": true,
+              "margin": 1.6551203448470915,
+              "scores": {
+                " BETA": -0.1836783675098559,
+                " ALPHA": -1.8387987123569474
+              }
+            }
+          },
+          {
+            "replayed_tokens": 32,
+            "replay_fraction": 0.5423728813559322,
+            "state_error": {
+              "rms": 0.01883946815042515,
+              "l2": 16.176511274608462,
+              "max_abs": 1.1578292846679688,
+              "numel": 737280
+            },
+            "codeword_vs_native": {
+              "decision_agreement": 1.0,
+              "expected_accuracy": 1.0,
+              "score_rms_error": 0.09218321850350035
+            },
+            "probe": {
+              "id": "codeword",
+              "expected": " BETA",
+              "chosen": " BETA",
+              "correct": true,
+              "margin": 1.6931116738851415,
+              "scores": {
+                " BETA": -0.17757769887975883,
+                " ALPHA": -1.8706893727649003
+              }
+            }
+          },
+          {
+            "replayed_tokens": 59,
+            "replay_fraction": 1.0,
+            "state_error": {
+              "rms": 0.0,
+              "l2": 0.0,
+              "max_abs": 0.0,
+              "numel": 737280
+            },
+            "codeword_vs_native": {
+              "decision_agreement": 1.0,
+              "expected_accuracy": 1.0,
+              "score_rms_error": 0.0
+            },
+            "probe": {
+              "id": "codeword",
+              "expected": " BETA",
+              "chosen": " BETA",
+              "correct": true,
+              "margin": 1.8444363253947813,
+              "scores": {
+                " BETA": -0.15457425874774344,
+                " ALPHA": -1.9990105841425247
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "success_definition": "Upgrade success requires W2 held-out capability > W1 while migrated-W2 approaches W2-native under the same causal history. W1 output preservation is not the target. Restart must preserve the migrated causal state, and identity/task invariants are checked separately from raw tensor similarity.",
+  "claim_boundary": "Eight experiment families on a narrow synthetic Mamba-1 130M correction curriculum. This can test checkpoint/migration mechanics and narrow learned capability transfer, but does not establish general reasoning, personal identity, consciousness, or a final VELA architecture winner."
+}
