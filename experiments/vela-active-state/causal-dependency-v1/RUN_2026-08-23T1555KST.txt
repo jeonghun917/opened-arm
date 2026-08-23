@@ -1,0 +1,1 @@
+Trigger causal-dependency-v1 after workflow registration.
