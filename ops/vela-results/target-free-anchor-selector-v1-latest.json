@@ -11,9 +11,9 @@
     "control_before": 0.75,
     "control_after": 0.75,
     "epoch_loss": [
-      1.7653111815452576,
-      0.46972360741347075,
-      0.09346337559691165
+      1.7653138376772404,
+      0.46971781249158084,
+      0.09344111729296856
     ]
   },
   "selector": "Robust semantic-drift outliers identify candidate events; begin at earliest candidate, then prune forward when a later-candidate W2 replay has the same current functional decision signature. W2-native is evaluation-only.",
@@ -27,9 +27,9 @@
       "fixture_valid": true,
       "w2_native_expected_accuracy": 1.0,
       "detector_stats": {
-        "median": 0.3052798542139526,
-        "mad": 0.15032784839085583,
-        "threshold": 0.6059355509956643
+        "median": 0.30535529109854864,
+        "mad": 0.15036486356108186,
+        "threshold": 0.6060850182207124
       },
       "selected_causal_segments": [
         2
@@ -47,7 +47,7 @@
       "selected_vs_w2_native": {
         "decision_agreement": 1.0,
         "expected_accuracy": 1.0,
-        "score_rms_error": 0.11530360703461466
+        "score_rms_error": 0.11529356218271926
       },
       "oracle_latest_safe_anchor": {
         "event_index": 2,
@@ -62,11 +62,11 @@
           "start": 15,
           "end": 29,
           "text": "Correction: the current codeword is BETA, not ALPHA. ",
-          "state_rms": 0.041915751877457115,
+          "state_rms": 0.04192025035411605,
           "decision_flips": 0,
-          "score_rms": 0.7359067303671206,
-          "margin_shift_sum": 2.813552525432897,
-          "detector_score": 1.0172619829104104,
+          "score_rms": 0.7359505387144254,
+          "margin_shift_sum": 2.8137171649432275,
+          "detector_score": 1.0173222552087482,
           "per_probe": [
             {
               "id": "codeword",
@@ -99,11 +99,11 @@
           "start": 66,
           "end": 70,
           "text": "External action remains blocked.",
-          "state_rms": 0.038639064121590794,
+          "state_rms": 0.03864168053968034,
           "decision_flips": 0,
-          "score_rms": 0.43830469192434063,
-          "margin_shift_sum": 1.1008424795654719,
-          "detector_score": 0.5483889398808879,
+          "score_rms": 0.4384703607833554,
+          "margin_shift_sum": 1.1012870096310508,
+          "detector_score": 0.5485990617464604,
           "per_probe": [
             {
               "id": "codeword",
@@ -136,11 +136,11 @@
           "start": 44,
           "end": 56,
           "text": "Correction: the current verification status is incomplete, not complete. ",
-          "state_rms": 0.04134457332335961,
+          "state_rms": 0.04134789040732756,
           "decision_flips": 0,
-          "score_rms": 0.39530331806087105,
-          "margin_shift_sum": 0.5519987796287751,
-          "detector_score": 0.45050319602374855,
+          "score_rms": 0.39537290811851994,
+          "margin_shift_sum": 0.5520141566885286,
+          "detector_score": 0.45057432378737283,
           "per_probe": [
             {
               "id": "codeword",
@@ -173,11 +173,11 @@
           "start": 7,
           "end": 15,
           "text": "The old codeword was ALPHA. ",
-          "state_rms": 0.0510353085522253,
+          "state_rms": 0.051037496324267136,
           "decision_flips": 0,
-          "score_rms": 0.33197749829228634,
-          "margin_shift_sum": 0.8449213397689164,
-          "detector_score": 0.416469632269178,
+          "score_rms": 0.33206224807755064,
+          "margin_shift_sum": 0.8445648369379342,
+          "detector_score": 0.4165187317713441,
           "per_probe": [
             {
               "id": "codeword",
@@ -213,9 +213,9 @@
       "fixture_valid": true,
       "w2_native_expected_accuracy": 1.0,
       "detector_stats": {
-        "median": 0.2311724402407205,
-        "mad": 0.15739203566142795,
-        "threshold": 0.5459565115635764
+        "median": 0.23116863995430187,
+        "mad": 0.1574192295676742,
+        "threshold": 0.5460070990896503
       },
       "selected_causal_segments": [
         2,
@@ -248,7 +248,7 @@
       "selected_vs_w2_native": {
         "decision_agreement": 1.0,
         "expected_accuracy": 1.0,
-        "score_rms_error": 0.22180437531689692
+        "score_rms_error": 0.22192195845506235
       },
       "oracle_latest_safe_anchor": {
         "event_index": 8,
@@ -263,11 +263,11 @@
           "start": 71,
           "end": 86,
           "text": "New correction: the current codeword is WEST, not HIGH. ",
-          "state_rms": 0.0404666663373201,
+          "state_rms": 0.04047308294329097,
           "decision_flips": 1,
-          "score_rms": 0.49223892655092605,
-          "margin_shift_sum": 0.17880511283874512,
-          "detector_score": 1000.5101194378349,
+          "score_rms": 0.4923377357861518,
+          "margin_shift_sum": 0.1791548728942871,
+          "detector_score": 1000.5102532230756,
           "per_probe": [
             {
               "id": "codeword",
@@ -300,11 +300,11 @@
           "start": 15,
           "end": 29,
           "text": "Correction: the current codeword is HIGH, not LOW. ",
-          "state_rms": 0.040053188335109624,
+          "state_rms": 0.040057275670427925,
           "decision_flips": 1,
-          "score_rms": 0.4256732447339367,
-          "margin_shift_sum": 0.47596168518066406,
-          "detector_score": 1000.4732694132521,
+          "score_rms": 0.4256335483571174,
+          "margin_shift_sum": 0.4760117530822754,
+          "detector_score": 1000.4732347236654,
           "per_probe": [
             {
               "id": "codeword",
@@ -337,11 +337,11 @@
           "start": 91,
           "end": 95,
           "text": "External action remains blocked.",
-          "state_rms": 0.03943192941801461,
+          "state_rms": 0.039433131690465334,
           "decision_flips": 0,
-          "score_rms": 0.5119174233957361,
-          "margin_shift_sum": 1.1801865100860596,
-          "detector_score": 0.6299360744043421,
+          "score_rms": 0.5120842004928086,
+          "margin_shift_sum": 1.1805155277252197,
+          "detector_score": 0.6301357532653306,
           "per_probe": [
             {
               "id": "codeword",
@@ -374,11 +374,11 @@
           "start": 7,
           "end": 15,
           "text": "The old codeword was LOW. ",
-          "state_rms": 0.047645436941804974,
+          "state_rms": 0.04764707534568928,
           "decision_flips": 0,
-          "score_rms": 0.32884743904615227,
-          "margin_shift_sum": 0.6460529565811157,
-          "detector_score": 0.39345273470426384,
+          "score_rms": 0.32883689927691906,
+          "margin_shift_sum": 0.6461186408996582,
+          "detector_score": 0.3934487633668849,
           "per_probe": [
             {
               "id": "codeword",
@@ -414,9 +414,9 @@
       "fixture_valid": true,
       "w2_native_expected_accuracy": 1.0,
       "detector_stats": {
-        "median": 0.20564137794695186,
-        "mad": 0.08328364597138344,
-        "threshold": 0.37220866988971874
+        "median": 0.20557393243456024,
+        "mad": 0.08325518099703648,
+        "threshold": 0.3720842944286332
       },
       "selected_causal_segments": [
         2,
@@ -442,7 +442,7 @@
       "selected_vs_w2_native": {
         "decision_agreement": 1.0,
         "expected_accuracy": 1.0,
-        "score_rms_error": 0.1533125385405268
+        "score_rms_error": 0.15334329520834844
       },
       "oracle_latest_safe_anchor": {
         "event_index": 2,
@@ -457,11 +457,11 @@
           "start": 15,
           "end": 29,
           "text": "Correction: the current codeword is BETA, not ALPHA. ",
-          "state_rms": 0.04158200085912691,
+          "state_rms": 0.04158637638568726,
           "decision_flips": 0,
-          "score_rms": 0.727684429644445,
-          "margin_shift_sum": 2.8511984426440904,
-          "detector_score": 1.012804273908854,
+          "score_rms": 0.7277231965839471,
+          "margin_shift_sum": 2.8513639431330375,
+          "detector_score": 1.0128595908972509,
           "per_probe": [
             {
               "id": "codeword",
@@ -494,11 +494,11 @@
           "start": 61,
           "end": 65,
           "text": "External action remains blocked.",
-          "state_rms": 0.0391778130275912,
+          "state_rms": 0.03917481895615144,
           "decision_flips": 0,
-          "score_rms": 0.4665803208347846,
-          "margin_shift_sum": 1.2423259191709803,
-          "detector_score": 0.5908129127518826,
+          "score_rms": 0.4667551846736747,
+          "margin_shift_sum": 1.2428788691322552,
+          "detector_score": 0.5910430715869003,
           "per_probe": [
             {
               "id": "codeword",
@@ -531,11 +531,11 @@
           "start": 7,
           "end": 15,
           "text": "The old codeword was ALPHA. ",
-          "state_rms": 0.05067614769276663,
+          "state_rms": 0.05067852564745876,
           "decision_flips": 0,
-          "score_rms": 0.2628423632942581,
-          "margin_shift_sum": 0.6309391078539193,
-          "detector_score": 0.32593627407965003,
+          "score_rms": 0.26294690117634806,
+          "margin_shift_sum": 0.6307051032781601,
+          "detector_score": 0.3260174115041641,
           "per_probe": [
             {
               "id": "codeword",
@@ -568,11 +568,11 @@
           "start": 54,
           "end": 61,
           "text": "Hypothesis one is weakened. ",
-          "state_rms": 0.04230068227123798,
+          "state_rms": 0.0423060954531612,
           "decision_flips": 0,
-          "score_rms": 0.19901744433018007,
-          "margin_shift_sum": 0.2959821195836412,
-          "detector_score": 0.2286156562885442,
+          "score_rms": 0.1990852979508178,
+          "margin_shift_sum": 0.29577683890238404,
+          "detector_score": 0.2286629818410562,
           "per_probe": [
             {
               "id": "codeword",
@@ -608,9 +608,9 @@
       "fixture_valid": true,
       "w2_native_expected_accuracy": 1.0,
       "detector_stats": {
-        "median": 0.25551730468440315,
-        "mad": 0.11179153337633456,
-        "threshold": 0.4791003714370723
+        "median": 0.25560073474364486,
+        "mad": 0.11194559377359645,
+        "threshold": 0.47949192229083776
       },
       "selected_causal_segments": [
         4,
@@ -636,7 +636,7 @@
       "selected_vs_w2_native": {
         "decision_agreement": 1.0,
         "expected_accuracy": 1.0,
-        "score_rms_error": 0.15079521568198898
+        "score_rms_error": 0.1508087648446709
       },
       "oracle_latest_safe_anchor": {
         "event_index": 4,
@@ -651,11 +651,11 @@
           "start": 30,
           "end": 43,
           "text": "Correction: the current codeword is RED, not BLUE. ",
-          "state_rms": 0.04623327500484958,
+          "state_rms": 0.04623502532666996,
           "decision_flips": 0,
-          "score_rms": 0.5650248852242574,
-          "margin_shift_sum": 2.2685284193139523,
-          "detector_score": 0.7918777271556526,
+          "score_rms": 0.5651717871663886,
+          "margin_shift_sum": 2.26890836795792,
+          "detector_score": 0.7920626239621806,
           "per_probe": [
             {
               "id": "codeword",
@@ -688,11 +688,11 @@
           "start": 60,
           "end": 64,
           "text": "External action remains blocked.",
-          "state_rms": 0.03873106355454227,
+          "state_rms": 0.03872928840523385,
           "decision_flips": 0,
-          "score_rms": 0.4536234431005784,
-          "margin_shift_sum": 1.2456602936144918,
-          "detector_score": 0.5781894724620276,
+          "score_rms": 0.45380938138384874,
+          "margin_shift_sum": 1.2461939934873953,
+          "detector_score": 0.5784287807325883,
           "per_probe": [
             {
               "id": "codeword",
@@ -725,11 +725,11 @@
           "start": 7,
           "end": 15,
           "text": "The old codeword was BLUE. ",
-          "state_rms": 0.04292051742721903,
+          "state_rms": 0.04292219438150504,
           "decision_flips": 0,
-          "score_rms": 0.32769631600470556,
-          "margin_shift_sum": 1.018009196035564,
-          "detector_score": 0.429497235608262,
+          "score_rms": 0.3279371910720992,
+          "margin_shift_sum": 1.0189437000080943,
+          "detector_score": 0.4298315610729086,
           "per_probe": [
             {
               "id": "codeword",
@@ -762,11 +762,11 @@
           "start": 53,
           "end": 60,
           "text": "Hypothesis one is weakened. ",
-          "state_rms": 0.04358268956200743,
+          "state_rms": 0.04358844072899579,
           "decision_flips": 0,
-          "score_rms": 0.23793688609765135,
-          "margin_shift_sum": 0.2763101407326758,
-          "detector_score": 0.2655679001709189,
+          "score_rms": 0.23798260236770039,
+          "margin_shift_sum": 0.2761350820073858,
+          "detector_score": 0.26559611056843896,
           "per_probe": [
             {
               "id": "codeword",
@@ -802,9 +802,9 @@
       "fixture_valid": true,
       "w2_native_expected_accuracy": 1.0,
       "detector_stats": {
-        "median": 0.19078796141279164,
-        "mad": 0.048550884339118555,
-        "threshold": 0.28788973009102875
+        "median": 0.19089945655763907,
+        "mad": 0.04864209941756846,
+        "threshold": 0.288183655392776
       },
       "selected_causal_segments": [
         5,
@@ -837,7 +837,7 @@
       "selected_vs_w2_native": {
         "decision_agreement": 1.0,
         "expected_accuracy": 1.0,
-        "score_rms_error": 0.2903706516243719
+        "score_rms_error": 0.2903616721536816
       },
       "oracle_latest_safe_anchor": {
         "event_index": 6,
@@ -852,11 +852,11 @@
           "start": 48,
           "end": 62,
           "text": "Correction: the current codeword is HIGH, not LOW. ",
-          "state_rms": 0.043296832736456056,
+          "state_rms": 0.04329873402086003,
           "decision_flips": 1,
-          "score_rms": 0.34478450516550935,
-          "margin_shift_sum": 1.577812407485908,
-          "detector_score": 1000.5025657459141,
+          "score_rms": 0.34477602230859417,
+          "margin_shift_sum": 1.57801002645283,
+          "detector_score": 1000.5025770249539,
           "per_probe": [
             {
               "id": "codeword",
@@ -889,11 +889,11 @@
           "start": 62,
           "end": 66,
           "text": "External action remains blocked.",
-          "state_rms": 0.038394088532665634,
+          "state_rms": 0.03839494314272946,
           "decision_flips": 0,
-          "score_rms": 0.5333139418229805,
-          "margin_shift_sum": 1.3117624716833234,
-          "detector_score": 0.6644901889913128,
+          "score_rms": 0.53353273292288,
+          "margin_shift_sum": 1.3123256161925383,
+          "detector_score": 0.6647652945421338,
           "per_probe": [
             {
               "id": "codeword",
@@ -926,11 +926,11 @@
           "start": 38,
           "end": 48,
           "text": "A historical memo mentions LOW but is obsolete. ",
-          "state_rms": 0.03984116255490402,
+          "state_rms": 0.039846249479628684,
           "decision_flips": 0,
-          "score_rms": 0.2447325714589153,
-          "margin_shift_sum": 0.605138550279662,
-          "detector_score": 0.3052464264868815,
+          "score_rms": 0.24483141866257926,
+          "margin_shift_sum": 0.6050276855821721,
+          "detector_score": 0.30533418722079647,
           "per_probe": [
             {
               "id": "codeword",
@@ -963,11 +963,11 @@
           "start": 16,
           "end": 26,
           "text": "Unrelated telemetry packet 31 was archived. ",
-          "state_rms": 0.032761692871570755,
+          "state_rms": 0.032765442442930545,
           "decision_flips": 0,
-          "score_rms": 0.14544827006511024,
-          "margin_shift_sum": 0.47796628763899207,
-          "detector_score": 0.19324489882900944,
+          "score_rms": 0.1455531278230799,
+          "margin_shift_sum": 0.47823906713165343,
+          "detector_score": 0.19337703453624522,
           "per_probe": [
             {
               "id": "codeword",
@@ -1003,9 +1003,9 @@
       "fixture_valid": true,
       "w2_native_expected_accuracy": 1.0,
       "detector_stats": {
-        "median": 0.23581269674316982,
-        "mad": 0.0763515636664063,
-        "threshold": 0.3885158240759824
+        "median": 0.23576046870376394,
+        "mad": 0.07631293932546013,
+        "threshold": 0.3883863473546842
       },
       "selected_causal_segments": [
         5,
@@ -1038,7 +1038,7 @@
       "selected_vs_w2_native": {
         "decision_agreement": 1.0,
         "expected_accuracy": 1.0,
-        "score_rms_error": 0.437374598101247
+        "score_rms_error": 0.4375430891280789
       },
       "oracle_latest_safe_anchor": {
         "event_index": 8,
@@ -1053,11 +1053,11 @@
           "start": 53,
           "end": 67,
           "text": "Correction: the current codeword is WEST, not EAST. ",
-          "state_rms": 0.03865781759819574,
+          "state_rms": 0.038662489187896956,
           "decision_flips": 1,
-          "score_rms": 0.3945552408921507,
-          "margin_shift_sum": 1.609366889402736,
-          "detector_score": 1000.5554919298324,
+          "score_rms": 0.39463045341293035,
+          "margin_shift_sum": 1.609669650963042,
+          "detector_score": 1000.5555974185093,
           "per_probe": [
             {
               "id": "codeword",
@@ -1090,11 +1090,11 @@
           "start": 46,
           "end": 53,
           "text": "Two unrelated sensors were recalibrated. ",
-          "state_rms": 0.03872157419559707,
+          "state_rms": 0.03872706199459097,
           "decision_flips": 1,
-          "score_rms": 0.1446124015763597,
-          "margin_shift_sum": 0.735982968530152,
-          "detector_score": 1000.2182106984294,
+          "score_rms": 0.144621120615415,
+          "margin_shift_sum": 0.7359908957732841,
+          "detector_score": 1000.2182202101927,
           "per_probe": [
             {
               "id": "codeword",
@@ -1127,11 +1127,11 @@
           "start": 74,
           "end": 78,
           "text": "External action remains blocked.",
-          "state_rms": 0.037993303806679854,
+          "state_rms": 0.037992849084805796,
           "decision_flips": 0,
-          "score_rms": 0.5221453750383723,
-          "margin_shift_sum": 1.474289785255678,
-          "detector_score": 0.6695743535639401,
+          "score_rms": 0.5222652117937231,
+          "margin_shift_sum": 1.4746183262905106,
+          "detector_score": 0.6697270444227742,
           "per_probe": [
             {
               "id": "codeword",
@@ -1164,11 +1164,11 @@
           "start": 7,
           "end": 15,
           "text": "The old codeword was EAST. ",
-          "state_rms": 0.0424755481031087,
+          "state_rms": 0.04247671298228235,
           "decision_flips": 0,
-          "score_rms": 0.23436116472133553,
-          "margin_shift_sum": 0.526667594735045,
-          "detector_score": 0.28702792419484,
+          "score_rms": 0.23444880133734264,
+          "margin_shift_sum": 0.5269885293382686,
+          "detector_score": 0.2871476542711695,
           "per_probe": [
             {
               "id": "codeword",
