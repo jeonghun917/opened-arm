@@ -1,0 +1,3820 @@
+{
+  "status": "VELA_MAMBA_NATIVE_LONG_HISTORY_ROBUSTNESS_V1",
+  "model": "state-spaces/mamba-130m-hf",
+  "torch_version": "2.13.0+cu130",
+  "transformers_version": "4.57.6",
+  "purpose": "Isolate native full-history model robustness from migration/selector behavior. No checkpoint selector or migrated state is used in this experiment.",
+  "capability": {
+    "W1": {
+      "accuracy": 0.3333333333333333,
+      "correction_accuracy": 0.125,
+      "control_accuracy": 0.75,
+      "pair_summary": {
+        "codeword-control": {
+          "both_correct": true,
+          "choices": [
+            " ALPHA",
+            " BETA"
+          ],
+          "choice_flips": true
+        },
+        "codeword-correction": {
+          "both_correct": false,
+          "choices": [
+            " ALPHA",
+            " BETA"
+          ],
+          "choice_flips": true
+        },
+        "color": {
+          "both_correct": false,
+          "choices": [
+            " RED",
+            " BLUE"
+          ],
+          "choice_flips": true
+        },
+        "level": {
+          "both_correct": false,
+          "choices": [
+            " HIGH",
+            " HIGH"
+          ],
+          "choice_flips": false
+        },
+        "motion": {
+          "both_correct": false,
+          "choices": [
+            " START",
+            " STOP"
+          ],
+          "choice_flips": true
+        },
+        "plan-control": {
+          "both_correct": false,
+          "choices": [
+            " commit",
+            " commit"
+          ],
+          "choice_flips": false
+        }
+      },
+      "rows": [
+        {
+          "pair": "color",
+          "variant": "A",
+          "kind": "correction",
+          "expected": " BLUE",
+          "chosen": " RED",
+          "correct": false,
+          "margin": -1.346188809722662,
+          "scores": {
+            " BLUE": -2.11148127540946,
+            " RED": -0.7652924656867981
+          }
+        },
+        {
+          "pair": "color",
+          "variant": "B",
+          "kind": "correction",
+          "expected": " RED",
+          "chosen": " BLUE",
+          "correct": false,
+          "margin": -0.329918272793293,
+          "scores": {
+            " BLUE": -1.1411760970950127,
+            " RED": -1.4710943698883057
+          }
+        },
+        {
+          "pair": "codeword-correction",
+          "variant": "A",
+          "kind": "correction",
+          "expected": " BETA",
+          "chosen": " ALPHA",
+          "correct": false,
+          "margin": -0.670372111722827,
+          "scores": {
+            " BETA": -2.206990865059197,
+            " ALPHA": -1.53661875333637
+          }
+        },
+        {
+          "pair": "codeword-correction",
+          "variant": "B",
+          "kind": "correction",
+          "expected": " ALPHA",
+          "chosen": " BETA",
+          "correct": false,
+          "margin": -2.1007193247787654,
+          "scores": {
+            " BETA": -0.9525676635093987,
+            " ALPHA": -3.053286988288164
+          }
+        },
+        {
+          "pair": "level",
+          "variant": "A",
+          "kind": "correction",
+          "expected": " HIGH",
+          "chosen": " HIGH",
+          "correct": true,
+          "margin": 0.941772073507309,
+          "scores": {
+            " HIGH": -4.410445854067802,
+            " LOW": -5.352217927575111
+          }
+        },
+        {
+          "pair": "level",
+          "variant": "B",
+          "kind": "correction",
+          "expected": " LOW",
+          "chosen": " HIGH",
+          "correct": false,
+          "margin": -0.5158971697092056,
+          "scores": {
+            " HIGH": -4.71245651692152,
+            " LOW": -5.228353686630726
+          }
+        },
+        {
+          "pair": "motion",
+          "variant": "A",
+          "kind": "correction",
+          "expected": " STOP",
+          "chosen": " START",
+          "correct": false,
+          "margin": -0.4205511538311839,
+          "scores": {
+            " STOP": -2.042754980735481,
+            " START": -1.6222038269042969
+          }
+        },
+        {
+          "pair": "motion",
+          "variant": "B",
+          "kind": "correction",
+          "expected": " START",
+          "chosen": " STOP",
+          "correct": false,
+          "margin": -0.03817039169371128,
+          "scores": {
+            " STOP": -1.537554806098342,
+            " START": -1.5757251977920532
+          }
+        },
+        {
+          "pair": "codeword-control",
+          "variant": "A",
+          "kind": "control",
+          "expected": " ALPHA",
+          "chosen": " ALPHA",
+          "correct": true,
+          "margin": 6.691531419754028,
+          "scores": {
+            " ALPHA": -1.1355123817920685,
+            " BETA": -7.827043801546097
+          }
+        },
+        {
+          "pair": "codeword-control",
+          "variant": "B",
+          "kind": "control",
+          "expected": " BETA",
+          "chosen": " BETA",
+          "correct": true,
+          "margin": 3.9907003697007895,
+          "scores": {
+            " ALPHA": -5.021690368652344,
+            " BETA": -1.0309899989515543
+          }
+        },
+        {
+          "pair": "plan-control",
+          "variant": "A",
+          "kind": "control",
+          "expected": " commit",
+          "chosen": " commit",
+          "correct": true,
+          "margin": 0.6712570190429688,
+          "scores": {
+            " commit": -4.267392158508301,
+            " collect": -4.9386491775512695
+          }
+        },
+        {
+          "pair": "plan-control",
+          "variant": "B",
+          "kind": "control",
+          "expected": " collect",
+          "chosen": " commit",
+          "correct": false,
+          "margin": -1.2698326110839844,
+          "scores": {
+            " commit": -4.173771858215332,
+            " collect": -5.443604469299316
+          }
+        }
+      ]
+    },
+    "W2": {
+      "accuracy": 0.9166666666666666,
+      "correction_accuracy": 1.0,
+      "control_accuracy": 0.75,
+      "pair_summary": {
+        "codeword-control": {
+          "both_correct": true,
+          "choices": [
+            " ALPHA",
+            " BETA"
+          ],
+          "choice_flips": true
+        },
+        "codeword-correction": {
+          "both_correct": true,
+          "choices": [
+            " BETA",
+            " ALPHA"
+          ],
+          "choice_flips": true
+        },
+        "color": {
+          "both_correct": true,
+          "choices": [
+            " BLUE",
+            " RED"
+          ],
+          "choice_flips": true
+        },
+        "level": {
+          "both_correct": true,
+          "choices": [
+            " HIGH",
+            " LOW"
+          ],
+          "choice_flips": true
+        },
+        "motion": {
+          "both_correct": true,
+          "choices": [
+            " STOP",
+            " START"
+          ],
+          "choice_flips": true
+        },
+        "plan-control": {
+          "both_correct": false,
+          "choices": [
+            " commit",
+            " commit"
+          ],
+          "choice_flips": false
+        }
+      },
+      "rows": [
+        {
+          "pair": "color",
+          "variant": "A",
+          "kind": "correction",
+          "expected": " BLUE",
+          "chosen": " BLUE",
+          "correct": true,
+          "margin": 5.60794178629294,
+          "scores": {
+            " BLUE": -0.013747056480497122,
+            " RED": -5.6216888427734375
+          }
+        },
+        {
+          "pair": "color",
+          "variant": "B",
+          "kind": "correction",
+          "expected": " RED",
+          "chosen": " RED",
+          "correct": true,
+          "margin": 4.2710583712905645,
+          "scores": {
+            " BLUE": -4.2877908404916525,
+            " RED": -0.01673246920108795
+          }
+        },
+        {
+          "pair": "codeword-correction",
+          "variant": "A",
+          "kind": "correction",
+          "expected": " BETA",
+          "chosen": " BETA",
+          "correct": true,
+          "margin": 5.749033820582554,
+          "scores": {
+            " BETA": -0.011240692576393485,
+            " ALPHA": -5.760274513158947
+          }
+        },
+        {
+          "pair": "codeword-correction",
+          "variant": "B",
+          "kind": "correction",
+          "expected": " ALPHA",
+          "chosen": " ALPHA",
+          "correct": true,
+          "margin": 1.2117272324394435,
+          "scores": {
+            " BETA": -1.5534807268995792,
+            " ALPHA": -0.3417534944601357
+          }
+        },
+        {
+          "pair": "level",
+          "variant": "A",
+          "kind": "correction",
+          "expected": " HIGH",
+          "chosen": " HIGH",
+          "correct": true,
+          "margin": 2.8074628091417253,
+          "scores": {
+            " HIGH": -0.0888096415437758,
+            " LOW": -2.896272450685501
+          }
+        },
+        {
+          "pair": "level",
+          "variant": "B",
+          "kind": "correction",
+          "expected": " LOW",
+          "chosen": " LOW",
+          "correct": true,
+          "margin": 2.8801830974407494,
+          "scores": {
+            " HIGH": -2.9590008347295225,
+            " LOW": -0.07881773728877306
+          }
+        },
+        {
+          "pair": "motion",
+          "variant": "A",
+          "kind": "correction",
+          "expected": " STOP",
+          "chosen": " STOP",
+          "correct": true,
+          "margin": 4.870896167005412,
+          "scores": {
+            " STOP": -0.047805958543904126,
+            " START": -4.918702125549316
+          }
+        },
+        {
+          "pair": "motion",
+          "variant": "B",
+          "kind": "correction",
+          "expected": " START",
+          "chosen": " START",
+          "correct": true,
+          "margin": 3.7104111090302467,
+          "scores": {
+            " STOP": -3.746078658849001,
+            " START": -0.035667549818754196
+          }
+        },
+        {
+          "pair": "codeword-control",
+          "variant": "A",
+          "kind": "control",
+          "expected": " ALPHA",
+          "chosen": " ALPHA",
+          "correct": true,
+          "margin": 7.416549572721124,
+          "scores": {
+            " ALPHA": -0.451635604724288,
+            " BETA": -7.868185177445412
+          }
+        },
+        {
+          "pair": "codeword-control",
+          "variant": "B",
+          "kind": "control",
+          "expected": " BETA",
+          "chosen": " BETA",
+          "correct": true,
+          "margin": 6.6163866656133905,
+          "scores": {
+            " ALPHA": -6.66118947416544,
+            " BETA": -0.0448028085520491
+          }
+        },
+        {
+          "pair": "plan-control",
+          "variant": "A",
+          "kind": "control",
+          "expected": " commit",
+          "chosen": " commit",
+          "correct": true,
+          "margin": 3.5403517484664917,
+          "scores": {
+            " commit": -0.69764244556427,
+            " collect": -4.237994194030762
+          }
+        },
+        {
+          "pair": "plan-control",
+          "variant": "B",
+          "kind": "control",
+          "expected": " collect",
+          "chosen": " commit",
+          "correct": false,
+          "margin": -4.588470697402954,
+          "scores": {
+            " commit": -0.6370561122894287,
+            " collect": -5.225526809692383
+          }
+        }
+      ]
+    },
+    "epoch_loss": [
+      1.7653111815452576,
+      0.46972360741347075,
+      0.09346337559691165
+    ]
+  },
+  "suite": {
+    "fixture_count": 38,
+    "W1_full_success_count": 0,
+    "W2_full_success_count": 12,
+    "W2_failure_count": 26,
+    "W2_failures": [
+      {
+        "fixture": "superseded_base",
+        "family": "superseded",
+        "history_tokens": 74,
+        "wrong_probes": [
+          "codeword"
+        ]
+      },
+      {
+        "fixture": "superseded_prefix2",
+        "family": "superseded",
+        "history_tokens": 90,
+        "wrong_probes": [
+          "codeword"
+        ]
+      },
+      {
+        "fixture": "superseded_prefix4",
+        "family": "superseded",
+        "history_tokens": 104,
+        "wrong_probes": [
+          "codeword"
+        ]
+      },
+      {
+        "fixture": "superseded_prefix8",
+        "family": "superseded",
+        "history_tokens": 135,
+        "wrong_probes": [
+          "codeword"
+        ]
+      },
+      {
+        "fixture": "superseded_middle2",
+        "family": "superseded",
+        "history_tokens": 88,
+        "wrong_probes": [
+          "codeword"
+        ]
+      },
+      {
+        "fixture": "superseded_middle4",
+        "family": "superseded",
+        "history_tokens": 103,
+        "wrong_probes": [
+          "codeword"
+        ]
+      },
+      {
+        "fixture": "superseded_middle8",
+        "family": "superseded",
+        "history_tokens": 133,
+        "wrong_probes": [
+          "codeword"
+        ]
+      },
+      {
+        "fixture": "superseded_suffix2",
+        "family": "superseded",
+        "history_tokens": 90,
+        "wrong_probes": [
+          "codeword"
+        ]
+      },
+      {
+        "fixture": "superseded_suffix4",
+        "family": "superseded",
+        "history_tokens": 106,
+        "wrong_probes": [
+          "codeword"
+        ]
+      },
+      {
+        "fixture": "superseded_suffix8",
+        "family": "superseded",
+        "history_tokens": 135,
+        "wrong_probes": [
+          "codeword"
+        ]
+      },
+      {
+        "fixture": "superseded_both4",
+        "family": "superseded",
+        "history_tokens": 136,
+        "wrong_probes": [
+          "codeword"
+        ]
+      },
+      {
+        "fixture": "superseded_both8",
+        "family": "superseded",
+        "history_tokens": 196,
+        "wrong_probes": [
+          "codeword"
+        ]
+      },
+      {
+        "fixture": "single_middle_both2",
+        "family": "single_middle",
+        "history_tokens": 96,
+        "wrong_probes": [
+          "codeword"
+        ]
+      },
+      {
+        "fixture": "single_middle_both4",
+        "family": "single_middle",
+        "history_tokens": 126,
+        "wrong_probes": [
+          "codeword"
+        ]
+      },
+      {
+        "fixture": "single_middle_both6",
+        "family": "single_middle",
+        "history_tokens": 155,
+        "wrong_probes": [
+          "codeword"
+        ]
+      },
+      {
+        "fixture": "single_middle_both8",
+        "family": "single_middle",
+        "history_tokens": 186,
+        "wrong_probes": [
+          "codeword"
+        ]
+      },
+      {
+        "fixture": "single_middle_both10",
+        "family": "single_middle",
+        "history_tokens": 216,
+        "wrong_probes": [
+          "codeword"
+        ]
+      },
+      {
+        "fixture": "single_middle_both12",
+        "family": "single_middle",
+        "history_tokens": 245,
+        "wrong_probes": [
+          "codeword"
+        ]
+      },
+      {
+        "fixture": "single_middle_middle4",
+        "family": "single_middle",
+        "history_tokens": 93,
+        "wrong_probes": [
+          "codeword"
+        ]
+      },
+      {
+        "fixture": "single_middle_middle8",
+        "family": "single_middle",
+        "history_tokens": 123,
+        "wrong_probes": [
+          "codeword"
+        ]
+      },
+      {
+        "fixture": "single_middle_middle12",
+        "family": "single_middle",
+        "history_tokens": 154,
+        "wrong_probes": [
+          "codeword"
+        ]
+      },
+      {
+        "fixture": "late_overwrite_control_suffix4",
+        "family": "late_overwrite_control",
+        "history_tokens": 127,
+        "wrong_probes": [
+          "codeword"
+        ]
+      },
+      {
+        "fixture": "late_overwrite_control_suffix8",
+        "family": "late_overwrite_control",
+        "history_tokens": 156,
+        "wrong_probes": [
+          "codeword"
+        ]
+      },
+      {
+        "fixture": "late_overwrite_control_both8",
+        "family": "late_overwrite_control",
+        "history_tokens": 217,
+        "wrong_probes": [
+          "codeword"
+        ]
+      },
+      {
+        "fixture": "independent_control_both8",
+        "family": "independent_control",
+        "history_tokens": 192,
+        "wrong_probes": [
+          "codeword"
+        ]
+      },
+      {
+        "fixture": "superseded_old_value_echoes",
+        "family": "superseded",
+        "history_tokens": 182,
+        "wrong_probes": [
+          "codeword"
+        ]
+      }
+    ],
+    "W1_by_family": {
+      "superseded": {
+        "count": 13,
+        "full_success": 0,
+        "failed": [
+          {
+            "fixture": "superseded_base",
+            "history_tokens": 74,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "superseded_prefix2",
+            "history_tokens": 90,
+            "wrong_probes": [
+              "codeword",
+              "verification"
+            ]
+          },
+          {
+            "fixture": "superseded_prefix4",
+            "history_tokens": 104,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "superseded_prefix8",
+            "history_tokens": 135,
+            "wrong_probes": [
+              "codeword",
+              "verification"
+            ]
+          },
+          {
+            "fixture": "superseded_middle2",
+            "history_tokens": 88,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "superseded_middle4",
+            "history_tokens": 103,
+            "wrong_probes": [
+              "codeword",
+              "verification"
+            ]
+          },
+          {
+            "fixture": "superseded_middle8",
+            "history_tokens": 133,
+            "wrong_probes": [
+              "codeword",
+              "verification"
+            ]
+          },
+          {
+            "fixture": "superseded_suffix2",
+            "history_tokens": 90,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "superseded_suffix4",
+            "history_tokens": 106,
+            "wrong_probes": [
+              "codeword",
+              "verification"
+            ]
+          },
+          {
+            "fixture": "superseded_suffix8",
+            "history_tokens": 135,
+            "wrong_probes": [
+              "codeword",
+              "verification"
+            ]
+          },
+          {
+            "fixture": "superseded_both4",
+            "history_tokens": 136,
+            "wrong_probes": [
+              "codeword",
+              "verification"
+            ]
+          },
+          {
+            "fixture": "superseded_both8",
+            "history_tokens": 196,
+            "wrong_probes": [
+              "codeword",
+              "verification"
+            ]
+          },
+          {
+            "fixture": "superseded_old_value_echoes",
+            "history_tokens": 182,
+            "wrong_probes": [
+              "codeword",
+              "verification"
+            ]
+          }
+        ],
+        "full_success_rate": 0.0
+      },
+      "single_middle": {
+        "count": 10,
+        "full_success": 0,
+        "failed": [
+          {
+            "fixture": "single_middle_base",
+            "history_tokens": 64,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "single_middle_both2",
+            "history_tokens": 96,
+            "wrong_probes": [
+              "codeword",
+              "verification"
+            ]
+          },
+          {
+            "fixture": "single_middle_both4",
+            "history_tokens": 126,
+            "wrong_probes": [
+              "codeword",
+              "verification"
+            ]
+          },
+          {
+            "fixture": "single_middle_both6",
+            "history_tokens": 155,
+            "wrong_probes": [
+              "codeword",
+              "verification"
+            ]
+          },
+          {
+            "fixture": "single_middle_both8",
+            "history_tokens": 186,
+            "wrong_probes": [
+              "codeword",
+              "verification"
+            ]
+          },
+          {
+            "fixture": "single_middle_both10",
+            "history_tokens": 216,
+            "wrong_probes": [
+              "codeword",
+              "verification"
+            ]
+          },
+          {
+            "fixture": "single_middle_both12",
+            "history_tokens": 245,
+            "wrong_probes": [
+              "codeword",
+              "verification"
+            ]
+          },
+          {
+            "fixture": "single_middle_middle4",
+            "history_tokens": 93,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "single_middle_middle8",
+            "history_tokens": 123,
+            "wrong_probes": [
+              "codeword",
+              "verification"
+            ]
+          },
+          {
+            "fixture": "single_middle_middle12",
+            "history_tokens": 154,
+            "wrong_probes": [
+              "codeword",
+              "verification"
+            ]
+          }
+        ],
+        "full_success_rate": 0.0
+      },
+      "late_overwrite_control": {
+        "count": 7,
+        "full_success": 0,
+        "failed": [
+          {
+            "fixture": "late_overwrite_control_base",
+            "history_tokens": 95,
+            "wrong_probes": [
+              "codeword",
+              "verification"
+            ]
+          },
+          {
+            "fixture": "late_overwrite_control_prefix4",
+            "history_tokens": 125,
+            "wrong_probes": [
+              "codeword",
+              "verification"
+            ]
+          },
+          {
+            "fixture": "late_overwrite_control_prefix8",
+            "history_tokens": 156,
+            "wrong_probes": [
+              "codeword",
+              "verification"
+            ]
+          },
+          {
+            "fixture": "late_overwrite_control_prefix12",
+            "history_tokens": 185,
+            "wrong_probes": [
+              "codeword",
+              "verification"
+            ]
+          },
+          {
+            "fixture": "late_overwrite_control_suffix4",
+            "history_tokens": 127,
+            "wrong_probes": [
+              "codeword",
+              "verification"
+            ]
+          },
+          {
+            "fixture": "late_overwrite_control_suffix8",
+            "history_tokens": 156,
+            "wrong_probes": [
+              "codeword",
+              "verification"
+            ]
+          },
+          {
+            "fixture": "late_overwrite_control_both8",
+            "history_tokens": 217,
+            "wrong_probes": [
+              "codeword",
+              "verification"
+            ]
+          }
+        ],
+        "full_success_rate": 0.0
+      },
+      "independent_control": {
+        "count": 8,
+        "full_success": 0,
+        "failed": [
+          {
+            "fixture": "independent_control_base",
+            "history_tokens": 70,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "independent_control_prefix4",
+            "history_tokens": 100,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "independent_control_prefix8",
+            "history_tokens": 131,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "independent_control_prefix12",
+            "history_tokens": 160,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "independent_control_middle4",
+            "history_tokens": 99,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "independent_control_middle8",
+            "history_tokens": 129,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "independent_control_suffix8",
+            "history_tokens": 131,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "independent_control_both8",
+            "history_tokens": 192,
+            "wrong_probes": [
+              "codeword",
+              "verification"
+            ]
+          }
+        ],
+        "full_success_rate": 0.0
+      }
+    },
+    "W2_by_family": {
+      "superseded": {
+        "count": 13,
+        "full_success": 0,
+        "failed": [
+          {
+            "fixture": "superseded_base",
+            "history_tokens": 74,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "superseded_prefix2",
+            "history_tokens": 90,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "superseded_prefix4",
+            "history_tokens": 104,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "superseded_prefix8",
+            "history_tokens": 135,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "superseded_middle2",
+            "history_tokens": 88,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "superseded_middle4",
+            "history_tokens": 103,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "superseded_middle8",
+            "history_tokens": 133,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "superseded_suffix2",
+            "history_tokens": 90,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "superseded_suffix4",
+            "history_tokens": 106,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "superseded_suffix8",
+            "history_tokens": 135,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "superseded_both4",
+            "history_tokens": 136,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "superseded_both8",
+            "history_tokens": 196,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "superseded_old_value_echoes",
+            "history_tokens": 182,
+            "wrong_probes": [
+              "codeword"
+            ]
+          }
+        ],
+        "full_success_rate": 0.0
+      },
+      "single_middle": {
+        "count": 10,
+        "full_success": 1,
+        "failed": [
+          {
+            "fixture": "single_middle_both2",
+            "history_tokens": 96,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "single_middle_both4",
+            "history_tokens": 126,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "single_middle_both6",
+            "history_tokens": 155,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "single_middle_both8",
+            "history_tokens": 186,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "single_middle_both10",
+            "history_tokens": 216,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "single_middle_both12",
+            "history_tokens": 245,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "single_middle_middle4",
+            "history_tokens": 93,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "single_middle_middle8",
+            "history_tokens": 123,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "single_middle_middle12",
+            "history_tokens": 154,
+            "wrong_probes": [
+              "codeword"
+            ]
+          }
+        ],
+        "full_success_rate": 0.1
+      },
+      "late_overwrite_control": {
+        "count": 7,
+        "full_success": 4,
+        "failed": [
+          {
+            "fixture": "late_overwrite_control_suffix4",
+            "history_tokens": 127,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "late_overwrite_control_suffix8",
+            "history_tokens": 156,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "late_overwrite_control_both8",
+            "history_tokens": 217,
+            "wrong_probes": [
+              "codeword"
+            ]
+          }
+        ],
+        "full_success_rate": 0.5714285714285714
+      },
+      "independent_control": {
+        "count": 8,
+        "full_success": 7,
+        "failed": [
+          {
+            "fixture": "independent_control_both8",
+            "history_tokens": 192,
+            "wrong_probes": [
+              "codeword"
+            ]
+          }
+        ],
+        "full_success_rate": 0.875
+      }
+    }
+  },
+  "fixtures": [
+    {
+      "fixture": "superseded_base",
+      "family": "superseded",
+      "W1_native": {
+        "history_tokens": 74,
+        "events": 8,
+        "expected_accuracy": 0.75,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " ALPHA",
+            "expected": " GAMMA",
+            "correct": false
+          },
+          {
+            "id": "verification",
+            "chosen": " incomplete",
+            "expected": " incomplete",
+            "correct": true
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "W2_native": {
+        "history_tokens": 74,
+        "events": 8,
+        "expected_accuracy": 0.75,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " BETA",
+            "expected": " GAMMA",
+            "correct": false
+          },
+          {
+            "id": "verification",
+            "chosen": " incomplete",
+            "expected": " incomplete",
+            "correct": true
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "changed_from_W1": true
+    },
+    {
+      "fixture": "superseded_prefix2",
+      "family": "superseded",
+      "W1_native": {
+        "history_tokens": 90,
+        "events": 10,
+        "expected_accuracy": 0.5,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " ALPHA",
+            "expected": " GAMMA",
+            "correct": false
+          },
+          {
+            "id": "verification",
+            "chosen": " complete",
+            "expected": " incomplete",
+            "correct": false
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "W2_native": {
+        "history_tokens": 90,
+        "events": 10,
+        "expected_accuracy": 0.75,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " BETA",
+            "expected": " GAMMA",
+            "correct": false
+          },
+          {
+            "id": "verification",
+            "chosen": " incomplete",
+            "expected": " incomplete",
+            "correct": true
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "changed_from_W1": true
+    },
+    {
+      "fixture": "superseded_prefix4",
+      "family": "superseded",
+      "W1_native": {
+        "history_tokens": 104,
+        "events": 12,
+        "expected_accuracy": 0.75,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " ALPHA",
+            "expected": " GAMMA",
+            "correct": false
+          },
+          {
+            "id": "verification",
+            "chosen": " incomplete",
+            "expected": " incomplete",
+            "correct": true
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "W2_native": {
+        "history_tokens": 104,
+        "events": 12,
+        "expected_accuracy": 0.75,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " BETA",
+            "expected": " GAMMA",
+            "correct": false
+          },
+          {
+            "id": "verification",
+            "chosen": " incomplete",
+            "expected": " incomplete",
+            "correct": true
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "changed_from_W1": true
+    },
+    {
+      "fixture": "superseded_prefix8",
+      "family": "superseded",
+      "W1_native": {
+        "history_tokens": 135,
+        "events": 16,
+        "expected_accuracy": 0.5,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " ALPHA",
+            "expected": " GAMMA",
+            "correct": false
+          },
+          {
+            "id": "verification",
+            "chosen": " complete",
+            "expected": " incomplete",
+            "correct": false
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "W2_native": {
+        "history_tokens": 135,
+        "events": 16,
+        "expected_accuracy": 0.75,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " BETA",
+            "expected": " GAMMA",
+            "correct": false
+          },
+          {
+            "id": "verification",
+            "chosen": " incomplete",
+            "expected": " incomplete",
+            "correct": true
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "changed_from_W1": true
+    },
+    {
+      "fixture": "superseded_middle2",
+      "family": "superseded",
+      "W1_native": {
+        "history_tokens": 88,
+        "events": 10,
+        "expected_accuracy": 0.75,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " ALPHA",
+            "expected": " GAMMA",
+            "correct": false
+          },
+          {
+            "id": "verification",
+            "chosen": " incomplete",
+            "expected": " incomplete",
+            "correct": true
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "W2_native": {
+        "history_tokens": 88,
+        "events": 10,
+        "expected_accuracy": 0.75,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " BETA",
+            "expected": " GAMMA",
+            "correct": false
+          },
+          {
+            "id": "verification",
+            "chosen": " incomplete",
+            "expected": " incomplete",
+            "correct": true
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "changed_from_W1": true
+    },
+    {
+      "fixture": "superseded_middle4",
+      "family": "superseded",
+      "W1_native": {
+        "history_tokens": 103,
+        "events": 12,
+        "expected_accuracy": 0.5,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " ALPHA",
+            "expected": " GAMMA",
+            "correct": false
+          },
+          {
+            "id": "verification",
+            "chosen": " complete",
+            "expected": " incomplete",
+            "correct": false
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "W2_native": {
+        "history_tokens": 103,
+        "events": 12,
+        "expected_accuracy": 0.75,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " BETA",
+            "expected": " GAMMA",
+            "correct": false
+          },
+          {
+            "id": "verification",
+            "chosen": " incomplete",
+            "expected": " incomplete",
+            "correct": true
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "changed_from_W1": true
+    },
+    {
+      "fixture": "superseded_middle8",
+      "family": "superseded",
+      "W1_native": {
+        "history_tokens": 133,
+        "events": 16,
+        "expected_accuracy": 0.5,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " ALPHA",
+            "expected": " GAMMA",
+            "correct": false
+          },
+          {
+            "id": "verification",
+            "chosen": " complete",
+            "expected": " incomplete",
+            "correct": false
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "W2_native": {
+        "history_tokens": 133,
+        "events": 16,
+        "expected_accuracy": 0.75,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " BETA",
+            "expected": " GAMMA",
+            "correct": false
+          },
+          {
+            "id": "verification",
+            "chosen": " incomplete",
+            "expected": " incomplete",
+            "correct": true
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "changed_from_W1": true
+    },
+    {
+      "fixture": "superseded_suffix2",
+      "family": "superseded",
+      "W1_native": {
+        "history_tokens": 90,
+        "events": 10,
+        "expected_accuracy": 0.75,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " ALPHA",
+            "expected": " GAMMA",
+            "correct": false
+          },
+          {
+            "id": "verification",
+            "chosen": " incomplete",
+            "expected": " incomplete",
+            "correct": true
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "W2_native": {
+        "history_tokens": 90,
+        "events": 10,
+        "expected_accuracy": 0.75,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " BETA",
+            "expected": " GAMMA",
+            "correct": false
+          },
+          {
+            "id": "verification",
+            "chosen": " incomplete",
+            "expected": " incomplete",
+            "correct": true
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "changed_from_W1": true
+    },
+    {
+      "fixture": "superseded_suffix4",
+      "family": "superseded",
+      "W1_native": {
+        "history_tokens": 106,
+        "events": 12,
+        "expected_accuracy": 0.5,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " ALPHA",
+            "expected": " GAMMA",
+            "correct": false
+          },
+          {
+            "id": "verification",
+            "chosen": " complete",
+            "expected": " incomplete",
+            "correct": false
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "W2_native": {
+        "history_tokens": 106,
+        "events": 12,
+        "expected_accuracy": 0.75,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " BETA",
+            "expected": " GAMMA",
+            "correct": false
+          },
+          {
+            "id": "verification",
+            "chosen": " incomplete",
+            "expected": " incomplete",
+            "correct": true
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "changed_from_W1": true
+    },
+    {
+      "fixture": "superseded_suffix8",
+      "family": "superseded",
+      "W1_native": {
+        "history_tokens": 135,
+        "events": 16,
+        "expected_accuracy": 0.5,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " ALPHA",
+            "expected": " GAMMA",
+            "correct": false
+          },
+          {
+            "id": "verification",
+            "chosen": " complete",
+            "expected": " incomplete",
+            "correct": false
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "W2_native": {
+        "history_tokens": 135,
+        "events": 16,
+        "expected_accuracy": 0.75,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " BETA",
+            "expected": " GAMMA",
+            "correct": false
+          },
+          {
+            "id": "verification",
+            "chosen": " incomplete",
+            "expected": " incomplete",
+            "correct": true
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "changed_from_W1": true
+    },
+    {
+      "fixture": "superseded_both4",
+      "family": "superseded",
+      "W1_native": {
+        "history_tokens": 136,
+        "events": 16,
+        "expected_accuracy": 0.5,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " ALPHA",
+            "expected": " GAMMA",
+            "correct": false
+          },
+          {
+            "id": "verification",
+            "chosen": " complete",
+            "expected": " incomplete",
+            "correct": false
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "W2_native": {
+        "history_tokens": 136,
+        "events": 16,
+        "expected_accuracy": 0.75,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " BETA",
+            "expected": " GAMMA",
+            "correct": false
+          },
+          {
+            "id": "verification",
+            "chosen": " incomplete",
+            "expected": " incomplete",
+            "correct": true
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "changed_from_W1": true
+    },
+    {
+      "fixture": "superseded_both8",
+      "family": "superseded",
+      "W1_native": {
+        "history_tokens": 196,
+        "events": 24,
+        "expected_accuracy": 0.5,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " ALPHA",
+            "expected": " GAMMA",
+            "correct": false
+          },
+          {
+            "id": "verification",
+            "chosen": " complete",
+            "expected": " incomplete",
+            "correct": false
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "W2_native": {
+        "history_tokens": 196,
+        "events": 24,
+        "expected_accuracy": 0.75,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " ALPHA",
+            "expected": " GAMMA",
+            "correct": false
+          },
+          {
+            "id": "verification",
+            "chosen": " incomplete",
+            "expected": " incomplete",
+            "correct": true
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "changed_from_W1": true
+    },
+    {
+      "fixture": "single_middle_base",
+      "family": "single_middle",
+      "W1_native": {
+        "history_tokens": 64,
+        "events": 8,
+        "expected_accuracy": 0.75,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " BLUE",
+            "expected": " RED",
+            "correct": false
+          },
+          {
+            "id": "verification",
+            "chosen": " incomplete",
+            "expected": " incomplete",
+            "correct": true
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "W2_native": {
+        "history_tokens": 64,
+        "events": 8,
+        "expected_accuracy": 1.0,
+        "all_correct": true,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " RED",
+            "expected": " RED",
+            "correct": true
+          },
+          {
+            "id": "verification",
+            "chosen": " incomplete",
+            "expected": " incomplete",
+            "correct": true
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "changed_from_W1": true
+    },
+    {
+      "fixture": "single_middle_both2",
+      "family": "single_middle",
+      "W1_native": {
+        "history_tokens": 96,
+        "events": 12,
+        "expected_accuracy": 0.5,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " BLUE",
+            "expected": " RED",
+            "correct": false
+          },
+          {
+            "id": "verification",
+            "chosen": " complete",
+            "expected": " incomplete",
+            "correct": false
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "W2_native": {
+        "history_tokens": 96,
+        "events": 12,
+        "expected_accuracy": 0.75,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " BLUE",
+            "expected": " RED",
+            "correct": false
+          },
+          {
+            "id": "verification",
+            "chosen": " incomplete",
+            "expected": " incomplete",
+            "correct": true
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "changed_from_W1": true
+    },
+    {
+      "fixture": "single_middle_both4",
+      "family": "single_middle",
+      "W1_native": {
+        "history_tokens": 126,
+        "events": 16,
+        "expected_accuracy": 0.5,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " BLUE",
+            "expected": " RED",
+            "correct": false
+          },
+          {
+            "id": "verification",
+            "chosen": " complete",
+            "expected": " incomplete",
+            "correct": false
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "W2_native": {
+        "history_tokens": 126,
+        "events": 16,
+        "expected_accuracy": 0.75,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " BLUE",
+            "expected": " RED",
+            "correct": false
+          },
+          {
+            "id": "verification",
+            "chosen": " incomplete",
+            "expected": " incomplete",
+            "correct": true
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "changed_from_W1": true
+    },
+    {
+      "fixture": "single_middle_both6",
+      "family": "single_middle",
+      "W1_native": {
+        "history_tokens": 155,
+        "events": 20,
+        "expected_accuracy": 0.5,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " BLUE",
+            "expected": " RED",
+            "correct": false
+          },
+          {
+            "id": "verification",
+            "chosen": " complete",
+            "expected": " incomplete",
+            "correct": false
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "W2_native": {
+        "history_tokens": 155,
+        "events": 20,
+        "expected_accuracy": 0.75,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " BLUE",
+            "expected": " RED",
+            "correct": false
+          },
+          {
+            "id": "verification",
+            "chosen": " incomplete",
+            "expected": " incomplete",
+            "correct": true
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "changed_from_W1": true
+    },
+    {
+      "fixture": "single_middle_both8",
+      "family": "single_middle",
+      "W1_native": {
+        "history_tokens": 186,
+        "events": 24,
+        "expected_accuracy": 0.5,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " BLUE",
+            "expected": " RED",
+            "correct": false
+          },
+          {
+            "id": "verification",
+            "chosen": " complete",
+            "expected": " incomplete",
+            "correct": false
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "W2_native": {
+        "history_tokens": 186,
+        "events": 24,
+        "expected_accuracy": 0.75,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " BLUE",
+            "expected": " RED",
+            "correct": false
+          },
+          {
+            "id": "verification",
+            "chosen": " incomplete",
+            "expected": " incomplete",
+            "correct": true
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "changed_from_W1": true
+    },
+    {
+      "fixture": "single_middle_both10",
+      "family": "single_middle",
+      "W1_native": {
+        "history_tokens": 216,
+        "events": 28,
+        "expected_accuracy": 0.5,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " BLUE",
+            "expected": " RED",
+            "correct": false
+          },
+          {
+            "id": "verification",
+            "chosen": " complete",
+            "expected": " incomplete",
+            "correct": false
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "W2_native": {
+        "history_tokens": 216,
+        "events": 28,
+        "expected_accuracy": 0.75,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " BLUE",
+            "expected": " RED",
+            "correct": false
+          },
+          {
+            "id": "verification",
+            "chosen": " incomplete",
+            "expected": " incomplete",
+            "correct": true
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "changed_from_W1": true
+    },
+    {
+      "fixture": "single_middle_both12",
+      "family": "single_middle",
+      "W1_native": {
+        "history_tokens": 245,
+        "events": 32,
+        "expected_accuracy": 0.5,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " BLUE",
+            "expected": " RED",
+            "correct": false
+          },
+          {
+            "id": "verification",
+            "chosen": " complete",
+            "expected": " incomplete",
+            "correct": false
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "W2_native": {
+        "history_tokens": 245,
+        "events": 32,
+        "expected_accuracy": 0.75,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " BLUE",
+            "expected": " RED",
+            "correct": false
+          },
+          {
+            "id": "verification",
+            "chosen": " incomplete",
+            "expected": " incomplete",
+            "correct": true
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "changed_from_W1": true
+    },
+    {
+      "fixture": "single_middle_middle4",
+      "family": "single_middle",
+      "W1_native": {
+        "history_tokens": 93,
+        "events": 12,
+        "expected_accuracy": 0.75,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " BLUE",
+            "expected": " RED",
+            "correct": false
+          },
+          {
+            "id": "verification",
+            "chosen": " incomplete",
+            "expected": " incomplete",
+            "correct": true
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "W2_native": {
+        "history_tokens": 93,
+        "events": 12,
+        "expected_accuracy": 0.75,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " BLUE",
+            "expected": " RED",
+            "correct": false
+          },
+          {
+            "id": "verification",
+            "chosen": " incomplete",
+            "expected": " incomplete",
+            "correct": true
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "changed_from_W1": false
+    },
+    {
+      "fixture": "single_middle_middle8",
+      "family": "single_middle",
+      "W1_native": {
+        "history_tokens": 123,
+        "events": 16,
+        "expected_accuracy": 0.5,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " BLUE",
+            "expected": " RED",
+            "correct": false
+          },
+          {
+            "id": "verification",
+            "chosen": " complete",
+            "expected": " incomplete",
+            "correct": false
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "W2_native": {
+        "history_tokens": 123,
+        "events": 16,
+        "expected_accuracy": 0.75,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " BLUE",
+            "expected": " RED",
+            "correct": false
+          },
+          {
+            "id": "verification",
+            "chosen": " incomplete",
+            "expected": " incomplete",
+            "correct": true
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "changed_from_W1": true
+    },
+    {
+      "fixture": "single_middle_middle12",
+      "family": "single_middle",
+      "W1_native": {
+        "history_tokens": 154,
+        "events": 20,
+        "expected_accuracy": 0.5,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " BLUE",
+            "expected": " RED",
+            "correct": false
+          },
+          {
+            "id": "verification",
+            "chosen": " complete",
+            "expected": " incomplete",
+            "correct": false
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "W2_native": {
+        "history_tokens": 154,
+        "events": 20,
+        "expected_accuracy": 0.75,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " BLUE",
+            "expected": " RED",
+            "correct": false
+          },
+          {
+            "id": "verification",
+            "chosen": " incomplete",
+            "expected": " incomplete",
+            "correct": true
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "changed_from_W1": true
+    },
+    {
+      "fixture": "late_overwrite_control_base",
+      "family": "late_overwrite_control",
+      "W1_native": {
+        "history_tokens": 95,
+        "events": 11,
+        "expected_accuracy": 0.5,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " LOW",
+            "expected": " WEST",
+            "correct": false
+          },
+          {
+            "id": "verification",
+            "chosen": " complete",
+            "expected": " incomplete",
+            "correct": false
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "W2_native": {
+        "history_tokens": 95,
+        "events": 11,
+        "expected_accuracy": 1.0,
+        "all_correct": true,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " WEST",
+            "expected": " WEST",
+            "correct": true
+          },
+          {
+            "id": "verification",
+            "chosen": " incomplete",
+            "expected": " incomplete",
+            "correct": true
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "changed_from_W1": true
+    },
+    {
+      "fixture": "late_overwrite_control_prefix4",
+      "family": "late_overwrite_control",
+      "W1_native": {
+        "history_tokens": 125,
+        "events": 15,
+        "expected_accuracy": 0.5,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " LOW",
+            "expected": " WEST",
+            "correct": false
+          },
+          {
+            "id": "verification",
+            "chosen": " complete",
+            "expected": " incomplete",
+            "correct": false
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "W2_native": {
+        "history_tokens": 125,
+        "events": 15,
+        "expected_accuracy": 1.0,
+        "all_correct": true,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " WEST",
+            "expected": " WEST",
+            "correct": true
+          },
+          {
+            "id": "verification",
+            "chosen": " incomplete",
+            "expected": " incomplete",
+            "correct": true
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "changed_from_W1": true
+    },
+    {
+      "fixture": "late_overwrite_control_prefix8",
+      "family": "late_overwrite_control",
+      "W1_native": {
+        "history_tokens": 156,
+        "events": 19,
+        "expected_accuracy": 0.5,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " LOW",
+            "expected": " WEST",
+            "correct": false
+          },
+          {
+            "id": "verification",
+            "chosen": " complete",
+            "expected": " incomplete",
+            "correct": false
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "W2_native": {
+        "history_tokens": 156,
+        "events": 19,
+        "expected_accuracy": 1.0,
+        "all_correct": true,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " WEST",
+            "expected": " WEST",
+            "correct": true
+          },
+          {
+            "id": "verification",
+            "chosen": " incomplete",
+            "expected": " incomplete",
+            "correct": true
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "changed_from_W1": true
+    },
+    {
+      "fixture": "late_overwrite_control_prefix12",
+      "family": "late_overwrite_control",
+      "W1_native": {
+        "history_tokens": 185,
+        "events": 23,
+        "expected_accuracy": 0.5,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " LOW",
+            "expected": " WEST",
+            "correct": false
+          },
+          {
+            "id": "verification",
+            "chosen": " complete",
+            "expected": " incomplete",
+            "correct": false
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "W2_native": {
+        "history_tokens": 185,
+        "events": 23,
+        "expected_accuracy": 1.0,
+        "all_correct": true,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " WEST",
+            "expected": " WEST",
+            "correct": true
+          },
+          {
+            "id": "verification",
+            "chosen": " incomplete",
+            "expected": " incomplete",
+            "correct": true
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "changed_from_W1": true
+    },
+    {
+      "fixture": "late_overwrite_control_suffix4",
+      "family": "late_overwrite_control",
+      "W1_native": {
+        "history_tokens": 127,
+        "events": 15,
+        "expected_accuracy": 0.5,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " LOW",
+            "expected": " WEST",
+            "correct": false
+          },
+          {
+            "id": "verification",
+            "chosen": " complete",
+            "expected": " incomplete",
+            "correct": false
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "W2_native": {
+        "history_tokens": 127,
+        "events": 15,
+        "expected_accuracy": 0.75,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " HIGH",
+            "expected": " WEST",
+            "correct": false
+          },
+          {
+            "id": "verification",
+            "chosen": " incomplete",
+            "expected": " incomplete",
+            "correct": true
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "changed_from_W1": true
+    },
+    {
+      "fixture": "late_overwrite_control_suffix8",
+      "family": "late_overwrite_control",
+      "W1_native": {
+        "history_tokens": 156,
+        "events": 19,
+        "expected_accuracy": 0.5,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " LOW",
+            "expected": " WEST",
+            "correct": false
+          },
+          {
+            "id": "verification",
+            "chosen": " complete",
+            "expected": " incomplete",
+            "correct": false
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "W2_native": {
+        "history_tokens": 156,
+        "events": 19,
+        "expected_accuracy": 0.75,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " HIGH",
+            "expected": " WEST",
+            "correct": false
+          },
+          {
+            "id": "verification",
+            "chosen": " incomplete",
+            "expected": " incomplete",
+            "correct": true
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "changed_from_W1": true
+    },
+    {
+      "fixture": "late_overwrite_control_both8",
+      "family": "late_overwrite_control",
+      "W1_native": {
+        "history_tokens": 217,
+        "events": 27,
+        "expected_accuracy": 0.5,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " LOW",
+            "expected": " WEST",
+            "correct": false
+          },
+          {
+            "id": "verification",
+            "chosen": " complete",
+            "expected": " incomplete",
+            "correct": false
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "W2_native": {
+        "history_tokens": 217,
+        "events": 27,
+        "expected_accuracy": 0.75,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " HIGH",
+            "expected": " WEST",
+            "correct": false
+          },
+          {
+            "id": "verification",
+            "chosen": " incomplete",
+            "expected": " incomplete",
+            "correct": true
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "changed_from_W1": true
+    },
+    {
+      "fixture": "independent_control_base",
+      "family": "independent_control",
+      "W1_native": {
+        "history_tokens": 70,
+        "events": 8,
+        "expected_accuracy": 0.75,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " ALPHA",
+            "expected": " BETA",
+            "correct": false
+          },
+          {
+            "id": "verification",
+            "chosen": " incomplete",
+            "expected": " incomplete",
+            "correct": true
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "W2_native": {
+        "history_tokens": 70,
+        "events": 8,
+        "expected_accuracy": 1.0,
+        "all_correct": true,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " BETA",
+            "expected": " BETA",
+            "correct": true
+          },
+          {
+            "id": "verification",
+            "chosen": " incomplete",
+            "expected": " incomplete",
+            "correct": true
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "changed_from_W1": true
+    },
+    {
+      "fixture": "independent_control_prefix4",
+      "family": "independent_control",
+      "W1_native": {
+        "history_tokens": 100,
+        "events": 12,
+        "expected_accuracy": 0.75,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " ALPHA",
+            "expected": " BETA",
+            "correct": false
+          },
+          {
+            "id": "verification",
+            "chosen": " incomplete",
+            "expected": " incomplete",
+            "correct": true
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "W2_native": {
+        "history_tokens": 100,
+        "events": 12,
+        "expected_accuracy": 1.0,
+        "all_correct": true,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " BETA",
+            "expected": " BETA",
+            "correct": true
+          },
+          {
+            "id": "verification",
+            "chosen": " incomplete",
+            "expected": " incomplete",
+            "correct": true
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "changed_from_W1": true
+    },
+    {
+      "fixture": "independent_control_prefix8",
+      "family": "independent_control",
+      "W1_native": {
+        "history_tokens": 131,
+        "events": 16,
+        "expected_accuracy": 0.75,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " ALPHA",
+            "expected": " BETA",
+            "correct": false
+          },
+          {
+            "id": "verification",
+            "chosen": " incomplete",
+            "expected": " incomplete",
+            "correct": true
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "W2_native": {
+        "history_tokens": 131,
+        "events": 16,
+        "expected_accuracy": 1.0,
+        "all_correct": true,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " BETA",
+            "expected": " BETA",
+            "correct": true
+          },
+          {
+            "id": "verification",
+            "chosen": " incomplete",
+            "expected": " incomplete",
+            "correct": true
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "changed_from_W1": true
+    },
+    {
+      "fixture": "independent_control_prefix12",
+      "family": "independent_control",
+      "W1_native": {
+        "history_tokens": 160,
+        "events": 20,
+        "expected_accuracy": 0.75,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " ALPHA",
+            "expected": " BETA",
+            "correct": false
+          },
+          {
+            "id": "verification",
+            "chosen": " incomplete",
+            "expected": " incomplete",
+            "correct": true
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "W2_native": {
+        "history_tokens": 160,
+        "events": 20,
+        "expected_accuracy": 1.0,
+        "all_correct": true,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " BETA",
+            "expected": " BETA",
+            "correct": true
+          },
+          {
+            "id": "verification",
+            "chosen": " incomplete",
+            "expected": " incomplete",
+            "correct": true
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "changed_from_W1": true
+    },
+    {
+      "fixture": "independent_control_middle4",
+      "family": "independent_control",
+      "W1_native": {
+        "history_tokens": 99,
+        "events": 12,
+        "expected_accuracy": 0.75,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " ALPHA",
+            "expected": " BETA",
+            "correct": false
+          },
+          {
+            "id": "verification",
+            "chosen": " incomplete",
+            "expected": " incomplete",
+            "correct": true
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "W2_native": {
+        "history_tokens": 99,
+        "events": 12,
+        "expected_accuracy": 1.0,
+        "all_correct": true,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " BETA",
+            "expected": " BETA",
+            "correct": true
+          },
+          {
+            "id": "verification",
+            "chosen": " incomplete",
+            "expected": " incomplete",
+            "correct": true
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "changed_from_W1": true
+    },
+    {
+      "fixture": "independent_control_middle8",
+      "family": "independent_control",
+      "W1_native": {
+        "history_tokens": 129,
+        "events": 16,
+        "expected_accuracy": 0.75,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " ALPHA",
+            "expected": " BETA",
+            "correct": false
+          },
+          {
+            "id": "verification",
+            "chosen": " incomplete",
+            "expected": " incomplete",
+            "correct": true
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "W2_native": {
+        "history_tokens": 129,
+        "events": 16,
+        "expected_accuracy": 1.0,
+        "all_correct": true,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " BETA",
+            "expected": " BETA",
+            "correct": true
+          },
+          {
+            "id": "verification",
+            "chosen": " incomplete",
+            "expected": " incomplete",
+            "correct": true
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "changed_from_W1": true
+    },
+    {
+      "fixture": "independent_control_suffix8",
+      "family": "independent_control",
+      "W1_native": {
+        "history_tokens": 131,
+        "events": 16,
+        "expected_accuracy": 0.75,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " ALPHA",
+            "expected": " BETA",
+            "correct": false
+          },
+          {
+            "id": "verification",
+            "chosen": " incomplete",
+            "expected": " incomplete",
+            "correct": true
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "W2_native": {
+        "history_tokens": 131,
+        "events": 16,
+        "expected_accuracy": 1.0,
+        "all_correct": true,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " BETA",
+            "expected": " BETA",
+            "correct": true
+          },
+          {
+            "id": "verification",
+            "chosen": " incomplete",
+            "expected": " incomplete",
+            "correct": true
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "changed_from_W1": true
+    },
+    {
+      "fixture": "independent_control_both8",
+      "family": "independent_control",
+      "W1_native": {
+        "history_tokens": 192,
+        "events": 24,
+        "expected_accuracy": 0.5,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " ALPHA",
+            "expected": " BETA",
+            "correct": false
+          },
+          {
+            "id": "verification",
+            "chosen": " complete",
+            "expected": " incomplete",
+            "correct": false
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "W2_native": {
+        "history_tokens": 192,
+        "events": 24,
+        "expected_accuracy": 0.75,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " ALPHA",
+            "expected": " BETA",
+            "correct": false
+          },
+          {
+            "id": "verification",
+            "chosen": " incomplete",
+            "expected": " incomplete",
+            "correct": true
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "changed_from_W1": true
+    },
+    {
+      "fixture": "superseded_old_value_echoes",
+      "family": "superseded",
+      "W1_native": {
+        "history_tokens": 182,
+        "events": 20,
+        "expected_accuracy": 0.5,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " ALPHA",
+            "expected": " GAMMA",
+            "correct": false
+          },
+          {
+            "id": "verification",
+            "chosen": " complete",
+            "expected": " incomplete",
+            "correct": false
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "W2_native": {
+        "history_tokens": 182,
+        "events": 20,
+        "expected_accuracy": 0.75,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " BETA",
+            "expected": " GAMMA",
+            "correct": false
+          },
+          {
+            "id": "verification",
+            "chosen": " incomplete",
+            "expected": " incomplete",
+            "correct": true
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true
+          }
+        ]
+      },
+      "changed_from_W1": true
+    }
+  ],
+  "interpretation_rule": {
+    "generic_length_failure": "Comparable-length independent and overwrite controls also degrade as tokens increase.",
+    "overwrite_specific_failure": "Superseded family degrades while comparable controls remain correct.",
+    "distance_noise_failure": "Single-middle family crosses from correct to incorrect as neutral prefix/suffix or middle distance increases.",
+    "upgrade_specific_regression": "A fixture correct under W1 becomes incorrect under W2 after the capability upgrade."
+  },
+  "claim_boundary": "Deterministic synthetic histories on Mamba-130M with hand-specified probes. This diagnoses native history handling only; it is not a general long-context benchmark or identity proof."
+}
