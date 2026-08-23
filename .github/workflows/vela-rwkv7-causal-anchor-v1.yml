@@ -34,7 +34,7 @@ jobs:
         env:
           HF_HUB_DISABLE_TELEMETRY: '1'
           VELA_RESULT_PATH: ops/vela-results/rwkv7-causal-anchor-v1-latest.json
-        run: python experiments/vela-active-state/rwkv7-causal-anchor-v1/rwkv7_causal_anchor_v1.py
+        run: python experiments/vela-active-state/rwkv7-causal-anchor-v1/rwkv7_causal_anchor_safe_runner.py
       - name: Commit result snapshot
         if: always()
         run: |
