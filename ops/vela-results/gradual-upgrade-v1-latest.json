@@ -1,0 +1,388 @@
+{
+  "status": "VELA_GRADUAL_AND_CAUSAL_ANCHOR_UPGRADE_PROBE",
+  "model": "state-spaces/mamba-130m-hf",
+  "torch_version": "2.13.0+cu130",
+  "transformers_version": "4.57.6",
+  "capability": {
+    "baseline_accuracy": 0.3333333333333333,
+    "after_accuracy": 0.9166666666666666,
+    "baseline_correction": 0.125,
+    "after_correction": 1.0,
+    "control_before": 0.75,
+    "control_after": 0.75,
+    "epoch_loss": [
+      1.7653103712946177,
+      0.46971735171973705,
+      0.09344085355405696
+    ]
+  },
+  "E9_gradual_weight_morph": {
+    "history_tokens": 59,
+    "future_tokens": 41,
+    "native_probe": [
+      {
+        "id": "codeword",
+        "chosen": " BETA",
+        "expected": " BETA",
+        "correct": true,
+        "scores": {
+          " BETA": -0.07553333993564593,
+          " ALPHA": -2.708125443663448
+        }
+      },
+      {
+        "id": "verification",
+        "chosen": " incomplete",
+        "expected": " incomplete",
+        "correct": true,
+        "scores": {
+          " incomplete": -4.394484996795654,
+          " complete": -5.487691402435303
+        }
+      },
+      {
+        "id": "project",
+        "chosen": " active",
+        "expected": " active",
+        "correct": true,
+        "scores": {
+          " active": -3.1225485801696777,
+          " paused": -9.392570495605469
+        }
+      },
+      {
+        "id": "action",
+        "chosen": " blocked",
+        "expected": " blocked",
+        "correct": true,
+        "scores": {
+          " blocked": -9.273860931396484,
+          " allowed": -14.038080215454102
+        }
+      }
+    ],
+    "modes": [
+      {
+        "mode": "abrupt_W2",
+        "state_error": {
+          "rms": 0.02711039408378158,
+          "l2": 23.278342682167196,
+          "max_abs": 1.2431449890136719,
+          "numel": 737280
+        },
+        "probe": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0
+        }
+      },
+      {
+        "mode": "gradual_2_stages",
+        "trace": [
+          {
+            "stage": 1,
+            "alpha": 0.5,
+            "future_tokens_seen": 20
+          },
+          {
+            "stage": 2,
+            "alpha": 1.0,
+            "future_tokens_seen": 41
+          }
+        ],
+        "state_error": {
+          "rms": 0.03041491805664467,
+          "l2": 26.11577253302142,
+          "max_abs": 1.3236312866210938,
+          "numel": 737280
+        },
+        "probe": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0
+        }
+      },
+      {
+        "mode": "gradual_4_stages",
+        "trace": [
+          {
+            "stage": 1,
+            "alpha": 0.25,
+            "future_tokens_seen": 10
+          },
+          {
+            "stage": 2,
+            "alpha": 0.5,
+            "future_tokens_seen": 20
+          },
+          {
+            "stage": 3,
+            "alpha": 0.75,
+            "future_tokens_seen": 31
+          },
+          {
+            "stage": 4,
+            "alpha": 1.0,
+            "future_tokens_seen": 41
+          }
+        ],
+        "state_error": {
+          "rms": 0.03310628171687509,
+          "l2": 28.4267122180574,
+          "max_abs": 1.3600215911865234,
+          "numel": 737280
+        },
+        "probe": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0
+        }
+      },
+      {
+        "mode": "gradual_8_stages",
+        "trace": [
+          {
+            "stage": 1,
+            "alpha": 0.125,
+            "future_tokens_seen": 5
+          },
+          {
+            "stage": 2,
+            "alpha": 0.25,
+            "future_tokens_seen": 10
+          },
+          {
+            "stage": 3,
+            "alpha": 0.375,
+            "future_tokens_seen": 15
+          },
+          {
+            "stage": 4,
+            "alpha": 0.5,
+            "future_tokens_seen": 20
+          },
+          {
+            "stage": 5,
+            "alpha": 0.625,
+            "future_tokens_seen": 26
+          },
+          {
+            "stage": 6,
+            "alpha": 0.75,
+            "future_tokens_seen": 31
+          },
+          {
+            "stage": 7,
+            "alpha": 0.875,
+            "future_tokens_seen": 36
+          },
+          {
+            "stage": 8,
+            "alpha": 1.0,
+            "future_tokens_seen": 41
+          }
+        ],
+        "state_error": {
+          "rms": 0.034526783645338344,
+          "l2": 29.646426345755334,
+          "max_abs": 1.3867073059082031,
+          "numel": 737280
+        },
+        "probe": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0
+        }
+      }
+    ]
+  },
+  "E10_causal_anchor_replay": {
+    "before_correction_token": 15,
+    "after_correction_token": 29,
+    "rows": [
+      {
+        "anchor": "before_correction",
+        "anchor_token": 15,
+        "replayed_tokens": 44,
+        "state_error": {
+          "rms": 0.016584769045474786,
+          "l2": 14.240513655097313,
+          "max_abs": 0.9156990051269531,
+          "numel": 737280
+        },
+        "probe": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0
+        },
+        "probe_rows": [
+          {
+            "id": "codeword",
+            "chosen": " BETA",
+            "expected": " BETA",
+            "correct": true,
+            "scores": {
+              " BETA": -0.15877912614087109,
+              " ALPHA": -2.0457383124157786
+            }
+          },
+          {
+            "id": "verification",
+            "chosen": " incomplete",
+            "expected": " incomplete",
+            "correct": true,
+            "scores": {
+              " incomplete": -5.5762038230896,
+              " complete": -6.549376964569092
+            }
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true,
+            "scores": {
+              " active": -2.910085439682007,
+              " paused": -9.19526481628418
+            }
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true,
+            "scores": {
+              " blocked": -10.82766056060791,
+              " allowed": -13.117796897888184
+            }
+          }
+        ]
+      },
+      {
+        "anchor": "after_correction",
+        "anchor_token": 29,
+        "replayed_tokens": 30,
+        "state_error": {
+          "rms": 0.020306994375539362,
+          "l2": 17.436602819486172,
+          "max_abs": 1.1278343200683594,
+          "numel": 737280
+        },
+        "probe": {
+          "decision_agreement": 0.75,
+          "expected_accuracy": 0.75
+        },
+        "probe_rows": [
+          {
+            "id": "codeword",
+            "chosen": " ALPHA",
+            "expected": " BETA",
+            "correct": false,
+            "scores": {
+              " BETA": -1.1776059601543238,
+              " ALPHA": -0.46042985236272216
+            }
+          },
+          {
+            "id": "verification",
+            "chosen": " incomplete",
+            "expected": " incomplete",
+            "correct": true,
+            "scores": {
+              " incomplete": -5.76618766784668,
+              " complete": -6.578577041625977
+            }
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true,
+            "scores": {
+              " active": -2.883232593536377,
+              " paused": -9.093534469604492
+            }
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true,
+            "scores": {
+              " blocked": -10.694785118103027,
+              " allowed": -12.951981544494629
+            }
+          }
+        ]
+      },
+      {
+        "anchor": "current_no_replay",
+        "anchor_token": 59,
+        "replayed_tokens": 0,
+        "state_error": {
+          "rms": 0.056571591356467395,
+          "l2": 48.57520276546584,
+          "max_abs": 14.055339813232422,
+          "numel": 737280
+        },
+        "probe": {
+          "decision_agreement": 0.75,
+          "expected_accuracy": 0.75
+        },
+        "probe_rows": [
+          {
+            "id": "codeword",
+            "chosen": " ALPHA",
+            "expected": " BETA",
+            "correct": false,
+            "scores": {
+              " BETA": -1.2332224533311091,
+              " ALPHA": -0.43768100906163454
+            }
+          },
+          {
+            "id": "verification",
+            "chosen": " incomplete",
+            "expected": " incomplete",
+            "correct": true,
+            "scores": {
+              " incomplete": -6.202771186828613,
+              " complete": -6.7671003341674805
+            }
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true,
+            "scores": {
+              " active": -2.7634992599487305,
+              " paused": -8.854277610778809
+            }
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true,
+            "scores": {
+              " blocked": -10.943178176879883,
+              " allowed": -13.004276275634766
+            }
+          }
+        ]
+      },
+      {
+        "anchor": "full_W2_replay_control",
+        "anchor_token": 0,
+        "replayed_tokens": 59,
+        "state_error": {
+          "rms": 0.0,
+          "l2": 0.0,
+          "max_abs": 0.0,
+          "numel": 737280
+        },
+        "probe": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0
+        }
+      }
+    ]
+  },
+  "claim_boundary": "Narrow same-architecture Mamba learned-upgrade experiment. Gradual morph preserves the actual recurrent state while weights change during real future computation; anchor replay re-executes exact causal tokens under W2 and is not declarative record reinjection. Neither establishes personal identity or general reasoning."
+}
