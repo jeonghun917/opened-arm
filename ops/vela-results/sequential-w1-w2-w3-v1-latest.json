@@ -1,60 +1,965 @@
 {
-  "status": "VELA_SEQUENTIAL_W1_W2_W3_CHAIN_V1_ERROR",
+  "status": "VELA_SEQUENTIAL_W1_W2_W3_CHAIN_V1",
   "model": "state-spaces/mamba-130m-hf",
   "torch_version": "2.13.0+cu130",
   "transformers_version": "4.57.6",
-  "error_type": "RuntimeError",
-  "error": "a leaf Variable that requires grad is being used in an in-place operation.",
-  "traceback_tail": [
-    "    current = dep.run_slice(model, ids, s, e, current)",
-    "              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
-    "  File \"/home/runner/work/opened-arm/opened-arm/experiments/vela-active-state/causal-dependency-v1/mamba_causal_dependency.py\", line 115, in run_slice",
-    "    out, _ = v3.run_tokens_with_cache(model, ids[:, start:end], v4.clone_cache(cache), start)",
-    "             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
-    "  File \"/home/runner/work/opened-arm/opened-arm/experiments/vela-active-state/learned-upgrade-v3/mamba_upgrade_migration.py\", line 132, in run_tokens_with_cache",
-    "    out = model(tok, cache_params=cache, cache_position=torch.tensor([start_pos+j], dtype=torch.long), use_cache=True, return_dict=True)",
-    "          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
-    "  File \"/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/torch/nn/modules/module.py\", line 1778, in _wrapped_call_impl",
-    "    return self._call_impl(*args, **kwargs)",
-    "           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
-    "  File \"/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/torch/nn/modules/module.py\", line 1789, in _call_impl",
-    "    return forward_call(*args, **kwargs)",
-    "           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
-    "  File \"/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/transformers/models/mamba/modeling_mamba.py\", line 840, in forward",
-    "    mamba_outputs = self.backbone(",
-    "                    ^^^^^^^^^^^^^^",
-    "  File \"/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/torch/nn/modules/module.py\", line 1778, in _wrapped_call_impl",
-    "    return self._call_impl(*args, **kwargs)",
-    "           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
-    "  File \"/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/torch/nn/modules/module.py\", line 1789, in _call_impl",
-    "    return forward_call(*args, **kwargs)",
-    "           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
-    "  File \"/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/transformers/models/mamba/modeling_mamba.py\", line 699, in forward",
-    "    hidden_states = mixer_block(",
-    "                    ^^^^^^^^^^^^",
-    "  File \"/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/transformers/modeling_layers.py\", line 94, in __call__",
-    "    return super().__call__(*args, **kwargs)",
-    "           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
-    "  File \"/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/torch/nn/modules/module.py\", line 1778, in _wrapped_call_impl",
-    "    return self._call_impl(*args, **kwargs)",
-    "           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
-    "  File \"/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/torch/nn/modules/module.py\", line 1789, in _call_impl",
-    "    return forward_call(*args, **kwargs)",
-    "           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
-    "  File \"/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/transformers/models/mamba/modeling_mamba.py\", line 499, in forward",
-    "    hidden_states = self.mixer(",
-    "                    ^^^^^^^^^^^",
-    "  File \"/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/torch/nn/modules/module.py\", line 1778, in _wrapped_call_impl",
-    "    return self._call_impl(*args, **kwargs)",
-    "           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
-    "  File \"/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/torch/nn/modules/module.py\", line 1789, in _call_impl",
-    "    return forward_call(*args, **kwargs)",
-    "           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
-    "  File \"/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/transformers/models/mamba/modeling_mamba.py\", line 455, in forward",
-    "    return self.slow_forward(hidden_states, cache_params, cache_position, attention_mask)",
-    "           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
-    "  File \"/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/transformers/models/mamba/modeling_mamba.py\", line 435, in slow_forward",
-    "    cache_params.ssm_states[self.layer_idx].copy_(ssm_state)",
-    "RuntimeError: a leaf Variable that requires grad is being used in an in-place operation."
-  ]
+  "generations": {
+    "W1": {
+      "training_epoch": 0,
+      "accuracy": 0.3333333333333333,
+      "correction_accuracy": 0.125,
+      "control_accuracy": 0.75
+    },
+    "W2": {
+      "training_epoch": 1,
+      "accuracy": 0.75,
+      "correction_accuracy": 0.75,
+      "control_accuracy": 0.75
+    },
+    "W3": {
+      "training_epoch": 3,
+      "accuracy": 0.9166666666666666,
+      "correction_accuracy": 1.0,
+      "control_accuracy": 0.75
+    },
+    "epoch_mean_loss": [
+      1.7653103712946177,
+      0.46971735171973705,
+      0.09344085355405696
+    ]
+  },
+  "capability_gate": {
+    "w1_to_w2_gain": 0.4166666666666667,
+    "w2_to_w3_gain": 0.16666666666666663,
+    "strict_two_step_gain": true
+  },
+  "continuity": {
+    "hop1_full_functional_agreement_rate": 1.0,
+    "hop2_full_functional_agreement_rate": 1.0,
+    "final_chain_full_functional_agreement_rate": 1.0
+  },
+  "fixtures": [
+    {
+      "fixture": "independent_persistent",
+      "history_tokens": 70,
+      "w2_native_expected_accuracy": 0.75,
+      "w3_native_expected_accuracy": 1.0,
+      "hop1_w1_to_w2": {
+        "selected_anchor_event": 2,
+        "anchor_pos": 15,
+        "replay_fraction": 0.7857142857142857,
+        "selected_segments": [
+          2
+        ],
+        "prune_trace": [],
+        "vs_w2_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 0.75,
+          "score_rms_error": 0.04587167299131969
+        }
+      },
+      "hop2_actual_lineage_to_w3": {
+        "selected_anchor_event": 2,
+        "anchor_pos": 15,
+        "anchor_source_generation": "W1",
+        "replay_fraction": 0.7857142857142857,
+        "selected_segments": [
+          2
+        ],
+        "prune_trace": [],
+        "vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 0.11527236689795159
+        },
+        "oracle_latest_safe_anchor": {
+          "event_index": 7,
+          "anchor_pos": 66,
+          "replay_fraction": 0.05714285714285714
+        }
+      },
+      "final_chain_w3": {
+        "state_error_vs_w3_native": {
+          "rms": 0.014983080732805064,
+          "l2": 12.865223819873083,
+          "max_abs": 0.7345027923583984,
+          "numel": 737280
+        },
+        "functional_vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 0.11527236689795159
+        }
+      },
+      "direct_w1_to_w3_control": {
+        "selected_anchor_event": 2,
+        "anchor_pos": 15,
+        "replay_fraction": 0.7857142857142857,
+        "vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 0.11527236689795159
+        },
+        "chain_vs_direct_decision_agreement": 1.0
+      },
+      "lineage_origin_at_final": "W3",
+      "hop2_semantic_drift_top4": [
+        {
+          "segment": 2,
+          "start": 15,
+          "end": 29,
+          "text": "Correction: the current codeword is BETA, not ALPHA. ",
+          "state_rms": 0.02893026061290884,
+          "decision_flips": 0,
+          "score_rms": 0.4788772013355928,
+          "margin_shift_sum": 1.5891835401780554,
+          "detector_score": 0.6377955553533984,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " BETA",
+              "new_choice": " BETA",
+              "decision_flip": false
+            },
+            {
+              "id": "verification",
+              "old_choice": " incomplete",
+              "new_choice": " incomplete",
+              "decision_flip": false
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        },
+        {
+          "segment": 1,
+          "start": 7,
+          "end": 15,
+          "text": "The old codeword was ALPHA. ",
+          "state_rms": 0.05103756638060753,
+          "decision_flips": 0,
+          "score_rms": 0.3320616105257568,
+          "margin_shift_sum": 0.8445572298951447,
+          "detector_score": 0.41651733351527126,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " ALPHA",
+              "new_choice": " ALPHA",
+              "decision_flip": false
+            },
+            {
+              "id": "verification",
+              "old_choice": " complete",
+              "new_choice": " complete",
+              "decision_flip": false
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        },
+        {
+          "segment": 6,
+          "start": 56,
+          "end": 66,
+          "text": "A historical memo mentions ALPHA but is obsolete. ",
+          "state_rms": 0.030231121538291265,
+          "decision_flips": 0,
+          "score_rms": 0.24207097772090636,
+          "margin_shift_sum": 0.22674312320305035,
+          "detector_score": 0.2647452900412114,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " ALPHA",
+              "new_choice": " ALPHA",
+              "decision_flip": false
+            },
+            {
+              "id": "verification",
+              "old_choice": " incomplete",
+              "new_choice": " incomplete",
+              "decision_flip": false
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        },
+        {
+          "segment": 5,
+          "start": 44,
+          "end": 56,
+          "text": "Correction: the current verification status is incomplete, not complete. ",
+          "state_rms": 0.026573346601653964,
+          "decision_flips": 0,
+          "score_rms": 0.2015310871569519,
+          "margin_shift_sum": 0.34355344568757573,
+          "detector_score": 0.23588643172570947,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " BETA",
+              "new_choice": " BETA",
+              "decision_flip": false
+            },
+            {
+              "id": "verification",
+              "old_choice": " incomplete",
+              "new_choice": " incomplete",
+              "decision_flip": false
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "fixture": "single_early",
+      "history_tokens": 65,
+      "w2_native_expected_accuracy": 0.75,
+      "w3_native_expected_accuracy": 1.0,
+      "hop1_w1_to_w2": {
+        "selected_anchor_event": 7,
+        "anchor_pos": 61,
+        "replay_fraction": 0.06153846153846154,
+        "selected_segments": [
+          2,
+          6,
+          7
+        ],
+        "prune_trace": [
+          {
+            "from_segment": 2,
+            "candidate_later_segment": 6,
+            "same_functional_signature": true
+          },
+          {
+            "from_segment": 6,
+            "candidate_later_segment": 7,
+            "same_functional_signature": true
+          }
+        ],
+        "vs_w2_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 0.75,
+          "score_rms_error": 0.3108033372722992
+        }
+      },
+      "hop2_actual_lineage_to_w3": {
+        "selected_anchor_event": 2,
+        "anchor_pos": 15,
+        "anchor_source_generation": "W1",
+        "replay_fraction": 0.7692307692307693,
+        "selected_segments": [
+          1,
+          2
+        ],
+        "prune_trace": [
+          {
+            "from_segment": 1,
+            "candidate_later_segment": 2,
+            "same_functional_signature": true
+          }
+        ],
+        "vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 0.15334913284100699
+        },
+        "oracle_latest_safe_anchor": {
+          "event_index": 2,
+          "anchor_pos": 15,
+          "replay_fraction": 0.7692307692307693
+        }
+      },
+      "final_chain_w3": {
+        "state_error_vs_w3_native": {
+          "rms": 0.014513528371486294,
+          "l2": 12.462042636293827,
+          "max_abs": 0.7554759979248047,
+          "numel": 737280
+        },
+        "functional_vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 0.15334913284100699
+        }
+      },
+      "direct_w1_to_w3_control": {
+        "selected_anchor_event": 2,
+        "anchor_pos": 15,
+        "replay_fraction": 0.7692307692307693,
+        "vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 0.15334913284100699
+        },
+        "chain_vs_direct_decision_agreement": 1.0
+      },
+      "lineage_origin_at_final": "W3",
+      "hop2_semantic_drift_top4": [
+        {
+          "segment": 2,
+          "start": 15,
+          "end": 29,
+          "text": "Correction: the current codeword is BETA, not ALPHA. ",
+          "state_rms": 0.04158648693506792,
+          "decision_flips": 0,
+          "score_rms": 0.727726795915327,
+          "margin_shift_sum": 2.851308481011074,
+          "detector_score": 1.0128576440164343,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " BETA",
+              "new_choice": " BETA",
+              "decision_flip": false
+            },
+            {
+              "id": "verification",
+              "old_choice": " incomplete",
+              "new_choice": " incomplete",
+              "decision_flip": false
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        },
+        {
+          "segment": 1,
+          "start": 7,
+          "end": 15,
+          "text": "The old codeword was ALPHA. ",
+          "state_rms": 0.050678653595866235,
+          "decision_flips": 0,
+          "score_rms": 0.26294642980241606,
+          "margin_shift_sum": 0.6307176873087883,
+          "detector_score": 0.3260181985332949,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " ALPHA",
+              "new_choice": " ALPHA",
+              "decision_flip": false
+            },
+            {
+              "id": "verification",
+              "old_choice": " complete",
+              "new_choice": " complete",
+              "decision_flip": false
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        },
+        {
+          "segment": 6,
+          "start": 54,
+          "end": 61,
+          "text": "Hypothesis one is weakened. ",
+          "state_rms": 0.042306128390246715,
+          "decision_flips": 0,
+          "score_rms": 0.19908708027500766,
+          "margin_shift_sum": 0.2957457839511335,
+          "detector_score": 0.228661658670121,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " ALPHA",
+              "new_choice": " ALPHA",
+              "decision_flip": false
+            },
+            {
+              "id": "verification",
+              "old_choice": " incomplete",
+              "new_choice": " incomplete",
+              "decision_flip": false
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        },
+        {
+          "segment": 0,
+          "start": 0,
+          "end": 7,
+          "text": "Project Orion remains active. ",
+          "state_rms": 0.04447625259731631,
+          "decision_flips": 0,
+          "score_rms": 0.14839279171311504,
+          "margin_shift_sum": 0.34098267555236816,
+          "detector_score": 0.18249105926835185,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " ALPHA",
+              "new_choice": " ALPHA",
+              "decision_flip": false
+            },
+            {
+              "id": "verification",
+              "old_choice": " complete",
+              "new_choice": " complete",
+              "decision_flip": false
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "fixture": "single_middle",
+      "history_tokens": 64,
+      "w2_native_expected_accuracy": 0.75,
+      "w3_native_expected_accuracy": 1.0,
+      "hop1_w1_to_w2": {
+        "selected_anchor_event": 7,
+        "anchor_pos": 60,
+        "replay_fraction": 0.0625,
+        "selected_segments": [
+          4,
+          6,
+          7
+        ],
+        "prune_trace": [
+          {
+            "from_segment": 4,
+            "candidate_later_segment": 6,
+            "same_functional_signature": true
+          },
+          {
+            "from_segment": 6,
+            "candidate_later_segment": 7,
+            "same_functional_signature": true
+          }
+        ],
+        "vs_w2_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 0.75,
+          "score_rms_error": 0.2942343277191757
+        }
+      },
+      "hop2_actual_lineage_to_w3": {
+        "selected_anchor_event": 4,
+        "anchor_pos": 30,
+        "anchor_source_generation": "W1",
+        "replay_fraction": 0.53125,
+        "selected_segments": [
+          1,
+          4
+        ],
+        "prune_trace": [
+          {
+            "from_segment": 1,
+            "candidate_later_segment": 4,
+            "same_functional_signature": true
+          }
+        ],
+        "vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 0.15080739521403075
+        },
+        "oracle_latest_safe_anchor": {
+          "event_index": 4,
+          "anchor_pos": 30,
+          "replay_fraction": 0.53125
+        }
+      },
+      "final_chain_w3": {
+        "state_error_vs_w3_native": {
+          "rms": 0.019466826880647277,
+          "l2": 16.715192913157438,
+          "max_abs": 1.1258735656738281,
+          "numel": 737280
+        },
+        "functional_vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 0.15080739521403075
+        }
+      },
+      "direct_w1_to_w3_control": {
+        "selected_anchor_event": 4,
+        "anchor_pos": 30,
+        "replay_fraction": 0.53125,
+        "vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 0.15080739521403075
+        },
+        "chain_vs_direct_decision_agreement": 1.0
+      },
+      "lineage_origin_at_final": "W3",
+      "hop2_semantic_drift_top4": [
+        {
+          "segment": 4,
+          "start": 30,
+          "end": 43,
+          "text": "Correction: the current codeword is RED, not BLUE. ",
+          "state_rms": 0.04623500766066337,
+          "decision_flips": 0,
+          "score_rms": 0.565194554510791,
+          "margin_shift_sum": 2.26900273677893,
+          "detector_score": 0.792094828188684,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " RED",
+              "new_choice": " RED",
+              "decision_flip": false
+            },
+            {
+              "id": "verification",
+              "old_choice": " complete",
+              "new_choice": " complete",
+              "decision_flip": false
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        },
+        {
+          "segment": 1,
+          "start": 7,
+          "end": 15,
+          "text": "The old codeword was BLUE. ",
+          "state_rms": 0.04292228601532013,
+          "decision_flips": 0,
+          "score_rms": 0.3279325232502245,
+          "margin_shift_sum": 1.0189080154523253,
+          "detector_score": 0.42982332479545704,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " BLUE",
+              "new_choice": " BLUE",
+              "decision_flip": false
+            },
+            {
+              "id": "verification",
+              "old_choice": " complete",
+              "new_choice": " complete",
+              "decision_flip": false
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        },
+        {
+          "segment": 6,
+          "start": 53,
+          "end": 60,
+          "text": "Hypothesis one is weakened. ",
+          "state_rms": 0.043588482498205246,
+          "decision_flips": 0,
+          "score_rms": 0.2379747215575441,
+          "margin_shift_sum": 0.2761258432874456,
+          "detector_score": 0.26558730588628865,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " BLUE",
+              "new_choice": " BLUE",
+              "decision_flip": false
+            },
+            {
+              "id": "verification",
+              "old_choice": " incomplete",
+              "new_choice": " incomplete",
+              "decision_flip": false
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        },
+        {
+          "segment": 0,
+          "start": 0,
+          "end": 7,
+          "text": "Project Helios remains active. ",
+          "state_rms": 0.04124286579164363,
+          "decision_flips": 0,
+          "score_rms": 0.1754551240050822,
+          "margin_shift_sum": 0.7014460563659668,
+          "detector_score": 0.24559972964167887,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " RED",
+              "new_choice": " RED",
+              "decision_flip": false
+            },
+            {
+              "id": "verification",
+              "old_choice": " complete",
+              "new_choice": " complete",
+              "decision_flip": false
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "fixture": "single_late",
+      "history_tokens": 66,
+      "w2_native_expected_accuracy": 0.75,
+      "w3_native_expected_accuracy": 1.0,
+      "hop1_w1_to_w2": {
+        "selected_anchor_event": 7,
+        "anchor_pos": 62,
+        "replay_fraction": 0.06060606060606061,
+        "selected_segments": [
+          3,
+          6,
+          7
+        ],
+        "prune_trace": [
+          {
+            "from_segment": 3,
+            "candidate_later_segment": 6,
+            "same_functional_signature": true
+          },
+          {
+            "from_segment": 6,
+            "candidate_later_segment": 7,
+            "same_functional_signature": true
+          }
+        ],
+        "vs_w2_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 0.75,
+          "score_rms_error": 0.19529513846019772
+        }
+      },
+      "hop2_actual_lineage_to_w3": {
+        "selected_anchor_event": 6,
+        "anchor_pos": 48,
+        "anchor_source_generation": "W1",
+        "replay_fraction": 0.2727272727272727,
+        "selected_segments": [
+          5,
+          6
+        ],
+        "prune_trace": [
+          {
+            "from_segment": 5,
+            "candidate_later_segment": 6,
+            "same_functional_signature": true
+          }
+        ],
+        "vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 0.2903582065195901
+        },
+        "oracle_latest_safe_anchor": {
+          "event_index": 6,
+          "anchor_pos": 48,
+          "replay_fraction": 0.2727272727272727
+        }
+      },
+      "final_chain_w3": {
+        "state_error_vs_w3_native": {
+          "rms": 0.026947461892318943,
+          "l2": 23.138440939127147,
+          "max_abs": 1.5311241149902344,
+          "numel": 737280
+        },
+        "functional_vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 0.2903582065195901
+        }
+      },
+      "direct_w1_to_w3_control": {
+        "selected_anchor_event": 6,
+        "anchor_pos": 48,
+        "replay_fraction": 0.2727272727272727,
+        "vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 0.2903582065195901
+        },
+        "chain_vs_direct_decision_agreement": 1.0
+      },
+      "lineage_origin_at_final": "W3",
+      "hop2_semantic_drift_top4": [
+        {
+          "segment": 6,
+          "start": 48,
+          "end": 62,
+          "text": "Correction: the current codeword is HIGH, not LOW. ",
+          "state_rms": 0.043298737606170756,
+          "decision_flips": 1,
+          "score_rms": 0.3447741353114733,
+          "margin_shift_sum": 1.5780219175794628,
+          "detector_score": 1000.5025763270694,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " LOW",
+              "new_choice": " HIGH",
+              "decision_flip": true
+            },
+            {
+              "id": "verification",
+              "old_choice": " incomplete",
+              "new_choice": " incomplete",
+              "decision_flip": false
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        },
+        {
+          "segment": 5,
+          "start": 38,
+          "end": 48,
+          "text": "A historical memo mentions LOW but is obsolete. ",
+          "state_rms": 0.03984636682146641,
+          "decision_flips": 0,
+          "score_rms": 0.24482429124378566,
+          "margin_shift_sum": 0.6049516449565999,
+          "detector_score": 0.30531945573944563,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " LOW",
+              "new_choice": " LOW",
+              "decision_flip": false
+            },
+            {
+              "id": "verification",
+              "old_choice": " incomplete",
+              "new_choice": " incomplete",
+              "decision_flip": false
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        },
+        {
+          "segment": 7,
+          "start": 62,
+          "end": 66,
+          "text": "External action remains blocked.",
+          "state_rms": 0.02477827497221682,
+          "decision_flips": 0,
+          "score_rms": 0.16987719675470211,
+          "margin_shift_sum": 0.4012620185967535,
+          "detector_score": 0.21000339861437747,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " LOW",
+              "new_choice": " LOW",
+              "decision_flip": false
+            },
+            {
+              "id": "verification",
+              "old_choice": " incomplete",
+              "new_choice": " incomplete",
+              "decision_flip": false
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        },
+        {
+          "segment": 2,
+          "start": 16,
+          "end": 26,
+          "text": "Unrelated telemetry packet 31 was archived. ",
+          "state_rms": 0.03276560422618002,
+          "decision_flips": 0,
+          "score_rms": 0.14555265135003728,
+          "margin_shift_sum": 0.4782624918734655,
+          "detector_score": 0.19337890053738382,
+          "per_probe": [
+            {
+              "id": "codeword",
+              "old_choice": " LOW",
+              "new_choice": " LOW",
+              "decision_flip": false
+            },
+            {
+              "id": "verification",
+              "old_choice": " complete",
+              "new_choice": " complete",
+              "decision_flip": false
+            },
+            {
+              "id": "project",
+              "old_choice": " active",
+              "new_choice": " active",
+              "decision_flip": false
+            },
+            {
+              "id": "action",
+              "old_choice": " blocked",
+              "new_choice": " blocked",
+              "decision_flip": false
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "success_definition": "W1->W2 and W2->W3 must both be real capability-improving weight updates, while target-free replay on the actual carried lineage reaches each generation's native functional decisions without consulting that native target during selection.",
+  "claim_boundary": "Four small synthetic Mamba-130M histories and one correction curriculum, with W2 defined after epoch 1 and W3 after epoch 3. This tests repeated migration mechanics, not general intelligence, identity, or consciousness."
 }
