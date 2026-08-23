@@ -56,20 +56,20 @@
         "vs_w2_native": {
           "decision_agreement": 1.0,
           "expected_accuracy": 0.75,
-          "score_rms_error": 0.3108033372722992
+          "score_rms_error": 0.3108028105369655
         },
         "state_error_vs_w2_native_prefix": {
-          "rms": 0.03159255620363662,
-          "l2": 27.126951649656643,
-          "max_abs": 1.6248149871826172,
+          "rms": 0.031592545428269274,
+          "l2": 27.126942397386358,
+          "max_abs": 1.6248245239257812,
           "numel": 737280
         }
       },
       "w2_carried_before_w3": {
         "state_error_vs_w2_native_full": {
-          "rms": 0.01523040627803516,
-          "l2": 13.077589924848452,
-          "max_abs": 0.41589295864105225,
+          "rms": 0.0152304173023413,
+          "l2": 13.07759939087006,
+          "max_abs": 0.4158928394317627,
           "numel": 737280
         },
         "origin_at_w2_era_start": "W2",
@@ -100,7 +100,7 @@
         "vs_w3_native": {
           "decision_agreement": 1.0,
           "expected_accuracy": 0.6666666666666666,
-          "score_rms_error": 0.109287998186387
+          "score_rms_error": 0.10928752488327377
         }
       },
       "w3_native_expected_accuracy": 0.6666666666666666,
@@ -108,11 +108,11 @@
         "functional_vs_w3_native": {
           "decision_agreement": 1.0,
           "expected_accuracy": 0.6666666666666666,
-          "score_rms_error": 0.109287998186387
+          "score_rms_error": 0.10928752488327377
         },
         "state_error_vs_w3_native": {
-          "rms": 0.011093986672992582,
-          "l2": 9.525852803438648,
+          "rms": 0.011093987470740448,
+          "l2": 9.525853488424936,
           "max_abs": 0.38025903701782227,
           "numel": 737280
         },
@@ -124,7 +124,7 @@
         "vs_w3_native": {
           "decision_agreement": 1.0,
           "expected_accuracy": 0.6666666666666666,
-          "score_rms_error": 0.4016099705953331
+          "score_rms_error": 0.40161111529582344
         },
         "chain_vs_direct_decision_agreement": 1.0
       },
@@ -147,19 +147,19 @@
         "vs_w2_native": {
           "decision_agreement": 1.0,
           "expected_accuracy": 0.75,
-          "score_rms_error": 0.3108033372722992
+          "score_rms_error": 0.3108028105369655
         },
         "state_error_vs_w2_native_prefix": {
-          "rms": 0.03159255620363662,
-          "l2": 27.126951649656643,
-          "max_abs": 1.6248149871826172,
+          "rms": 0.031592545428269274,
+          "l2": 27.126942397386358,
+          "max_abs": 1.6248245239257812,
           "numel": 737280
         }
       },
       "w2_carried_before_w3": {
         "state_error_vs_w2_native_full": {
-          "rms": 0.014569399445593932,
-          "l2": 12.51001633985118,
+          "rms": 0.014569439210738961,
+          "l2": 12.510050484197068,
           "max_abs": 0.41397905349731445,
           "numel": 737280
         },
@@ -185,7 +185,7 @@
         "vs_w3_native": {
           "decision_agreement": 1.0,
           "expected_accuracy": 0.6666666666666666,
-          "score_rms_error": 0.10190874602442283
+          "score_rms_error": 0.10190566263765156
         }
       },
       "w3_native_expected_accuracy": 0.6666666666666666,
@@ -193,12 +193,12 @@
         "functional_vs_w3_native": {
           "decision_agreement": 1.0,
           "expected_accuracy": 0.6666666666666666,
-          "score_rms_error": 0.10190874602442283
+          "score_rms_error": 0.10190566263765156
         },
         "state_error_vs_w3_native": {
-          "rms": 0.011204978608419921,
-          "l2": 9.62115604026545,
-          "max_abs": 0.38624513149261475,
+          "rms": 0.011204968035079175,
+          "l2": 9.621146961465326,
+          "max_abs": 0.3862466812133789,
           "numel": 737280
         },
         "lineage_origin_at_final": "W3"
@@ -209,7 +209,7 @@
         "vs_w3_native": {
           "decision_agreement": 1.0,
           "expected_accuracy": 0.6666666666666666,
-          "score_rms_error": 0.45854188206885965
+          "score_rms_error": 0.4585429926074562
         },
         "chain_vs_direct_decision_agreement": 1.0
       },
@@ -232,20 +232,20 @@
         "vs_w2_native": {
           "decision_agreement": 1.0,
           "expected_accuracy": 0.75,
-          "score_rms_error": 0.3108033372722992
+          "score_rms_error": 0.3108028105369655
         },
         "state_error_vs_w2_native_prefix": {
-          "rms": 0.03159255620363662,
-          "l2": 27.126951649656643,
-          "max_abs": 1.6248149871826172,
+          "rms": 0.031592545428269274,
+          "l2": 27.126942397386358,
+          "max_abs": 1.6248245239257812,
           "numel": 737280
         }
       },
       "w2_carried_before_w3": {
         "state_error_vs_w2_native_full": {
-          "rms": 0.015383492102052152,
-          "l2": 13.209037083463581,
-          "max_abs": 0.4941830635070801,
+          "rms": 0.01538348710296135,
+          "l2": 13.209032790993747,
+          "max_abs": 0.49418210983276367,
           "numel": 737280
         },
         "origin_at_w2_era_start": "W2",
@@ -276,7 +276,7 @@
         "vs_w3_native": {
           "decision_agreement": 1.0,
           "expected_accuracy": 0.6666666666666666,
-          "score_rms_error": 0.4430525867327087
+          "score_rms_error": 0.4430545554811469
         }
       },
       "w3_native_expected_accuracy": 0.6666666666666666,
@@ -284,12 +284,12 @@
         "functional_vs_w3_native": {
           "decision_agreement": 1.0,
           "expected_accuracy": 0.6666666666666666,
-          "score_rms_error": 0.4430525867327087
+          "score_rms_error": 0.4430545554811469
         },
         "state_error_vs_w3_native": {
-          "rms": 0.028328649417291393,
-          "l2": 24.32439775020417,
-          "max_abs": 0.7355959415435791,
+          "rms": 0.028328660187397908,
+          "l2": 24.32440699795724,
+          "max_abs": 0.7355961799621582,
           "numel": 737280
         },
         "lineage_origin_at_final": "W3"
@@ -300,7 +300,7 @@
         "vs_w3_native": {
           "decision_agreement": 1.0,
           "expected_accuracy": 0.6666666666666666,
-          "score_rms_error": 0.610939148706839
+          "score_rms_error": 0.6109421601837952
         },
         "chain_vs_direct_decision_agreement": 1.0
       },
