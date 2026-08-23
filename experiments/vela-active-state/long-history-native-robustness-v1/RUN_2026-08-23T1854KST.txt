@@ -1,0 +1,2 @@
+Trigger VELA Mamba native long-history robustness v1.
+Purpose: isolate W2-native full-history failures from migration selector behavior.
