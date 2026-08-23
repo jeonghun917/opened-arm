@@ -1,0 +1,52 @@
+name: VELA Foundation CI
+
+on:
+  workflow_dispatch:
+    inputs:
+      ars_ref:
+        description: Ars-Mentis branch or commit to test
+        required: true
+        default: vela-foundation-runtime
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: vela-foundation-ci-${{ inputs.ars_ref }}
+  cancel-in-progress: false
+
+jobs:
+  foundation-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout private Ars-Mentis source
+        uses: actions/checkout@v4
+        with:
+          repository: jeonghun917/Ars-Mentis
+          ref: ${{ inputs.ars_ref }}
+          token: ${{ secrets.ARS_MENTIS_READ_TOKEN }}
+          path: ars-mentis
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Run VELA foundation tests
+        working-directory: ars-mentis
+        shell: bash
+        run: |
+          set +e
+          PYTHONPATH=src python -m unittest discover -s tests -v > /tmp/vela-foundation-test.log 2>&1
+          status=$?
+          set -e
+          count=$(grep -c '^test_' /tmp/vela-foundation-test.log || true)
+          if [ "$status" -eq 0 ]; then
+            echo "VELA foundation tests: PASS (${count} tests)"
+          else
+            echo "::error::VELA foundation tests failed. Detailed traceback is intentionally suppressed on this public runner."
+            exit "$status"
+          fi
