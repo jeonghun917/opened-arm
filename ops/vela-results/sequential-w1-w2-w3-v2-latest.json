@@ -1,55 +1,312 @@
 {
-  "status": "VELA_SEQUENTIAL_W1_W2_W3_CHAINED_SOURCE_V2_ERROR",
+  "status": "VELA_SEQUENTIAL_W1_W2_W3_CHAINED_SOURCE_V2",
   "model": "state-spaces/mamba-130m-hf",
   "torch_version": "2.13.0+cu130",
   "transformers_version": "4.57.6",
-  "error_type": "RuntimeError",
-  "error": "a leaf Variable that requires grad is being used in an in-place operation.",
-  "traceback_tail": [
-    "  File \"/home/runner/work/opened-arm/opened-arm/experiments/vela-active-state/learned-upgrade-v3/mamba_upgrade_migration.py\", line 132, in run_tokens_with_cache",
-    "    out = model(tok, cache_params=cache, cache_position=torch.tensor([start_pos+j], dtype=torch.long), use_cache=True, return_dict=True)",
-    "          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
-    "  File \"/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/torch/nn/modules/module.py\", line 1778, in _wrapped_call_impl",
-    "    return self._call_impl(*args, **kwargs)",
-    "           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
-    "  File \"/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/torch/nn/modules/module.py\", line 1789, in _call_impl",
-    "    return forward_call(*args, **kwargs)",
-    "           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
-    "  File \"/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/transformers/models/mamba/modeling_mamba.py\", line 840, in forward",
-    "    mamba_outputs = self.backbone(",
-    "                    ^^^^^^^^^^^^^^",
-    "  File \"/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/torch/nn/modules/module.py\", line 1778, in _wrapped_call_impl",
-    "    return self._call_impl(*args, **kwargs)",
-    "           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
-    "  File \"/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/torch/nn/modules/module.py\", line 1789, in _call_impl",
-    "    return forward_call(*args, **kwargs)",
-    "           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
-    "  File \"/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/transformers/models/mamba/modeling_mamba.py\", line 699, in forward",
-    "    hidden_states = mixer_block(",
-    "                    ^^^^^^^^^^^^",
-    "  File \"/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/transformers/modeling_layers.py\", line 94, in __call__",
-    "    return super().__call__(*args, **kwargs)",
-    "           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
-    "  File \"/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/torch/nn/modules/module.py\", line 1778, in _wrapped_call_impl",
-    "    return self._call_impl(*args, **kwargs)",
-    "           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
-    "  File \"/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/torch/nn/modules/module.py\", line 1789, in _call_impl",
-    "    return forward_call(*args, **kwargs)",
-    "           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
-    "  File \"/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/transformers/models/mamba/modeling_mamba.py\", line 499, in forward",
-    "    hidden_states = self.mixer(",
-    "                    ^^^^^^^^^^^",
-    "  File \"/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/torch/nn/modules/module.py\", line 1778, in _wrapped_call_impl",
-    "    return self._call_impl(*args, **kwargs)",
-    "           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
-    "  File \"/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/torch/nn/modules/module.py\", line 1789, in _call_impl",
-    "    return forward_call(*args, **kwargs)",
-    "           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
-    "  File \"/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/transformers/models/mamba/modeling_mamba.py\", line 455, in forward",
-    "    return self.slow_forward(hidden_states, cache_params, cache_position, attention_mask)",
-    "           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
-    "  File \"/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/transformers/models/mamba/modeling_mamba.py\", line 435, in slow_forward",
-    "    cache_params.ssm_states[self.layer_idx].copy_(ssm_state)",
-    "RuntimeError: a leaf Variable that requires grad is being used in an in-place operation."
-  ]
+  "generations": {
+    "W1": {
+      "training_epoch": 0,
+      "accuracy": 0.3333333333333333,
+      "correction_accuracy": 0.125,
+      "control_accuracy": 0.75
+    },
+    "W2": {
+      "training_epoch": 1,
+      "accuracy": 0.75,
+      "correction_accuracy": 0.75,
+      "control_accuracy": 0.75
+    },
+    "W3": {
+      "training_epoch": 3,
+      "accuracy": 0.9166666666666666,
+      "correction_accuracy": 1.0,
+      "control_accuracy": 0.75
+    },
+    "epoch_mean_loss": [
+      1.7653103712946177,
+      0.46971735171973705,
+      0.09344085355405696
+    ]
+  },
+  "gate": {
+    "strict_two_step_capability_gain": true,
+    "fixture_count": 3,
+    "w2_origin_hop2_anchor_count": 1,
+    "w2_origin_hop2_anchor_rate": 0.3333333333333333,
+    "w3_native_valid_fixture_count": 0,
+    "fixture_pass_count": 0,
+    "fixture_pass_rate": 0.0,
+    "suite_pass": false
+  },
+  "fixtures": [
+    {
+      "fixture": "w2_event_early",
+      "history_tokens": 117,
+      "w2_era_start_pos": 65,
+      "w3_only_target": {
+        "pair": "codeword-correction",
+        "variant": "B",
+        "expected": " ALPHA",
+        "w2_heldout_correct": false,
+        "w3_heldout_correct": true
+      },
+      "hop1_w1_to_w2_prefix": {
+        "selected_anchor_event": 7,
+        "anchor_pos": 61,
+        "vs_w2_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 0.75,
+          "score_rms_error": 0.3108033372722992
+        },
+        "state_error_vs_w2_native_prefix": {
+          "rms": 0.03159255620363662,
+          "l2": 27.126951649656643,
+          "max_abs": 1.6248149871826172,
+          "numel": 737280
+        }
+      },
+      "w2_carried_before_w3": {
+        "state_error_vs_w2_native_full": {
+          "rms": 0.01523040627803516,
+          "l2": 13.077589924848452,
+          "max_abs": 0.41589295864105225,
+          "numel": 737280
+        },
+        "origin_at_w2_era_start": "W2",
+        "origin_at_final_before_w3": "W2"
+      },
+      "hop2_actual_chained_lineage_to_w3": {
+        "selected_anchor_event": 2,
+        "anchor_pos": 15,
+        "anchor_source_generation": "W1",
+        "anchor_is_in_w2_era": false,
+        "selected_segments": [
+          1,
+          2,
+          8
+        ],
+        "prune_trace": [
+          {
+            "from_segment": 1,
+            "candidate_later_segment": 2,
+            "same_functional_signature": true
+          },
+          {
+            "from_segment": 2,
+            "candidate_later_segment": 8,
+            "same_functional_signature": false
+          }
+        ],
+        "vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 0.6666666666666666,
+          "score_rms_error": 0.109287998186387
+        }
+      },
+      "w3_native_expected_accuracy": 0.6666666666666666,
+      "final_chain_w3": {
+        "functional_vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 0.6666666666666666,
+          "score_rms_error": 0.109287998186387
+        },
+        "state_error_vs_w3_native": {
+          "rms": 0.011093986672992582,
+          "l2": 9.525852803438648,
+          "max_abs": 0.38025903701782227,
+          "numel": 737280
+        },
+        "lineage_origin_at_final": "W3"
+      },
+      "direct_w1_to_w3_control": {
+        "selected_anchor_event": 8,
+        "anchor_pos": 65,
+        "vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 0.6666666666666666,
+          "score_rms_error": 0.4016099705953331
+        },
+        "chain_vs_direct_decision_agreement": 1.0
+      },
+      "fixture_pass": false
+    },
+    {
+      "fixture": "w2_event_middle",
+      "history_tokens": 117,
+      "w2_era_start_pos": 65,
+      "w3_only_target": {
+        "pair": "codeword-correction",
+        "variant": "B",
+        "expected": " ALPHA",
+        "w2_heldout_correct": false,
+        "w3_heldout_correct": true
+      },
+      "hop1_w1_to_w2_prefix": {
+        "selected_anchor_event": 7,
+        "anchor_pos": 61,
+        "vs_w2_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 0.75,
+          "score_rms_error": 0.3108033372722992
+        },
+        "state_error_vs_w2_native_prefix": {
+          "rms": 0.03159255620363662,
+          "l2": 27.126951649656643,
+          "max_abs": 1.6248149871826172,
+          "numel": 737280
+        }
+      },
+      "w2_carried_before_w3": {
+        "state_error_vs_w2_native_full": {
+          "rms": 0.014569399445593932,
+          "l2": 12.51001633985118,
+          "max_abs": 0.41397905349731445,
+          "numel": 737280
+        },
+        "origin_at_w2_era_start": "W2",
+        "origin_at_final_before_w3": "W2"
+      },
+      "hop2_actual_chained_lineage_to_w3": {
+        "selected_anchor_event": 2,
+        "anchor_pos": 15,
+        "anchor_source_generation": "W1",
+        "anchor_is_in_w2_era": false,
+        "selected_segments": [
+          1,
+          2
+        ],
+        "prune_trace": [
+          {
+            "from_segment": 1,
+            "candidate_later_segment": 2,
+            "same_functional_signature": true
+          }
+        ],
+        "vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 0.6666666666666666,
+          "score_rms_error": 0.10190874602442283
+        }
+      },
+      "w3_native_expected_accuracy": 0.6666666666666666,
+      "final_chain_w3": {
+        "functional_vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 0.6666666666666666,
+          "score_rms_error": 0.10190874602442283
+        },
+        "state_error_vs_w3_native": {
+          "rms": 0.011204978608419921,
+          "l2": 9.62115604026545,
+          "max_abs": 0.38624513149261475,
+          "numel": 737280
+        },
+        "lineage_origin_at_final": "W3"
+      },
+      "direct_w1_to_w3_control": {
+        "selected_anchor_event": 9,
+        "anchor_pos": 79,
+        "vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 0.6666666666666666,
+          "score_rms_error": 0.45854188206885965
+        },
+        "chain_vs_direct_decision_agreement": 1.0
+      },
+      "fixture_pass": false
+    },
+    {
+      "fixture": "w2_event_late",
+      "history_tokens": 117,
+      "w2_era_start_pos": 65,
+      "w3_only_target": {
+        "pair": "codeword-correction",
+        "variant": "B",
+        "expected": " ALPHA",
+        "w2_heldout_correct": false,
+        "w3_heldout_correct": true
+      },
+      "hop1_w1_to_w2_prefix": {
+        "selected_anchor_event": 7,
+        "anchor_pos": 61,
+        "vs_w2_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 0.75,
+          "score_rms_error": 0.3108033372722992
+        },
+        "state_error_vs_w2_native_prefix": {
+          "rms": 0.03159255620363662,
+          "l2": 27.126951649656643,
+          "max_abs": 1.6248149871826172,
+          "numel": 737280
+        }
+      },
+      "w2_carried_before_w3": {
+        "state_error_vs_w2_native_full": {
+          "rms": 0.015383492102052152,
+          "l2": 13.209037083463581,
+          "max_abs": 0.4941830635070801,
+          "numel": 737280
+        },
+        "origin_at_w2_era_start": "W2",
+        "origin_at_final_before_w3": "W2"
+      },
+      "hop2_actual_chained_lineage_to_w3": {
+        "selected_anchor_event": 11,
+        "anchor_pos": 103,
+        "anchor_source_generation": "W2",
+        "anchor_is_in_w2_era": true,
+        "selected_segments": [
+          1,
+          2,
+          11
+        ],
+        "prune_trace": [
+          {
+            "from_segment": 1,
+            "candidate_later_segment": 2,
+            "same_functional_signature": true
+          },
+          {
+            "from_segment": 2,
+            "candidate_later_segment": 11,
+            "same_functional_signature": true
+          }
+        ],
+        "vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 0.6666666666666666,
+          "score_rms_error": 0.4430525867327087
+        }
+      },
+      "w3_native_expected_accuracy": 0.6666666666666666,
+      "final_chain_w3": {
+        "functional_vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 0.6666666666666666,
+          "score_rms_error": 0.4430525867327087
+        },
+        "state_error_vs_w3_native": {
+          "rms": 0.028328649417291393,
+          "l2": 24.32439775020417,
+          "max_abs": 0.7355959415435791,
+          "numel": 737280
+        },
+        "lineage_origin_at_final": "W3"
+      },
+      "direct_w1_to_w3_control": {
+        "selected_anchor_event": 11,
+        "anchor_pos": 103,
+        "vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 0.6666666666666666,
+          "score_rms_error": 0.610939148706839
+        },
+        "chain_vs_direct_decision_agreement": 1.0
+      },
+      "fixture_pass": false
+    }
+  ],
+  "success_definition": "At least three fixtures must carry a nonzero W1->W2 migration-state difference into the W2 era; the unchanged W3 target-free selector must then naturally select a source_generation=W2 checkpoint on every fixture and replay from that W2-origin state to 100% W3-native functional decision agreement. Direct W1->W3 is control only.",
+  "claim_boundary": "Three synthetic Mamba-130M chained-source fixtures. This tests true W2-origin chained-state accumulation for the current migration policy; it does not establish generic long-horizon robustness, final-backbone fitness, or identity continuity."
 }
