@@ -1,0 +1,24 @@
+{
+  "status": "XLSTM_164M_REAL_WEIGHT_M0_PROBE",
+  "repo": "NX-AI/xlstm_scaling_laws",
+  "checkpoint": "mlstm_v1--tokenparam--ctx-8192--params-164.11M--tokens-361.76B--id-y5s6gd5v",
+  "tokenizer": "NX-AI/xLSTM-7b",
+  "torch_version": "2.13.0+cu130",
+  "transformers_version": "4.57.6",
+  "parameter_count": 164110224,
+  "checkpoint_files": [
+    {
+      "name": "model_0.safetensors",
+      "bytes": 328241392
+    }
+  ],
+  "state_tensor_count": 96,
+  "state_numel": 1585344,
+  "restore_max_abs_diff": 0.0,
+  "full_replay_max_abs_diff": 1.9073486328125e-05,
+  "fresh_max_abs_diff": 17.56123161315918,
+  "restore_equivalent": true,
+  "full_replay_equivalent": true,
+  "fresh_is_different": true,
+  "claim_boundary": "Actual released ~164M xLSTM scaling-law checkpoint. M0 active-state checkpoint evidence only; not reasoning-quality, identity, or engine-selection evidence."
+}
