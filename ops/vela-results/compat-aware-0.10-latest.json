@@ -1,0 +1,1173 @@
+{
+  "status": "VELA_COMPATIBILITY_AWARE_UPGRADE_V1",
+  "model": "state-spaces/mamba-130m-hf",
+  "torch_version": "2.13.0+cu130",
+  "transformers_version": "4.57.6",
+  "compat_lambda": 0.1,
+  "compat_every": 4,
+  "regularizer_modes": [
+    "fallback_final_hidden_state"
+  ],
+  "selected_layers": [
+    0,
+    5,
+    11,
+    17,
+    23
+  ],
+  "capability": {
+    "baseline": {
+      "accuracy": 0.3333333333333333,
+      "correction_accuracy": 0.125,
+      "control_accuracy": 0.75,
+      "pair_summary": {
+        "codeword-control": {
+          "both_correct": true,
+          "choices": [
+            " ALPHA",
+            " BETA"
+          ],
+          "choice_flips": true
+        },
+        "codeword-correction": {
+          "both_correct": false,
+          "choices": [
+            " ALPHA",
+            " BETA"
+          ],
+          "choice_flips": true
+        },
+        "color": {
+          "both_correct": false,
+          "choices": [
+            " RED",
+            " BLUE"
+          ],
+          "choice_flips": true
+        },
+        "level": {
+          "both_correct": false,
+          "choices": [
+            " HIGH",
+            " HIGH"
+          ],
+          "choice_flips": false
+        },
+        "motion": {
+          "both_correct": false,
+          "choices": [
+            " START",
+            " STOP"
+          ],
+          "choice_flips": true
+        },
+        "plan-control": {
+          "both_correct": false,
+          "choices": [
+            " commit",
+            " commit"
+          ],
+          "choice_flips": false
+        }
+      },
+      "rows": [
+        {
+          "pair": "color",
+          "variant": "A",
+          "kind": "correction",
+          "expected": " BLUE",
+          "chosen": " RED",
+          "correct": false,
+          "margin": -1.346188809722662,
+          "scores": {
+            " BLUE": -2.11148127540946,
+            " RED": -0.7652924656867981
+          }
+        },
+        {
+          "pair": "color",
+          "variant": "B",
+          "kind": "correction",
+          "expected": " RED",
+          "chosen": " BLUE",
+          "correct": false,
+          "margin": -0.329918272793293,
+          "scores": {
+            " BLUE": -1.1411760970950127,
+            " RED": -1.4710943698883057
+          }
+        },
+        {
+          "pair": "codeword-correction",
+          "variant": "A",
+          "kind": "correction",
+          "expected": " BETA",
+          "chosen": " ALPHA",
+          "correct": false,
+          "margin": -0.670372111722827,
+          "scores": {
+            " BETA": -2.206990865059197,
+            " ALPHA": -1.53661875333637
+          }
+        },
+        {
+          "pair": "codeword-correction",
+          "variant": "B",
+          "kind": "correction",
+          "expected": " ALPHA",
+          "chosen": " BETA",
+          "correct": false,
+          "margin": -2.1007193247787654,
+          "scores": {
+            " BETA": -0.9525676635093987,
+            " ALPHA": -3.053286988288164
+          }
+        },
+        {
+          "pair": "level",
+          "variant": "A",
+          "kind": "correction",
+          "expected": " HIGH",
+          "chosen": " HIGH",
+          "correct": true,
+          "margin": 0.941772073507309,
+          "scores": {
+            " HIGH": -4.410445854067802,
+            " LOW": -5.352217927575111
+          }
+        },
+        {
+          "pair": "level",
+          "variant": "B",
+          "kind": "correction",
+          "expected": " LOW",
+          "chosen": " HIGH",
+          "correct": false,
+          "margin": -0.5158971697092056,
+          "scores": {
+            " HIGH": -4.71245651692152,
+            " LOW": -5.228353686630726
+          }
+        },
+        {
+          "pair": "motion",
+          "variant": "A",
+          "kind": "correction",
+          "expected": " STOP",
+          "chosen": " START",
+          "correct": false,
+          "margin": -0.4205511538311839,
+          "scores": {
+            " STOP": -2.042754980735481,
+            " START": -1.6222038269042969
+          }
+        },
+        {
+          "pair": "motion",
+          "variant": "B",
+          "kind": "correction",
+          "expected": " START",
+          "chosen": " STOP",
+          "correct": false,
+          "margin": -0.03817039169371128,
+          "scores": {
+            " STOP": -1.537554806098342,
+            " START": -1.5757251977920532
+          }
+        },
+        {
+          "pair": "codeword-control",
+          "variant": "A",
+          "kind": "control",
+          "expected": " ALPHA",
+          "chosen": " ALPHA",
+          "correct": true,
+          "margin": 6.691531419754028,
+          "scores": {
+            " ALPHA": -1.1355123817920685,
+            " BETA": -7.827043801546097
+          }
+        },
+        {
+          "pair": "codeword-control",
+          "variant": "B",
+          "kind": "control",
+          "expected": " BETA",
+          "chosen": " BETA",
+          "correct": true,
+          "margin": 3.9907003697007895,
+          "scores": {
+            " ALPHA": -5.021690368652344,
+            " BETA": -1.0309899989515543
+          }
+        },
+        {
+          "pair": "plan-control",
+          "variant": "A",
+          "kind": "control",
+          "expected": " commit",
+          "chosen": " commit",
+          "correct": true,
+          "margin": 0.6712570190429688,
+          "scores": {
+            " commit": -4.267392158508301,
+            " collect": -4.9386491775512695
+          }
+        },
+        {
+          "pair": "plan-control",
+          "variant": "B",
+          "kind": "control",
+          "expected": " collect",
+          "chosen": " commit",
+          "correct": false,
+          "margin": -1.2698326110839844,
+          "scores": {
+            " commit": -4.173771858215332,
+            " collect": -5.443604469299316
+          }
+        }
+      ]
+    },
+    "epoch_rows": [
+      {
+        "epoch": 1,
+        "mean_capability_loss": 1.7654767222702503,
+        "mean_compat_loss": 0.013476415886543691,
+        "heldout": {
+          "accuracy": 0.75,
+          "correction_accuracy": 0.75,
+          "control_accuracy": 0.75,
+          "pair_summary": {
+            "codeword-control": {
+              "both_correct": true,
+              "choices": [
+                " ALPHA",
+                " BETA"
+              ],
+              "choice_flips": true
+            },
+            "codeword-correction": {
+              "both_correct": false,
+              "choices": [
+                " BETA",
+                " BETA"
+              ],
+              "choice_flips": false
+            },
+            "color": {
+              "both_correct": false,
+              "choices": [
+                " RED",
+                " RED"
+              ],
+              "choice_flips": false
+            },
+            "level": {
+              "both_correct": true,
+              "choices": [
+                " HIGH",
+                " LOW"
+              ],
+              "choice_flips": true
+            },
+            "motion": {
+              "both_correct": true,
+              "choices": [
+                " STOP",
+                " START"
+              ],
+              "choice_flips": true
+            },
+            "plan-control": {
+              "both_correct": false,
+              "choices": [
+                " commit",
+                " commit"
+              ],
+              "choice_flips": false
+            }
+          },
+          "rows": [
+            {
+              "pair": "color",
+              "variant": "A",
+              "kind": "correction",
+              "expected": " BLUE",
+              "chosen": " RED",
+              "correct": false,
+              "margin": -0.155997883528471,
+              "scores": {
+                " BLUE": -0.8766459934413433,
+                " RED": -0.7206481099128723
+              }
+            },
+            {
+              "pair": "color",
+              "variant": "B",
+              "kind": "correction",
+              "expected": " RED",
+              "chosen": " RED",
+              "correct": true,
+              "margin": 0.2905784882605076,
+              "scores": {
+                " BLUE": -0.9561807550489902,
+                " RED": -0.6656022667884827
+              }
+            },
+            {
+              "pair": "codeword-correction",
+              "variant": "A",
+              "kind": "correction",
+              "expected": " BETA",
+              "chosen": " BETA",
+              "correct": true,
+              "margin": 1.28326904354617,
+              "scores": {
+                " BETA": -0.3873304114677012,
+                " ALPHA": -1.6705994550138712
+              }
+            },
+            {
+              "pair": "codeword-correction",
+              "variant": "B",
+              "kind": "correction",
+              "expected": " ALPHA",
+              "chosen": " BETA",
+              "correct": false,
+              "margin": -1.560997364926152,
+              "scores": {
+                " BETA": -0.35056277189869434,
+                " ALPHA": -1.9115601368248463
+              }
+            },
+            {
+              "pair": "level",
+              "variant": "A",
+              "kind": "correction",
+              "expected": " HIGH",
+              "chosen": " HIGH",
+              "correct": true,
+              "margin": 0.46578208170831203,
+              "scores": {
+                " HIGH": -1.7334642130881548,
+                " LOW": -2.199246294796467
+              }
+            },
+            {
+              "pair": "level",
+              "variant": "B",
+              "kind": "correction",
+              "expected": " LOW",
+              "chosen": " LOW",
+              "correct": true,
+              "margin": 0.3569958573207259,
+              "scores": {
+                " HIGH": -2.0655731232836843,
+                " LOW": -1.7085772659629583
+              }
+            },
+            {
+              "pair": "motion",
+              "variant": "A",
+              "kind": "correction",
+              "expected": " STOP",
+              "chosen": " STOP",
+              "correct": true,
+              "margin": 0.3326138500124216,
+              "scores": {
+                " STOP": -0.8833631034940481,
+                " START": -1.2159769535064697
+              }
+            },
+            {
+              "pair": "motion",
+              "variant": "B",
+              "kind": "correction",
+              "expected": " START",
+              "chosen": " START",
+              "correct": true,
+              "margin": 1.1968599818646908,
+              "scores": {
+                " STOP": -1.6187128089368343,
+                " START": -0.42185282707214355
+              }
+            },
+            {
+              "pair": "codeword-control",
+              "variant": "A",
+              "kind": "control",
+              "expected": " ALPHA",
+              "chosen": " ALPHA",
+              "correct": true,
+              "margin": 7.060697536915541,
+              "scores": {
+                " ALPHA": -0.6323557831346989,
+                " BETA": -7.69305332005024
+              }
+            },
+            {
+              "pair": "codeword-control",
+              "variant": "B",
+              "kind": "control",
+              "expected": " BETA",
+              "chosen": " BETA",
+              "correct": true,
+              "margin": 5.279242868535221,
+              "scores": {
+                " ALPHA": -5.493635177612305,
+                " BETA": -0.21439230907708406
+              }
+            },
+            {
+              "pair": "plan-control",
+              "variant": "A",
+              "kind": "control",
+              "expected": " commit",
+              "chosen": " commit",
+              "correct": true,
+              "margin": 1.8356399536132812,
+              "scores": {
+                " commit": -2.2194695472717285,
+                " collect": -4.05510950088501
+              }
+            },
+            {
+              "pair": "plan-control",
+              "variant": "B",
+              "kind": "control",
+              "expected": " collect",
+              "chosen": " commit",
+              "correct": false,
+              "margin": -2.8781964778900146,
+              "scores": {
+                " commit": -2.079106569290161,
+                " collect": -4.957303047180176
+              }
+            }
+          ]
+        }
+      },
+      {
+        "epoch": 2,
+        "mean_capability_loss": 0.46886530751362443,
+        "mean_compat_loss": 0.05462112929672003,
+        "heldout": {
+          "accuracy": 0.8333333333333334,
+          "correction_accuracy": 0.875,
+          "control_accuracy": 0.75,
+          "pair_summary": {
+            "codeword-control": {
+              "both_correct": true,
+              "choices": [
+                " ALPHA",
+                " BETA"
+              ],
+              "choice_flips": true
+            },
+            "codeword-correction": {
+              "both_correct": false,
+              "choices": [
+                " BETA",
+                " BETA"
+              ],
+              "choice_flips": false
+            },
+            "color": {
+              "both_correct": true,
+              "choices": [
+                " BLUE",
+                " RED"
+              ],
+              "choice_flips": true
+            },
+            "level": {
+              "both_correct": true,
+              "choices": [
+                " HIGH",
+                " LOW"
+              ],
+              "choice_flips": true
+            },
+            "motion": {
+              "both_correct": true,
+              "choices": [
+                " STOP",
+                " START"
+              ],
+              "choice_flips": true
+            },
+            "plan-control": {
+              "both_correct": false,
+              "choices": [
+                " commit",
+                " commit"
+              ],
+              "choice_flips": false
+            }
+          },
+          "rows": [
+            {
+              "pair": "color",
+              "variant": "A",
+              "kind": "correction",
+              "expected": " BLUE",
+              "chosen": " BLUE",
+              "correct": true,
+              "margin": 2.1903873831033707,
+              "scores": {
+                " BLUE": -0.13020215928554535,
+                " RED": -2.320589542388916
+              }
+            },
+            {
+              "pair": "color",
+              "variant": "B",
+              "kind": "correction",
+              "expected": " RED",
+              "chosen": " RED",
+              "correct": true,
+              "margin": 2.1089158738031983,
+              "scores": {
+                " BLUE": -2.2379855001345277,
+                " RED": -0.12906962633132935
+              }
+            },
+            {
+              "pair": "codeword-correction",
+              "variant": "A",
+              "kind": "correction",
+              "expected": " BETA",
+              "chosen": " BETA",
+              "correct": true,
+              "margin": 3.591163514298387,
+              "scores": {
+                " BETA": -0.04690233641304076,
+                " ALPHA": -3.6380658507114276
+              }
+            },
+            {
+              "pair": "codeword-correction",
+              "variant": "B",
+              "kind": "correction",
+              "expected": " ALPHA",
+              "chosen": " BETA",
+              "correct": false,
+              "margin": -0.3939100867137313,
+              "scores": {
+                " BETA": -0.612632138421759,
+                " ALPHA": -1.0065422251354903
+              }
+            },
+            {
+              "pair": "level",
+              "variant": "A",
+              "kind": "correction",
+              "expected": " HIGH",
+              "chosen": " HIGH",
+              "correct": true,
+              "margin": 1.1321398969739676,
+              "scores": {
+                " HIGH": -0.42362126149237156,
+                " LOW": -1.5557611584663391
+              }
+            },
+            {
+              "pair": "level",
+              "variant": "B",
+              "kind": "correction",
+              "expected": " LOW",
+              "chosen": " LOW",
+              "correct": true,
+              "margin": 1.6673960946500301,
+              "scores": {
+                " HIGH": -1.9459148263558745,
+                " LOW": -0.2785187317058444
+              }
+            },
+            {
+              "pair": "motion",
+              "variant": "A",
+              "kind": "correction",
+              "expected": " STOP",
+              "chosen": " STOP",
+              "correct": true,
+              "margin": 2.217821015045047,
+              "scores": {
+                " STOP": -0.22873149998486042,
+                " START": -2.4465525150299072
+              }
+            },
+            {
+              "pair": "motion",
+              "variant": "B",
+              "kind": "correction",
+              "expected": " START",
+              "chosen": " START",
+              "correct": true,
+              "margin": 2.5746599971316755,
+              "scores": {
+                " STOP": -2.6788215353153646,
+                " START": -0.10416153818368912
+              }
+            },
+            {
+              "pair": "codeword-control",
+              "variant": "A",
+              "kind": "control",
+              "expected": " ALPHA",
+              "chosen": " ALPHA",
+              "correct": true,
+              "margin": 7.383615029044449,
+              "scores": {
+                " ALPHA": -0.44412949960678816,
+                " BETA": -7.8277445286512375
+              }
+            },
+            {
+              "pair": "codeword-control",
+              "variant": "B",
+              "kind": "control",
+              "expected": " BETA",
+              "chosen": " BETA",
+              "correct": true,
+              "margin": 6.341030301293358,
+              "scores": {
+                " ALPHA": -6.401836954057217,
+                " BETA": -0.06080665276385844
+              }
+            },
+            {
+              "pair": "plan-control",
+              "variant": "A",
+              "kind": "control",
+              "expected": " commit",
+              "chosen": " commit",
+              "correct": true,
+              "margin": 2.768592953681946,
+              "scores": {
+                " commit": -1.216234564781189,
+                " collect": -3.9848275184631348
+              }
+            },
+            {
+              "pair": "plan-control",
+              "variant": "B",
+              "kind": "control",
+              "expected": " collect",
+              "chosen": " commit",
+              "correct": false,
+              "margin": -3.913162112236023,
+              "scores": {
+                " commit": -1.0955806970596313,
+                " collect": -5.008742809295654
+              }
+            }
+          ]
+        }
+      },
+      {
+        "epoch": 3,
+        "mean_capability_loss": 0.09293039070325904,
+        "mean_compat_loss": 0.019638535100966692,
+        "heldout": {
+          "accuracy": 0.9166666666666666,
+          "correction_accuracy": 1.0,
+          "control_accuracy": 0.75,
+          "pair_summary": {
+            "codeword-control": {
+              "both_correct": true,
+              "choices": [
+                " ALPHA",
+                " BETA"
+              ],
+              "choice_flips": true
+            },
+            "codeword-correction": {
+              "both_correct": true,
+              "choices": [
+                " BETA",
+                " ALPHA"
+              ],
+              "choice_flips": true
+            },
+            "color": {
+              "both_correct": true,
+              "choices": [
+                " BLUE",
+                " RED"
+              ],
+              "choice_flips": true
+            },
+            "level": {
+              "both_correct": true,
+              "choices": [
+                " HIGH",
+                " LOW"
+              ],
+              "choice_flips": true
+            },
+            "motion": {
+              "both_correct": true,
+              "choices": [
+                " STOP",
+                " START"
+              ],
+              "choice_flips": true
+            },
+            "plan-control": {
+              "both_correct": false,
+              "choices": [
+                " commit",
+                " commit"
+              ],
+              "choice_flips": false
+            }
+          },
+          "rows": [
+            {
+              "pair": "color",
+              "variant": "A",
+              "kind": "correction",
+              "expected": " BLUE",
+              "chosen": " BLUE",
+              "correct": true,
+              "margin": 5.625136662274599,
+              "scores": {
+                " BLUE": -0.013399790972471237,
+                " RED": -5.63853645324707
+              }
+            },
+            {
+              "pair": "color",
+              "variant": "B",
+              "kind": "correction",
+              "expected": " RED",
+              "chosen": " RED",
+              "correct": true,
+              "margin": 4.240318178199232,
+              "scores": {
+                " BLUE": -4.257532351650298,
+                " RED": -0.017214173451066017
+              }
+            },
+            {
+              "pair": "codeword-correction",
+              "variant": "A",
+              "kind": "correction",
+              "expected": " BETA",
+              "chosen": " BETA",
+              "correct": true,
+              "margin": 5.790462336037308,
+              "scores": {
+                " BETA": -0.011205676710233092,
+                " ALPHA": -5.801668012747541
+              }
+            },
+            {
+              "pair": "codeword-correction",
+              "variant": "B",
+              "kind": "correction",
+              "expected": " ALPHA",
+              "chosen": " ALPHA",
+              "correct": true,
+              "margin": 1.1581399987917393,
+              "scores": {
+                " BETA": -1.5148888608673587,
+                " ALPHA": -0.3567488620756194
+              }
+            },
+            {
+              "pair": "level",
+              "variant": "A",
+              "kind": "correction",
+              "expected": " HIGH",
+              "chosen": " HIGH",
+              "correct": true,
+              "margin": 2.8737053531222045,
+              "scores": {
+                " HIGH": -0.08545395405963063,
+                " LOW": -2.959159307181835
+              }
+            },
+            {
+              "pair": "level",
+              "variant": "B",
+              "kind": "correction",
+              "expected": " LOW",
+              "chosen": " LOW",
+              "correct": true,
+              "margin": 2.8823287771083415,
+              "scores": {
+                " HIGH": -2.961375571321696,
+                " LOW": -0.07904679421335459
+              }
+            },
+            {
+              "pair": "motion",
+              "variant": "A",
+              "kind": "correction",
+              "expected": " STOP",
+              "chosen": " STOP",
+              "correct": true,
+              "margin": 4.81756673270138,
+              "scores": {
+                " STOP": -0.04979147500125691,
+                " START": -4.867358207702637
+              }
+            },
+            {
+              "pair": "motion",
+              "variant": "B",
+              "kind": "correction",
+              "expected": " START",
+              "chosen": " START",
+              "correct": true,
+              "margin": 3.6727747349068522,
+              "scores": {
+                " STOP": -3.7101421682164073,
+                " START": -0.037367433309555054
+              }
+            },
+            {
+              "pair": "codeword-control",
+              "variant": "A",
+              "kind": "control",
+              "expected": " ALPHA",
+              "chosen": " ALPHA",
+              "correct": true,
+              "margin": 7.403172235935926,
+              "scores": {
+                " ALPHA": -0.45878830924630165,
+                " BETA": -7.861960545182228
+              }
+            },
+            {
+              "pair": "codeword-control",
+              "variant": "B",
+              "kind": "control",
+              "expected": " BETA",
+              "chosen": " BETA",
+              "correct": true,
+              "margin": 6.577494488796219,
+              "scores": {
+                " ALPHA": -6.625439986586571,
+                " BETA": -0.04794549779035151
+              }
+            },
+            {
+              "pair": "plan-control",
+              "variant": "A",
+              "kind": "control",
+              "expected": " commit",
+              "chosen": " commit",
+              "correct": true,
+              "margin": 3.490364134311676,
+              "scores": {
+                " commit": -0.7354134917259216,
+                " collect": -4.225777626037598
+              }
+            },
+            {
+              "pair": "plan-control",
+              "variant": "B",
+              "kind": "control",
+              "expected": " collect",
+              "chosen": " commit",
+              "correct": false,
+              "margin": -4.533916592597961,
+              "scores": {
+                " commit": -0.6709879636764526,
+                " collect": -5.204904556274414
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "after": {
+      "accuracy": 0.9166666666666666,
+      "correction_accuracy": 1.0,
+      "control_accuracy": 0.75,
+      "pair_summary": {
+        "codeword-control": {
+          "both_correct": true,
+          "choices": [
+            " ALPHA",
+            " BETA"
+          ],
+          "choice_flips": true
+        },
+        "codeword-correction": {
+          "both_correct": true,
+          "choices": [
+            " BETA",
+            " ALPHA"
+          ],
+          "choice_flips": true
+        },
+        "color": {
+          "both_correct": true,
+          "choices": [
+            " BLUE",
+            " RED"
+          ],
+          "choice_flips": true
+        },
+        "level": {
+          "both_correct": true,
+          "choices": [
+            " HIGH",
+            " LOW"
+          ],
+          "choice_flips": true
+        },
+        "motion": {
+          "both_correct": true,
+          "choices": [
+            " STOP",
+            " START"
+          ],
+          "choice_flips": true
+        },
+        "plan-control": {
+          "both_correct": false,
+          "choices": [
+            " commit",
+            " commit"
+          ],
+          "choice_flips": false
+        }
+      },
+      "rows": [
+        {
+          "pair": "color",
+          "variant": "A",
+          "kind": "correction",
+          "expected": " BLUE",
+          "chosen": " BLUE",
+          "correct": true,
+          "margin": 5.625136662274599,
+          "scores": {
+            " BLUE": -0.013399790972471237,
+            " RED": -5.63853645324707
+          }
+        },
+        {
+          "pair": "color",
+          "variant": "B",
+          "kind": "correction",
+          "expected": " RED",
+          "chosen": " RED",
+          "correct": true,
+          "margin": 4.240318178199232,
+          "scores": {
+            " BLUE": -4.257532351650298,
+            " RED": -0.017214173451066017
+          }
+        },
+        {
+          "pair": "codeword-correction",
+          "variant": "A",
+          "kind": "correction",
+          "expected": " BETA",
+          "chosen": " BETA",
+          "correct": true,
+          "margin": 5.790462336037308,
+          "scores": {
+            " BETA": -0.011205676710233092,
+            " ALPHA": -5.801668012747541
+          }
+        },
+        {
+          "pair": "codeword-correction",
+          "variant": "B",
+          "kind": "correction",
+          "expected": " ALPHA",
+          "chosen": " ALPHA",
+          "correct": true,
+          "margin": 1.1581399987917393,
+          "scores": {
+            " BETA": -1.5148888608673587,
+            " ALPHA": -0.3567488620756194
+          }
+        },
+        {
+          "pair": "level",
+          "variant": "A",
+          "kind": "correction",
+          "expected": " HIGH",
+          "chosen": " HIGH",
+          "correct": true,
+          "margin": 2.8737053531222045,
+          "scores": {
+            " HIGH": -0.08545395405963063,
+            " LOW": -2.959159307181835
+          }
+        },
+        {
+          "pair": "level",
+          "variant": "B",
+          "kind": "correction",
+          "expected": " LOW",
+          "chosen": " LOW",
+          "correct": true,
+          "margin": 2.8823287771083415,
+          "scores": {
+            " HIGH": -2.961375571321696,
+            " LOW": -0.07904679421335459
+          }
+        },
+        {
+          "pair": "motion",
+          "variant": "A",
+          "kind": "correction",
+          "expected": " STOP",
+          "chosen": " STOP",
+          "correct": true,
+          "margin": 4.81756673270138,
+          "scores": {
+            " STOP": -0.04979147500125691,
+            " START": -4.867358207702637
+          }
+        },
+        {
+          "pair": "motion",
+          "variant": "B",
+          "kind": "correction",
+          "expected": " START",
+          "chosen": " START",
+          "correct": true,
+          "margin": 3.6727747349068522,
+          "scores": {
+            " STOP": -3.7101421682164073,
+            " START": -0.037367433309555054
+          }
+        },
+        {
+          "pair": "codeword-control",
+          "variant": "A",
+          "kind": "control",
+          "expected": " ALPHA",
+          "chosen": " ALPHA",
+          "correct": true,
+          "margin": 7.403172235935926,
+          "scores": {
+            " ALPHA": -0.45878830924630165,
+            " BETA": -7.861960545182228
+          }
+        },
+        {
+          "pair": "codeword-control",
+          "variant": "B",
+          "kind": "control",
+          "expected": " BETA",
+          "chosen": " BETA",
+          "correct": true,
+          "margin": 6.577494488796219,
+          "scores": {
+            " ALPHA": -6.625439986586571,
+            " BETA": -0.04794549779035151
+          }
+        },
+        {
+          "pair": "plan-control",
+          "variant": "A",
+          "kind": "control",
+          "expected": " commit",
+          "chosen": " commit",
+          "correct": true,
+          "margin": 3.490364134311676,
+          "scores": {
+            " commit": -0.7354134917259216,
+            " collect": -4.225777626037598
+          }
+        },
+        {
+          "pair": "plan-control",
+          "variant": "B",
+          "kind": "control",
+          "expected": " collect",
+          "chosen": " commit",
+          "correct": false,
+          "margin": -4.533916592597961,
+          "scores": {
+            " commit": -0.6709879636764526,
+            " collect": -5.204904556274414
+          }
+        }
+      ]
+    },
+    "overall_gain": 0.5833333333333333,
+    "correction_gain": 0.875,
+    "control_gain": 0.0
+  },
+  "weight_delta": {
+    "relative_l2": 0.013310283037392113,
+    "rms": 0.0012666516008737073,
+    "max_abs": 0.004416532814502716,
+    "numel": 2949120
+  },
+  "migration": {
+    "direct_state_error_vs_w2_native": {
+      "rms": 0.052871015081714205,
+      "l2": 45.39770256465775,
+      "max_abs": 11.10897445678711,
+      "numel": 737280
+    },
+    "direct_probe_vs_w2_native": {
+      "decision_agreement": 0.75,
+      "score_rms_error": 0.6346046815121155,
+      "mean_margin_abs_error": 0.7374610231272527,
+      "expected_accuracy": 0.5
+    },
+    "w2_native_probe": [
+      {
+        "id": "codeword",
+        "expected": " BETA",
+        "chosen": " BETA",
+        "correct": true,
+        "margin": 1.6202700149733573,
+        "scores": {
+          " BETA": -0.19461767538450658,
+          " ALPHA": -1.814887690357864
+        }
+      },
+      {
+        "id": "verification",
+        "expected": " incomplete",
+        "chosen": " incomplete",
+        "correct": true,
+        "margin": 0.8496475219726562,
+        "scores": {
+          " incomplete": -5.876282691955566,
+          " complete": -6.725930213928223
+        }
+      },
+      {
+        "id": "project",
+        "expected": " active",
+        "chosen": " active",
+        "correct": true,
+        "margin": 6.305633544921875,
+        "scores": {
+          " active": -2.862736701965332,
+          " paused": -9.168370246887207
+        }
+      },
+      {
+        "id": "hypothesis",
+        "expected": " weakened",
+        "chosen": " strengthened",
+        "correct": false,
+        "margin": -0.12017059326171875,
+        "scores": {
+          " weakened": -15.051460266113281,
+          " strengthened": -14.931289672851562
+        }
+      }
+    ]
+  },
+  "success_definition": "Useful compatibility-aware training should preserve a genuine held-out capability gain while reducing old-state mismatch or improving W2-native decision fidelity relative to the unconstrained learned-upgrade reference.",
+  "claim_boundary": "Narrow Mamba-1 130M synthetic probe. The primary regularizer targets selected recurrent cache layers when differentiable; if runtime forces fallback, that is reported explicitly and is weaker evidence."
+}
