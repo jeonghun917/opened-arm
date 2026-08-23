@@ -13,7 +13,7 @@ permissions:
 
 concurrency:
   group: vela-sequential-w1-w2-w3-v2
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   sequential-w1-w2-w3-v2:
