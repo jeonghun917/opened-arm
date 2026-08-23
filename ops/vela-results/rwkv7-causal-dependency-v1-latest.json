@@ -11,8 +11,8 @@
     "control_before": 1.0,
     "control_after": 1.0,
     "epoch_loss": [
-      0.5247769551497186,
-      0.000239383984686962
+      0.5247814113996961,
+      0.00023950298653592958
     ]
   },
   "fixtures": [
@@ -28,8 +28,8 @@
           "expected": " BETA",
           "correct": true,
           "scores": {
-            " BETA": -0.5294619896449149,
-            " ALPHA": -0.924838439153973
+            " BETA": -0.5289721381850541,
+            " ALPHA": -0.9255849276669323
           }
         },
         {
@@ -38,8 +38,8 @@
           "expected": " incomplete",
           "correct": true,
           "scores": {
-            " incomplete": -1.0889410972595215,
-            " complete": -1.250192642211914
+            " incomplete": -1.089038610458374,
+            " complete": -1.2502353191375732
           }
         },
         {
@@ -48,8 +48,8 @@
           "expected": " active",
           "correct": true,
           "scores": {
-            " active": -4.270883560180664,
-            " paused": -9.509896278381348
+            " active": -4.271566867828369,
+            " paused": -9.510262489318848
           }
         },
         {
@@ -58,8 +58,8 @@
           "expected": " blocked",
           "correct": true,
           "scores": {
-            " blocked": -3.318159580230713,
-            " allowed": -10.403825759887695
+            " blocked": -3.318474769592285,
+            " allowed": -10.40391731262207
           }
         }
       ],
@@ -104,8 +104,8 @@
               "expected": " BETA",
               "correct": true,
               "scores": {
-                " BETA": -0.5294619896449149,
-                " ALPHA": -0.924838439153973
+                " BETA": -0.5289721381850541,
+                " ALPHA": -0.9255849276669323
               }
             },
             {
@@ -114,8 +114,8 @@
               "expected": " incomplete",
               "correct": true,
               "scores": {
-                " incomplete": -1.0889410972595215,
-                " complete": -1.250192642211914
+                " incomplete": -1.089038610458374,
+                " complete": -1.2502353191375732
               }
             },
             {
@@ -124,8 +124,8 @@
               "expected": " active",
               "correct": true,
               "scores": {
-                " active": -4.270883560180664,
-                " paused": -9.509896278381348
+                " active": -4.271566867828369,
+                " paused": -9.510262489318848
               }
             },
             {
@@ -134,8 +134,8 @@
               "expected": " blocked",
               "correct": true,
               "scores": {
-                " blocked": -3.318159580230713,
-                " allowed": -10.403825759887695
+                " blocked": -3.318474769592285,
+                " allowed": -10.40391731262207
               }
             }
           ]
@@ -145,7 +145,7 @@
           "anchor_pos": 7,
           "replayed_tokens": 60,
           "replay_fraction": 0.8955223880597015,
-          "state_rms": 0.025974262507481426,
+          "state_rms": 0.02597606638706783,
           "functional_vs_w2_native": {
             "decision_agreement": 1.0,
             "expected_accuracy": 1.0
@@ -158,8 +158,8 @@
               "expected": " BETA",
               "correct": true,
               "scores": {
-                " BETA": -0.3227234906516969,
-                " ALPHA": -1.3970663326326758
+                " BETA": -0.3225471181795001,
+                " ALPHA": -1.3976324573159218
               }
             },
             {
@@ -168,8 +168,8 @@
               "expected": " incomplete",
               "correct": true,
               "scores": {
-                " incomplete": -1.1789655685424805,
-                " complete": -1.2944269180297852
+                " incomplete": -1.1791075468063354,
+                " complete": -1.294493556022644
               }
             },
             {
@@ -178,8 +178,8 @@
               "expected": " active",
               "correct": true,
               "scores": {
-                " active": -4.291275978088379,
-                " paused": -9.134345054626465
+                " active": -4.291759014129639,
+                " paused": -9.134634017944336
               }
             },
             {
@@ -188,8 +188,8 @@
               "expected": " blocked",
               "correct": true,
               "scores": {
-                " blocked": -3.465381622314453,
-                " allowed": -10.078557968139648
+                " blocked": -3.46573543548584,
+                " allowed": -10.078727722167969
               }
             }
           ]
@@ -199,7 +199,7 @@
           "anchor_pos": 15,
           "replayed_tokens": 52,
           "replay_fraction": 0.7761194029850746,
-          "state_rms": 0.029776336623714917,
+          "state_rms": 0.029777025687827696,
           "functional_vs_w2_native": {
             "decision_agreement": 1.0,
             "expected_accuracy": 1.0
@@ -212,8 +212,8 @@
               "expected": " BETA",
               "correct": true,
               "scores": {
-                " BETA": -0.39225963735952973,
-                " ALPHA": -1.2498490262078121
+                " BETA": -0.3920951480977237,
+                " ALPHA": -1.250290457624942
               }
             },
             {
@@ -222,8 +222,8 @@
               "expected": " incomplete",
               "correct": true,
               "scores": {
-                " incomplete": -1.1875114440917969,
-                " complete": -1.3501276969909668
+                " incomplete": -1.187646508216858,
+                " complete": -1.3501960039138794
               }
             },
             {
@@ -232,8 +232,8 @@
               "expected": " active",
               "correct": true,
               "scores": {
-                " active": -4.0993452072143555,
-                " paused": -8.894295692443848
+                " active": -4.099736213684082,
+                " paused": -8.894554138183594
               }
             },
             {
@@ -242,8 +242,8 @@
               "expected": " blocked",
               "correct": true,
               "scores": {
-                " blocked": -3.5383167266845703,
-                " allowed": -10.05615234375
+                " blocked": -3.5386478900909424,
+                " allowed": -10.056306838989258
               }
             }
           ]
@@ -253,7 +253,7 @@
           "anchor_pos": 29,
           "replayed_tokens": 38,
           "replay_fraction": 0.5671641791044776,
-          "state_rms": 0.04130213326501964,
+          "state_rms": 0.041301876368363785,
           "functional_vs_w2_native": {
             "decision_agreement": 0.75,
             "expected_accuracy": 0.75
@@ -266,8 +266,8 @@
               "expected": " BETA",
               "correct": false,
               "scores": {
-                " BETA": -2.1489176182076335,
-                " ALPHA": -0.2378830909729004
+                " BETA": -2.1487231254577637,
+                " ALPHA": -0.23796760779805481
               }
             },
             {
@@ -276,8 +276,8 @@
               "expected": " incomplete",
               "correct": true,
               "scores": {
-                " incomplete": -1.076422095298767,
-                " complete": -1.2048934698104858
+                " incomplete": -1.076557993888855,
+                " complete": -1.2049044370651245
               }
             },
             {
@@ -286,8 +286,8 @@
               "expected": " active",
               "correct": true,
               "scores": {
-                " active": -3.546384811401367,
-                " paused": -8.828573226928711
+                " active": -3.546656847000122,
+                " paused": -8.828676223754883
               }
             },
             {
@@ -296,8 +296,8 @@
               "expected": " blocked",
               "correct": true,
               "scores": {
-                " blocked": -4.27608585357666,
-                " allowed": -10.28282356262207
+                " blocked": -4.27629280090332,
+                " allowed": -10.282925605773926
               }
             }
           ]
@@ -307,7 +307,7 @@
           "anchor_pos": 37,
           "replayed_tokens": 30,
           "replay_fraction": 0.44776119402985076,
-          "state_rms": 0.04387471035077057,
+          "state_rms": 0.043874008636857184,
           "functional_vs_w2_native": {
             "decision_agreement": 0.75,
             "expected_accuracy": 0.75
@@ -320,8 +320,8 @@
               "expected": " BETA",
               "correct": false,
               "scores": {
-                " BETA": -2.2328598080202937,
-                " ALPHA": -0.21694783587008715
+                " BETA": -2.232666746713221,
+                " ALPHA": -0.21702353237196803
               }
             },
             {
@@ -330,8 +330,8 @@
               "expected": " incomplete",
               "correct": true,
               "scores": {
-                " incomplete": -1.1154344081878662,
-                " complete": -1.203247308731079
+                " incomplete": -1.1155650615692139,
+                " complete": -1.2032597064971924
               }
             },
             {
@@ -340,8 +340,8 @@
               "expected": " active",
               "correct": true,
               "scores": {
-                " active": -3.4969911575317383,
-                " paused": -8.817813873291016
+                " active": -3.497248411178589,
+                " paused": -8.817907333374023
               }
             },
             {
@@ -350,8 +350,8 @@
               "expected": " blocked",
               "correct": true,
               "scores": {
-                " blocked": -4.397024154663086,
-                " allowed": -10.194684982299805
+                " blocked": -4.39723014831543,
+                " allowed": -10.194796562194824
               }
             }
           ]
@@ -361,7 +361,7 @@
           "anchor_pos": 41,
           "replayed_tokens": 26,
           "replay_fraction": 0.3880597014925373,
-          "state_rms": 0.045747359979677174,
+          "state_rms": 0.0457464183819922,
           "functional_vs_w2_native": {
             "decision_agreement": 0.75,
             "expected_accuracy": 0.75
@@ -374,8 +374,8 @@
               "expected": " BETA",
               "correct": false,
               "scores": {
-                " BETA": -2.2598070800304413,
-                " ALPHA": -0.22662126016803086
+                " BETA": -2.2595876585692167,
+                " ALPHA": -0.22670798213221133
               }
             },
             {
@@ -384,8 +384,8 @@
               "expected": " incomplete",
               "correct": true,
               "scores": {
-                " incomplete": -1.1283516883850098,
-                " complete": -1.2066712379455566
+                " incomplete": -1.1284865140914917,
+                " complete": -1.2066792249679565
               }
             },
             {
@@ -394,8 +394,8 @@
               "expected": " active",
               "correct": true,
               "scores": {
-                " active": -3.4120142459869385,
-                " paused": -8.772130012512207
+                " active": -3.4122493267059326,
+                " paused": -8.772211074829102
               }
             },
             {
@@ -404,8 +404,8 @@
               "expected": " blocked",
               "correct": true,
               "scores": {
-                " blocked": -4.613070487976074,
-                " allowed": -10.290637969970703
+                " blocked": -4.613269329071045,
+                " allowed": -10.290755271911621
               }
             }
           ]
@@ -415,7 +415,7 @@
           "anchor_pos": 53,
           "replayed_tokens": 14,
           "replay_fraction": 0.208955223880597,
-          "state_rms": 0.051096042432392755,
+          "state_rms": 0.05109478197800266,
           "functional_vs_w2_native": {
             "decision_agreement": 0.5,
             "expected_accuracy": 0.5
@@ -428,8 +428,8 @@
               "expected": " BETA",
               "correct": false,
               "scores": {
-                " BETA": -2.3104690993204713,
-                " ALPHA": -0.24069483671337366
+                " BETA": -2.3102932004258037,
+                " ALPHA": -0.24078082875348628
               }
             },
             {
@@ -438,8 +438,8 @@
               "expected": " incomplete",
               "correct": false,
               "scores": {
-                " incomplete": -1.2806992530822754,
-                " complete": -1.1630220413208008
+                " incomplete": -1.2808773517608643,
+                " complete": -1.163048505783081
               }
             },
             {
@@ -448,8 +448,8 @@
               "expected": " active",
               "correct": true,
               "scores": {
-                " active": -3.2867202758789062,
-                " paused": -8.718664169311523
+                " active": -3.2868762016296387,
+                " paused": -8.718718528747559
               }
             },
             {
@@ -458,8 +458,8 @@
               "expected": " blocked",
               "correct": true,
               "scores": {
-                " blocked": -4.86991548538208,
-                " allowed": -10.327640533447266
+                " blocked": -4.870064735412598,
+                " allowed": -10.327743530273438
               }
             }
           ]
@@ -469,7 +469,7 @@
           "anchor_pos": 63,
           "replayed_tokens": 4,
           "replay_fraction": 0.05970149253731343,
-          "state_rms": 0.05607025088370641,
+          "state_rms": 0.056068870043701584,
           "functional_vs_w2_native": {
             "decision_agreement": 0.5,
             "expected_accuracy": 0.5
@@ -482,8 +482,8 @@
               "expected": " BETA",
               "correct": false,
               "scores": {
-                " BETA": -2.0499638179317117,
-                " ALPHA": -0.32695523370057344
+                " BETA": -2.0499268090352416,
+                " ALPHA": -0.32702762028202415
               }
             },
             {
@@ -492,8 +492,8 @@
               "expected": " incomplete",
               "correct": false,
               "scores": {
-                " incomplete": -1.352157711982727,
-                " complete": -1.160136342048645
+                " incomplete": -1.35233736038208,
+                " complete": -1.1601834297180176
               }
             },
             {
@@ -502,8 +502,8 @@
               "expected": " active",
               "correct": true,
               "scores": {
-                " active": -3.275000810623169,
-                " paused": -8.557304382324219
+                " active": -3.275135040283203,
+                " paused": -8.557313919067383
               }
             },
             {
@@ -512,8 +512,8 @@
               "expected": " blocked",
               "correct": true,
               "scores": {
-                " blocked": -4.826322555541992,
-                " allowed": -10.213651657104492
+                " blocked": -4.826493263244629,
+                " allowed": -10.213785171508789
               }
             }
           ]
@@ -532,9 +532,9 @@
           "expected": " WEST",
           "correct": false,
           "scores": {
-            " WEST": -2.394094076938927,
-            " HIGH": -0.23075629770755768,
-            " LOW": -2.2641962808556855
+            " WEST": -2.395256112329662,
+            " HIGH": -0.2306060791015625,
+            " LOW": -2.2643035671208054
           }
         },
         {
@@ -543,8 +543,8 @@
           "expected": " incomplete",
           "correct": true,
           "scores": {
-            " incomplete": -2.4392130374908447,
-            " complete": -3.9018714427948
+            " incomplete": -2.4393718242645264,
+            " complete": -3.9017233848571777
           }
         },
         {
@@ -553,8 +553,8 @@
           "expected": " active",
           "correct": true,
           "scores": {
-            " active": -2.9620461463928223,
-            " paused": -7.59544563293457
+            " active": -2.962690830230713,
+            " paused": -7.595611572265625
           }
         },
         {
@@ -563,8 +563,8 @@
           "expected": " blocked",
           "correct": true,
           "scores": {
-            " blocked": -5.60195255279541,
-            " allowed": -10.273819923400879
+            " blocked": -5.602171897888184,
+            " allowed": -10.273903846740723
           }
         }
       ],
@@ -604,9 +604,9 @@
               "expected": " WEST",
               "correct": false,
               "scores": {
-                " WEST": -2.394094076938927,
-                " HIGH": -0.23075629770755768,
-                " LOW": -2.2641962808556855
+                " WEST": -2.395256112329662,
+                " HIGH": -0.2306060791015625,
+                " LOW": -2.2643035671208054
               }
             },
             {
@@ -615,8 +615,8 @@
               "expected": " incomplete",
               "correct": true,
               "scores": {
-                " incomplete": -2.4392130374908447,
-                " complete": -3.9018714427948
+                " incomplete": -2.4393718242645264,
+                " complete": -3.9017233848571777
               }
             },
             {
@@ -625,8 +625,8 @@
               "expected": " active",
               "correct": true,
               "scores": {
-                " active": -2.9620461463928223,
-                " paused": -7.59544563293457
+                " active": -2.962690830230713,
+                " paused": -7.595611572265625
               }
             },
             {
@@ -635,8 +635,8 @@
               "expected": " blocked",
               "correct": true,
               "scores": {
-                " blocked": -5.60195255279541,
-                " allowed": -10.273819923400879
+                " blocked": -5.602171897888184,
+                " allowed": -10.273903846740723
               }
             }
           ]
@@ -646,7 +646,7 @@
           "anchor_pos": 7,
           "replayed_tokens": 81,
           "replay_fraction": 0.9204545454545454,
-          "state_rms": 0.027498385875308923,
+          "state_rms": 0.027498499446028186,
           "functional_vs_w2_native": {
             "decision_agreement": 1.0,
             "expected_accuracy": 0.75
@@ -659,9 +659,9 @@
               "expected": " WEST",
               "correct": false,
               "scores": {
-                " WEST": -1.621193179860711,
-                " HIGH": -0.43824827671051025,
-                " LOW": -2.04774698917754
+                " WEST": -1.6220216825604439,
+                " HIGH": -0.43799176812171936,
+                " LOW": -2.0477606942877173
               }
             },
             {
@@ -670,8 +670,8 @@
               "expected": " incomplete",
               "correct": true,
               "scores": {
-                " incomplete": -2.5927891731262207,
-                " complete": -3.6013600826263428
+                " incomplete": -2.5929930210113525,
+                " complete": -3.601310968399048
               }
             },
             {
@@ -680,8 +680,8 @@
               "expected": " active",
               "correct": true,
               "scores": {
-                " active": -3.1010868549346924,
-                " paused": -7.342897891998291
+                " active": -3.1016414165496826,
+                " paused": -7.34309196472168
               }
             },
             {
@@ -690,8 +690,8 @@
               "expected": " blocked",
               "correct": true,
               "scores": {
-                " blocked": -5.646257400512695,
-                " allowed": -9.911615371704102
+                " blocked": -5.646559715270996,
+                " allowed": -9.911823272705078
               }
             }
           ]
@@ -701,7 +701,7 @@
           "anchor_pos": 15,
           "replayed_tokens": 73,
           "replay_fraction": 0.8295454545454546,
-          "state_rms": 0.03192486280097377,
+          "state_rms": 0.031923272272027965,
           "functional_vs_w2_native": {
             "decision_agreement": 1.0,
             "expected_accuracy": 0.75
@@ -714,9 +714,9 @@
               "expected": " WEST",
               "correct": false,
               "scores": {
-                " WEST": -1.1453760284930468,
-                " HIGH": -0.6302962303161621,
-                " LOW": -2.199534724233672
+                " WEST": -1.1460874117910862,
+                " HIGH": -0.6299181580543518,
+                " LOW": -2.1993232399690896
               }
             },
             {
@@ -725,8 +725,8 @@
               "expected": " incomplete",
               "correct": true,
               "scores": {
-                " incomplete": -2.633418083190918,
-                " complete": -3.5430357456207275
+                " incomplete": -2.633591890335083,
+                " complete": -3.542980194091797
               }
             },
             {
@@ -735,8 +735,8 @@
               "expected": " active",
               "correct": true,
               "scores": {
-                " active": -3.0218632221221924,
-                " paused": -7.255532264709473
+                " active": -3.0223376750946045,
+                " paused": -7.255711555480957
               }
             },
             {
@@ -745,8 +745,8 @@
               "expected": " blocked",
               "correct": true,
               "scores": {
-                " blocked": -5.640323638916016,
-                " allowed": -9.886240005493164
+                " blocked": -5.640614986419678,
+                " allowed": -9.886465072631836
               }
             }
           ]
@@ -756,7 +756,7 @@
           "anchor_pos": 28,
           "replayed_tokens": 60,
           "replay_fraction": 0.6818181818181818,
-          "state_rms": 0.042339799604626104,
+          "state_rms": 0.04233780541418109,
           "functional_vs_w2_native": {
             "decision_agreement": 0.75,
             "expected_accuracy": 1.0
@@ -769,9 +769,9 @@
               "expected": " WEST",
               "correct": true,
               "scores": {
-                " WEST": -0.38500224612653255,
-                " HIGH": -1.9270598888397217,
-                " LOW": -2.267641709651798
+                " WEST": -0.38527302257716656,
+                " HIGH": -1.926292896270752,
+                " LOW": -2.2670944067649543
               }
             },
             {
@@ -780,8 +780,8 @@
               "expected": " incomplete",
               "correct": true,
               "scores": {
-                " incomplete": -2.574025869369507,
-                " complete": -3.5849640369415283
+                " incomplete": -2.5742247104644775,
+                " complete": -3.584904670715332
               }
             },
             {
@@ -790,8 +790,8 @@
               "expected": " active",
               "correct": true,
               "scores": {
-                " active": -2.8080430030822754,
-                " paused": -7.2996907234191895
+                " active": -2.8084075450897217,
+                " paused": -7.299773216247559
               }
             },
             {
@@ -800,8 +800,8 @@
               "expected": " blocked",
               "correct": true,
               "scores": {
-                " blocked": -6.3178391456604,
-                " allowed": -10.029077529907227
+                " blocked": -6.318024158477783,
+                " allowed": -10.02924919128418
               }
             }
           ]
@@ -811,7 +811,7 @@
           "anchor_pos": 35,
           "replayed_tokens": 53,
           "replay_fraction": 0.6022727272727273,
-          "state_rms": 0.04468760903875677,
+          "state_rms": 0.04468500405858319,
           "functional_vs_w2_native": {
             "decision_agreement": 0.75,
             "expected_accuracy": 1.0
@@ -824,9 +824,9 @@
               "expected": " WEST",
               "correct": true,
               "scores": {
-                " WEST": -0.39118942245841026,
-                " HIGH": -1.8767536878585815,
-                " LOW": -2.293564987834543
+                " WEST": -0.3914706204086542,
+                " HIGH": -1.8759820461273193,
+                " LOW": -2.293014583643526
               }
             },
             {
@@ -835,8 +835,8 @@
               "expected": " incomplete",
               "correct": true,
               "scores": {
-                " incomplete": -2.672464370727539,
-                " complete": -3.6088764667510986
+                " incomplete": -2.672644853591919,
+                " complete": -3.608841896057129
               }
             },
             {
@@ -845,8 +845,8 @@
               "expected": " active",
               "correct": true,
               "scores": {
-                " active": -2.870251417160034,
-                " paused": -7.315842628479004
+                " active": -2.87062406539917,
+                " paused": -7.315927028656006
               }
             },
             {
@@ -855,8 +855,8 @@
               "expected": " blocked",
               "correct": true,
               "scores": {
-                " blocked": -6.370048999786377,
-                " allowed": -9.988397598266602
+                " blocked": -6.370273113250732,
+                " allowed": -9.988606452941895
               }
             }
           ]
@@ -866,7 +866,7 @@
           "anchor_pos": 42,
           "replayed_tokens": 46,
           "replay_fraction": 0.5227272727272727,
-          "state_rms": 0.045642189504316616,
+          "state_rms": 0.04563940128671123,
           "functional_vs_w2_native": {
             "decision_agreement": 0.75,
             "expected_accuracy": 1.0
@@ -879,9 +879,9 @@
               "expected": " WEST",
               "correct": true,
               "scores": {
-                " WEST": -0.39069655910134315,
-                " HIGH": -1.9042350053787231,
-                " LOW": -2.2980449493043125
+                " WEST": -0.390968831256032,
+                " HIGH": -1.9034733772277832,
+                " LOW": -2.29751480743289
               }
             },
             {
@@ -890,8 +890,8 @@
               "expected": " incomplete",
               "correct": true,
               "scores": {
-                " incomplete": -2.7087647914886475,
-                " complete": -3.6255598068237305
+                " incomplete": -2.7089500427246094,
+                " complete": -3.625526189804077
               }
             },
             {
@@ -900,8 +900,8 @@
               "expected": " active",
               "correct": true,
               "scores": {
-                " active": -2.9186553955078125,
-                " paused": -7.305797576904297
+                " active": -2.9190330505371094,
+                " paused": -7.305878639221191
               }
             },
             {
@@ -910,8 +910,8 @@
               "expected": " blocked",
               "correct": true,
               "scores": {
-                " blocked": -6.358543872833252,
-                " allowed": -9.956781387329102
+                " blocked": -6.3587751388549805,
+                " allowed": -9.956987380981445
               }
             }
           ]
@@ -921,7 +921,7 @@
           "anchor_pos": 49,
           "replayed_tokens": 39,
           "replay_fraction": 0.4431818181818182,
-          "state_rms": 0.0461076401953169,
+          "state_rms": 0.046104805882649966,
           "functional_vs_w2_native": {
             "decision_agreement": 0.75,
             "expected_accuracy": 1.0
@@ -934,9 +934,9 @@
               "expected": " WEST",
               "correct": true,
               "scores": {
-                " WEST": -0.38716933876276016,
-                " HIGH": -1.9151984453201294,
-                " LOW": -2.3211027374491096
+                " WEST": -0.3874417170882225,
+                " HIGH": -1.9144264459609985,
+                " LOW": -2.3205606755800545
               }
             },
             {
@@ -945,8 +945,8 @@
               "expected": " incomplete",
               "correct": true,
               "scores": {
-                " incomplete": -2.7301599979400635,
-                " complete": -3.6400868892669678
+                " incomplete": -2.730348825454712,
+                " complete": -3.6400563716888428
               }
             },
             {
@@ -955,8 +955,8 @@
               "expected": " active",
               "correct": true,
               "scores": {
-                " active": -2.934174060821533,
-                " paused": -7.306829929351807
+                " active": -2.934549331665039,
+                " paused": -7.306914329528809
               }
             },
             {
@@ -965,8 +965,8 @@
               "expected": " blocked",
               "correct": true,
               "scores": {
-                " blocked": -6.360887050628662,
-                " allowed": -9.954537391662598
+                " blocked": -6.361109733581543,
+                " allowed": -9.954742431640625
               }
             }
           ]
@@ -976,7 +976,7 @@
           "anchor_pos": 56,
           "replayed_tokens": 32,
           "replay_fraction": 0.36363636363636365,
-          "state_rms": 0.046661126758630926,
+          "state_rms": 0.04665812529435769,
           "functional_vs_w2_native": {
             "decision_agreement": 0.75,
             "expected_accuracy": 1.0
@@ -989,9 +989,9 @@
               "expected": " WEST",
               "correct": true,
               "scores": {
-                " WEST": -0.3895872198045254,
-                " HIGH": -1.9178000688552856,
-                " LOW": -2.322894759941846
+                " WEST": -0.3898571152240038,
+                " HIGH": -1.9170398712158203,
+                " LOW": -2.3223636634647846
               }
             },
             {
@@ -1000,8 +1000,8 @@
               "expected": " incomplete",
               "correct": true,
               "scores": {
-                " incomplete": -2.7577948570251465,
-                " complete": -3.648911714553833
+                " incomplete": -2.7579808235168457,
+                " complete": -3.648879051208496
               }
             },
             {
@@ -1010,8 +1010,8 @@
               "expected": " active",
               "correct": true,
               "scores": {
-                " active": -2.936945915222168,
-                " paused": -7.3054704666137695
+                " active": -2.9373090267181396,
+                " paused": -7.305547714233398
               }
             },
             {
@@ -1020,8 +1020,8 @@
               "expected": " blocked",
               "correct": true,
               "scores": {
-                " blocked": -6.344327926635742,
-                " allowed": -9.956027030944824
+                " blocked": -6.344562530517578,
+                " allowed": -9.956232070922852
               }
             }
           ]
@@ -1031,7 +1031,7 @@
           "anchor_pos": 66,
           "replayed_tokens": 22,
           "replay_fraction": 0.25,
-          "state_rms": 0.05026313178438302,
+          "state_rms": 0.0502590163229563,
           "functional_vs_w2_native": {
             "decision_agreement": 0.75,
             "expected_accuracy": 1.0
@@ -1044,9 +1044,9 @@
               "expected": " WEST",
               "correct": true,
               "scores": {
-                " WEST": -0.35543325170874596,
-                " HIGH": -1.9989047050476074,
-                " LOW": -2.597253161482513
+                " WEST": -0.3556714914739132,
+                " HIGH": -1.9981787204742432,
+                " LOW": -2.596663048956543
               }
             },
             {
@@ -1055,8 +1055,8 @@
               "expected": " incomplete",
               "correct": true,
               "scores": {
-                " incomplete": -2.8216142654418945,
-                " complete": -3.5806572437286377
+                " incomplete": -2.821754217147827,
+                " complete": -3.5806148052215576
               }
             },
             {
@@ -1065,8 +1065,8 @@
               "expected": " active",
               "correct": true,
               "scores": {
-                " active": -2.9231362342834473,
-                " paused": -7.23061990737915
+                " active": -2.9234559535980225,
+                " paused": -7.230645179748535
               }
             },
             {
@@ -1075,8 +1075,8 @@
               "expected": " blocked",
               "correct": true,
               "scores": {
-                " blocked": -6.506166934967041,
-                " allowed": -10.011460304260254
+                " blocked": -6.506430625915527,
+                " allowed": -10.011696815490723
               }
             }
           ]
@@ -1086,7 +1086,7 @@
           "anchor_pos": 80,
           "replayed_tokens": 8,
           "replay_fraction": 0.09090909090909091,
-          "state_rms": 0.058830793116718474,
+          "state_rms": 0.05882554122292283,
           "functional_vs_w2_native": {
             "decision_agreement": 0.75,
             "expected_accuracy": 1.0
@@ -1099,9 +1099,9 @@
               "expected": " WEST",
               "correct": true,
               "scores": {
-                " WEST": -1.1437308862805367,
-                " HIGH": -1.3602062463760376,
-                " LOW": -1.3700486021116376
+                " WEST": -1.1440502144396305,
+                " HIGH": -1.3600184917449951,
+                " LOW": -1.3699343828484416
               }
             },
             {
@@ -1110,8 +1110,8 @@
               "expected": " incomplete",
               "correct": true,
               "scores": {
-                " incomplete": -2.844644069671631,
-                " complete": -3.43638014793396
+                " incomplete": -2.8447723388671875,
+                " complete": -3.4363317489624023
               }
             },
             {
@@ -1120,8 +1120,8 @@
               "expected": " active",
               "correct": true,
               "scores": {
-                " active": -2.969212293624878,
-                " paused": -7.2567949295043945
+                " active": -2.9694008827209473,
+                " paused": -7.256789207458496
               }
             },
             {
@@ -1130,8 +1130,8 @@
               "expected": " blocked",
               "correct": true,
               "scores": {
-                " blocked": -6.310425758361816,
-                " allowed": -10.0260591506958
+                " blocked": -6.310579776763916,
+                " allowed": -10.026235580444336
               }
             }
           ]
@@ -1141,7 +1141,7 @@
           "anchor_pos": 84,
           "replayed_tokens": 4,
           "replay_fraction": 0.045454545454545456,
-          "state_rms": 0.06023377975482385,
+          "state_rms": 0.060228645898414826,
           "functional_vs_w2_native": {
             "decision_agreement": 0.75,
             "expected_accuracy": 1.0
@@ -1154,9 +1154,9 @@
               "expected": " WEST",
               "correct": true,
               "scores": {
-                " WEST": -1.0855065193027258,
-                " HIGH": -1.400239109992981,
-                " LOW": -1.382706442847848
+                " WEST": -1.0857614576816559,
+                " HIGH": -1.4000881910324097,
+                " LOW": -1.3825985379517078
               }
             },
             {
@@ -1165,8 +1165,8 @@
               "expected": " incomplete",
               "correct": true,
               "scores": {
-                " incomplete": -3.0163168907165527,
-                " complete": -3.5032176971435547
+                " incomplete": -3.0164315700531006,
+                " complete": -3.503176689147949
               }
             },
             {
@@ -1175,8 +1175,8 @@
               "expected": " active",
               "correct": true,
               "scores": {
-                " active": -3.0034890174865723,
-                " paused": -7.317444324493408
+                " active": -3.003664016723633,
+                " paused": -7.317450523376465
               }
             },
             {
@@ -1185,8 +1185,8 @@
               "expected": " blocked",
               "correct": true,
               "scores": {
-                " blocked": -6.323392391204834,
-                " allowed": -10.03884220123291
+                " blocked": -6.323590278625488,
+                " allowed": -10.039042472839355
               }
             }
           ]
@@ -1205,8 +1205,8 @@
           "expected": " BETA",
           "correct": true,
           "scores": {
-            " BETA": -0.0067605809308588505,
-            " ALPHA": -7.048382540466264
+            " BETA": -0.0067646169336512685,
+            " ALPHA": -7.047708769561723
           }
         },
         {
@@ -1215,8 +1215,8 @@
           "expected": " incomplete",
           "correct": true,
           "scores": {
-            " incomplete": -3.7115283012390137,
-            " complete": -5.046489715576172
+            " incomplete": -3.7120323181152344,
+            " complete": -5.046457290649414
           }
         },
         {
@@ -1225,8 +1225,8 @@
           "expected": " active",
           "correct": true,
           "scores": {
-            " active": -2.7690961360931396,
-            " paused": -7.530686378479004
+            " active": -2.77012300491333,
+            " paused": -7.53101921081543
           }
         },
         {
@@ -1235,8 +1235,8 @@
           "expected": " blocked",
           "correct": true,
           "scores": {
-            " blocked": -5.845381736755371,
-            " allowed": -11.78480339050293
+            " blocked": -5.845434188842773,
+            " allowed": -11.784733772277832
           }
         }
       ],
@@ -1274,8 +1274,8 @@
               "expected": " BETA",
               "correct": true,
               "scores": {
-                " BETA": -0.0067605809308588505,
-                " ALPHA": -7.048382540466264
+                " BETA": -0.0067646169336512685,
+                " ALPHA": -7.047708769561723
               }
             },
             {
@@ -1284,8 +1284,8 @@
               "expected": " incomplete",
               "correct": true,
               "scores": {
-                " incomplete": -3.7115283012390137,
-                " complete": -5.046489715576172
+                " incomplete": -3.7120323181152344,
+                " complete": -5.046457290649414
               }
             },
             {
@@ -1294,8 +1294,8 @@
               "expected": " active",
               "correct": true,
               "scores": {
-                " active": -2.7690961360931396,
-                " paused": -7.530686378479004
+                " active": -2.77012300491333,
+                " paused": -7.53101921081543
               }
             },
             {
@@ -1304,8 +1304,8 @@
               "expected": " blocked",
               "correct": true,
               "scores": {
-                " blocked": -5.845381736755371,
-                " allowed": -11.78480339050293
+                " blocked": -5.845434188842773,
+                " allowed": -11.784733772277832
               }
             }
           ]
@@ -1315,7 +1315,7 @@
           "anchor_pos": 6,
           "replayed_tokens": 30,
           "replay_fraction": 0.8333333333333334,
-          "state_rms": 0.03630644264304999,
+          "state_rms": 0.036300921691543475,
           "functional_vs_w2_native": {
             "decision_agreement": 1.0,
             "expected_accuracy": 1.0
@@ -1328,8 +1328,8 @@
               "expected": " BETA",
               "correct": true,
               "scores": {
-                " BETA": -0.014432696159929037,
-                " ALPHA": -5.224556709290482
+                " BETA": -0.014444643631577492,
+                " ALPHA": -5.223861717968248
               }
             },
             {
@@ -1338,8 +1338,8 @@
               "expected": " incomplete",
               "correct": true,
               "scores": {
-                " incomplete": -3.8989429473876953,
-                " complete": -4.492254257202148
+                " incomplete": -3.899343729019165,
+                " complete": -4.4923601150512695
               }
             },
             {
@@ -1348,8 +1348,8 @@
               "expected": " active",
               "correct": true,
               "scores": {
-                " active": -2.902482032775879,
-                " paused": -7.224737167358398
+                " active": -2.9031877517700195,
+                " paused": -7.225027084350586
               }
             },
             {
@@ -1358,8 +1358,8 @@
               "expected": " blocked",
               "correct": true,
               "scores": {
-                " blocked": -6.079672813415527,
-                " allowed": -11.599672317504883
+                " blocked": -6.080078125,
+                " allowed": -11.599920272827148
               }
             }
           ]
@@ -1369,7 +1369,7 @@
           "anchor_pos": 14,
           "replayed_tokens": 22,
           "replay_fraction": 0.6111111111111112,
-          "state_rms": 0.04513182258455727,
+          "state_rms": 0.0451228763068476,
           "functional_vs_w2_native": {
             "decision_agreement": 1.0,
             "expected_accuracy": 1.0
@@ -1382,8 +1382,8 @@
               "expected": " BETA",
               "correct": true,
               "scores": {
-                " BETA": -0.029043782502412796,
-                " ALPHA": -4.40320955356583
+                " BETA": -0.029068344738334417,
+                " ALPHA": -4.402495607500896
               }
             },
             {
@@ -1392,8 +1392,8 @@
               "expected": " incomplete",
               "correct": true,
               "scores": {
-                " incomplete": -3.8530447483062744,
-                " complete": -4.401836395263672
+                " incomplete": -3.8533620834350586,
+                " complete": -4.401960372924805
               }
             },
             {
@@ -1402,8 +1402,8 @@
               "expected": " active",
               "correct": true,
               "scores": {
-                " active": -2.7466983795166016,
-                " paused": -7.017981052398682
+                " active": -2.7472336292266846,
+                " paused": -7.018218040466309
               }
             },
             {
@@ -1412,8 +1412,8 @@
               "expected": " blocked",
               "correct": true,
               "scores": {
-                " blocked": -5.995331764221191,
-                " allowed": -11.461956024169922
+                " blocked": -5.995781898498535,
+                " allowed": -11.46222972869873
               }
             }
           ]
@@ -1423,7 +1423,7 @@
           "anchor_pos": 28,
           "replayed_tokens": 8,
           "replay_fraction": 0.2222222222222222,
-          "state_rms": 0.08407615903528087,
+          "state_rms": 0.08406953502231777,
           "functional_vs_w2_native": {
             "decision_agreement": 1.0,
             "expected_accuracy": 1.0
@@ -1436,8 +1436,8 @@
               "expected": " BETA",
               "correct": true,
               "scores": {
-                " BETA": -0.6567064886912704,
-                " ALPHA": -1.3607231271453202
+                " BETA": -0.6569664748385549,
+                " ALPHA": -1.3605675543658435
               }
             },
             {
@@ -1446,8 +1446,8 @@
               "expected": " incomplete",
               "correct": true,
               "scores": {
-                " incomplete": -3.4360313415527344,
-                " complete": -4.089488506317139
+                " incomplete": -3.4363296031951904,
+                " complete": -4.089513778686523
               }
             },
             {
@@ -1456,8 +1456,8 @@
               "expected": " active",
               "correct": true,
               "scores": {
-                " active": -2.2632431983947754,
-                " paused": -6.8921637535095215
+                " active": -2.26352596282959,
+                " paused": -6.8922224044799805
               }
             },
             {
@@ -1466,8 +1466,8 @@
               "expected": " blocked",
               "correct": true,
               "scores": {
-                " blocked": -7.378673076629639,
-                " allowed": -11.493754386901855
+                " blocked": -7.378876209259033,
+                " allowed": -11.493903160095215
               }
             }
           ]
@@ -1477,7 +1477,7 @@
           "anchor_pos": 32,
           "replayed_tokens": 4,
           "replay_fraction": 0.1111111111111111,
-          "state_rms": 0.08728529027558021,
+          "state_rms": 0.08727828029528685,
           "functional_vs_w2_native": {
             "decision_agreement": 1.0,
             "expected_accuracy": 1.0
@@ -1490,8 +1490,8 @@
               "expected": " BETA",
               "correct": true,
               "scores": {
-                " BETA": -0.7279978645965457,
-                " ALPHA": -1.269656482618302
+                " BETA": -0.7282310230657458,
+                " ALPHA": -1.2695482354611158
               }
             },
             {
@@ -1500,8 +1500,8 @@
               "expected": " incomplete",
               "correct": true,
               "scores": {
-                " incomplete": -3.652305841445923,
-                " complete": -4.136797904968262
+                " incomplete": -3.652562141418457,
+                " complete": -4.136829853057861
               }
             },
             {
@@ -1510,8 +1510,8 @@
               "expected": " active",
               "correct": true,
               "scores": {
-                " active": -2.2669029235839844,
-                " paused": -6.910663604736328
+                " active": -2.267155170440674,
+                " paused": -6.91072416305542
               }
             },
             {
@@ -1520,8 +1520,8 @@
               "expected": " blocked",
               "correct": true,
               "scores": {
-                " blocked": -7.491410255432129,
-                " allowed": -11.537060737609863
+                " blocked": -7.491685390472412,
+                " allowed": -11.537249565124512
               }
             }
           ]
