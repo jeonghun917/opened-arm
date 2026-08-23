@@ -29,9 +29,10 @@ jobs:
       - name: Install runtime
         run: |
           python -m pip install --upgrade pip
-          python -m pip install 'torch>=2.2,<3' huggingface_hub
+          python -m pip install 'torch>=2.2,<3' huggingface_hub numpy
       - name: Run RWKV-7 target-free anchor selector
         env:
+          HF_HUB_DISABLE_TELEMETRY: '1'
           VELA_RESULT_PATH: ops/vela-results/rwkv7-target-free-anchor-selector-v1-latest.json
         run: python experiments/vela-active-state/rwkv7-target-free-anchor-selector-v1/rwkv7_target_free_selector.py
       - name: Commit result snapshot
