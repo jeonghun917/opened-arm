@@ -10,15 +10,14 @@ from pathlib import Path
 import torch
 
 BASE = Path(__file__).resolve().parents[1]
-ROBUST_PATH = BASE / "mamba-native-long-history-robustness-v1" / "mamba_native_long_history_robustness.py"
+ROBUST_PATH = BASE / "long-history-native-robustness-v1" / "mamba_long_history_native_robustness.py"
 spec = importlib.util.spec_from_file_location("vela_longhist_v1", ROBUST_PATH)
 if spec is None or spec.loader is None:
     raise RuntimeError(f"cannot load {ROBUST_PATH}")
 rob = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(rob)
 
-# Reuse the exact 38-fixture native-history suite from robustness-v1 so that the
-# only intended independent variable is training duration / checkpoint epoch.
+# Same 38-fixture native-history suite; only training duration changes.
 EPOCHS = [0, 1, 3, 5, 10]
 
 
@@ -33,44 +32,50 @@ def write_report(report):
 
 def evaluate_suite(model, tok):
     rows = []
-    by_family: dict[str, dict] = {}
     for fx in rob.FIXTURES:
-        out = rob.evaluate_fixture(model, tok, fx)
-        ok = bool(out["all_correct"])
-        wrong = [r["id"] for r in out["probe_results"] if not r["correct"]]
+        out = rob.score_native(model, tok, fx)
         rows.append({
             "fixture": fx["id"],
-            "family": fx["family"],
+            "family": rob.family_name(fx["id"]),
             "history_tokens": out["history_tokens"],
-            "all_correct": ok,
+            "all_correct": bool(out["all_correct"]),
             "expected_accuracy": out["expected_accuracy"],
-            "wrong_probes": wrong,
+            "wrong_probes": [r["id"] for r in out["probe_results"] if not r["correct"]],
         })
-        fam = by_family.setdefault(fx["family"], {"count": 0, "full_success": 0, "failed": []})
-        fam["count"] += 1
-        fam["full_success"] += int(ok)
-        if not ok:
-            fam["failed"].append({"fixture": fx["id"], "history_tokens": out["history_tokens"], "wrong_probes": wrong})
-    for fam in by_family.values():
-        fam["full_success_rate"] = fam["full_success"] / max(fam["count"], 1)
+    by_family = {}
+    for row in rows:
+        slot = by_family.setdefault(row["family"], {"count": 0, "full_success": 0, "failed": []})
+        slot["count"] += 1
+        slot["full_success"] += int(row["all_correct"])
+        if not row["all_correct"]:
+            slot["failed"].append({
+                "fixture": row["fixture"],
+                "history_tokens": row["history_tokens"],
+                "wrong_probes": row["wrong_probes"],
+            })
+    for slot in by_family.values():
+        slot["full_success_rate"] = slot["full_success"] / max(slot["count"], 1)
+    successes = sum(int(r["all_correct"]) for r in rows)
     return {
         "fixture_count": len(rows),
-        "full_success_count": sum(int(r["all_correct"]) for r in rows),
-        "full_success_rate": sum(int(r["all_correct"]) for r in rows) / max(len(rows), 1),
+        "full_success_count": successes,
+        "full_success_rate": successes / max(len(rows), 1),
         "by_family": by_family,
         "fixtures": rows,
     }
 
 
-def save_trainable(model):
-    return {n: p.detach().cpu().clone() for n, p in model.named_parameters() if p.requires_grad}
-
-
-def load_trainable(model, state):
-    with torch.no_grad():
-        for n, p in model.named_parameters():
-            if n in state:
-                p.copy_(state[n].to(device=p.device, dtype=p.dtype))
+def configure_trainable_xproj(model):
+    trainable = []
+    for p in model.parameters():
+        p.requires_grad_(False)
+    for name, p in model.named_parameters():
+        if ".mixer.x_proj.weight" in name:
+            p.requires_grad_(True)
+            trainable.append(p)
+    if not trainable:
+        raise RuntimeError("no x_proj weights found")
+    return trainable
 
 
 def run():
@@ -81,34 +86,36 @@ def run():
         torch.manual_seed(rob.v3.SEED)
         random.seed(rob.v3.SEED)
         tok = AutoTokenizer.from_pretrained(rob.v3.MODEL_ID)
-        model = AutoModelForCausalLM.from_pretrained(rob.v3.MODEL_ID, torch_dtype=torch.float32).cpu().eval()
+        model = AutoModelForCausalLM.from_pretrained(
+            rob.v3.MODEL_ID, torch_dtype=torch.float32
+        ).cpu().eval()
 
-        # Keep exactly the same learned-upgrade recipe as the prior experiments.
-        rob.v3.freeze_for_upgrade(model)
-        optimizer = torch.optim.AdamW([p for p in model.parameters() if p.requires_grad], lr=rob.v3.LR)
-        train_rows = rob.v3.build_train_rows(tok)
+        trainable = configure_trainable_xproj(model)
+        optimizer = torch.optim.AdamW(trainable, lr=rob.v3.LR, weight_decay=0.0)
+        order = list(range(len(rob.v3.TRAIN)))
 
-        checkpoints = {0: save_trainable(model)}
+        checkpoints = {0: rob.v2.save_xproj(model)}
         epoch_losses = []
-        max_epoch = max(EPOCHS)
-        for epoch in range(1, max_epoch + 1):
-            random.Random(rob.v3.SEED + epoch).shuffle(train_rows)
-            total = 0.0
+        for epoch in range(1, max(EPOCHS) + 1):
+            random.Random(rob.v3.SEED + epoch - 1).shuffle(order)
             model.train()
-            for row in train_rows:
+            total = 0.0
+            for idx in order:
+                prompt, gold = rob.v3.TRAIN[idx]
                 optimizer.zero_grad(set_to_none=True)
-                loss = rob.v3.train_loss(model, tok, row)
+                loss = rob.v3.train_loss(model, tok, prompt, gold)
                 loss.backward()
+                torch.nn.utils.clip_grad_norm_(trainable, 1.0)
                 optimizer.step()
                 total += float(loss.detach())
             model.eval()
-            epoch_losses.append(total / max(len(train_rows), 1))
+            epoch_losses.append(total / max(len(order), 1))
             if epoch in EPOCHS:
-                checkpoints[epoch] = save_trainable(model)
+                checkpoints[epoch] = rob.v2.save_xproj(model)
 
         curve = []
         for epoch in EPOCHS:
-            load_trainable(model, checkpoints[epoch])
+            rob.v2.load_xproj(model, checkpoints[epoch])
             model.eval()
             heldout = rob.v3.evaluate(model, tok)
             suite = evaluate_suite(model, tok)
@@ -122,15 +129,30 @@ def run():
                 "long_history": suite,
             })
 
-        # Compact trend labels; descriptive only, not an architecture verdict.
-        overwrite = [x["long_history"]["by_family"].get("superseded", {}).get("full_success_rate", 0.0) for x in curve]
         overall = [x["long_history"]["full_success_rate"] for x in curve]
-        if overwrite[-1] > overwrite[1]:
-            overwrite_trend = "improves_with_more_training"
-        elif max(overwrite[1:]) == overwrite[1] and overwrite[-1] <= overwrite[1]:
-            overwrite_trend = "no_clear_training_recovery"
+        superseded = [
+            x["long_history"]["by_family"].get("superseded", {}).get("full_success_rate", 0.0)
+            for x in curve
+        ]
+        single_middle = [
+            x["long_history"]["by_family"].get("single_middle", {}).get("full_success_rate", 0.0)
+            for x in curve
+        ]
+        late_overwrite = [
+            x["long_history"]["by_family"].get("late_overwrite_control", {}).get("full_success_rate", 0.0)
+            for x in curve
+        ]
+        independent = [
+            x["long_history"]["by_family"].get("independent_control", {}).get("full_success_rate", 0.0)
+            for x in curve
+        ]
+
+        if superseded[-1] > superseded[1]:
+            superseded_trend = "improves_with_more_training"
+        elif max(superseded[1:]) == superseded[1] and superseded[-1] <= superseded[1]:
+            superseded_trend = "no_clear_training_recovery"
         else:
-            overwrite_trend = "non_monotonic_or_mixed"
+            superseded_trend = "non_monotonic_or_mixed"
 
         write_report({
             "status": "VELA_MAMBA_NATIVE_LONG_HISTORY_LEARNING_CURVE_V1",
@@ -142,10 +164,13 @@ def run():
             "curve": curve,
             "summary": {
                 "overall_full_success_rates": overall,
-                "superseded_full_success_rates": overwrite,
-                "superseded_training_trend": overwrite_trend,
+                "superseded_full_success_rates": superseded,
+                "single_middle_full_success_rates": single_middle,
+                "late_overwrite_control_full_success_rates": late_overwrite,
+                "independent_control_full_success_rates": independent,
+                "superseded_training_trend": superseded_trend,
             },
-            "success_definition": "Measure the exact same 38 native full-history fixtures at progressively longer training checkpoints (0,1,3,5,10 epochs) to distinguish undertraining from a persistent overwrite/supersession weakness.",
+            "success_definition": "Measure the same 38 native full-history fixtures at epochs 0,1,3,5,10 under the same x_proj learned-upgrade recipe, separating undertraining recovery from a weakness that persists under longer training.",
             "claim_boundary": "Single Mamba-130M learned-upgrade recipe and synthetic 38-fixture suite. A rising curve supports an undertraining explanation; a flat curve only shows persistence under this recipe and does not prove an architectural impossibility.",
         })
     except BaseException as exc:
