@@ -1,3 +1,4 @@
 VELA foundation CI trigger.
-Run: 2026-08-24 promoted baseline durable-state/recovery update.
+Run: 2026-08-24 promoted baseline durable-state/recovery update, observable-result workflow.
 Ars-Mentis target: vela-foundation-runtime @ 58b5d5e775188cd586b83bdf14e8039cd3bdc0b4
+Trigger revision: 2
