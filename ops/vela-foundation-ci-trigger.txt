@@ -1,0 +1,2 @@
+VELA foundation CI trigger.
+Update this file on branch vela-foundation-ci to run the isolated foundation test workflow.
