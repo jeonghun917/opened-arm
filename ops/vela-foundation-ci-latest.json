@@ -1,0 +1,10 @@
+{
+  "claim_boundary": "Public summary only; private source and traceback are not committed or printed.",
+  "python": "3.11",
+  "runner": "ubuntu-latest",
+  "source_commit": "58b5d5e775188cd586b83bdf14e8039cd3bdc0b4",
+  "source_ref": "vela-foundation-runtime",
+  "source_repository": "jeonghun917/Ars-Mentis",
+  "status": "PASS",
+  "test_count": 17
+}
