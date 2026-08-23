@@ -6,13 +6,18 @@ on:
     paths:
       - 'experiments/vela-active-state/target-free-anchor-selector-v3-fallback/**'
       - '.github/workflows/vela-target-free-selector-v3-fallback.yml'
+  pull_request:
+    branches: [vela-experiment-infra]
+    paths:
+      - 'experiments/vela-active-state/target-free-anchor-selector-v3-fallback/**'
+      - '.github/workflows/vela-target-free-selector-v3-fallback.yml'
   workflow_dispatch:
 
 permissions:
   contents: write
 
 concurrency:
-  group: vela-target-free-selector-v3-fallback
+  group: vela-target-free-selector-v3-fallback-${{ github.event_name }}
   cancel-in-progress: false
 
 jobs:
@@ -22,7 +27,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: vela-experiment-infra
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || 'vela-experiment-infra' }}
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
@@ -35,8 +40,19 @@ jobs:
           HF_HUB_DISABLE_TELEMETRY: '1'
           VELA_RESULT_PATH: ops/vela-results/target-free-selector-v3-fallback-latest.json
         run: python experiments/vela-active-state/target-free-anchor-selector-v3-fallback/mamba_target_free_fallback.py
-      - name: Commit result snapshot
+      - name: Print compact fallback summary
         if: always()
+        run: |
+          if [[ -f ops/vela-results/target-free-selector-v3-fallback-latest.json ]]; then
+            python - <<'PY'
+          import json
+          p=json.load(open('ops/vela-results/target-free-selector-v3-fallback-latest.json'))
+          print('status=',p.get('status'))
+          print('forced_miss_fallback=',json.dumps(p.get('forced_miss_fallback',{}),sort_keys=True))
+          PY
+          fi
+      - name: Commit result snapshot
+        if: always() && github.event_name != 'pull_request'
         run: |
           if [[ ! -f ops/vela-results/target-free-selector-v3-fallback-latest.json ]]; then
             mkdir -p ops/vela-results
