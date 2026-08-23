@@ -1,1 +1,349 @@
-{"status":"FAIL_BEFORE_RESULT","source_commit":"b5abb107e7e2e5c171a7905d965ef7c8cb6a46a6"}
+{
+  "status": "VELA_SEQUENTIAL_W1_W2_W3_CHAINED_SOURCE_V2B",
+  "model": "state-spaces/mamba-130m-hf",
+  "torch_version": "2.13.0+cu130",
+  "transformers_version": "4.57.6",
+  "generations": {
+    "W1": {
+      "training_epoch": 0,
+      "accuracy": 0.3333333333333333,
+      "correction_accuracy": 0.125,
+      "control_accuracy": 0.75
+    },
+    "W2": {
+      "training_epoch": 1,
+      "accuracy": 0.75,
+      "correction_accuracy": 0.75,
+      "control_accuracy": 0.75
+    },
+    "W3": {
+      "training_epoch": 3,
+      "accuracy": 0.9166666666666666,
+      "correction_accuracy": 1.0,
+      "control_accuracy": 0.75
+    },
+    "epoch_mean_loss": [
+      1.7653103712946177,
+      0.46971735171973705,
+      0.09344085355405696
+    ]
+  },
+  "gate": {
+    "strict_two_step_capability_gain": true,
+    "fixture_count": 3,
+    "distinct_w3_only_target_count": 2,
+    "w2_origin_hop2_anchor_count": 1,
+    "w2_origin_hop2_anchor_rate": 0.3333333333333333,
+    "w3_native_valid_fixture_count": 0,
+    "fixture_pass_count": 0,
+    "fixture_pass_rate": 0.0,
+    "suite_pass": false
+  },
+  "fixtures": [
+    {
+      "fixture": "w2_event_early",
+      "history_tokens": 117,
+      "w2_era_start_pos": 65,
+      "w3_only_target": {
+        "pair": "codeword-correction",
+        "variant": "B",
+        "expected": " ALPHA",
+        "w2_heldout_correct": false,
+        "w3_heldout_correct": true
+      },
+      "hop1_w1_to_w2_prefix": {
+        "selected_anchor_event": 7,
+        "anchor_pos": 61,
+        "vs_w2_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 0.75,
+          "score_rms_error": 0.3108028105369655
+        },
+        "state_error_vs_w2_native_prefix": {
+          "rms": 0.031592545428269274,
+          "l2": 27.126942397386358,
+          "max_abs": 1.6248245239257812,
+          "numel": 737280
+        }
+      },
+      "w2_carried_before_w3": {
+        "state_error_vs_w2_native_full": {
+          "rms": 0.0152304173023413,
+          "l2": 13.07759939087006,
+          "max_abs": 0.4158928394317627,
+          "numel": 737280
+        },
+        "origin_at_w2_era_start": "W2",
+        "origin_at_final_before_w3": "W2"
+      },
+      "hop2_actual_chained_lineage_to_w3": {
+        "selected_anchor_event": 2,
+        "anchor_pos": 15,
+        "anchor_source_generation": "W1",
+        "anchor_is_in_w2_era": false,
+        "selected_segments": [
+          1,
+          2,
+          8
+        ],
+        "prune_trace": [
+          {
+            "from_segment": 1,
+            "candidate_later_segment": 2,
+            "same_functional_signature": true
+          },
+          {
+            "from_segment": 2,
+            "candidate_later_segment": 8,
+            "same_functional_signature": false
+          }
+        ],
+        "vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 0.0,
+          "score_rms_error": 0.11970879803110947
+        }
+      },
+      "w3_native_probe_rows": [
+        {
+          "id": "w3_only_correction",
+          "chosen": " BETA",
+          "expected": " ALPHA",
+          "correct": false,
+          "scores": {
+            " BETA": -0.46923994807730196,
+            " ALPHA": -1.0568307312205434
+          }
+        }
+      ],
+      "w3_native_expected_accuracy": 0.0,
+      "final_chain_w3": {
+        "functional_vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 0.0,
+          "score_rms_error": 0.11970879803110947
+        },
+        "state_error_vs_w3_native": {
+          "rms": 0.011093987470740448,
+          "l2": 9.525853488424936,
+          "max_abs": 0.38025903701782227,
+          "numel": 737280
+        },
+        "lineage_origin_at_final": "W3"
+      },
+      "direct_w1_to_w3_control": {
+        "selected_anchor_event": 8,
+        "anchor_pos": 65,
+        "vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 0.0,
+          "score_rms_error": 0.2777291794908698
+        },
+        "chain_vs_direct_decision_agreement": 1.0
+      },
+      "fixture_pass": false
+    },
+    {
+      "fixture": "w2_event_middle",
+      "history_tokens": 120,
+      "w2_era_start_pos": 65,
+      "w3_only_target": {
+        "pair": "color",
+        "variant": "A",
+        "expected": " BLUE",
+        "w2_heldout_correct": false,
+        "w3_heldout_correct": true
+      },
+      "hop1_w1_to_w2_prefix": {
+        "selected_anchor_event": 7,
+        "anchor_pos": 61,
+        "vs_w2_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 0.75,
+          "score_rms_error": 0.3108028105369655
+        },
+        "state_error_vs_w2_native_prefix": {
+          "rms": 0.031592545428269274,
+          "l2": 27.126942397386358,
+          "max_abs": 1.6248245239257812,
+          "numel": 737280
+        }
+      },
+      "w2_carried_before_w3": {
+        "state_error_vs_w2_native_full": {
+          "rms": 0.01463553004237741,
+          "l2": 12.566799383614565,
+          "max_abs": 0.4280327558517456,
+          "numel": 737280
+        },
+        "origin_at_w2_era_start": "W2",
+        "origin_at_final_before_w3": "W2"
+      },
+      "hop2_actual_chained_lineage_to_w3": {
+        "selected_anchor_event": 9,
+        "anchor_pos": 79,
+        "anchor_source_generation": "W2",
+        "anchor_is_in_w2_era": true,
+        "selected_segments": [
+          0,
+          2,
+          9
+        ],
+        "prune_trace": [
+          {
+            "from_segment": 0,
+            "candidate_later_segment": 2,
+            "same_functional_signature": true
+          },
+          {
+            "from_segment": 2,
+            "candidate_later_segment": 9,
+            "same_functional_signature": true
+          }
+        ],
+        "vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 0.0,
+          "score_rms_error": 0.1656009471866727
+        }
+      },
+      "w3_native_probe_rows": [
+        {
+          "id": "w3_only_correction",
+          "chosen": " RED",
+          "expected": " BLUE",
+          "correct": false,
+          "scores": {
+            " BLUE": -1.1825125999748707,
+            " RED": -0.4570835530757904
+          }
+        }
+      ],
+      "w3_native_expected_accuracy": 0.0,
+      "final_chain_w3": {
+        "functional_vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 0.0,
+          "score_rms_error": 0.1656009471866727
+        },
+        "state_error_vs_w3_native": {
+          "rms": 0.02149552779424377,
+          "l2": 18.45713716230343,
+          "max_abs": 0.7582727670669556,
+          "numel": 737280
+        },
+        "lineage_origin_at_final": "W3"
+      },
+      "direct_w1_to_w3_control": {
+        "selected_anchor_event": 9,
+        "anchor_pos": 79,
+        "vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 0.0,
+          "score_rms_error": 0.1513874935397497
+        },
+        "chain_vs_direct_decision_agreement": 1.0
+      },
+      "fixture_pass": false
+    },
+    {
+      "fixture": "w2_event_late",
+      "history_tokens": 117,
+      "w2_era_start_pos": 65,
+      "w3_only_target": {
+        "pair": "codeword-correction",
+        "variant": "B",
+        "expected": " ALPHA",
+        "w2_heldout_correct": false,
+        "w3_heldout_correct": true
+      },
+      "hop1_w1_to_w2_prefix": {
+        "selected_anchor_event": 7,
+        "anchor_pos": 61,
+        "vs_w2_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 0.75,
+          "score_rms_error": 0.3108028105369655
+        },
+        "state_error_vs_w2_native_prefix": {
+          "rms": 0.031592545428269274,
+          "l2": 27.126942397386358,
+          "max_abs": 1.6248245239257812,
+          "numel": 737280
+        }
+      },
+      "w2_carried_before_w3": {
+        "state_error_vs_w2_native_full": {
+          "rms": 0.01538348710296135,
+          "l2": 13.209032790993747,
+          "max_abs": 0.49418210983276367,
+          "numel": 737280
+        },
+        "origin_at_w2_era_start": "W2",
+        "origin_at_final_before_w3": "W2"
+      },
+      "hop2_actual_chained_lineage_to_w3": {
+        "selected_anchor_event": 2,
+        "anchor_pos": 15,
+        "anchor_source_generation": "W1",
+        "anchor_is_in_w2_era": false,
+        "selected_segments": [
+          1,
+          2
+        ],
+        "prune_trace": [
+          {
+            "from_segment": 1,
+            "candidate_later_segment": 2,
+            "same_functional_signature": true
+          }
+        ],
+        "vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 0.0,
+          "score_rms_error": 0.19077273081718138
+        }
+      },
+      "w3_native_probe_rows": [
+        {
+          "id": "w3_only_correction",
+          "chosen": " BETA",
+          "expected": " ALPHA",
+          "correct": false,
+          "scores": {
+            " BETA": -0.2026274618692696,
+            " ALPHA": -1.7407152956584468
+          }
+        }
+      ],
+      "w3_native_expected_accuracy": 0.0,
+      "final_chain_w3": {
+        "functional_vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 0.0,
+          "score_rms_error": 0.19077273081718138
+        },
+        "state_error_vs_w3_native": {
+          "rms": 0.015148866489434497,
+          "l2": 13.007575776938548,
+          "max_abs": 0.4760122299194336,
+          "numel": 737280
+        },
+        "lineage_origin_at_final": "W3"
+      },
+      "direct_w1_to_w3_control": {
+        "selected_anchor_event": 2,
+        "anchor_pos": 15,
+        "vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 0.0,
+          "score_rms_error": 0.19077273081718138
+        },
+        "chain_vs_direct_decision_agreement": 1.0
+      },
+      "fixture_pass": false
+    }
+  ],
+  "success_definition": "At least three fixtures must carry a nonzero W1->W2 migration-state difference into the W2 era. Each fixture uses only a held-out correction probe that is wrong in W2 and correct in W3, selected before any anchor scoring. The unchanged W3 target-free selector must naturally select a source_generation=W2 checkpoint on every fixture and replay from that W2-origin state to 100% W3-native decision agreement. Direct W1->W3 is control only.",
+  "claim_boundary": "Three synthetic Mamba-130M chained-source histories that isolate W3-only correction behavior. The failed v2 auxiliary project/action probes are not part of this gate. This tests true W2-origin chained-state accumulation for the current migration policy; it does not establish generic long-horizon robustness, final-backbone fitness, or identity continuity."
+}
