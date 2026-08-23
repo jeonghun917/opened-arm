@@ -1,0 +1,1958 @@
+{
+  "status": "VELA_MAMBA_SUPERSESSION_CURRICULUM_V1",
+  "model": "state-spaces/mamba-130m-hf",
+  "torch_version": "2.13.0+cu130",
+  "transformers_version": "4.57.6",
+  "design": {
+    "arms": [
+      "baseline",
+      "mixed",
+      "supersession_only"
+    ],
+    "epochs_per_arm": 10,
+    "examples_per_epoch_per_arm": 16,
+    "batch_size": 1,
+    "optimizer_steps_per_arm": 160,
+    "trainable_pattern": "*.mixer.x_proj.weight",
+    "learning_rate": 0.0001,
+    "evaluation_suite": "unchanged 38-fixture native long-history robustness suite",
+    "selector_or_migration_used": false
+  },
+  "arms": {
+    "baseline": {
+      "curriculum": "baseline",
+      "train_examples_per_epoch": 16,
+      "batch_size": 1,
+      "epochs": 10,
+      "optimizer_steps": 160,
+      "epoch_mean_loss": [
+        1.7653111815452576,
+        0.46972360741347075,
+        0.09346337559691165,
+        0.008852472788930754,
+        0.0019439766820141813,
+        0.0008856421927703195,
+        0.0005368637257561204,
+        0.00046104868397378596,
+        0.0003924883299077919,
+        0.0003459235908849223
+      ],
+      "heldout": {
+        "accuracy": 0.9166666666666666,
+        "correction_accuracy": 1.0,
+        "control_accuracy": 0.75
+      },
+      "long_history": {
+        "fixture_count": 38,
+        "full_success_count": 14,
+        "full_success_rate": 0.3684210526315789,
+        "by_family": {
+          "superseded": {
+            "count": 13,
+            "full_success": 0,
+            "failed": [
+              {
+                "fixture": "superseded_base",
+                "history_tokens": 74,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "superseded_prefix2",
+                "history_tokens": 90,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "superseded_prefix4",
+                "history_tokens": 104,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "superseded_prefix8",
+                "history_tokens": 135,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "superseded_middle2",
+                "history_tokens": 88,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "superseded_middle4",
+                "history_tokens": 103,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "superseded_middle8",
+                "history_tokens": 133,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "superseded_suffix2",
+                "history_tokens": 90,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "superseded_suffix4",
+                "history_tokens": 106,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "superseded_suffix8",
+                "history_tokens": 135,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "superseded_both4",
+                "history_tokens": 136,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "superseded_both8",
+                "history_tokens": 196,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "superseded_old_value_echoes",
+                "history_tokens": 182,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              }
+            ],
+            "full_success_rate": 0.0
+          },
+          "single_middle": {
+            "count": 10,
+            "full_success": 2,
+            "failed": [
+              {
+                "fixture": "single_middle_both4",
+                "history_tokens": 126,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "single_middle_both6",
+                "history_tokens": 155,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "single_middle_both8",
+                "history_tokens": 186,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "single_middle_both10",
+                "history_tokens": 216,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "single_middle_both12",
+                "history_tokens": 245,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "single_middle_middle4",
+                "history_tokens": 93,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "single_middle_middle8",
+                "history_tokens": 123,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "single_middle_middle12",
+                "history_tokens": 154,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              }
+            ],
+            "full_success_rate": 0.2
+          },
+          "late_overwrite_control": {
+            "count": 7,
+            "full_success": 4,
+            "failed": [
+              {
+                "fixture": "late_overwrite_control_suffix4",
+                "history_tokens": 127,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "late_overwrite_control_suffix8",
+                "history_tokens": 156,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "late_overwrite_control_both8",
+                "history_tokens": 217,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              }
+            ],
+            "full_success_rate": 0.5714285714285714
+          },
+          "independent_control": {
+            "count": 8,
+            "full_success": 8,
+            "failed": [],
+            "full_success_rate": 1.0
+          }
+        },
+        "fixtures": [
+          {
+            "fixture": "superseded_base",
+            "family": "superseded",
+            "history_tokens": 74,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "superseded_prefix2",
+            "family": "superseded",
+            "history_tokens": 90,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "superseded_prefix4",
+            "family": "superseded",
+            "history_tokens": 104,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "superseded_prefix8",
+            "family": "superseded",
+            "history_tokens": 135,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "superseded_middle2",
+            "family": "superseded",
+            "history_tokens": 88,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "superseded_middle4",
+            "family": "superseded",
+            "history_tokens": 103,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "superseded_middle8",
+            "family": "superseded",
+            "history_tokens": 133,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "superseded_suffix2",
+            "family": "superseded",
+            "history_tokens": 90,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "superseded_suffix4",
+            "family": "superseded",
+            "history_tokens": 106,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "superseded_suffix8",
+            "family": "superseded",
+            "history_tokens": 135,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "superseded_both4",
+            "family": "superseded",
+            "history_tokens": 136,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "superseded_both8",
+            "family": "superseded",
+            "history_tokens": 196,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "single_middle_base",
+            "family": "single_middle",
+            "history_tokens": 64,
+            "all_correct": true,
+            "expected_accuracy": 1.0,
+            "wrong_probes": []
+          },
+          {
+            "fixture": "single_middle_both2",
+            "family": "single_middle",
+            "history_tokens": 96,
+            "all_correct": true,
+            "expected_accuracy": 1.0,
+            "wrong_probes": []
+          },
+          {
+            "fixture": "single_middle_both4",
+            "family": "single_middle",
+            "history_tokens": 126,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "single_middle_both6",
+            "family": "single_middle",
+            "history_tokens": 155,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "single_middle_both8",
+            "family": "single_middle",
+            "history_tokens": 186,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "single_middle_both10",
+            "family": "single_middle",
+            "history_tokens": 216,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "single_middle_both12",
+            "family": "single_middle",
+            "history_tokens": 245,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "single_middle_middle4",
+            "family": "single_middle",
+            "history_tokens": 93,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "single_middle_middle8",
+            "family": "single_middle",
+            "history_tokens": 123,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "single_middle_middle12",
+            "family": "single_middle",
+            "history_tokens": 154,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "late_overwrite_control_base",
+            "family": "late_overwrite_control",
+            "history_tokens": 95,
+            "all_correct": true,
+            "expected_accuracy": 1.0,
+            "wrong_probes": []
+          },
+          {
+            "fixture": "late_overwrite_control_prefix4",
+            "family": "late_overwrite_control",
+            "history_tokens": 125,
+            "all_correct": true,
+            "expected_accuracy": 1.0,
+            "wrong_probes": []
+          },
+          {
+            "fixture": "late_overwrite_control_prefix8",
+            "family": "late_overwrite_control",
+            "history_tokens": 156,
+            "all_correct": true,
+            "expected_accuracy": 1.0,
+            "wrong_probes": []
+          },
+          {
+            "fixture": "late_overwrite_control_prefix12",
+            "family": "late_overwrite_control",
+            "history_tokens": 185,
+            "all_correct": true,
+            "expected_accuracy": 1.0,
+            "wrong_probes": []
+          },
+          {
+            "fixture": "late_overwrite_control_suffix4",
+            "family": "late_overwrite_control",
+            "history_tokens": 127,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "late_overwrite_control_suffix8",
+            "family": "late_overwrite_control",
+            "history_tokens": 156,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "late_overwrite_control_both8",
+            "family": "late_overwrite_control",
+            "history_tokens": 217,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "independent_control_base",
+            "family": "independent_control",
+            "history_tokens": 70,
+            "all_correct": true,
+            "expected_accuracy": 1.0,
+            "wrong_probes": []
+          },
+          {
+            "fixture": "independent_control_prefix4",
+            "family": "independent_control",
+            "history_tokens": 100,
+            "all_correct": true,
+            "expected_accuracy": 1.0,
+            "wrong_probes": []
+          },
+          {
+            "fixture": "independent_control_prefix8",
+            "family": "independent_control",
+            "history_tokens": 131,
+            "all_correct": true,
+            "expected_accuracy": 1.0,
+            "wrong_probes": []
+          },
+          {
+            "fixture": "independent_control_prefix12",
+            "family": "independent_control",
+            "history_tokens": 160,
+            "all_correct": true,
+            "expected_accuracy": 1.0,
+            "wrong_probes": []
+          },
+          {
+            "fixture": "independent_control_middle4",
+            "family": "independent_control",
+            "history_tokens": 99,
+            "all_correct": true,
+            "expected_accuracy": 1.0,
+            "wrong_probes": []
+          },
+          {
+            "fixture": "independent_control_middle8",
+            "family": "independent_control",
+            "history_tokens": 129,
+            "all_correct": true,
+            "expected_accuracy": 1.0,
+            "wrong_probes": []
+          },
+          {
+            "fixture": "independent_control_suffix8",
+            "family": "independent_control",
+            "history_tokens": 131,
+            "all_correct": true,
+            "expected_accuracy": 1.0,
+            "wrong_probes": []
+          },
+          {
+            "fixture": "independent_control_both8",
+            "family": "independent_control",
+            "history_tokens": 192,
+            "all_correct": true,
+            "expected_accuracy": 1.0,
+            "wrong_probes": []
+          },
+          {
+            "fixture": "superseded_old_value_echoes",
+            "family": "superseded",
+            "history_tokens": 182,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          }
+        ]
+      }
+    },
+    "mixed": {
+      "curriculum": "mixed",
+      "train_examples_per_epoch": 16,
+      "batch_size": 1,
+      "epochs": 10,
+      "optimizer_steps": 160,
+      "epoch_mean_loss": [
+        1.835749783553183,
+        0.6668477735947818,
+        0.18151170492637902,
+        0.04495952871366171,
+        0.010610174345856649,
+        0.00213471456845582,
+        0.0010887526314036222,
+        0.0008262763276434271,
+        0.0007011623038124526,
+        0.0005989982955725281
+      ],
+      "heldout": {
+        "accuracy": 0.9166666666666666,
+        "correction_accuracy": 1.0,
+        "control_accuracy": 0.75
+      },
+      "long_history": {
+        "fixture_count": 38,
+        "full_success_count": 8,
+        "full_success_rate": 0.21052631578947367,
+        "by_family": {
+          "superseded": {
+            "count": 13,
+            "full_success": 0,
+            "failed": [
+              {
+                "fixture": "superseded_base",
+                "history_tokens": 74,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "superseded_prefix2",
+                "history_tokens": 90,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "superseded_prefix4",
+                "history_tokens": 104,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "superseded_prefix8",
+                "history_tokens": 135,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "superseded_middle2",
+                "history_tokens": 88,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "superseded_middle4",
+                "history_tokens": 103,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "superseded_middle8",
+                "history_tokens": 133,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "superseded_suffix2",
+                "history_tokens": 90,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "superseded_suffix4",
+                "history_tokens": 106,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "superseded_suffix8",
+                "history_tokens": 135,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "superseded_both4",
+                "history_tokens": 136,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "superseded_both8",
+                "history_tokens": 196,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "superseded_old_value_echoes",
+                "history_tokens": 182,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              }
+            ],
+            "full_success_rate": 0.0
+          },
+          "single_middle": {
+            "count": 10,
+            "full_success": 2,
+            "failed": [
+              {
+                "fixture": "single_middle_both4",
+                "history_tokens": 126,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "single_middle_both6",
+                "history_tokens": 155,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "single_middle_both8",
+                "history_tokens": 186,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "single_middle_both10",
+                "history_tokens": 216,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "single_middle_both12",
+                "history_tokens": 245,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "single_middle_middle4",
+                "history_tokens": 93,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "single_middle_middle8",
+                "history_tokens": 123,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "single_middle_middle12",
+                "history_tokens": 154,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              }
+            ],
+            "full_success_rate": 0.2
+          },
+          "late_overwrite_control": {
+            "count": 7,
+            "full_success": 0,
+            "failed": [
+              {
+                "fixture": "late_overwrite_control_base",
+                "history_tokens": 95,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "late_overwrite_control_prefix4",
+                "history_tokens": 125,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "late_overwrite_control_prefix8",
+                "history_tokens": 156,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "late_overwrite_control_prefix12",
+                "history_tokens": 185,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "late_overwrite_control_suffix4",
+                "history_tokens": 127,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "late_overwrite_control_suffix8",
+                "history_tokens": 156,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "late_overwrite_control_both8",
+                "history_tokens": 217,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              }
+            ],
+            "full_success_rate": 0.0
+          },
+          "independent_control": {
+            "count": 8,
+            "full_success": 6,
+            "failed": [
+              {
+                "fixture": "independent_control_prefix12",
+                "history_tokens": 160,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "independent_control_both8",
+                "history_tokens": 192,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              }
+            ],
+            "full_success_rate": 0.75
+          }
+        },
+        "fixtures": [
+          {
+            "fixture": "superseded_base",
+            "family": "superseded",
+            "history_tokens": 74,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "superseded_prefix2",
+            "family": "superseded",
+            "history_tokens": 90,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "superseded_prefix4",
+            "family": "superseded",
+            "history_tokens": 104,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "superseded_prefix8",
+            "family": "superseded",
+            "history_tokens": 135,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "superseded_middle2",
+            "family": "superseded",
+            "history_tokens": 88,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "superseded_middle4",
+            "family": "superseded",
+            "history_tokens": 103,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "superseded_middle8",
+            "family": "superseded",
+            "history_tokens": 133,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "superseded_suffix2",
+            "family": "superseded",
+            "history_tokens": 90,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "superseded_suffix4",
+            "family": "superseded",
+            "history_tokens": 106,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "superseded_suffix8",
+            "family": "superseded",
+            "history_tokens": 135,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "superseded_both4",
+            "family": "superseded",
+            "history_tokens": 136,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "superseded_both8",
+            "family": "superseded",
+            "history_tokens": 196,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "single_middle_base",
+            "family": "single_middle",
+            "history_tokens": 64,
+            "all_correct": true,
+            "expected_accuracy": 1.0,
+            "wrong_probes": []
+          },
+          {
+            "fixture": "single_middle_both2",
+            "family": "single_middle",
+            "history_tokens": 96,
+            "all_correct": true,
+            "expected_accuracy": 1.0,
+            "wrong_probes": []
+          },
+          {
+            "fixture": "single_middle_both4",
+            "family": "single_middle",
+            "history_tokens": 126,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "single_middle_both6",
+            "family": "single_middle",
+            "history_tokens": 155,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "single_middle_both8",
+            "family": "single_middle",
+            "history_tokens": 186,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "single_middle_both10",
+            "family": "single_middle",
+            "history_tokens": 216,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "single_middle_both12",
+            "family": "single_middle",
+            "history_tokens": 245,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "single_middle_middle4",
+            "family": "single_middle",
+            "history_tokens": 93,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "single_middle_middle8",
+            "family": "single_middle",
+            "history_tokens": 123,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "single_middle_middle12",
+            "family": "single_middle",
+            "history_tokens": 154,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "late_overwrite_control_base",
+            "family": "late_overwrite_control",
+            "history_tokens": 95,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "late_overwrite_control_prefix4",
+            "family": "late_overwrite_control",
+            "history_tokens": 125,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "late_overwrite_control_prefix8",
+            "family": "late_overwrite_control",
+            "history_tokens": 156,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "late_overwrite_control_prefix12",
+            "family": "late_overwrite_control",
+            "history_tokens": 185,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "late_overwrite_control_suffix4",
+            "family": "late_overwrite_control",
+            "history_tokens": 127,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "late_overwrite_control_suffix8",
+            "family": "late_overwrite_control",
+            "history_tokens": 156,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "late_overwrite_control_both8",
+            "family": "late_overwrite_control",
+            "history_tokens": 217,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "independent_control_base",
+            "family": "independent_control",
+            "history_tokens": 70,
+            "all_correct": true,
+            "expected_accuracy": 1.0,
+            "wrong_probes": []
+          },
+          {
+            "fixture": "independent_control_prefix4",
+            "family": "independent_control",
+            "history_tokens": 100,
+            "all_correct": true,
+            "expected_accuracy": 1.0,
+            "wrong_probes": []
+          },
+          {
+            "fixture": "independent_control_prefix8",
+            "family": "independent_control",
+            "history_tokens": 131,
+            "all_correct": true,
+            "expected_accuracy": 1.0,
+            "wrong_probes": []
+          },
+          {
+            "fixture": "independent_control_prefix12",
+            "family": "independent_control",
+            "history_tokens": 160,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "independent_control_middle4",
+            "family": "independent_control",
+            "history_tokens": 99,
+            "all_correct": true,
+            "expected_accuracy": 1.0,
+            "wrong_probes": []
+          },
+          {
+            "fixture": "independent_control_middle8",
+            "family": "independent_control",
+            "history_tokens": 129,
+            "all_correct": true,
+            "expected_accuracy": 1.0,
+            "wrong_probes": []
+          },
+          {
+            "fixture": "independent_control_suffix8",
+            "family": "independent_control",
+            "history_tokens": 131,
+            "all_correct": true,
+            "expected_accuracy": 1.0,
+            "wrong_probes": []
+          },
+          {
+            "fixture": "independent_control_both8",
+            "family": "independent_control",
+            "history_tokens": 192,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "superseded_old_value_echoes",
+            "family": "superseded",
+            "history_tokens": 182,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          }
+        ]
+      }
+    },
+    "supersession_only": {
+      "curriculum": "supersession_only",
+      "train_examples_per_epoch": 16,
+      "batch_size": 1,
+      "epochs": 10,
+      "optimizer_steps": 160,
+      "epoch_mean_loss": [
+        1.7605778723955154,
+        0.5491261468268931,
+        0.09156161683495156,
+        0.009536966302221117,
+        0.002286169078615785,
+        0.001297517629154754,
+        0.0010429176400066353,
+        0.0008114414877127274,
+        0.0006956162374081032,
+        0.0005940919313616178
+      ],
+      "heldout": {
+        "accuracy": 0.8333333333333334,
+        "correction_accuracy": 0.875,
+        "control_accuracy": 0.75
+      },
+      "long_history": {
+        "fixture_count": 38,
+        "full_success_count": 1,
+        "full_success_rate": 0.02631578947368421,
+        "by_family": {
+          "superseded": {
+            "count": 13,
+            "full_success": 0,
+            "failed": [
+              {
+                "fixture": "superseded_base",
+                "history_tokens": 74,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "superseded_prefix2",
+                "history_tokens": 90,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "superseded_prefix4",
+                "history_tokens": 104,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "superseded_prefix8",
+                "history_tokens": 135,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "superseded_middle2",
+                "history_tokens": 88,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "superseded_middle4",
+                "history_tokens": 103,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "superseded_middle8",
+                "history_tokens": 133,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "superseded_suffix2",
+                "history_tokens": 90,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "superseded_suffix4",
+                "history_tokens": 106,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "superseded_suffix8",
+                "history_tokens": 135,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "superseded_both4",
+                "history_tokens": 136,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "superseded_both8",
+                "history_tokens": 196,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "superseded_old_value_echoes",
+                "history_tokens": 182,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              }
+            ],
+            "full_success_rate": 0.0
+          },
+          "single_middle": {
+            "count": 10,
+            "full_success": 0,
+            "failed": [
+              {
+                "fixture": "single_middle_base",
+                "history_tokens": 64,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "single_middle_both2",
+                "history_tokens": 96,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "single_middle_both4",
+                "history_tokens": 126,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "single_middle_both6",
+                "history_tokens": 155,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "single_middle_both8",
+                "history_tokens": 186,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "single_middle_both10",
+                "history_tokens": 216,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "single_middle_both12",
+                "history_tokens": 245,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "single_middle_middle4",
+                "history_tokens": 93,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "single_middle_middle8",
+                "history_tokens": 123,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "single_middle_middle12",
+                "history_tokens": 154,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              }
+            ],
+            "full_success_rate": 0.0
+          },
+          "late_overwrite_control": {
+            "count": 7,
+            "full_success": 0,
+            "failed": [
+              {
+                "fixture": "late_overwrite_control_base",
+                "history_tokens": 95,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "late_overwrite_control_prefix4",
+                "history_tokens": 125,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "late_overwrite_control_prefix8",
+                "history_tokens": 156,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "late_overwrite_control_prefix12",
+                "history_tokens": 185,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "late_overwrite_control_suffix4",
+                "history_tokens": 127,
+                "wrong_probes": [
+                  "codeword",
+                  "verification"
+                ]
+              },
+              {
+                "fixture": "late_overwrite_control_suffix8",
+                "history_tokens": 156,
+                "wrong_probes": [
+                  "codeword",
+                  "verification"
+                ]
+              },
+              {
+                "fixture": "late_overwrite_control_both8",
+                "history_tokens": 217,
+                "wrong_probes": [
+                  "codeword",
+                  "verification"
+                ]
+              }
+            ],
+            "full_success_rate": 0.0
+          },
+          "independent_control": {
+            "count": 8,
+            "full_success": 1,
+            "failed": [
+              {
+                "fixture": "independent_control_base",
+                "history_tokens": 70,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "independent_control_prefix4",
+                "history_tokens": 100,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "independent_control_prefix8",
+                "history_tokens": 131,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "independent_control_prefix12",
+                "history_tokens": 160,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "independent_control_middle4",
+                "history_tokens": 99,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "independent_control_middle8",
+                "history_tokens": 129,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              },
+              {
+                "fixture": "independent_control_both8",
+                "history_tokens": 192,
+                "wrong_probes": [
+                  "codeword"
+                ]
+              }
+            ],
+            "full_success_rate": 0.125
+          }
+        },
+        "fixtures": [
+          {
+            "fixture": "superseded_base",
+            "family": "superseded",
+            "history_tokens": 74,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "superseded_prefix2",
+            "family": "superseded",
+            "history_tokens": 90,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "superseded_prefix4",
+            "family": "superseded",
+            "history_tokens": 104,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "superseded_prefix8",
+            "family": "superseded",
+            "history_tokens": 135,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "superseded_middle2",
+            "family": "superseded",
+            "history_tokens": 88,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "superseded_middle4",
+            "family": "superseded",
+            "history_tokens": 103,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "superseded_middle8",
+            "family": "superseded",
+            "history_tokens": 133,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "superseded_suffix2",
+            "family": "superseded",
+            "history_tokens": 90,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "superseded_suffix4",
+            "family": "superseded",
+            "history_tokens": 106,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "superseded_suffix8",
+            "family": "superseded",
+            "history_tokens": 135,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "superseded_both4",
+            "family": "superseded",
+            "history_tokens": 136,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "superseded_both8",
+            "family": "superseded",
+            "history_tokens": 196,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "single_middle_base",
+            "family": "single_middle",
+            "history_tokens": 64,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "single_middle_both2",
+            "family": "single_middle",
+            "history_tokens": 96,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "single_middle_both4",
+            "family": "single_middle",
+            "history_tokens": 126,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "single_middle_both6",
+            "family": "single_middle",
+            "history_tokens": 155,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "single_middle_both8",
+            "family": "single_middle",
+            "history_tokens": 186,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "single_middle_both10",
+            "family": "single_middle",
+            "history_tokens": 216,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "single_middle_both12",
+            "family": "single_middle",
+            "history_tokens": 245,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "single_middle_middle4",
+            "family": "single_middle",
+            "history_tokens": 93,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "single_middle_middle8",
+            "family": "single_middle",
+            "history_tokens": 123,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "single_middle_middle12",
+            "family": "single_middle",
+            "history_tokens": 154,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "late_overwrite_control_base",
+            "family": "late_overwrite_control",
+            "history_tokens": 95,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "late_overwrite_control_prefix4",
+            "family": "late_overwrite_control",
+            "history_tokens": 125,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "late_overwrite_control_prefix8",
+            "family": "late_overwrite_control",
+            "history_tokens": 156,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "late_overwrite_control_prefix12",
+            "family": "late_overwrite_control",
+            "history_tokens": 185,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "late_overwrite_control_suffix4",
+            "family": "late_overwrite_control",
+            "history_tokens": 127,
+            "all_correct": false,
+            "expected_accuracy": 0.5,
+            "wrong_probes": [
+              "codeword",
+              "verification"
+            ]
+          },
+          {
+            "fixture": "late_overwrite_control_suffix8",
+            "family": "late_overwrite_control",
+            "history_tokens": 156,
+            "all_correct": false,
+            "expected_accuracy": 0.5,
+            "wrong_probes": [
+              "codeword",
+              "verification"
+            ]
+          },
+          {
+            "fixture": "late_overwrite_control_both8",
+            "family": "late_overwrite_control",
+            "history_tokens": 217,
+            "all_correct": false,
+            "expected_accuracy": 0.5,
+            "wrong_probes": [
+              "codeword",
+              "verification"
+            ]
+          },
+          {
+            "fixture": "independent_control_base",
+            "family": "independent_control",
+            "history_tokens": 70,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "independent_control_prefix4",
+            "family": "independent_control",
+            "history_tokens": 100,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "independent_control_prefix8",
+            "family": "independent_control",
+            "history_tokens": 131,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "independent_control_prefix12",
+            "family": "independent_control",
+            "history_tokens": 160,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "independent_control_middle4",
+            "family": "independent_control",
+            "history_tokens": 99,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "independent_control_middle8",
+            "family": "independent_control",
+            "history_tokens": 129,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "independent_control_suffix8",
+            "family": "independent_control",
+            "history_tokens": 131,
+            "all_correct": true,
+            "expected_accuracy": 1.0,
+            "wrong_probes": []
+          },
+          {
+            "fixture": "independent_control_both8",
+            "family": "independent_control",
+            "history_tokens": 192,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "superseded_old_value_echoes",
+            "family": "superseded",
+            "history_tokens": 182,
+            "all_correct": false,
+            "expected_accuracy": 0.75,
+            "wrong_probes": [
+              "codeword"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "summary": {
+    "superseded_count": 13,
+    "baseline_superseded_full_success": 0,
+    "mixed_superseded_full_success": 0,
+    "supersession_only_full_success": 0,
+    "baseline_overall_full_success": 14,
+    "mixed_overall_full_success": 8,
+    "supersession_only_overall_full_success": 1,
+    "curriculum_signal": "no_supersession_recovery_under_tested_curricula"
+  },
+  "interpretation_rule": {
+    "curriculum_support": "A budget-matched arm containing three-stage supersession examples improves the held-out superseded family above the baseline arm.",
+    "strong_curriculum_support": "The mixed arm improves supersession while retaining ordinary held-out correction capability, showing the weakness is at least partly teachable without requiring a supersession-only curriculum.",
+    "no_recovery": "If both supersession-exposed arms remain at baseline on the superseded family, this specific curriculum and x_proj-only update recipe did not recover the weakness; that still does not prove an architectural impossibility."
+  },
+  "claim_boundary": "Single Mamba-130M model, x_proj-only learned update, 160 optimizer steps per arm, synthetic curricula and the existing 38-fixture suite. This is a curriculum-sensitivity diagnostic, not a final backbone verdict."
+}
