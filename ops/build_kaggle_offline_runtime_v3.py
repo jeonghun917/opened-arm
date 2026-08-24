@@ -179,13 +179,24 @@ def write_kaggle_cpu_validator(source_path: Path, destination: Path) -> None:
     this compatibility patch is now only a defense for older runtime manifests. The
     next stages must still successfully install archives offline and import the required
     packages. Non-archive payload hashes remain strict, including E280.
+
+    The Kaggle-only copy also emits bounded dpkg diagnostics. This is deliberately a
+    CPU gate: it exposes package-manager failure reasons before any T4 allocation.
     """
     source = source_path.read_text(encoding="utf-8")
     old = '''    for row in manifest.get("files", []):\n        path = runtime / row["path"]\n        if not path.is_file() or sha256_file(path) != row["sha256"]:\n            raise RuntimeError(f"runtime integrity mismatch: {row['path']}")\n    print("C3_OFFLINE_RUNTIME_SHA_PASS", flush=True)\n'''
     new = '''    kaggle_archive_exemptions = 0\n    for row in manifest.get("files", []):\n        rel = Path(str(row["path"]))\n        path = runtime / rel\n        if not path.is_file():\n            raise RuntimeError(f"runtime file missing: {rel}")\n        if sha256_file(path) != row["sha256"]:\n            if rel.parts and rel.parts[0] in {"wheelhouse", "debs"}:\n                kaggle_archive_exemptions += 1\n                print(f"C3_OFFLINE_KAGGLE_ARCHIVE_SHA_EXEMPT {rel}", flush=True)\n                continue\n            raise RuntimeError(f"runtime integrity mismatch: {rel}")\n    print(\n        f"C3_OFFLINE_RUNTIME_INTEGRITY_PASS kaggle_archive_exemptions={kaggle_archive_exemptions}",\n        flush=True,\n    )\n'''
     if old not in source:
         raise RuntimeError("Kaggle validator integrity patch anchor not found")
-    destination.write_text(source.replace(old, new, 1), encoding="utf-8")
+    patched = source.replace(old, new, 1)
+
+    old_dpkg = '''        run(["dpkg", "-i", *debs])\n        run(["ldconfig"])\n'''
+    new_dpkg = '''        for pkg in ["espeak-ng", "espeak-ng-data", "libespeak-ng1", "libpcaudio0", "libsonic0"]:\n            probe = subprocess.run(\n                ["dpkg-query", "-W", "-f=${Status} ${Version}", pkg],\n                text=True, capture_output=True, check=False,\n            )\n            state = (probe.stdout or probe.stderr).strip().replace("\\n", " | ")[:1000]\n            print(f"C3_OFFLINE_DPKG_BEFORE package={pkg} rc={probe.returncode} state={state}", flush=True)\n        proc = subprocess.run(\n            ["dpkg", "-i", *[str(path) for path in debs]],\n            text=True, capture_output=True, check=False,\n        )\n        if proc.returncode != 0:\n            stdout = (proc.stdout or "").replace("\\n", " | ")[:6000]\n            stderr = (proc.stderr or "").replace("\\n", " | ")[:6000]\n            print(f"C3_OFFLINE_DPKG_STDOUT rc={proc.returncode} {stdout}", flush=True)\n            print(f"C3_OFFLINE_DPKG_STDERR rc={proc.returncode} {stderr}", flush=True)\n            audit = subprocess.run(["dpkg", "--audit"], text=True, capture_output=True, check=False)\n            audit_text = ((audit.stdout or "") + " " + (audit.stderr or "")).replace("\\n", " | ")[:4000]\n            print(f"C3_OFFLINE_DPKG_AUDIT rc={audit.returncode} {audit_text}", flush=True)\n            raise RuntimeError(f"offline dpkg install failed rc={proc.returncode}")\n        run(["ldconfig"])\n'''
+    if old_dpkg not in patched:
+        raise RuntimeError("Kaggle validator dpkg patch anchor not found")
+    patched = patched.replace(old_dpkg, new_dpkg, 1)
+
+    destination.write_text(patched, encoding="utf-8")
     print("C3_OFFLINE_KAGGLE_VALIDATOR_PATCH_PASS", flush=True)
 
 
