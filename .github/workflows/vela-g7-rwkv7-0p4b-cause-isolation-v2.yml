@@ -1,0 +1,125 @@
+name: VELA G7 RWKV7 0.4B cause isolation v2
+
+on:
+  push:
+    branches: [vela-experiment-infra]
+    paths:
+      - 'experiments/vela-active-state/g7-cause-isolation-v2/rwkv7_0p4b_g7_cause_isolation_v2.py'
+      - '.github/workflows/vela-g7-rwkv7-0p4b-cause-isolation-v2.yml'
+      - 'ops/vela-g7-rwkv7-0p4b-cause-isolation-v2-trigger.txt'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: vela-g7-rwkv7-0p4b-cause-isolation-v2
+  cancel-in-progress: true
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: vela-experiment-infra
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Verify frozen chain-v2 dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          check_blob() {
+            path="$1"
+            expected="$2"
+            actual="$(git hash-object "$path")"
+            if [[ "$actual" != "$expected" ]]; then
+              echo "::error::Frozen G7-v2 dependency changed: $path expected=$expected actual=$actual"
+              exit 1
+            fi
+          }
+          check_blob experiments/vela-active-state/rwkv7-0p4b-chain-v2/rwkv7_0p4b_chained_provenance.py 33e3bca5b736c4e63c6bfaa58db772d77ccc08cf
+          check_blob experiments/vela-active-state/rwkv7-0p4b-chain-v1/rwkv7_0p4b_chained_upgrade.py 0d5aeeb4804c36616dc213200a7b053dcc31fc84
+          check_blob experiments/vela-active-state/rwkv7-causal-anchor-v2/rwkv7_causal_anchor_v2.py 7415d0f319cccda9a1c4820d4adae254173a49dc
+          check_blob experiments/vela-active-state/rwkv7-scale-0p4b-v1/rwkv7_scale_0p4b.py 519928f88d550bfd38756f09b41832f06bfafa93
+          check_blob experiments/vela-active-state/rwkv7-0p4b-residual-diagnostic-v1/rwkv7_0p4b_residual_diagnostic.py 52c49bb58ba4e50be2070243ec0d9137f5f1924b
+          check_blob experiments/vela-active-state/rwkv7-learned-upgrade-v1/rwkv7_learned_upgrade.py 792fc09a0a17efe0a614d625b2da95e8ef4ca913
+      - name: Install runtime
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install 'torch>=2.2,<3' 'transformers>=4.57,<4.58' huggingface_hub
+      - name: Run formal G7 v2 cause-isolation experiment
+        shell: bash
+        env:
+          HF_HUB_DISABLE_TELEMETRY: '1'
+          VELA_RESULT_PATH: /tmp/vela-g7-rwkv7-0p4b-cause-isolation-v2.json
+        run: |
+          set +e
+          python experiments/vela-active-state/g7-cause-isolation-v2/rwkv7_0p4b_g7_cause_isolation_v2.py > /tmp/vela-g7v2-stdout.log 2> /tmp/vela-g7v2-stderr.log
+          rc=$?
+          set -e
+          cat /tmp/vela-g7v2-stdout.log || true
+          cat /tmp/vela-g7v2-stderr.log >&2 || true
+          if [[ ! -f "$VELA_RESULT_PATH" ]]; then
+            python - <<'PY'
+          import json, os
+          from pathlib import Path
+          report={
+              'status':'VELA_G7_RWKV7_0P4B_CAUSE_ISOLATION_V2_FAIL_BEFORE_RESULT',
+              'source_commit':os.environ.get('GITHUB_SHA'),
+              'stdout_tail':Path('/tmp/vela-g7v2-stdout.log').read_text(encoding='utf-8',errors='replace').splitlines()[-80:],
+              'stderr_tail':Path('/tmp/vela-g7v2-stderr.log').read_text(encoding='utf-8',errors='replace').splitlines()[-120:],
+          }
+          Path(os.environ['VELA_RESULT_PATH']).write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+          PY
+          fi
+          exit "$rc"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: vela-g7-rwkv7-0p4b-cause-isolation-v2
+          path: /tmp/vela-g7-rwkv7-0p4b-cause-isolation-v2.json
+          if-no-files-found: error
+
+  record:
+    if: always()
+    needs: run
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: vela-experiment-infra
+      - uses: actions/download-artifact@v4
+        with:
+          name: vela-g7-rwkv7-0p4b-cause-isolation-v2
+          path: /tmp/vela-g7v2
+      - name: Record result
+        shell: bash
+        run: |
+          mkdir -p ops/vela-results
+          cp /tmp/vela-g7v2/vela-g7-rwkv7-0p4b-cause-isolation-v2.json ops/vela-results/g7-rwkv7-0p4b-cause-isolation-v2-latest.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('ops/vela-results/g7-rwkv7-0p4b-cause-isolation-v2-latest.json')
+          row=json.loads(p.read_text(encoding='utf-8'))
+          print(json.dumps({
+              'status':row.get('status'),
+              'summary':row.get('summary'),
+              'claim_boundary':row.get('claim_boundary'),
+          },ensure_ascii=False,indent=2))
+          PY
+      - name: Commit result snapshot
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add ops/vela-results/g7-rwkv7-0p4b-cause-isolation-v2-latest.json
+          git diff --cached --quiet || git commit -m 'Record VELA formal G7 RWKV7 cause isolation v2 [skip ci]'
+          for n in 1 2 3 4 5; do
+            git pull --rebase origin vela-experiment-infra && git push origin HEAD:vela-experiment-infra && break
+            sleep $((n*3))
+          done
