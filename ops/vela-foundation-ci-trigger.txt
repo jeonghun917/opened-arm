@@ -1,4 +1,4 @@
 VELA foundation CI trigger.
-Run: 2026-08-24 G7 trajectory + G8 retention + G9 resilience primitives.
-Ars-Mentis target: vela-foundation-runtime @ 2a91d6ad0670057ad3138d490621b95c85481073
-Trigger revision: 6
+Run: 2026-08-24 G9 guarded replay orchestration + failure-path tests.
+Ars-Mentis target: vela-foundation-runtime @ 6add7ee7c4071c63236213a1d4917938840f6291
+Trigger revision: 7
