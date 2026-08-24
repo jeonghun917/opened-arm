@@ -1,0 +1,1 @@
+Run trainable-scope v1. Compare x_proj-only against all recurrent mixer parameters under the same supersession curriculum and 160-step budget.
