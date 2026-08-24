@@ -54,15 +54,45 @@ def max_diff(a, b):
     return 0.0 if a == b else float('inf')
 
 
+def pip_install(args, report, label):
+    p = subprocess.run([sys.executable, '-m', 'pip', 'install', *args], text=True, capture_output=True)
+    report.setdefault('install', {})[label] = {
+        'returncode': p.returncode,
+        'stdout_tail': p.stdout.splitlines()[-20:],
+        'stderr_tail': p.stderr.splitlines()[-30:],
+    }
+    if p.returncode != 0:
+        raise RuntimeError(f'pip install failed at {label}: ' + '\n'.join(p.stderr.splitlines()[-12:]))
+
+
 def run():
     report = {'status': 'VELA_GATED_DELTANET_GPU_SPEC_V1'}
     try:
-        subprocess.run(
-            [sys.executable, '-m', 'pip', 'install', '--quiet', 'flash-linear-attention[cuda]==0.5.2'],
-            check=True,
-        )
-        import importlib.metadata
         import torch
+        try:
+            import triton
+            triton_version = getattr(triton, '__version__', None)
+        except Exception as exc:
+            triton_version = f'unavailable:{type(exc).__name__}:{exc}'
+        report['environment_before_install'] = {
+            'python': sys.version,
+            'torch_version': torch.__version__,
+            'cuda_version': torch.version.cuda,
+            'cuda_available': torch.cuda.is_available(),
+            'device_name': torch.cuda.get_device_name(0) if torch.cuda.is_available() else None,
+            'triton_version': triton_version,
+        }
+        if not torch.cuda.is_available():
+            raise RuntimeError('Kaggle GPU kernel started without CUDA availability')
+
+        # Keep Kaggle's working CUDA torch/triton stack intact. Installing the [cuda]
+        # extra can try to replace the full torch stack and exceed the ephemeral env.
+        # The pure-Python FLA wheels are installed without dependencies, then only the
+        # lightweight model-layer dependencies are resolved normally.
+        pip_install(['--quiet', '--no-deps', 'fla-core==0.5.2', 'flash-linear-attention==0.5.2'], report, 'fla_no_deps')
+        pip_install(['--quiet', 'einops>=0.7', 'transformers>=4.57,<5'], report, 'light_dependencies')
+
+        import importlib.metadata
         from fla.layers.gated_deltanet import GatedDeltaNet
         from fla.models.utils import Cache
 
@@ -70,11 +100,10 @@ def run():
             'torch_version': torch.__version__,
             'cuda_version': torch.version.cuda,
             'cuda_available': torch.cuda.is_available(),
-            'device_name': torch.cuda.get_device_name(0) if torch.cuda.is_available() else None,
+            'device_name': torch.cuda.get_device_name(0),
             'fla_version': importlib.metadata.version('flash-linear-attention'),
+            'fla_core_version': importlib.metadata.version('fla-core'),
         })
-        if not torch.cuda.is_available():
-            raise RuntimeError('Kaggle GPU kernel started without CUDA availability')
 
         device = torch.device('cuda')
         torch.manual_seed(917)
