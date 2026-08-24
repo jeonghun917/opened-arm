@@ -4,27 +4,27 @@
     "baseline_supheavy": {
       "status": "FAIL_BEFORE_RESULT",
       "arm": "baseline_supheavy",
-      "source_commit": "54e72098faef3e9e2ea94a43c12835946c11d8cc"
+      "source_commit": "b608266eb37fd8d6fb66e6bcd4c9022b130c1fd9"
     },
     "joint_status4": {
       "status": "FAIL_BEFORE_RESULT",
       "arm": "joint_status4",
-      "source_commit": "54e72098faef3e9e2ea94a43c12835946c11d8cc"
+      "source_commit": "b608266eb37fd8d6fb66e6bcd4c9022b130c1fd9"
     },
     "joint_status8": {
       "status": "FAIL_BEFORE_RESULT",
       "arm": "joint_status8",
-      "source_commit": "54e72098faef3e9e2ea94a43c12835946c11d8cc"
+      "source_commit": "b608266eb37fd8d6fb66e6bcd4c9022b130c1fd9"
     },
     "patch_status_lr1e5": {
       "status": "FAIL_BEFORE_RESULT",
       "arm": "patch_status_lr1e5",
-      "source_commit": "54e72098faef3e9e2ea94a43c12835946c11d8cc"
+      "source_commit": "b608266eb37fd8d6fb66e6bcd4c9022b130c1fd9"
     },
     "patch_status_lr5e6": {
       "status": "FAIL_BEFORE_RESULT",
       "arm": "patch_status_lr5e6",
-      "source_commit": "54e72098faef3e9e2ea94a43c12835946c11d8cc"
+      "source_commit": "b608266eb37fd8d6fb66e6bcd4c9022b130c1fd9"
     }
   },
   "ranking": [
