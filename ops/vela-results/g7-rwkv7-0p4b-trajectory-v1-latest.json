@@ -1,0 +1,1523 @@
+{
+  "status": "VELA_G7_RWKV7_0P4B_LONG_HORIZON_TRAJECTORY_V1",
+  "source_commit": "22d72b75e0b965682cb94f5cc2a5e695f8cd902e",
+  "device": "cpu",
+  "dtype": "float32",
+  "model": {
+    "weight_repo": "BlinkDL/rwkv7-g1",
+    "weight_file": "rwkv7-g1a-0.4b-20250905-ctx4096.pth",
+    "weight_revision": "4aa0981b66af4f727181a147bcea1457ad7c84cb"
+  },
+  "protocol": {
+    "chain_policy": "RWKV-7 0.4B chain-v2 provenance selector, source blobs workflow-pinned",
+    "horizons": [
+      128,
+      512,
+      2048
+    ],
+    "future": {
+      "generator": "indexed neutral telemetry/checksum sentences",
+      "chunks_generated": 128,
+      "tokens_used": 2048,
+      "semantic_exclusion": "no fixture project/codeword/verification/action/correction terms"
+    },
+    "per_step_decision_definition": "next-token argmax after each shared neutral future token",
+    "functional_probe_definition": "fixture codeword/verification/project/action probes at 128/512/2048",
+    "selector_oracle_usage": "none; native W3 trajectory is evaluation-only",
+    "w2_lr": 1e-05,
+    "w3_lr": 5e-06
+  },
+  "training": {
+    "w2_mean_loss": 0.5272121339635305,
+    "w3_mean_loss": 1.7828213227912784
+  },
+  "summary": {
+    "fixture_count": 4,
+    "initial_chain_qualified": 4,
+    "formal_minimum_pass_candidate_count": 1,
+    "formal_minimum_suite_pass_candidate": false
+  },
+  "fixtures": [
+    {
+      "fixture": "superseded_base",
+      "initial_chain_qualification": {
+        "w3_native_valid": true,
+        "hop1_decision_agreement": 1.0,
+        "hop2_decision_agreement": 1.0,
+        "final_chain_decision_agreement": 1.0,
+        "hop2_anchor_source_generation": "W2",
+        "hop2_anchor_event": 7,
+        "hop2_anchor_pos": 65,
+        "final_source_generation": "W3",
+        "qualified": true
+      },
+      "trajectory": {
+        "steps": 2048,
+        "per_step_next_token_argmax_agreement_bits": "11111111111011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+        "first_trace_divergence_step": 12,
+        "trace_by_horizon": {
+          "128": {
+            "steps": 128,
+            "decision_agreement_count": 127,
+            "decision_agreement": 0.9921875,
+            "divergence_count": 1
+          },
+          "512": {
+            "steps": 512,
+            "decision_agreement_count": 511,
+            "decision_agreement": 0.998046875,
+            "divergence_count": 1
+          },
+          "2048": {
+            "steps": 2048,
+            "decision_agreement_count": 2047,
+            "decision_agreement": 0.99951171875,
+            "divergence_count": 1
+          }
+        },
+        "disagreement_examples_first32": [
+          {
+            "step": 12,
+            "future_input_token": 46516,
+            "native_next_token_argmax": 22748,
+            "migrated_next_token_argmax": 4600
+          }
+        ],
+        "first_functional_divergence_horizon": null,
+        "functional_milestones": {
+          "128": {
+            "functional_vs_native": {
+              "decision_agreement": 1.0,
+              "expected_accuracy": 1.0,
+              "score_rms_error": 0.37746540967987574
+            },
+            "native_expected_accuracy": 1.0,
+            "migrated_expected_accuracy": 1.0,
+            "native_flags": {
+              "task_invariant_ok": true,
+              "correction_ok": true,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "migrated_flags": {
+              "task_invariant_ok": true,
+              "correction_ok": true,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "native_probe_rows": [
+              {
+                "id": "codeword",
+                "chosen": " GAMMA",
+                "expected": " GAMMA",
+                "correct": true,
+                "scores": {
+                  " GAMMA": -0.03128268080763519,
+                  " BETA": -3.9087407770566642,
+                  " ALPHA": -9.322173030348495
+                }
+              },
+              {
+                "id": "verification",
+                "chosen": " incomplete",
+                "expected": " incomplete",
+                "correct": true,
+                "scores": {
+                  " incomplete": -0.2768603265285492,
+                  " complete": -2.3387937545776367
+                }
+              },
+              {
+                "id": "project",
+                "chosen": " active",
+                "expected": " active",
+                "correct": true,
+                "scores": {
+                  " active": -1.653426170349121,
+                  " paused": -7.429981231689453
+                }
+              },
+              {
+                "id": "action",
+                "chosen": " blocked",
+                "expected": " blocked",
+                "correct": true,
+                "scores": {
+                  " blocked": -5.554581642150879,
+                  " allowed": -9.639246940612793
+                }
+              }
+            ],
+            "migrated_probe_rows": [
+              {
+                "id": "codeword",
+                "chosen": " GAMMA",
+                "expected": " GAMMA",
+                "correct": true,
+                "scores": {
+                  " GAMMA": -0.024320903641637415,
+                  " BETA": -4.339033028110862,
+                  " ALPHA": -9.065138385863975
+                }
+              },
+              {
+                "id": "verification",
+                "chosen": " incomplete",
+                "expected": " incomplete",
+                "correct": true,
+                "scores": {
+                  " incomplete": -0.7086952924728394,
+                  " complete": -2.064235210418701
+                }
+              },
+              {
+                "id": "project",
+                "chosen": " active",
+                "expected": " active",
+                "correct": true,
+                "scores": {
+                  " active": -1.9630627632141113,
+                  " paused": -6.86712646484375
+                }
+              },
+              {
+                "id": "action",
+                "chosen": " blocked",
+                "expected": " blocked",
+                "correct": true,
+                "scores": {
+                  " blocked": -6.151142597198486,
+                  " allowed": -9.664255142211914
+                }
+              }
+            ]
+          },
+          "512": {
+            "functional_vs_native": {
+              "decision_agreement": 1.0,
+              "expected_accuracy": 1.0,
+              "score_rms_error": 0.5423244861199528
+            },
+            "native_expected_accuracy": 1.0,
+            "migrated_expected_accuracy": 1.0,
+            "native_flags": {
+              "task_invariant_ok": true,
+              "correction_ok": true,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "migrated_flags": {
+              "task_invariant_ok": true,
+              "correction_ok": true,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "native_probe_rows": [
+              {
+                "id": "codeword",
+                "chosen": " GAMMA",
+                "expected": " GAMMA",
+                "correct": true,
+                "scores": {
+                  " GAMMA": -0.1584592517465353,
+                  " BETA": -2.004785577300936,
+                  " ALPHA": -7.6888101999647915
+                }
+              },
+              {
+                "id": "verification",
+                "chosen": " incomplete",
+                "expected": " incomplete",
+                "correct": true,
+                "scores": {
+                  " incomplete": -0.4429680109024048,
+                  " complete": -2.0500807762145996
+                }
+              },
+              {
+                "id": "project",
+                "chosen": " active",
+                "expected": " active",
+                "correct": true,
+                "scores": {
+                  " active": -1.9197909832000732,
+                  " paused": -8.167509078979492
+                }
+              },
+              {
+                "id": "action",
+                "chosen": " blocked",
+                "expected": " blocked",
+                "correct": true,
+                "scores": {
+                  " blocked": -5.225735664367676,
+                  " allowed": -10.015703201293945
+                }
+              }
+            ],
+            "migrated_probe_rows": [
+              {
+                "id": "codeword",
+                "chosen": " GAMMA",
+                "expected": " GAMMA",
+                "correct": true,
+                "scores": {
+                  " GAMMA": -0.07844282081350684,
+                  " BETA": -2.7907977821305394,
+                  " ALPHA": -7.611171851400286
+                }
+              },
+              {
+                "id": "verification",
+                "chosen": " incomplete",
+                "expected": " incomplete",
+                "correct": true,
+                "scores": {
+                  " incomplete": -1.0803697109222412,
+                  " complete": -1.7759110927581787
+                }
+              },
+              {
+                "id": "project",
+                "chosen": " active",
+                "expected": " active",
+                "correct": true,
+                "scores": {
+                  " active": -1.779010534286499,
+                  " paused": -7.026259422302246
+                }
+              },
+              {
+                "id": "action",
+                "chosen": " blocked",
+                "expected": " blocked",
+                "correct": true,
+                "scores": {
+                  " blocked": -5.392634868621826,
+                  " allowed": -9.585329055786133
+                }
+              }
+            ]
+          },
+          "2048": {
+            "functional_vs_native": {
+              "decision_agreement": 1.0,
+              "expected_accuracy": 1.0,
+              "score_rms_error": 0.564196574936375
+            },
+            "native_expected_accuracy": 1.0,
+            "migrated_expected_accuracy": 1.0,
+            "native_flags": {
+              "task_invariant_ok": true,
+              "correction_ok": true,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "migrated_flags": {
+              "task_invariant_ok": true,
+              "correction_ok": true,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "native_probe_rows": [
+              {
+                "id": "codeword",
+                "chosen": " GAMMA",
+                "expected": " GAMMA",
+                "correct": true,
+                "scores": {
+                  " GAMMA": -0.2836829845327884,
+                  " BETA": -1.4490037886425853,
+                  " ALPHA": -5.586261537857354
+                }
+              },
+              {
+                "id": "verification",
+                "chosen": " incomplete",
+                "expected": " incomplete",
+                "correct": true,
+                "scores": {
+                  " incomplete": -0.6112263202667236,
+                  " complete": -2.5315725803375244
+                }
+              },
+              {
+                "id": "project",
+                "chosen": " active",
+                "expected": " active",
+                "correct": true,
+                "scores": {
+                  " active": -2.071889877319336,
+                  " paused": -8.616958618164062
+                }
+              },
+              {
+                "id": "action",
+                "chosen": " blocked",
+                "expected": " blocked",
+                "correct": true,
+                "scores": {
+                  " blocked": -3.4475200176239014,
+                  " allowed": -8.639016151428223
+                }
+              }
+            ],
+            "migrated_probe_rows": [
+              {
+                "id": "codeword",
+                "chosen": " GAMMA",
+                "expected": " GAMMA",
+                "correct": true,
+                "scores": {
+                  " GAMMA": -0.1289922900032252,
+                  " BETA": -2.2513623479753733,
+                  " ALPHA": -5.60565550357569
+                }
+              },
+              {
+                "id": "verification",
+                "chosen": " incomplete",
+                "expected": " incomplete",
+                "correct": true,
+                "scores": {
+                  " incomplete": -1.333566427230835,
+                  " complete": -2.1560237407684326
+                }
+              },
+              {
+                "id": "project",
+                "chosen": " active",
+                "expected": " active",
+                "correct": true,
+                "scores": {
+                  " active": -1.8252562284469604,
+                  " paused": -7.451479911804199
+                }
+              },
+              {
+                "id": "action",
+                "chosen": " blocked",
+                "expected": " blocked",
+                "correct": true,
+                "scores": {
+                  " blocked": -3.5448784828186035,
+                  " allowed": -8.314492225646973
+                }
+              }
+            ]
+          }
+        }
+      },
+      "formal_minimum_pass_candidate": true
+    },
+    {
+      "fixture": "superseded_suffix4",
+      "initial_chain_qualification": {
+        "w3_native_valid": true,
+        "hop1_decision_agreement": 1.0,
+        "hop2_decision_agreement": 1.0,
+        "final_chain_decision_agreement": 1.0,
+        "hop2_anchor_source_generation": "W2",
+        "hop2_anchor_event": 8,
+        "hop2_anchor_pos": 69,
+        "final_source_generation": "W3",
+        "qualified": true
+      },
+      "trajectory": {
+        "steps": 2048,
+        "per_step_next_token_argmax_agreement_bits": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+        "first_trace_divergence_step": null,
+        "trace_by_horizon": {
+          "128": {
+            "steps": 128,
+            "decision_agreement_count": 128,
+            "decision_agreement": 1.0,
+            "divergence_count": 0
+          },
+          "512": {
+            "steps": 512,
+            "decision_agreement_count": 512,
+            "decision_agreement": 1.0,
+            "divergence_count": 0
+          },
+          "2048": {
+            "steps": 2048,
+            "decision_agreement_count": 2048,
+            "decision_agreement": 1.0,
+            "divergence_count": 0
+          }
+        },
+        "disagreement_examples_first32": [],
+        "first_functional_divergence_horizon": 512,
+        "functional_milestones": {
+          "128": {
+            "functional_vs_native": {
+              "decision_agreement": 1.0,
+              "expected_accuracy": 1.0,
+              "score_rms_error": 0.5935547413146648
+            },
+            "native_expected_accuracy": 1.0,
+            "migrated_expected_accuracy": 1.0,
+            "native_flags": {
+              "task_invariant_ok": true,
+              "correction_ok": true,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "migrated_flags": {
+              "task_invariant_ok": true,
+              "correction_ok": true,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "native_probe_rows": [
+              {
+                "id": "codeword",
+                "chosen": " GAMMA",
+                "expected": " GAMMA",
+                "correct": true,
+                "scores": {
+                  " GAMMA": -0.08742986270226538,
+                  " BETA": -2.922182441689074,
+                  " ALPHA": -7.066131313564256
+                }
+              },
+              {
+                "id": "verification",
+                "chosen": " incomplete",
+                "expected": " incomplete",
+                "correct": true,
+                "scores": {
+                  " incomplete": -0.48213618993759155,
+                  " complete": -1.899782657623291
+                }
+              },
+              {
+                "id": "project",
+                "chosen": " active",
+                "expected": " active",
+                "correct": true,
+                "scores": {
+                  " active": -2.5301198959350586,
+                  " paused": -8.680474281311035
+                }
+              },
+              {
+                "id": "action",
+                "chosen": " blocked",
+                "expected": " blocked",
+                "correct": true,
+                "scores": {
+                  " blocked": -5.5176100730896,
+                  " allowed": -9.537306785583496
+                }
+              }
+            ],
+            "migrated_probe_rows": [
+              {
+                "id": "codeword",
+                "chosen": " GAMMA",
+                "expected": " GAMMA",
+                "correct": true,
+                "scores": {
+                  " GAMMA": -0.0765363893005997,
+                  " BETA": -3.2936775013804436,
+                  " ALPHA": -7.009353797184303
+                }
+              },
+              {
+                "id": "verification",
+                "chosen": " incomplete",
+                "expected": " incomplete",
+                "correct": true,
+                "scores": {
+                  " incomplete": -0.9840483069419861,
+                  " complete": -1.3517961502075195
+                }
+              },
+              {
+                "id": "project",
+                "chosen": " active",
+                "expected": " active",
+                "correct": true,
+                "scores": {
+                  " active": -2.1527469158172607,
+                  " paused": -7.3143110275268555
+                }
+              },
+              {
+                "id": "action",
+                "chosen": " blocked",
+                "expected": " blocked",
+                "correct": true,
+                "scores": {
+                  " blocked": -6.186520576477051,
+                  " allowed": -9.392546653747559
+                }
+              }
+            ]
+          },
+          "512": {
+            "functional_vs_native": {
+              "decision_agreement": 0.75,
+              "expected_accuracy": 0.75,
+              "score_rms_error": 0.7655700709544574
+            },
+            "native_expected_accuracy": 1.0,
+            "migrated_expected_accuracy": 0.75,
+            "native_flags": {
+              "task_invariant_ok": true,
+              "correction_ok": true,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "migrated_flags": {
+              "task_invariant_ok": false,
+              "correction_ok": true,
+              "control_ok": true,
+              "persistent_fact_ok": false
+            },
+            "native_probe_rows": [
+              {
+                "id": "codeword",
+                "chosen": " GAMMA",
+                "expected": " GAMMA",
+                "correct": true,
+                "scores": {
+                  " GAMMA": -0.26556711073499173,
+                  " BETA": -1.5688897697255015,
+                  " ALPHA": -6.319982286659069
+                }
+              },
+              {
+                "id": "verification",
+                "chosen": " incomplete",
+                "expected": " incomplete",
+                "correct": true,
+                "scores": {
+                  " incomplete": -0.7904741168022156,
+                  " complete": -1.8885629177093506
+                }
+              },
+              {
+                "id": "project",
+                "chosen": " active",
+                "expected": " active",
+                "correct": true,
+                "scores": {
+                  " active": -2.8224756717681885,
+                  " paused": -9.340163230895996
+                }
+              },
+              {
+                "id": "action",
+                "chosen": " blocked",
+                "expected": " blocked",
+                "correct": true,
+                "scores": {
+                  " blocked": -5.409910202026367,
+                  " allowed": -10.053436279296875
+                }
+              }
+            ],
+            "migrated_probe_rows": [
+              {
+                "id": "codeword",
+                "chosen": " GAMMA",
+                "expected": " GAMMA",
+                "correct": true,
+                "scores": {
+                  " GAMMA": -0.1573783673811704,
+                  " BETA": -2.152551411651075,
+                  " ALPHA": -6.367226217058487
+                }
+              },
+              {
+                "id": "verification",
+                "chosen": " complete",
+                "expected": " incomplete",
+                "correct": false,
+                "scores": {
+                  " incomplete": -1.2705128192901611,
+                  " complete": -1.2499539852142334
+                }
+              },
+              {
+                "id": "project",
+                "chosen": " active",
+                "expected": " active",
+                "correct": true,
+                "scores": {
+                  " active": -2.0732498168945312,
+                  " paused": -7.534579753875732
+                }
+              },
+              {
+                "id": "action",
+                "chosen": " blocked",
+                "expected": " blocked",
+                "correct": true,
+                "scores": {
+                  " blocked": -5.918219566345215,
+                  " allowed": -9.603800773620605
+                }
+              }
+            ]
+          },
+          "2048": {
+            "functional_vs_native": {
+              "decision_agreement": 1.0,
+              "expected_accuracy": 1.0,
+              "score_rms_error": 0.6249528807162619
+            },
+            "native_expected_accuracy": 1.0,
+            "migrated_expected_accuracy": 1.0,
+            "native_flags": {
+              "task_invariant_ok": true,
+              "correction_ok": true,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "migrated_flags": {
+              "task_invariant_ok": true,
+              "correction_ok": true,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "native_probe_rows": [
+              {
+                "id": "codeword",
+                "chosen": " GAMMA",
+                "expected": " GAMMA",
+                "correct": true,
+                "scores": {
+                  " GAMMA": -0.4355470786103979,
+                  " BETA": -1.120995070785284,
+                  " ALPHA": -4.371780652494635
+                }
+              },
+              {
+                "id": "verification",
+                "chosen": " incomplete",
+                "expected": " incomplete",
+                "correct": true,
+                "scores": {
+                  " incomplete": -0.8108684420585632,
+                  " complete": -2.3639848232269287
+                }
+              },
+              {
+                "id": "project",
+                "chosen": " active",
+                "expected": " active",
+                "correct": true,
+                "scores": {
+                  " active": -2.3548269271850586,
+                  " paused": -9.048246383666992
+                }
+              },
+              {
+                "id": "action",
+                "chosen": " blocked",
+                "expected": " blocked",
+                "correct": true,
+                "scores": {
+                  " blocked": -3.618659496307373,
+                  " allowed": -8.836322784423828
+                }
+              }
+            ],
+            "migrated_probe_rows": [
+              {
+                "id": "codeword",
+                "chosen": " GAMMA",
+                "expected": " GAMMA",
+                "correct": true,
+                "scores": {
+                  " GAMMA": -0.21865868475288153,
+                  " BETA": -1.809547569602728,
+                  " ALPHA": -4.469085160293616
+                }
+              },
+              {
+                "id": "verification",
+                "chosen": " incomplete",
+                "expected": " incomplete",
+                "correct": true,
+                "scores": {
+                  " incomplete": -1.293872356414795,
+                  " complete": -1.676218032836914
+                }
+              },
+              {
+                "id": "project",
+                "chosen": " active",
+                "expected": " active",
+                "correct": true,
+                "scores": {
+                  " active": -1.9269782304763794,
+                  " paused": -7.747012615203857
+                }
+              },
+              {
+                "id": "action",
+                "chosen": " blocked",
+                "expected": " blocked",
+                "correct": true,
+                "scores": {
+                  " blocked": -4.1631293296813965,
+                  " allowed": -8.511585235595703
+                }
+              }
+            ]
+          }
+        }
+      },
+      "formal_minimum_pass_candidate": false
+    },
+    {
+      "fixture": "superseded_suffix8",
+      "initial_chain_qualification": {
+        "w3_native_valid": true,
+        "hop1_decision_agreement": 1.0,
+        "hop2_decision_agreement": 1.0,
+        "final_chain_decision_agreement": 1.0,
+        "hop2_anchor_source_generation": "W2",
+        "hop2_anchor_event": 15,
+        "hop2_anchor_pos": 121,
+        "final_source_generation": "W3",
+        "qualified": true
+      },
+      "trajectory": {
+        "steps": 2048,
+        "per_step_next_token_argmax_agreement_bits": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+        "first_trace_divergence_step": null,
+        "trace_by_horizon": {
+          "128": {
+            "steps": 128,
+            "decision_agreement_count": 128,
+            "decision_agreement": 1.0,
+            "divergence_count": 0
+          },
+          "512": {
+            "steps": 512,
+            "decision_agreement_count": 512,
+            "decision_agreement": 1.0,
+            "divergence_count": 0
+          },
+          "2048": {
+            "steps": 2048,
+            "decision_agreement_count": 2048,
+            "decision_agreement": 1.0,
+            "divergence_count": 0
+          }
+        },
+        "disagreement_examples_first32": [],
+        "first_functional_divergence_horizon": 128,
+        "functional_milestones": {
+          "128": {
+            "functional_vs_native": {
+              "decision_agreement": 0.75,
+              "expected_accuracy": 0.75,
+              "score_rms_error": 0.7273193016882827
+            },
+            "native_expected_accuracy": 1.0,
+            "migrated_expected_accuracy": 0.75,
+            "native_flags": {
+              "task_invariant_ok": true,
+              "correction_ok": true,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "migrated_flags": {
+              "task_invariant_ok": false,
+              "correction_ok": true,
+              "control_ok": true,
+              "persistent_fact_ok": false
+            },
+            "native_probe_rows": [
+              {
+                "id": "codeword",
+                "chosen": " GAMMA",
+                "expected": " GAMMA",
+                "correct": true,
+                "scores": {
+                  " GAMMA": -0.09545027714921162,
+                  " BETA": -2.759194068610668,
+                  " ALPHA": -6.621796231833287
+                }
+              },
+              {
+                "id": "verification",
+                "chosen": " incomplete",
+                "expected": " incomplete",
+                "correct": true,
+                "scores": {
+                  " incomplete": -0.49936428666114807,
+                  " complete": -1.720211386680603
+                }
+              },
+              {
+                "id": "project",
+                "chosen": " active",
+                "expected": " active",
+                "correct": true,
+                "scores": {
+                  " active": -1.8838398456573486,
+                  " paused": -8.170830726623535
+                }
+              },
+              {
+                "id": "action",
+                "chosen": " blocked",
+                "expected": " blocked",
+                "correct": true,
+                "scores": {
+                  " blocked": -4.620214462280273,
+                  " allowed": -9.291875839233398
+                }
+              }
+            ],
+            "migrated_probe_rows": [
+              {
+                "id": "codeword",
+                "chosen": " GAMMA",
+                "expected": " GAMMA",
+                "correct": true,
+                "scores": {
+                  " GAMMA": -0.1064113286556676,
+                  " BETA": -3.0334415370598435,
+                  " ALPHA": -6.257474175654352
+                }
+              },
+              {
+                "id": "verification",
+                "chosen": " complete",
+                "expected": " incomplete",
+                "correct": false,
+                "scores": {
+                  " incomplete": -1.563672661781311,
+                  " complete": -1.1503545045852661
+                }
+              },
+              {
+                "id": "project",
+                "chosen": " active",
+                "expected": " active",
+                "correct": true,
+                "scores": {
+                  " active": -2.0195250511169434,
+                  " paused": -7.141787528991699
+                }
+              },
+              {
+                "id": "action",
+                "chosen": " blocked",
+                "expected": " blocked",
+                "correct": true,
+                "scores": {
+                  " blocked": -6.033069610595703,
+                  " allowed": -9.439824104309082
+                }
+              }
+            ]
+          },
+          "512": {
+            "functional_vs_native": {
+              "decision_agreement": 0.75,
+              "expected_accuracy": 0.75,
+              "score_rms_error": 0.798890115954922
+            },
+            "native_expected_accuracy": 1.0,
+            "migrated_expected_accuracy": 0.75,
+            "native_flags": {
+              "task_invariant_ok": true,
+              "correction_ok": true,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "migrated_flags": {
+              "task_invariant_ok": false,
+              "correction_ok": true,
+              "control_ok": true,
+              "persistent_fact_ok": false
+            },
+            "native_probe_rows": [
+              {
+                "id": "codeword",
+                "chosen": " GAMMA",
+                "expected": " GAMMA",
+                "correct": true,
+                "scores": {
+                  " GAMMA": -0.20670726837124676,
+                  " BETA": -1.7942399443127215,
+                  " ALPHA": -6.253038041002583
+                }
+              },
+              {
+                "id": "verification",
+                "chosen": " incomplete",
+                "expected": " incomplete",
+                "correct": true,
+                "scores": {
+                  " incomplete": -0.8126546740531921,
+                  " complete": -1.7855255603790283
+                }
+              },
+              {
+                "id": "project",
+                "chosen": " active",
+                "expected": " active",
+                "correct": true,
+                "scores": {
+                  " active": -2.060300350189209,
+                  " paused": -8.706266403198242
+                }
+              },
+              {
+                "id": "action",
+                "chosen": " blocked",
+                "expected": " blocked",
+                "correct": true,
+                "scores": {
+                  " blocked": -4.4916815757751465,
+                  " allowed": -9.688017845153809
+                }
+              }
+            ],
+            "migrated_probe_rows": [
+              {
+                "id": "codeword",
+                "chosen": " GAMMA",
+                "expected": " GAMMA",
+                "correct": true,
+                "scores": {
+                  " GAMMA": -0.15441553574055433,
+                  " BETA": -2.230952720157802,
+                  " ALPHA": -5.983449436025694
+                }
+              },
+              {
+                "id": "verification",
+                "chosen": " complete",
+                "expected": " incomplete",
+                "correct": false,
+                "scores": {
+                  " incomplete": -1.8396331071853638,
+                  " complete": -1.137323021888733
+                }
+              },
+              {
+                "id": "project",
+                "chosen": " active",
+                "expected": " active",
+                "correct": true,
+                "scores": {
+                  " active": -1.7649255990982056,
+                  " paused": -7.237680912017822
+                }
+              },
+              {
+                "id": "action",
+                "chosen": " blocked",
+                "expected": " blocked",
+                "correct": true,
+                "scores": {
+                  " blocked": -5.8178534507751465,
+                  " allowed": -9.669973373413086
+                }
+              }
+            ]
+          },
+          "2048": {
+            "functional_vs_native": {
+              "decision_agreement": 0.75,
+              "expected_accuracy": 0.75,
+              "score_rms_error": 0.6811885841647467
+            },
+            "native_expected_accuracy": 1.0,
+            "migrated_expected_accuracy": 0.75,
+            "native_flags": {
+              "task_invariant_ok": true,
+              "correction_ok": true,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "migrated_flags": {
+              "task_invariant_ok": false,
+              "correction_ok": true,
+              "control_ok": true,
+              "persistent_fact_ok": false
+            },
+            "native_probe_rows": [
+              {
+                "id": "codeword",
+                "chosen": " GAMMA",
+                "expected": " GAMMA",
+                "correct": true,
+                "scores": {
+                  " GAMMA": -0.5073362643597648,
+                  " BETA": -1.0183050716295838,
+                  " ALPHA": -4.067862203635741
+                }
+              },
+              {
+                "id": "verification",
+                "chosen": " incomplete",
+                "expected": " incomplete",
+                "correct": true,
+                "scores": {
+                  " incomplete": -0.8823162317276001,
+                  " complete": -2.303666114807129
+                }
+              },
+              {
+                "id": "project",
+                "chosen": " active",
+                "expected": " active",
+                "correct": true,
+                "scores": {
+                  " active": -1.9374001026153564,
+                  " paused": -8.704127311706543
+                }
+              },
+              {
+                "id": "action",
+                "chosen": " blocked",
+                "expected": " blocked",
+                "correct": true,
+                "scores": {
+                  " blocked": -3.2448105812072754,
+                  " allowed": -8.721590995788574
+                }
+              }
+            ],
+            "migrated_probe_rows": [
+              {
+                "id": "codeword",
+                "chosen": " GAMMA",
+                "expected": " GAMMA",
+                "correct": true,
+                "scores": {
+                  " GAMMA": -0.29168009757995605,
+                  " BETA": -1.6084578363224864,
+                  " ALPHA": -4.034552729688585
+                }
+              },
+              {
+                "id": "verification",
+                "chosen": " complete",
+                "expected": " incomplete",
+                "correct": false,
+                "scores": {
+                  " incomplete": -1.7236226797103882,
+                  " complete": -1.6298855543136597
+                }
+              },
+              {
+                "id": "project",
+                "chosen": " active",
+                "expected": " active",
+                "correct": true,
+                "scores": {
+                  " active": -1.6464542150497437,
+                  " paused": -7.544680595397949
+                }
+              },
+              {
+                "id": "action",
+                "chosen": " blocked",
+                "expected": " blocked",
+                "correct": true,
+                "scores": {
+                  " blocked": -4.335214614868164,
+                  " allowed": -8.698360443115234
+                }
+              }
+            ]
+          }
+        }
+      },
+      "formal_minimum_pass_candidate": false
+    },
+    {
+      "fixture": "superseded_old_value_echoes",
+      "initial_chain_qualification": {
+        "w3_native_valid": true,
+        "hop1_decision_agreement": 1.0,
+        "hop2_decision_agreement": 1.0,
+        "final_chain_decision_agreement": 1.0,
+        "hop2_anchor_source_generation": "W2",
+        "hop2_anchor_event": 19,
+        "hop2_anchor_pos": 168,
+        "final_source_generation": "W3",
+        "qualified": true
+      },
+      "trajectory": {
+        "steps": 2048,
+        "per_step_next_token_argmax_agreement_bits": "11111111111110111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111110111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+        "first_trace_divergence_step": 14,
+        "trace_by_horizon": {
+          "128": {
+            "steps": 128,
+            "decision_agreement_count": 127,
+            "decision_agreement": 0.9921875,
+            "divergence_count": 1
+          },
+          "512": {
+            "steps": 512,
+            "decision_agreement_count": 511,
+            "decision_agreement": 0.998046875,
+            "divergence_count": 1
+          },
+          "2048": {
+            "steps": 2048,
+            "decision_agreement_count": 2046,
+            "decision_agreement": 0.9990234375,
+            "divergence_count": 2
+          }
+        },
+        "disagreement_examples_first32": [
+          {
+            "step": 14,
+            "future_input_token": 22748,
+            "native_next_token_argmax": 59335,
+            "migrated_next_token_argmax": 53239
+          },
+          {
+            "step": 1568,
+            "future_input_token": 47,
+            "native_next_token_argmax": 44856,
+            "migrated_next_token_argmax": 29471
+          }
+        ],
+        "first_functional_divergence_horizon": 128,
+        "functional_milestones": {
+          "128": {
+            "functional_vs_native": {
+              "decision_agreement": 0.5,
+              "expected_accuracy": 0.5,
+              "score_rms_error": 0.9511644219289002
+            },
+            "native_expected_accuracy": 1.0,
+            "migrated_expected_accuracy": 0.5,
+            "native_flags": {
+              "task_invariant_ok": true,
+              "correction_ok": true,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "migrated_flags": {
+              "task_invariant_ok": false,
+              "correction_ok": false,
+              "control_ok": true,
+              "persistent_fact_ok": false
+            },
+            "native_probe_rows": [
+              {
+                "id": "codeword",
+                "chosen": " GAMMA",
+                "expected": " GAMMA",
+                "correct": true,
+                "scores": {
+                  " GAMMA": -0.458911817157059,
+                  " BETA": -1.072892242576927,
+                  " ALPHA": -5.344404778763419
+                }
+              },
+              {
+                "id": "verification",
+                "chosen": " incomplete",
+                "expected": " incomplete",
+                "correct": true,
+                "scores": {
+                  " incomplete": -0.5792373418807983,
+                  " complete": -1.4098743200302124
+                }
+              },
+              {
+                "id": "project",
+                "chosen": " active",
+                "expected": " active",
+                "correct": true,
+                "scores": {
+                  " active": -2.0334346294403076,
+                  " paused": -6.930169105529785
+                }
+              },
+              {
+                "id": "action",
+                "chosen": " blocked",
+                "expected": " blocked",
+                "correct": true,
+                "scores": {
+                  " blocked": -3.2049858570098877,
+                  " allowed": -8.673378944396973
+                }
+              }
+            ],
+            "migrated_probe_rows": [
+              {
+                "id": "codeword",
+                "chosen": " BETA",
+                "expected": " GAMMA",
+                "correct": false,
+                "scores": {
+                  " GAMMA": -0.8290903039160185,
+                  " BETA": -0.8191372081637383,
+                  " ALPHA": -3.167812688916456
+                }
+              },
+              {
+                "id": "verification",
+                "chosen": " complete",
+                "expected": " incomplete",
+                "correct": false,
+                "scores": {
+                  " incomplete": -1.6023812294006348,
+                  " complete": -1.4091176986694336
+                }
+              },
+              {
+                "id": "project",
+                "chosen": " active",
+                "expected": " active",
+                "correct": true,
+                "scores": {
+                  " active": -2.2880256175994873,
+                  " paused": -6.735631942749023
+                }
+              },
+              {
+                "id": "action",
+                "chosen": " blocked",
+                "expected": " blocked",
+                "correct": true,
+                "scores": {
+                  " blocked": -4.607610702514648,
+                  " allowed": -8.967666625976562
+                }
+              }
+            ]
+          },
+          "512": {
+            "functional_vs_native": {
+              "decision_agreement": 0.75,
+              "expected_accuracy": 0.5,
+              "score_rms_error": 0.8566041349147402
+            },
+            "native_expected_accuracy": 0.75,
+            "migrated_expected_accuracy": 0.5,
+            "native_flags": {
+              "task_invariant_ok": false,
+              "correction_ok": false,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "migrated_flags": {
+              "task_invariant_ok": false,
+              "correction_ok": false,
+              "control_ok": true,
+              "persistent_fact_ok": false
+            },
+            "native_probe_rows": [
+              {
+                "id": "codeword",
+                "chosen": " BETA",
+                "expected": " GAMMA",
+                "correct": false,
+                "scores": {
+                  " GAMMA": -1.2910621319606435,
+                  " BETA": -0.3566567183006555,
+                  " ALPHA": -4.936463222504244
+                }
+              },
+              {
+                "id": "verification",
+                "chosen": " incomplete",
+                "expected": " incomplete",
+                "correct": true,
+                "scores": {
+                  " incomplete": -0.8741828799247742,
+                  " complete": -1.1788661479949951
+                }
+              },
+              {
+                "id": "project",
+                "chosen": " active",
+                "expected": " active",
+                "correct": true,
+                "scores": {
+                  " active": -1.9355922937393188,
+                  " paused": -6.93634033203125
+                }
+              },
+              {
+                "id": "action",
+                "chosen": " blocked",
+                "expected": " blocked",
+                "correct": true,
+                "scores": {
+                  " blocked": -3.4451420307159424,
+                  " allowed": -9.074394226074219
+                }
+              }
+            ],
+            "migrated_probe_rows": [
+              {
+                "id": "codeword",
+                "chosen": " BETA",
+                "expected": " GAMMA",
+                "correct": false,
+                "scores": {
+                  " GAMMA": -1.5588318285299465,
+                  " BETA": -0.3633110150694847,
+                  " ALPHA": -3.1975667402148247
+                }
+              },
+              {
+                "id": "verification",
+                "chosen": " complete",
+                "expected": " incomplete",
+                "correct": false,
+                "scores": {
+                  " incomplete": -1.9984753131866455,
+                  " complete": -1.2287628650665283
+                }
+              },
+              {
+                "id": "project",
+                "chosen": " active",
+                "expected": " active",
+                "correct": true,
+                "scores": {
+                  " active": -2.108027219772339,
+                  " paused": -6.5440778732299805
+                }
+              },
+              {
+                "id": "action",
+                "chosen": " blocked",
+                "expected": " blocked",
+                "correct": true,
+                "scores": {
+                  " blocked": -4.871493816375732,
+                  " allowed": -9.228743553161621
+                }
+              }
+            ]
+          },
+          "2048": {
+            "functional_vs_native": {
+              "decision_agreement": 0.75,
+              "expected_accuracy": 0.5,
+              "score_rms_error": 0.7707835281938215
+            },
+            "native_expected_accuracy": 0.75,
+            "migrated_expected_accuracy": 0.5,
+            "native_flags": {
+              "task_invariant_ok": false,
+              "correction_ok": false,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "migrated_flags": {
+              "task_invariant_ok": false,
+              "correction_ok": false,
+              "control_ok": true,
+              "persistent_fact_ok": false
+            },
+            "native_probe_rows": [
+              {
+                "id": "codeword",
+                "chosen": " BETA",
+                "expected": " GAMMA",
+                "correct": false,
+                "scores": {
+                  " GAMMA": -2.294566060474608,
+                  " BETA": -0.17757094791159034,
+                  " ALPHA": -3.065948709816439
+                }
+              },
+              {
+                "id": "verification",
+                "chosen": " incomplete",
+                "expected": " incomplete",
+                "correct": true,
+                "scores": {
+                  " incomplete": -0.9303878545761108,
+                  " complete": -1.426270842552185
+                }
+              },
+              {
+                "id": "project",
+                "chosen": " active",
+                "expected": " active",
+                "correct": true,
+                "scores": {
+                  " active": -2.0524535179138184,
+                  " paused": -7.195400238037109
+                }
+              },
+              {
+                "id": "action",
+                "chosen": " blocked",
+                "expected": " blocked",
+                "correct": true,
+                "scores": {
+                  " blocked": -2.900315761566162,
+                  " allowed": -8.662176132202148
+                }
+              }
+            ],
+            "migrated_probe_rows": [
+              {
+                "id": "codeword",
+                "chosen": " BETA",
+                "expected": " GAMMA",
+                "correct": false,
+                "scores": {
+                  " GAMMA": -2.41064613009803,
+                  " BETA": -0.3171024061739445,
+                  " ALPHA": -2.0379195071873255
+                }
+              },
+              {
+                "id": "verification",
+                "chosen": " complete",
+                "expected": " incomplete",
+                "correct": false,
+                "scores": {
+                  " incomplete": -2.1269917488098145,
+                  " complete": -1.4914278984069824
+                }
+              },
+              {
+                "id": "project",
+                "chosen": " active",
+                "expected": " active",
+                "correct": true,
+                "scores": {
+                  " active": -2.0252394676208496,
+                  " paused": -6.539649963378906
+                }
+              },
+              {
+                "id": "action",
+                "chosen": " blocked",
+                "expected": " blocked",
+                "correct": true,
+                "scores": {
+                  " blocked": -4.436664581298828,
+                  " allowed": -8.835249900817871
+                }
+              }
+            ]
+          }
+        }
+      },
+      "formal_minimum_pass_candidate": false
+    }
+  ],
+  "claim_boundary": "Formal G7 evidence candidate on four predeclared RWKV-7 0.4B chain fixtures and a deterministic neutral future. Per-step argmax trace is diagnostic/trajectory evidence; the minimum gate candidate uses native+migrated task invariants and task-specific functional agreement at preregistered horizons. Gate G7 remains PENDING until source/workflow/result are independently audited."
+}
