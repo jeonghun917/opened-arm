@@ -1,0 +1,28 @@
+{
+  "status": "VELA_GATED_DELTANET_SPEC_V1_ERROR",
+  "device": "cpu",
+  "dtype": "float32",
+  "checks": {
+    "instantiate": {
+      "pass": true,
+      "parameter_numel": 24998,
+      "mode": "fused_recurrent",
+      "use_short_conv": false
+    }
+  },
+  "fla_version": "0.5.2",
+  "torch_version": "2.13.0+cpu",
+  "error_type": "ValueError",
+  "error": "You should provide exactly one of `layers` or `layer_class_to_replicate` to initialize a Cache.",
+  "traceback_tail": [
+    "Traceback (most recent call last):",
+    "  File \"/home/runner/work/opened-arm/opened-arm/experiments/vela-active-state/gated-deltanet-spec-v1/gated_deltanet_spec_probe.py\", line 93, in run",
+    "    cache = LegacyFLACache()",
+    "            ^^^^^^^^^^^^^^^^",
+    "  File \"/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/fla/models/utils.py\", line 205, in __init__",
+    "    super().__init__()",
+    "  File \"/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/transformers/cache_utils.py\", line 1296, in __init__",
+    "    raise ValueError(",
+    "ValueError: You should provide exactly one of `layers` or `layer_class_to_replicate` to initialize a Cache."
+  ]
+}
