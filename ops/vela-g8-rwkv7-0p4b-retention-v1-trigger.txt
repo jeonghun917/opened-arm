@@ -1,0 +1,4 @@
+G8 CPU run.
+Policies: every-event / N=2,4,8,16 / semantic-only / hybrid max-gap=8.
+Frozen chain-v2 selector/provenance dependencies.
+Triggered: 2026-08-24 KST.
