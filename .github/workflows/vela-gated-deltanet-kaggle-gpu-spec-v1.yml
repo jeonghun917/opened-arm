@@ -1,0 +1,112 @@
+name: VELA Gated DeltaNet Kaggle GPU spec v1
+
+on:
+  push:
+    branches: [vela-experiment-infra]
+    paths:
+      - 'experiments/vela-active-state/gated-deltanet-gpu-spec-v1/**'
+      - '.github/workflows/vela-gated-deltanet-kaggle-gpu-spec-v1.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: vela-gated-deltanet-kaggle-gpu-spec-v1
+  cancel-in-progress: true
+
+jobs:
+  gpu-spec:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      KAGGLE_API_TOKEN: ${{ secrets.KAGGLE_API_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: vela-experiment-infra
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install Kaggle CLI
+        run: python -m pip install --quiet --upgrade kaggle
+      - name: Build private GPU kernel
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${KAGGLE_API_TOKEN:-}" || { echo 'missing Kaggle token'; exit 2; }
+          rm -rf vela_kaggle vela_kaggle_out
+          mkdir vela_kaggle
+          cp experiments/vela-active-state/gated-deltanet-gpu-spec-v1/gated_deltanet_gpu_spec.py vela_kaggle/main.py
+          python - <<'PY'
+          import json, os, urllib.parse, urllib.request
+          from pathlib import Path
+          token=os.environ['KAGGLE_API_TOKEN']
+          req=urllib.request.Request(
+              'https://www.kaggle.com/api/v1/oauth2/introspect',
+              data=urllib.parse.urlencode({'token':token}).encode(),
+              headers={'Content-Type':'application/x-www-form-urlencoded'},
+              method='POST',
+          )
+          with urllib.request.urlopen(req,timeout=30) as r: data=json.load(r)
+          owner=(data.get('username') or '').strip()
+          if not data.get('active') or not owner: raise SystemExit('inactive Kaggle token')
+          kernel=f'{owner}/vela-gated-deltanet-gpu-spec-v1'
+          meta={
+              'id':kernel,
+              'title':'VELA Gated DeltaNet GPU Spec V1',
+              'code_file':'main.py',
+              'language':'python',
+              'kernel_type':'script',
+              'is_private':True,
+              'enable_gpu':True,
+              'enable_internet':True,
+              'dataset_sources':[],
+              'competition_sources':[],
+              'kernel_sources':[],
+              'model_sources':[],
+          }
+          Path('vela_kaggle/kernel-metadata.json').write_text(json.dumps(meta,indent=2)+'\n',encoding='utf-8')
+          Path('kernel-id.txt').write_text(kernel+'\n',encoding='utf-8')
+          PY
+      - name: Push GPU kernel
+        run: kaggle kernels push -p vela_kaggle -t 900
+      - name: Wait and collect result
+        shell: bash
+        run: |
+          set -u
+          K=$(cat kernel-id.txt)
+          STATUS=UNKNOWN
+          for i in $(seq 1 100); do
+            O=$(kaggle kernels status "$K" 2>&1 || true)
+            echo "VELA_KAGGLE_STATUS ${O##*status }"
+            if echo "$O" | grep -q 'KernelWorkerStatus.COMPLETE'; then STATUS=COMPLETE; break; fi
+            if echo "$O" | grep -Eq 'KernelWorkerStatus\.(ERROR|FAILED|CANCELLED|CANCELED)'; then STATUS=ERROR; break; fi
+            sleep 10
+          done
+          rm -rf vela_kaggle_out; mkdir vela_kaggle_out
+          kaggle kernels output "$K" -p vela_kaggle_out --force || true
+          mkdir -p ops/vela-results
+          if [[ -f vela_kaggle_out/gated-deltanet-gpu-spec-v1.json ]]; then
+            cp vela_kaggle_out/gated-deltanet-gpu-spec-v1.json ops/vela-results/gated-deltanet-gpu-spec-v1-latest.json
+          else
+            printf '{"status":"VELA_GATED_DELTANET_GPU_SPEC_V1_NO_RESULT","kaggle_status":"%s"}\n' "$STATUS" > ops/vela-results/gated-deltanet-gpu-spec-v1-latest.json
+          fi
+      - name: Commit result snapshot
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p ops/vela-results
+          test -f ops/vela-results/gated-deltanet-gpu-spec-v1-latest.json || printf '{"status":"FAIL_BEFORE_RESULT","source_commit":"%s"}\n' "$GITHUB_SHA" > ops/vela-results/gated-deltanet-gpu-spec-v1-latest.json
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add ops/vela-results/gated-deltanet-gpu-spec-v1-latest.json
+          git diff --cached --quiet || git commit -m 'Record VELA Gated DeltaNet GPU spec v1 [skip ci]'
+          for n in 1 2 3 4 5; do
+            git pull --rebase origin vela-experiment-infra && git push origin HEAD:vela-experiment-infra && break
+            sleep $((n*3))
+          done
+      - name: Cleanup
+        if: always()
+        run: rm -rf vela_kaggle vela_kaggle_out kernel-id.txt
