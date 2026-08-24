@@ -1,0 +1,2 @@
+Trigger adaptive G7 v3 exhaustive anchor-depth diagnostic after G7-v2 completion.
+Scope: only superseded_suffix4/suffix8, both frozen future streams; enumerate carried W1/W2 anchors and full-replay control. This is diagnosis, not fresh promotion evidence.
