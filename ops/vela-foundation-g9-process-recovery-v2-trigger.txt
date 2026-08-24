@@ -1,0 +1,3 @@
+Trigger VELA foundation G9 process-boundary crash/restart recovery v2.
+Target: jeonghun917/Ars-Mentis vela-foundation-runtime @ 317d55e53bcf538e3630b4c23aaa490c2d741826
+Scope: checkpoint orphan/temp/corruption and event-log partial-tail restart recovery.
