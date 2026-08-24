@@ -1,0 +1,122 @@
+{
+  "cases": [
+    {
+      "error_count": 0,
+      "expected_safe_path": "previous_engine",
+      "failure_class": "large_upgrade",
+      "failure_count": 0,
+      "passed": true,
+      "tests_run": 1
+    },
+    {
+      "error_count": 0,
+      "expected_safe_path": "full_replay",
+      "failure_class": "selector_miss",
+      "failure_count": 0,
+      "passed": true,
+      "tests_run": 1
+    },
+    {
+      "error_count": 0,
+      "expected_safe_path": "full_replay",
+      "failure_class": "corrupted_checkpoint",
+      "failure_count": 0,
+      "passed": true,
+      "tests_run": 1
+    },
+    {
+      "error_count": 0,
+      "expected_safe_path": "full_replay",
+      "failure_class": "missing_checkpoint",
+      "failure_count": 0,
+      "passed": true,
+      "tests_run": 1
+    },
+    {
+      "error_count": 0,
+      "expected_safe_path": "full_replay",
+      "failure_class": "schema_mismatch",
+      "failure_count": 0,
+      "passed": true,
+      "tests_run": 1
+    },
+    {
+      "error_count": 0,
+      "expected_safe_path": "previous_engine",
+      "failure_class": "replay_budget_exceeded",
+      "failure_count": 0,
+      "passed": true,
+      "tests_run": 1
+    },
+    {
+      "error_count": 0,
+      "expected_safe_path": "rollback",
+      "failure_class": "validation_failed",
+      "failure_count": 0,
+      "passed": true,
+      "tests_run": 1
+    },
+    {
+      "error_count": 0,
+      "expected_safe_path": "abort_preserve_log",
+      "failure_class": "event_log_corruption",
+      "failure_count": 0,
+      "passed": true,
+      "tests_run": 1
+    },
+    {
+      "error_count": 0,
+      "expected_safe_path": "previous_engine",
+      "failure_class": "commit_interrupted",
+      "failure_count": 0,
+      "passed": true,
+      "tests_run": 1
+    },
+    {
+      "error_count": 0,
+      "expected_safe_path": "previous_engine",
+      "failure_class": "cas_conflict",
+      "failure_count": 0,
+      "passed": true,
+      "tests_run": 1
+    },
+    {
+      "error_count": 0,
+      "expected_safe_path": "conservative_all_live_replay",
+      "failure_class": "incomplete_analysis",
+      "failure_count": 0,
+      "passed": true,
+      "tests_run": 1
+    },
+    {
+      "error_count": 0,
+      "expected_safe_path": "recovery_or_explicit_corruption",
+      "failure_class": "partial_write",
+      "failure_count": 0,
+      "passed": true,
+      "tests_run": 1
+    },
+    {
+      "error_count": 0,
+      "expected_safe_path": "previous_engine",
+      "failure_class": "full_replay_failed",
+      "failure_count": 0,
+      "passed": true,
+      "tests_run": 1
+    }
+  ],
+  "claim_boundary": "Deterministic engine-neutral failure-injection matrix over the promoted runtime reference implementation. This validates transaction/fallback/audit safety boundaries, not model-level robustness or production distributed storage semantics.",
+  "invalid_commit_allowed": false,
+  "matrix_case_count": 13,
+  "matrix_pass": true,
+  "passed_case_count": 13,
+  "previous_engine_rollback_verified_for": [
+    "large_upgrade",
+    "replay_budget_exceeded",
+    "commit_interrupted",
+    "cas_conflict",
+    "full_replay_failed"
+  ],
+  "source_commit": "b5400c5d878f351223095eae8b08cae1f4166582",
+  "status": "VELA_G9_FAILURE_MATRIX_V1"
+}
