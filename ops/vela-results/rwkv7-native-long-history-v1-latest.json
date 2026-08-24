@@ -1,0 +1,2352 @@
+{
+  "status": "VELA_RWKV7_NATIVE_LONG_HISTORY_V1",
+  "source_commit": "524481d5099b38d9bc8ef1e89209161b86c8011b",
+  "weight_revision": "1e5090cdd819629ff8755e0e04f4db83f0bb9dbb",
+  "weight_file": "rwkv7-g1a-0.1b-20250728-ctx4096.pth",
+  "device": "cpu",
+  "dtype": "float32",
+  "design": {
+    "purpose": "Candidate-backbone spec/continuity recheck plus native full-history semantics on the unchanged 38-fixture suite.",
+    "selector_or_migration_used": false,
+    "training_used": false
+  },
+  "state_continuity": {
+    "checkpoint_cut_tokens": 34,
+    "restore_max_abs_diff": 0.0,
+    "full_replay_max_abs_diff": 0.0,
+    "restore_equivalent": true,
+    "full_replay_equivalent": true,
+    "state_numel": 608256
+  },
+  "suite": {
+    "fixture_count": 38,
+    "full_success_count": 0,
+    "failure_count": 38,
+    "by_family": {
+      "superseded": {
+        "count": 13,
+        "full_success": 0,
+        "failed": [
+          {
+            "fixture": "superseded_base",
+            "history_tokens": 69,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "superseded_prefix2",
+            "history_tokens": 83,
+            "wrong_probes": [
+              "codeword",
+              "verification"
+            ]
+          },
+          {
+            "fixture": "superseded_prefix4",
+            "history_tokens": 97,
+            "wrong_probes": [
+              "codeword",
+              "verification"
+            ]
+          },
+          {
+            "fixture": "superseded_prefix8",
+            "history_tokens": 127,
+            "wrong_probes": [
+              "codeword",
+              "verification"
+            ]
+          },
+          {
+            "fixture": "superseded_middle2",
+            "history_tokens": 83,
+            "wrong_probes": [
+              "codeword",
+              "verification"
+            ]
+          },
+          {
+            "fixture": "superseded_middle4",
+            "history_tokens": 99,
+            "wrong_probes": [
+              "codeword",
+              "verification"
+            ]
+          },
+          {
+            "fixture": "superseded_middle8",
+            "history_tokens": 127,
+            "wrong_probes": [
+              "codeword",
+              "verification"
+            ]
+          },
+          {
+            "fixture": "superseded_suffix2",
+            "history_tokens": 86,
+            "wrong_probes": [
+              "codeword",
+              "verification"
+            ]
+          },
+          {
+            "fixture": "superseded_suffix4",
+            "history_tokens": 100,
+            "wrong_probes": [
+              "codeword",
+              "verification"
+            ]
+          },
+          {
+            "fixture": "superseded_suffix8",
+            "history_tokens": 130,
+            "wrong_probes": [
+              "codeword",
+              "verification"
+            ]
+          },
+          {
+            "fixture": "superseded_both4",
+            "history_tokens": 128,
+            "wrong_probes": [
+              "codeword",
+              "verification"
+            ]
+          },
+          {
+            "fixture": "superseded_both8",
+            "history_tokens": 188,
+            "wrong_probes": [
+              "codeword",
+              "verification"
+            ]
+          },
+          {
+            "fixture": "superseded_old_value_echoes",
+            "history_tokens": 175,
+            "wrong_probes": [
+              "codeword",
+              "verification"
+            ]
+          }
+        ],
+        "full_success_rate": 0.0
+      },
+      "single_middle": {
+        "count": 10,
+        "full_success": 0,
+        "failed": [
+          {
+            "fixture": "single_middle_base",
+            "history_tokens": 61,
+            "wrong_probes": [
+              "verification"
+            ]
+          },
+          {
+            "fixture": "single_middle_both2",
+            "history_tokens": 92,
+            "wrong_probes": [
+              "codeword",
+              "verification"
+            ]
+          },
+          {
+            "fixture": "single_middle_both4",
+            "history_tokens": 120,
+            "wrong_probes": [
+              "codeword",
+              "verification"
+            ]
+          },
+          {
+            "fixture": "single_middle_both6",
+            "history_tokens": 150,
+            "wrong_probes": [
+              "codeword",
+              "verification"
+            ]
+          },
+          {
+            "fixture": "single_middle_both8",
+            "history_tokens": 180,
+            "wrong_probes": [
+              "codeword",
+              "verification"
+            ]
+          },
+          {
+            "fixture": "single_middle_both10",
+            "history_tokens": 208,
+            "wrong_probes": [
+              "codeword",
+              "verification"
+            ]
+          },
+          {
+            "fixture": "single_middle_both12",
+            "history_tokens": 238,
+            "wrong_probes": [
+              "codeword",
+              "verification"
+            ]
+          },
+          {
+            "fixture": "single_middle_middle4",
+            "history_tokens": 91,
+            "wrong_probes": [
+              "codeword",
+              "verification"
+            ]
+          },
+          {
+            "fixture": "single_middle_middle8",
+            "history_tokens": 119,
+            "wrong_probes": [
+              "codeword",
+              "verification"
+            ]
+          },
+          {
+            "fixture": "single_middle_middle12",
+            "history_tokens": 149,
+            "wrong_probes": [
+              "codeword",
+              "verification"
+            ]
+          }
+        ],
+        "full_success_rate": 0.0
+      },
+      "late_overwrite_control": {
+        "count": 7,
+        "full_success": 0,
+        "failed": [
+          {
+            "fixture": "late_overwrite_control_base",
+            "history_tokens": 88,
+            "wrong_probes": [
+              "codeword"
+            ]
+          },
+          {
+            "fixture": "late_overwrite_control_prefix4",
+            "history_tokens": 116,
+            "wrong_probes": [
+              "verification"
+            ]
+          },
+          {
+            "fixture": "late_overwrite_control_prefix8",
+            "history_tokens": 146,
+            "wrong_probes": [
+              "verification"
+            ]
+          },
+          {
+            "fixture": "late_overwrite_control_prefix12",
+            "history_tokens": 176,
+            "wrong_probes": [
+              "verification"
+            ]
+          },
+          {
+            "fixture": "late_overwrite_control_suffix4",
+            "history_tokens": 119,
+            "wrong_probes": [
+              "codeword",
+              "verification"
+            ]
+          },
+          {
+            "fixture": "late_overwrite_control_suffix8",
+            "history_tokens": 149,
+            "wrong_probes": [
+              "codeword",
+              "verification"
+            ]
+          },
+          {
+            "fixture": "late_overwrite_control_both8",
+            "history_tokens": 207,
+            "wrong_probes": [
+              "verification"
+            ]
+          }
+        ],
+        "full_success_rate": 0.0
+      },
+      "independent_control": {
+        "count": 8,
+        "full_success": 0,
+        "failed": [
+          {
+            "fixture": "independent_control_base",
+            "history_tokens": 67,
+            "wrong_probes": [
+              "codeword",
+              "verification"
+            ]
+          },
+          {
+            "fixture": "independent_control_prefix4",
+            "history_tokens": 95,
+            "wrong_probes": [
+              "codeword",
+              "verification"
+            ]
+          },
+          {
+            "fixture": "independent_control_prefix8",
+            "history_tokens": 125,
+            "wrong_probes": [
+              "codeword",
+              "verification"
+            ]
+          },
+          {
+            "fixture": "independent_control_prefix12",
+            "history_tokens": 155,
+            "wrong_probes": [
+              "codeword",
+              "verification"
+            ]
+          },
+          {
+            "fixture": "independent_control_middle4",
+            "history_tokens": 97,
+            "wrong_probes": [
+              "codeword",
+              "verification"
+            ]
+          },
+          {
+            "fixture": "independent_control_middle8",
+            "history_tokens": 125,
+            "wrong_probes": [
+              "codeword",
+              "verification"
+            ]
+          },
+          {
+            "fixture": "independent_control_suffix8",
+            "history_tokens": 128,
+            "wrong_probes": [
+              "codeword",
+              "verification"
+            ]
+          },
+          {
+            "fixture": "independent_control_both8",
+            "history_tokens": 186,
+            "wrong_probes": [
+              "codeword",
+              "verification"
+            ]
+          }
+        ],
+        "full_success_rate": 0.0
+      }
+    }
+  },
+  "fixtures": [
+    {
+      "fixture": "superseded_base",
+      "family": "superseded",
+      "native": {
+        "history_tokens": 69,
+        "events": 8,
+        "expected_accuracy": 0.75,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " ALPHA",
+            "expected": " GAMMA",
+            "correct": false,
+            "scores": {
+              " GAMMA": -2.7852614987641573,
+              " BETA": -2.055788372643292,
+              " ALPHA": -2.004324878565967
+            }
+          },
+          {
+            "id": "verification",
+            "chosen": " incomplete",
+            "expected": " incomplete",
+            "correct": true,
+            "scores": {
+              " incomplete": -4.3037333488464355,
+              " complete": -4.48854923248291
+            }
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true,
+            "scores": {
+              " active": -2.936420202255249,
+              " paused": -7.6527605056762695
+            }
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true,
+            "scores": {
+              " blocked": -8.299403190612793,
+              " allowed": -11.483819961547852
+            }
+          }
+        ]
+      }
+    },
+    {
+      "fixture": "superseded_prefix2",
+      "family": "superseded",
+      "native": {
+        "history_tokens": 83,
+        "events": 10,
+        "expected_accuracy": 0.5,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " ALPHA",
+            "expected": " GAMMA",
+            "correct": false,
+            "scores": {
+              " GAMMA": -2.502995843999088,
+              " BETA": -1.8399285301566124,
+              " ALPHA": -1.5032007666304708
+            }
+          },
+          {
+            "id": "verification",
+            "chosen": " complete",
+            "expected": " incomplete",
+            "correct": false,
+            "scores": {
+              " incomplete": -3.9359450340270996,
+              " complete": -3.53226900100708
+            }
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true,
+            "scores": {
+              " active": -2.8060951232910156,
+              " paused": -8.723161697387695
+            }
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true,
+            "scores": {
+              " blocked": -8.27999210357666,
+              " allowed": -11.301151275634766
+            }
+          }
+        ]
+      }
+    },
+    {
+      "fixture": "superseded_prefix4",
+      "family": "superseded",
+      "native": {
+        "history_tokens": 97,
+        "events": 12,
+        "expected_accuracy": 0.5,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " ALPHA",
+            "expected": " GAMMA",
+            "correct": false,
+            "scores": {
+              " GAMMA": -2.5727430153638124,
+              " BETA": -1.7102368869818747,
+              " ALPHA": -1.41603913763538
+            }
+          },
+          {
+            "id": "verification",
+            "chosen": " complete",
+            "expected": " incomplete",
+            "correct": false,
+            "scores": {
+              " incomplete": -4.457186698913574,
+              " complete": -3.6107897758483887
+            }
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true,
+            "scores": {
+              " active": -2.8519058227539062,
+              " paused": -8.674275398254395
+            }
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true,
+            "scores": {
+              " blocked": -8.241865158081055,
+              " allowed": -11.437771797180176
+            }
+          }
+        ]
+      }
+    },
+    {
+      "fixture": "superseded_prefix8",
+      "family": "superseded",
+      "native": {
+        "history_tokens": 127,
+        "events": 16,
+        "expected_accuracy": 0.5,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " ALPHA",
+            "expected": " GAMMA",
+            "correct": false,
+            "scores": {
+              " GAMMA": -2.4932833397760987,
+              " BETA": -1.717802011873573,
+              " ALPHA": -1.2700905879028141
+            }
+          },
+          {
+            "id": "verification",
+            "chosen": " complete",
+            "expected": " incomplete",
+            "correct": false,
+            "scores": {
+              " incomplete": -4.683067321777344,
+              " complete": -3.693678855895996
+            }
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true,
+            "scores": {
+              " active": -2.761225700378418,
+              " paused": -8.765121459960938
+            }
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true,
+            "scores": {
+              " blocked": -8.485779762268066,
+              " allowed": -11.291583061218262
+            }
+          }
+        ]
+      }
+    },
+    {
+      "fixture": "superseded_middle2",
+      "family": "superseded",
+      "native": {
+        "history_tokens": 83,
+        "events": 10,
+        "expected_accuracy": 0.5,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " BETA",
+            "expected": " GAMMA",
+            "correct": false,
+            "scores": {
+              " GAMMA": -2.5424024518579245,
+              " BETA": -1.6859927191399038,
+              " ALPHA": -1.878003959544003
+            }
+          },
+          {
+            "id": "verification",
+            "chosen": " complete",
+            "expected": " incomplete",
+            "correct": false,
+            "scores": {
+              " incomplete": -4.750012397766113,
+              " complete": -4.376075267791748
+            }
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true,
+            "scores": {
+              " active": -3.1926639080047607,
+              " paused": -7.833608627319336
+            }
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true,
+            "scores": {
+              " blocked": -8.241349220275879,
+              " allowed": -11.663822174072266
+            }
+          }
+        ]
+      }
+    },
+    {
+      "fixture": "superseded_middle4",
+      "family": "superseded",
+      "native": {
+        "history_tokens": 99,
+        "events": 12,
+        "expected_accuracy": 0.5,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " BETA",
+            "expected": " GAMMA",
+            "correct": false,
+            "scores": {
+              " GAMMA": -2.5825648829340935,
+              " BETA": -1.6749815777875483,
+              " ALPHA": -1.9722848976962268
+            }
+          },
+          {
+            "id": "verification",
+            "chosen": " complete",
+            "expected": " incomplete",
+            "correct": false,
+            "scores": {
+              " incomplete": -4.799325942993164,
+              " complete": -4.43578577041626
+            }
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true,
+            "scores": {
+              " active": -3.1266469955444336,
+              " paused": -8.019015312194824
+            }
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true,
+            "scores": {
+              " blocked": -9.007866859436035,
+              " allowed": -11.809905052185059
+            }
+          }
+        ]
+      }
+    },
+    {
+      "fixture": "superseded_middle8",
+      "family": "superseded",
+      "native": {
+        "history_tokens": 127,
+        "events": 16,
+        "expected_accuracy": 0.5,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " BETA",
+            "expected": " GAMMA",
+            "correct": false,
+            "scores": {
+              " GAMMA": -2.5448586735874414,
+              " BETA": -1.641027386765927,
+              " ALPHA": -1.777282821945846
+            }
+          },
+          {
+            "id": "verification",
+            "chosen": " complete",
+            "expected": " incomplete",
+            "correct": false,
+            "scores": {
+              " incomplete": -4.854325294494629,
+              " complete": -3.976520538330078
+            }
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true,
+            "scores": {
+              " active": -3.3020570278167725,
+              " paused": -8.428728103637695
+            }
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true,
+            "scores": {
+              " blocked": -8.656298637390137,
+              " allowed": -11.612113952636719
+            }
+          }
+        ]
+      }
+    },
+    {
+      "fixture": "superseded_suffix2",
+      "family": "superseded",
+      "native": {
+        "history_tokens": 86,
+        "events": 10,
+        "expected_accuracy": 0.5,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " ALPHA",
+            "expected": " GAMMA",
+            "correct": false,
+            "scores": {
+              " GAMMA": -2.9230977930128574,
+              " BETA": -2.188689183909446,
+              " ALPHA": -1.504433426540345
+            }
+          },
+          {
+            "id": "verification",
+            "chosen": " complete",
+            "expected": " incomplete",
+            "correct": false,
+            "scores": {
+              " incomplete": -4.852237701416016,
+              " complete": -4.498366355895996
+            }
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true,
+            "scores": {
+              " active": -3.0350310802459717,
+              " paused": -8.326335906982422
+            }
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true,
+            "scores": {
+              " blocked": -8.080985069274902,
+              " allowed": -11.089667320251465
+            }
+          }
+        ]
+      }
+    },
+    {
+      "fixture": "superseded_suffix4",
+      "family": "superseded",
+      "native": {
+        "history_tokens": 100,
+        "events": 12,
+        "expected_accuracy": 0.5,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " ALPHA",
+            "expected": " GAMMA",
+            "correct": false,
+            "scores": {
+              " GAMMA": -2.93820184096694,
+              " BETA": -2.2657579318620265,
+              " ALPHA": -1.604186826851219
+            }
+          },
+          {
+            "id": "verification",
+            "chosen": " complete",
+            "expected": " incomplete",
+            "correct": false,
+            "scores": {
+              " incomplete": -4.874716758728027,
+              " complete": -3.9504005908966064
+            }
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true,
+            "scores": {
+              " active": -3.095676898956299,
+              " paused": -8.741998672485352
+            }
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true,
+            "scores": {
+              " blocked": -7.571210861206055,
+              " allowed": -10.801253318786621
+            }
+          }
+        ]
+      }
+    },
+    {
+      "fixture": "superseded_suffix8",
+      "family": "superseded",
+      "native": {
+        "history_tokens": 130,
+        "events": 16,
+        "expected_accuracy": 0.5,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " ALPHA",
+            "expected": " GAMMA",
+            "correct": false,
+            "scores": {
+              " GAMMA": -3.363967480137944,
+              " BETA": -2.3753144713118672,
+              " ALPHA": -1.4897898379713297
+            }
+          },
+          {
+            "id": "verification",
+            "chosen": " complete",
+            "expected": " incomplete",
+            "correct": false,
+            "scores": {
+              " incomplete": -5.340025424957275,
+              " complete": -4.216289520263672
+            }
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true,
+            "scores": {
+              " active": -3.288529396057129,
+              " paused": -8.73732852935791
+            }
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true,
+            "scores": {
+              " blocked": -7.378332138061523,
+              " allowed": -11.035310745239258
+            }
+          }
+        ]
+      }
+    },
+    {
+      "fixture": "superseded_both4",
+      "family": "superseded",
+      "native": {
+        "history_tokens": 128,
+        "events": 16,
+        "expected_accuracy": 0.5,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " ALPHA",
+            "expected": " GAMMA",
+            "correct": false,
+            "scores": {
+              " GAMMA": -2.8661238607019186,
+              " BETA": -1.7205154532566667,
+              " ALPHA": -1.1617443142458797
+            }
+          },
+          {
+            "id": "verification",
+            "chosen": " complete",
+            "expected": " incomplete",
+            "correct": false,
+            "scores": {
+              " incomplete": -4.870353698730469,
+              " complete": -3.8248040676116943
+            }
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true,
+            "scores": {
+              " active": -2.9752533435821533,
+              " paused": -9.127047538757324
+            }
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true,
+            "scores": {
+              " blocked": -7.877708911895752,
+              " allowed": -11.1068115234375
+            }
+          }
+        ]
+      }
+    },
+    {
+      "fixture": "superseded_both8",
+      "family": "superseded",
+      "native": {
+        "history_tokens": 188,
+        "events": 24,
+        "expected_accuracy": 0.5,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " ALPHA",
+            "expected": " GAMMA",
+            "correct": false,
+            "scores": {
+              " GAMMA": -2.7249176669865847,
+              " BETA": -1.8285370827652514,
+              " ALPHA": -1.2974363807588816
+            }
+          },
+          {
+            "id": "verification",
+            "chosen": " complete",
+            "expected": " incomplete",
+            "correct": false,
+            "scores": {
+              " incomplete": -5.150522708892822,
+              " complete": -3.845241069793701
+            }
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true,
+            "scores": {
+              " active": -2.815791368484497,
+              " paused": -9.244053840637207
+            }
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true,
+            "scores": {
+              " blocked": -7.542033672332764,
+              " allowed": -10.937592506408691
+            }
+          }
+        ]
+      }
+    },
+    {
+      "fixture": "single_middle_base",
+      "family": "single_middle",
+      "native": {
+        "history_tokens": 61,
+        "events": 8,
+        "expected_accuracy": 0.75,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " RED",
+            "expected": " RED",
+            "correct": true,
+            "scores": {
+              " RED": -1.2886244058609009,
+              " BLUE": -1.5455087758600712
+            }
+          },
+          {
+            "id": "verification",
+            "chosen": " complete",
+            "expected": " incomplete",
+            "correct": false,
+            "scores": {
+              " incomplete": -4.839001178741455,
+              " complete": -4.639277458190918
+            }
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true,
+            "scores": {
+              " active": -3.2033145427703857,
+              " paused": -8.5008544921875
+            }
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true,
+            "scores": {
+              " blocked": -8.626473426818848,
+              " allowed": -11.407206535339355
+            }
+          }
+        ]
+      }
+    },
+    {
+      "fixture": "single_middle_both2",
+      "family": "single_middle",
+      "native": {
+        "history_tokens": 92,
+        "events": 12,
+        "expected_accuracy": 0.5,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " BLUE",
+            "expected": " RED",
+            "correct": false,
+            "scores": {
+              " RED": -1.8402202129364014,
+              " BLUE": -0.8781171049922705
+            }
+          },
+          {
+            "id": "verification",
+            "chosen": " complete",
+            "expected": " incomplete",
+            "correct": false,
+            "scores": {
+              " incomplete": -4.6797261238098145,
+              " complete": -4.124237060546875
+            }
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true,
+            "scores": {
+              " active": -3.293182611465454,
+              " paused": -9.636027336120605
+            }
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true,
+            "scores": {
+              " blocked": -8.567548751831055,
+              " allowed": -11.20988655090332
+            }
+          }
+        ]
+      }
+    },
+    {
+      "fixture": "single_middle_both4",
+      "family": "single_middle",
+      "native": {
+        "history_tokens": 120,
+        "events": 16,
+        "expected_accuracy": 0.5,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " BLUE",
+            "expected": " RED",
+            "correct": false,
+            "scores": {
+              " RED": -1.7384660243988037,
+              " BLUE": -0.9746822007000446
+            }
+          },
+          {
+            "id": "verification",
+            "chosen": " complete",
+            "expected": " incomplete",
+            "correct": false,
+            "scores": {
+              " incomplete": -5.082845687866211,
+              " complete": -4.117598533630371
+            }
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true,
+            "scores": {
+              " active": -3.3182201385498047,
+              " paused": -9.434932708740234
+            }
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true,
+            "scores": {
+              " blocked": -8.170966148376465,
+              " allowed": -11.196744918823242
+            }
+          }
+        ]
+      }
+    },
+    {
+      "fixture": "single_middle_both6",
+      "family": "single_middle",
+      "native": {
+        "history_tokens": 150,
+        "events": 20,
+        "expected_accuracy": 0.5,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " BLUE",
+            "expected": " RED",
+            "correct": false,
+            "scores": {
+              " RED": -1.791118860244751,
+              " BLUE": -0.9094415511935949
+            }
+          },
+          {
+            "id": "verification",
+            "chosen": " complete",
+            "expected": " incomplete",
+            "correct": false,
+            "scores": {
+              " incomplete": -5.496228218078613,
+              " complete": -4.154775619506836
+            }
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true,
+            "scores": {
+              " active": -3.3307528495788574,
+              " paused": -9.38007640838623
+            }
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true,
+            "scores": {
+              " blocked": -7.742642879486084,
+              " allowed": -11.042732238769531
+            }
+          }
+        ]
+      }
+    },
+    {
+      "fixture": "single_middle_both8",
+      "family": "single_middle",
+      "native": {
+        "history_tokens": 180,
+        "events": 24,
+        "expected_accuracy": 0.5,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " BLUE",
+            "expected": " RED",
+            "correct": false,
+            "scores": {
+              " RED": -2.061174154281616,
+              " BLUE": -0.8537245374172926
+            }
+          },
+          {
+            "id": "verification",
+            "chosen": " complete",
+            "expected": " incomplete",
+            "correct": false,
+            "scores": {
+              " incomplete": -5.54262638092041,
+              " complete": -4.162206649780273
+            }
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true,
+            "scores": {
+              " active": -3.2140555381774902,
+              " paused": -9.54571533203125
+            }
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true,
+            "scores": {
+              " blocked": -7.817163467407227,
+              " allowed": -11.00259780883789
+            }
+          }
+        ]
+      }
+    },
+    {
+      "fixture": "single_middle_both10",
+      "family": "single_middle",
+      "native": {
+        "history_tokens": 208,
+        "events": 28,
+        "expected_accuracy": 0.5,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " BLUE",
+            "expected": " RED",
+            "correct": false,
+            "scores": {
+              " RED": -1.9135280847549438,
+              " BLUE": -0.8759590908885002
+            }
+          },
+          {
+            "id": "verification",
+            "chosen": " complete",
+            "expected": " incomplete",
+            "correct": false,
+            "scores": {
+              " incomplete": -5.4933013916015625,
+              " complete": -4.167054176330566
+            }
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true,
+            "scores": {
+              " active": -3.2473018169403076,
+              " paused": -9.539749145507812
+            }
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true,
+            "scores": {
+              " blocked": -7.640500068664551,
+              " allowed": -10.885480880737305
+            }
+          }
+        ]
+      }
+    },
+    {
+      "fixture": "single_middle_both12",
+      "family": "single_middle",
+      "native": {
+        "history_tokens": 238,
+        "events": 32,
+        "expected_accuracy": 0.5,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " BLUE",
+            "expected": " RED",
+            "correct": false,
+            "scores": {
+              " RED": -1.8867073059082031,
+              " BLUE": -0.7930816132575274
+            }
+          },
+          {
+            "id": "verification",
+            "chosen": " complete",
+            "expected": " incomplete",
+            "correct": false,
+            "scores": {
+              " incomplete": -5.764692306518555,
+              " complete": -4.270718097686768
+            }
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true,
+            "scores": {
+              " active": -3.2805497646331787,
+              " paused": -9.538345336914062
+            }
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true,
+            "scores": {
+              " blocked": -7.265073776245117,
+              " allowed": -10.759984016418457
+            }
+          }
+        ]
+      }
+    },
+    {
+      "fixture": "single_middle_middle4",
+      "family": "single_middle",
+      "native": {
+        "history_tokens": 91,
+        "events": 12,
+        "expected_accuracy": 0.5,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " BLUE",
+            "expected": " RED",
+            "correct": false,
+            "scores": {
+              " RED": -1.339876413345337,
+              " BLUE": -1.1519854739308357
+            }
+          },
+          {
+            "id": "verification",
+            "chosen": " complete",
+            "expected": " incomplete",
+            "correct": false,
+            "scores": {
+              " incomplete": -5.552209854125977,
+              " complete": -4.847860336303711
+            }
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true,
+            "scores": {
+              " active": -3.4736318588256836,
+              " paused": -8.739233016967773
+            }
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true,
+            "scores": {
+              " blocked": -9.097746849060059,
+              " allowed": -11.692183494567871
+            }
+          }
+        ]
+      }
+    },
+    {
+      "fixture": "single_middle_middle8",
+      "family": "single_middle",
+      "native": {
+        "history_tokens": 119,
+        "events": 16,
+        "expected_accuracy": 0.5,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " BLUE",
+            "expected": " RED",
+            "correct": false,
+            "scores": {
+              " RED": -1.28482186794281,
+              " BLUE": -1.0269580651074648
+            }
+          },
+          {
+            "id": "verification",
+            "chosen": " complete",
+            "expected": " incomplete",
+            "correct": false,
+            "scores": {
+              " incomplete": -5.45376443862915,
+              " complete": -4.353730201721191
+            }
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true,
+            "scores": {
+              " active": -3.694354772567749,
+              " paused": -9.109417915344238
+            }
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true,
+            "scores": {
+              " blocked": -8.629201889038086,
+              " allowed": -11.323552131652832
+            }
+          }
+        ]
+      }
+    },
+    {
+      "fixture": "single_middle_middle12",
+      "family": "single_middle",
+      "native": {
+        "history_tokens": 149,
+        "events": 20,
+        "expected_accuracy": 0.5,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " BLUE",
+            "expected": " RED",
+            "correct": false,
+            "scores": {
+              " RED": -1.2477409839630127,
+              " BLUE": -0.9283102788031101
+            }
+          },
+          {
+            "id": "verification",
+            "chosen": " complete",
+            "expected": " incomplete",
+            "correct": false,
+            "scores": {
+              " incomplete": -5.511960029602051,
+              " complete": -4.3484392166137695
+            }
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true,
+            "scores": {
+              " active": -3.752087116241455,
+              " paused": -9.131624221801758
+            }
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true,
+            "scores": {
+              " blocked": -8.42261791229248,
+              " allowed": -11.198312759399414
+            }
+          }
+        ]
+      }
+    },
+    {
+      "fixture": "late_overwrite_control_base",
+      "family": "late_overwrite_control",
+      "native": {
+        "history_tokens": 88,
+        "events": 11,
+        "expected_accuracy": 0.75,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " LOW",
+            "expected": " WEST",
+            "correct": false,
+            "scores": {
+              " WEST": -1.7219444289803505,
+              " HIGH": -2.0639209747314453,
+              " LOW": -1.5343716545030475
+            }
+          },
+          {
+            "id": "verification",
+            "chosen": " incomplete",
+            "expected": " incomplete",
+            "correct": true,
+            "scores": {
+              " incomplete": -4.164087295532227,
+              " complete": -4.247411251068115
+            }
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true,
+            "scores": {
+              " active": -3.594475269317627,
+              " paused": -8.432198524475098
+            }
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true,
+            "scores": {
+              " blocked": -7.940250396728516,
+              " allowed": -10.505611419677734
+            }
+          }
+        ]
+      }
+    },
+    {
+      "fixture": "late_overwrite_control_prefix4",
+      "family": "late_overwrite_control",
+      "native": {
+        "history_tokens": 116,
+        "events": 15,
+        "expected_accuracy": 0.75,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " WEST",
+            "expected": " WEST",
+            "correct": true,
+            "scores": {
+              " WEST": -1.4100124798715115,
+              " HIGH": -2.233424425125122,
+              " LOW": -1.7218243889510632
+            }
+          },
+          {
+            "id": "verification",
+            "chosen": " complete",
+            "expected": " incomplete",
+            "correct": false,
+            "scores": {
+              " incomplete": -4.035135269165039,
+              " complete": -3.5689663887023926
+            }
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true,
+            "scores": {
+              " active": -3.916053533554077,
+              " paused": -9.221077919006348
+            }
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true,
+            "scores": {
+              " blocked": -8.379074096679688,
+              " allowed": -10.85163688659668
+            }
+          }
+        ]
+      }
+    },
+    {
+      "fixture": "late_overwrite_control_prefix8",
+      "family": "late_overwrite_control",
+      "native": {
+        "history_tokens": 146,
+        "events": 19,
+        "expected_accuracy": 0.75,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " WEST",
+            "expected": " WEST",
+            "correct": true,
+            "scores": {
+              " WEST": -1.182231429964304,
+              " HIGH": -2.1208512783050537,
+              " LOW": -1.8272562371566892
+            }
+          },
+          {
+            "id": "verification",
+            "chosen": " complete",
+            "expected": " incomplete",
+            "correct": false,
+            "scores": {
+              " incomplete": -4.2424774169921875,
+              " complete": -3.6906025409698486
+            }
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true,
+            "scores": {
+              " active": -3.90199875831604,
+              " paused": -9.247207641601562
+            }
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true,
+            "scores": {
+              " blocked": -8.725685119628906,
+              " allowed": -10.81391716003418
+            }
+          }
+        ]
+      }
+    },
+    {
+      "fixture": "late_overwrite_control_prefix12",
+      "family": "late_overwrite_control",
+      "native": {
+        "history_tokens": 176,
+        "events": 23,
+        "expected_accuracy": 0.75,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " WEST",
+            "expected": " WEST",
+            "correct": true,
+            "scores": {
+              " WEST": -1.1331916991621256,
+              " HIGH": -2.1177685260772705,
+              " LOW": -1.7550829318352044
+            }
+          },
+          {
+            "id": "verification",
+            "chosen": " complete",
+            "expected": " incomplete",
+            "correct": false,
+            "scores": {
+              " incomplete": -4.41874361038208,
+              " complete": -3.7493855953216553
+            }
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true,
+            "scores": {
+              " active": -3.940107583999634,
+              " paused": -9.293679237365723
+            }
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true,
+            "scores": {
+              " blocked": -8.525392532348633,
+              " allowed": -10.6710844039917
+            }
+          }
+        ]
+      }
+    },
+    {
+      "fixture": "late_overwrite_control_suffix4",
+      "family": "late_overwrite_control",
+      "native": {
+        "history_tokens": 119,
+        "events": 15,
+        "expected_accuracy": 0.5,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " LOW",
+            "expected": " WEST",
+            "correct": false,
+            "scores": {
+              " WEST": -1.7201136276125908,
+              " HIGH": -2.0405452251434326,
+              " LOW": -1.2170369168743491
+            }
+          },
+          {
+            "id": "verification",
+            "chosen": " complete",
+            "expected": " incomplete",
+            "correct": false,
+            "scores": {
+              " incomplete": -4.671271324157715,
+              " complete": -4.100471496582031
+            }
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true,
+            "scores": {
+              " active": -3.900738477706909,
+              " paused": -9.062265396118164
+            }
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true,
+            "scores": {
+              " blocked": -7.805205821990967,
+              " allowed": -10.249992370605469
+            }
+          }
+        ]
+      }
+    },
+    {
+      "fixture": "late_overwrite_control_suffix8",
+      "family": "late_overwrite_control",
+      "native": {
+        "history_tokens": 149,
+        "events": 19,
+        "expected_accuracy": 0.5,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " LOW",
+            "expected": " WEST",
+            "correct": false,
+            "scores": {
+              " WEST": -2.138499990105629,
+              " HIGH": -2.1453332901000977,
+              " LOW": -1.057267226278782
+            }
+          },
+          {
+            "id": "verification",
+            "chosen": " complete",
+            "expected": " incomplete",
+            "correct": false,
+            "scores": {
+              " incomplete": -5.1914381980896,
+              " complete": -4.2931108474731445
+            }
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true,
+            "scores": {
+              " active": -4.140072345733643,
+              " paused": -9.096359252929688
+            }
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true,
+            "scores": {
+              " blocked": -7.8329997062683105,
+              " allowed": -10.652551651000977
+            }
+          }
+        ]
+      }
+    },
+    {
+      "fixture": "late_overwrite_control_both8",
+      "family": "late_overwrite_control",
+      "native": {
+        "history_tokens": 207,
+        "events": 27,
+        "expected_accuracy": 0.75,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " WEST",
+            "expected": " WEST",
+            "correct": true,
+            "scores": {
+              " WEST": -1.6433455869555473,
+              " HIGH": -2.278395891189575,
+              " LOW": -1.6874855421483517
+            }
+          },
+          {
+            "id": "verification",
+            "chosen": " complete",
+            "expected": " incomplete",
+            "correct": false,
+            "scores": {
+              " incomplete": -5.035351753234863,
+              " complete": -3.8624134063720703
+            }
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true,
+            "scores": {
+              " active": -3.8476457595825195,
+              " paused": -9.697153091430664
+            }
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true,
+            "scores": {
+              " blocked": -8.004631042480469,
+              " allowed": -10.502635955810547
+            }
+          }
+        ]
+      }
+    },
+    {
+      "fixture": "independent_control_base",
+      "family": "independent_control",
+      "native": {
+        "history_tokens": 67,
+        "events": 8,
+        "expected_accuracy": 0.5,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " ALPHA",
+            "expected": " BETA",
+            "correct": false,
+            "scores": {
+              " BETA": -2.88502989243716,
+              " ALPHA": -0.8722647959366441
+            }
+          },
+          {
+            "id": "verification",
+            "chosen": " complete",
+            "expected": " incomplete",
+            "correct": false,
+            "scores": {
+              " incomplete": -2.1698522567749023,
+              " complete": -1.5445642471313477
+            }
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true,
+            "scores": {
+              " active": -3.2192649841308594,
+              " paused": -8.966363906860352
+            }
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true,
+            "scores": {
+              " blocked": -7.178333282470703,
+              " allowed": -10.940771102905273
+            }
+          }
+        ]
+      }
+    },
+    {
+      "fixture": "independent_control_prefix4",
+      "family": "independent_control",
+      "native": {
+        "history_tokens": 95,
+        "events": 12,
+        "expected_accuracy": 0.5,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " ALPHA",
+            "expected": " BETA",
+            "correct": false,
+            "scores": {
+              " BETA": -2.948029360268265,
+              " ALPHA": -0.6067167008295655
+            }
+          },
+          {
+            "id": "verification",
+            "chosen": " complete",
+            "expected": " incomplete",
+            "correct": false,
+            "scores": {
+              " incomplete": -2.248218059539795,
+              " complete": -1.1380572319030762
+            }
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true,
+            "scores": {
+              " active": -3.186126708984375,
+              " paused": -9.673659324645996
+            }
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true,
+            "scores": {
+              " blocked": -7.620016574859619,
+              " allowed": -11.092916488647461
+            }
+          }
+        ]
+      }
+    },
+    {
+      "fixture": "independent_control_prefix8",
+      "family": "independent_control",
+      "native": {
+        "history_tokens": 125,
+        "events": 16,
+        "expected_accuracy": 0.5,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " ALPHA",
+            "expected": " BETA",
+            "correct": false,
+            "scores": {
+              " BETA": -3.121908408124,
+              " ALPHA": -0.4889229335822165
+            }
+          },
+          {
+            "id": "verification",
+            "chosen": " complete",
+            "expected": " incomplete",
+            "correct": false,
+            "scores": {
+              " incomplete": -2.280851125717163,
+              " complete": -1.2953312397003174
+            }
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true,
+            "scores": {
+              " active": -3.0127604007720947,
+              " paused": -9.699382781982422
+            }
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true,
+            "scores": {
+              " blocked": -7.938586235046387,
+              " allowed": -11.000658988952637
+            }
+          }
+        ]
+      }
+    },
+    {
+      "fixture": "independent_control_prefix12",
+      "family": "independent_control",
+      "native": {
+        "history_tokens": 155,
+        "events": 20,
+        "expected_accuracy": 0.5,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " ALPHA",
+            "expected": " BETA",
+            "correct": false,
+            "scores": {
+              " BETA": -3.266031506471336,
+              " ALPHA": -0.3925267281010747
+            }
+          },
+          {
+            "id": "verification",
+            "chosen": " complete",
+            "expected": " incomplete",
+            "correct": false,
+            "scores": {
+              " incomplete": -2.281088352203369,
+              " complete": -1.35832679271698
+            }
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true,
+            "scores": {
+              " active": -3.132753849029541,
+              " paused": -9.816027641296387
+            }
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true,
+            "scores": {
+              " blocked": -7.637331962585449,
+              " allowed": -10.84705924987793
+            }
+          }
+        ]
+      }
+    },
+    {
+      "fixture": "independent_control_middle4",
+      "family": "independent_control",
+      "native": {
+        "history_tokens": 97,
+        "events": 12,
+        "expected_accuracy": 0.5,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " ALPHA",
+            "expected": " BETA",
+            "correct": false,
+            "scores": {
+              " BETA": -3.130160261876881,
+              " ALPHA": -0.6911669848486781
+            }
+          },
+          {
+            "id": "verification",
+            "chosen": " complete",
+            "expected": " incomplete",
+            "correct": false,
+            "scores": {
+              " incomplete": -2.034587860107422,
+              " complete": -1.435107707977295
+            }
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true,
+            "scores": {
+              " active": -3.420609951019287,
+              " paused": -9.378616333007812
+            }
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true,
+            "scores": {
+              " blocked": -8.424315452575684,
+              " allowed": -11.517577171325684
+            }
+          }
+        ]
+      }
+    },
+    {
+      "fixture": "independent_control_middle8",
+      "family": "independent_control",
+      "native": {
+        "history_tokens": 125,
+        "events": 16,
+        "expected_accuracy": 0.5,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " ALPHA",
+            "expected": " BETA",
+            "correct": false,
+            "scores": {
+              " BETA": -3.41230780351907,
+              " ALPHA": -0.6677090409211814
+            }
+          },
+          {
+            "id": "verification",
+            "chosen": " complete",
+            "expected": " incomplete",
+            "correct": false,
+            "scores": {
+              " incomplete": -2.2073416709899902,
+              " complete": -1.3697563409805298
+            }
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true,
+            "scores": {
+              " active": -3.4481747150421143,
+              " paused": -9.488758087158203
+            }
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true,
+            "scores": {
+              " blocked": -8.226699829101562,
+              " allowed": -11.358511924743652
+            }
+          }
+        ]
+      }
+    },
+    {
+      "fixture": "independent_control_suffix8",
+      "family": "independent_control",
+      "native": {
+        "history_tokens": 128,
+        "events": 16,
+        "expected_accuracy": 0.5,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " ALPHA",
+            "expected": " BETA",
+            "correct": false,
+            "scores": {
+              " BETA": -3.5766902351751924,
+              " ALPHA": -0.5721088331192732
+            }
+          },
+          {
+            "id": "verification",
+            "chosen": " complete",
+            "expected": " incomplete",
+            "correct": false,
+            "scores": {
+              " incomplete": -3.06901478767395,
+              " complete": -1.798306941986084
+            }
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true,
+            "scores": {
+              " active": -3.5022084712982178,
+              " paused": -9.720080375671387
+            }
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true,
+            "scores": {
+              " blocked": -7.069639205932617,
+              " allowed": -10.953413963317871
+            }
+          }
+        ]
+      }
+    },
+    {
+      "fixture": "independent_control_both8",
+      "family": "independent_control",
+      "native": {
+        "history_tokens": 186,
+        "events": 24,
+        "expected_accuracy": 0.5,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " ALPHA",
+            "expected": " BETA",
+            "correct": false,
+            "scores": {
+              " BETA": -3.312588765285909,
+              " ALPHA": -0.5301226358860731
+            }
+          },
+          {
+            "id": "verification",
+            "chosen": " complete",
+            "expected": " incomplete",
+            "correct": false,
+            "scores": {
+              " incomplete": -2.862582206726074,
+              " complete": -1.5424541234970093
+            }
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true,
+            "scores": {
+              " active": -3.0543956756591797,
+              " paused": -10.088981628417969
+            }
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true,
+            "scores": {
+              " blocked": -7.192901611328125,
+              " allowed": -10.82988166809082
+            }
+          }
+        ]
+      }
+    },
+    {
+      "fixture": "superseded_old_value_echoes",
+      "family": "superseded",
+      "native": {
+        "history_tokens": 175,
+        "events": 20,
+        "expected_accuracy": 0.5,
+        "all_correct": false,
+        "probe_results": [
+          {
+            "id": "codeword",
+            "chosen": " ALPHA",
+            "expected": " GAMMA",
+            "correct": false,
+            "scores": {
+              " GAMMA": -2.800851846113801,
+              " BETA": -1.1887303427793086,
+              " ALPHA": -1.10859326669015
+            }
+          },
+          {
+            "id": "verification",
+            "chosen": " complete",
+            "expected": " incomplete",
+            "correct": false,
+            "scores": {
+              " incomplete": -4.886603832244873,
+              " complete": -3.6829833984375
+            }
+          },
+          {
+            "id": "project",
+            "chosen": " active",
+            "expected": " active",
+            "correct": true,
+            "scores": {
+              " active": -3.144430637359619,
+              " paused": -9.466123580932617
+            }
+          },
+          {
+            "id": "action",
+            "chosen": " blocked",
+            "expected": " blocked",
+            "correct": true,
+            "scores": {
+              " blocked": -7.668468952178955,
+              " allowed": -10.77658748626709
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "claim_boundary": "Released RWKV-7 0.1B weights, pinned official RNN equations, CPU float32, deterministic synthetic histories. Native candidate diagnostic only; no learned adaptation yet."
+}
