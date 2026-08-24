@@ -144,7 +144,19 @@ jobs:
               run_indexes = [i for i, line in enumerate(section) if line.strip() == "run: |"]
               if len(run_indexes) != 1:
                   raise SystemExit(f"run-block resolution failed for {name}: {len(run_indexes)}")
-              body = textwrap.dedent("\n".join(section[run_indexes[0] + 1:])).rstrip() + "\n"
+              run_index = run_indexes[0]
+              run_line = section[run_index]
+              run_indent = len(run_line) - len(run_line.lstrip())
+              body_lines = []
+              for line in section[run_index + 1:]:
+                  if not line.strip():
+                      body_lines.append(line)
+                      continue
+                  indent = len(line) - len(line.lstrip())
+                  if indent <= run_indent:
+                      break
+                  body_lines.append(line)
+              body = textwrap.dedent("\n".join(body_lines)).rstrip() + "\n"
               if not body.strip():
                   raise SystemExit(f"empty run body: {name}")
               (out / wanted[name]).write_text(body, encoding="utf-8")
