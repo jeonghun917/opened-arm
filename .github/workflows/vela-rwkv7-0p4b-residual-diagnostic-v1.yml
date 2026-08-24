@@ -41,11 +41,34 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install 'torch>=2.2,<3' 'transformers>=4.57,<4.58' huggingface_hub
       - name: Run residual diagnostic arm
+        shell: bash
         env:
           HF_HUB_DISABLE_TELEMETRY: '1'
           VELA_RWKV7_0P4B_RESIDUAL_ARM: ${{ matrix.arm }}
           VELA_RESULT_PATH: /tmp/vela-rwkv7-residual-${{ matrix.arm }}.json
-        run: python experiments/vela-active-state/rwkv7-0p4b-residual-diagnostic-v1/rwkv7_0p4b_residual_diagnostic.py
+        run: |
+          set +e
+          python experiments/vela-active-state/rwkv7-0p4b-residual-diagnostic-v1/rwkv7_0p4b_residual_diagnostic.py > /tmp/vela-stdout.log 2> /tmp/vela-stderr.log
+          rc=$?
+          cat /tmp/vela-stdout.log || true
+          cat /tmp/vela-stderr.log >&2 || true
+          if [[ ! -f "$VELA_RESULT_PATH" ]]; then
+            python - <<'PY'
+          import json, os
+          from pathlib import Path
+          stderr=Path('/tmp/vela-stderr.log').read_text(encoding='utf-8', errors='replace').splitlines()
+          stdout=Path('/tmp/vela-stdout.log').read_text(encoding='utf-8', errors='replace').splitlines()
+          report={
+              'status':'FAIL_BEFORE_RESULT',
+              'arm':os.environ.get('VELA_RWKV7_0P4B_RESIDUAL_ARM'),
+              'source_commit':os.environ.get('GITHUB_SHA'),
+              'stdout_tail':stdout[-80:],
+              'stderr_tail':stderr[-120:],
+          }
+          Path(os.environ['VELA_RESULT_PATH']).write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+          PY
+          fi
+          exit $rc
       - name: Ensure result exists
         if: always()
         shell: bash
