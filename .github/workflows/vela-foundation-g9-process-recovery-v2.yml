@@ -1,0 +1,84 @@
+name: VELA Foundation G9 process recovery v2
+
+on:
+  push:
+    branches: [vela-foundation-ci]
+    paths:
+      - 'ops/vela-foundation-g9-process-recovery-v2-trigger.txt'
+      - '.github/workflows/vela-foundation-g9-process-recovery-v2.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: vela-foundation-g9-process-recovery-v2
+  cancel-in-progress: true
+
+jobs:
+  process-recovery:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: vela-foundation-ci
+          path: runner-control
+          persist-credentials: true
+      - uses: actions/checkout@v4
+        with:
+          repository: jeonghun917/Ars-Mentis
+          ref: vela-foundation-runtime
+          token: ${{ secrets.ARS_MENTIS_READ_TOKEN }}
+          path: ars-mentis
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run process-boundary recovery tests
+        shell: bash
+        run: |
+          set +e
+          (cd ars-mentis && PYTHONPATH=src python -m unittest -v tests.test_process_recovery) > /tmp/g9-process.log 2>&1
+          status=$?
+          set -e
+          count=$(grep -c '^test_' /tmp/g9-process.log || true)
+          source_commit=$(git -C ars-mentis rev-parse HEAD)
+          mkdir -p runner-control/ops
+          SOURCE_COMMIT="$source_commit" TEST_STATUS="$status" TEST_COUNT="$count" python - <<'PY'
+          import json, os
+          payload={
+              'status':'PASS' if os.environ['TEST_STATUS']=='0' else 'FAIL',
+              'test_count':int(os.environ['TEST_COUNT']),
+              'source_repository':'jeonghun917/Ars-Mentis',
+              'source_ref':'vela-foundation-runtime',
+              'source_commit':os.environ['SOURCE_COMMIT'],
+              'scope':'process-boundary checkpoint/event-log crash remnants and restart recovery',
+              'invalid_state_promoted':False if os.environ['TEST_STATUS']=='0' else None,
+              'claim_boundary':'Local CI subprocess/filesystem crash simulation only; not distributed storage or OS/power-loss proof.',
+          }
+          with open('runner-control/ops/vela-foundation-g9-process-recovery-v2-latest.json','w',encoding='utf-8') as f:
+              json.dump(payload,f,indent=2,sort_keys=True); f.write('\n')
+          print(json.dumps(payload,indent=2))
+          PY
+          if [[ "$status" -ne 0 ]]; then
+            echo '::error::G9 process-boundary recovery tests failed; private traceback suppressed.'
+            exit "$status"
+          fi
+      - name: Commit public result snapshot
+        if: always()
+        working-directory: runner-control
+        shell: bash
+        run: |
+          if [[ ! -f ops/vela-foundation-g9-process-recovery-v2-latest.json ]]; then
+            mkdir -p ops
+            printf '{"status":"FAIL_BEFORE_RESULT","source_ref":"vela-foundation-runtime"}\n' > ops/vela-foundation-g9-process-recovery-v2-latest.json
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add ops/vela-foundation-g9-process-recovery-v2-latest.json
+          git diff --cached --quiet || git commit -m 'Record VELA foundation G9 process recovery v2 [skip ci]'
+          for n in 1 2 3 4 5; do
+            git pull --rebase origin vela-foundation-ci && git push origin HEAD:vela-foundation-ci && break
+            sleep $((n*3))
+          done
