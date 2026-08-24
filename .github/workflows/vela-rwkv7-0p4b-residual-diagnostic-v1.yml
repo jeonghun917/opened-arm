@@ -1,0 +1,157 @@
+name: VELA RWKV7 0.4B residual diagnostic v1
+
+on:
+  push:
+    branches: [vela-experiment-infra]
+    paths:
+      - 'experiments/vela-active-state/rwkv7-0p4b-residual-diagnostic-v1/**'
+      - '.github/workflows/vela-rwkv7-0p4b-residual-diagnostic-v1.yml'
+      - 'ops/vela-rwkv7-0p4b-residual-diagnostic-v1-trigger.txt'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: vela-rwkv7-0p4b-residual-diagnostic-v1
+  cancel-in-progress: true
+
+jobs:
+  arm:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      matrix:
+        arm:
+          - baseline_supheavy
+          - joint_status4
+          - joint_status8
+          - patch_status_lr5e6
+          - patch_status_lr1e5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: vela-experiment-infra
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install runtime
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install 'torch>=2.2,<3' 'transformers>=4.57,<4.58' huggingface_hub
+      - name: Run residual diagnostic arm
+        env:
+          HF_HUB_DISABLE_TELEMETRY: '1'
+          VELA_RWKV7_0P4B_RESIDUAL_ARM: ${{ matrix.arm }}
+          VELA_RESULT_PATH: /tmp/vela-rwkv7-residual-${{ matrix.arm }}.json
+        run: python experiments/vela-active-state/rwkv7-0p4b-residual-diagnostic-v1/rwkv7_0p4b_residual_diagnostic.py
+      - name: Ensure result exists
+        if: always()
+        shell: bash
+        run: |
+          if [[ ! -f /tmp/vela-rwkv7-residual-${{ matrix.arm }}.json ]]; then
+            printf '{"status":"FAIL_BEFORE_RESULT","arm":"%s","source_commit":"%s"}\n' '${{ matrix.arm }}' "$GITHUB_SHA" > /tmp/vela-rwkv7-residual-${{ matrix.arm }}.json
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: vela-rwkv7-residual-${{ matrix.arm }}
+          path: /tmp/vela-rwkv7-residual-${{ matrix.arm }}.json
+          if-no-files-found: error
+
+  aggregate:
+    if: always()
+    needs: arm
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: vela-experiment-infra
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: vela-rwkv7-residual-*
+          path: /tmp/vela-rwkv7-residual-results
+          merge-multiple: true
+      - name: Aggregate results
+        shell: bash
+        run: |
+          mkdir -p ops/vela-results
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          arms={}
+          for p in sorted(Path('/tmp/vela-rwkv7-residual-results').glob('*.json')):
+              row=json.loads(p.read_text(encoding='utf-8'))
+              arms[row.get('arm',p.stem)]=row
+
+          ranked=[]
+          for name,row in arms.items():
+              s=row.get('summary') or {}
+              ranked.append({
+                  'arm':name,
+                  'status':row.get('status'),
+                  'core_retention_qualified':bool(s.get('core_retention_qualified',False)),
+                  'status_generalization_qualified':bool(s.get('status_generalization_qualified',False)),
+                  'status_holdout_accuracy':s.get('status_holdout_accuracy',-1),
+                  'superseded_codeword_correct':s.get('superseded_codeword_correct',-1),
+                  'superseded_verification_correct':s.get('superseded_verification_correct',-1),
+                  'superseded_full_success':s.get('superseded_full_success',-1),
+                  'overall_full_success':s.get('overall_full_success',-1),
+                  'residual_failure_count':s.get('residual_failure_count'),
+              })
+          ranked.sort(key=lambda x:(
+              x['core_retention_qualified'],
+              x['status_generalization_qualified'],
+              x['superseded_codeword_correct'],
+              x['superseded_full_success'],
+              x['overall_full_success'],
+          ), reverse=True)
+          usable=[x for x in ranked if x['status'] == 'VELA_RWKV7_0P4B_RESIDUAL_DIAGNOSTIC_V1']
+          best=usable[0] if usable else None
+          baseline=arms.get('baseline_supheavy') or {}
+          bs=baseline.get('summary') or {}
+          baseline_residual_sets=bs.get('residual_failure_probe_sets') or []
+          overwrite_residual_reclassified=bool(
+              bs.get('superseded_codeword_13_of_13')
+              and baseline_residual_sets
+              and all(set(x).issubset({'verification'}) for x in baseline_residual_sets)
+          )
+          report={
+              'status':'VELA_RWKV7_0P4B_RESIDUAL_DIAGNOSTIC_V1_AGGREGATE',
+              'arms':arms,
+              'ranking':ranked,
+              'summary':{
+                  'best_arm':best,
+                  'all_arms_present':len(arms)==5,
+                  'baseline_superseded_codeword_13_of_13':bool(bs.get('superseded_codeword_13_of_13')),
+                  'baseline_full_fixture_13_of_13':bool(bs.get('superseded_full_fixture_13_of_13')),
+                  'baseline_residual_failure_probe_sets':baseline_residual_sets,
+                  'overwrite_residual_reclassified_as_non_overwrite_retention':overwrite_residual_reclassified,
+                  'targeted_patch_hits_full_13_of_13':any(bool((r.get('summary') or {}).get('superseded_full_fixture_13_of_13')) for k,r in arms.items() if k!='baseline_supheavy'),
+                  'targeted_patch_preserves_core_and_status':any(bool((r.get('summary') or {}).get('core_retention_qualified')) and bool((r.get('summary') or {}).get('status_generalization_qualified')) for k,r in arms.items() if k!='baseline_supheavy'),
+                  'next_gate':'If the baseline codeword probe is already 13/13, stop treating 11/13 full-fixture success as an overwrite-specific blocker. Use the best retention-safe arm for RWKV-7 0.4B chained W1->W2->W3 qualification, while carrying persistent-fact retention into G7.',
+              },
+              'claim_boundary':'This aggregate explicitly separates overwrite-specific codeword accuracy from unrelated persistent verification retention. The repeated 38-fixture suite remains diagnostic, not a general benchmark.',
+          }
+          Path('ops/vela-results/rwkv7-0p4b-residual-diagnostic-v1-latest.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+          print(json.dumps(report['summary'],ensure_ascii=False,indent=2))
+          PY
+      - name: Commit aggregate snapshot
+        if: always()
+        shell: bash
+        run: |
+          if [[ ! -f ops/vela-results/rwkv7-0p4b-residual-diagnostic-v1-latest.json ]]; then
+            mkdir -p ops/vela-results
+            printf '{"status":"FAIL_BEFORE_AGGREGATE","source_commit":"%s"}\n' "$GITHUB_SHA" > ops/vela-results/rwkv7-0p4b-residual-diagnostic-v1-latest.json
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add ops/vela-results/rwkv7-0p4b-residual-diagnostic-v1-latest.json
+          git diff --cached --quiet || git commit -m 'Record VELA RWKV7 0.4B residual diagnostic v1 [skip ci]'
+          for n in 1 2 3 4 5; do
+            git pull --rebase origin vela-experiment-infra && git push origin HEAD:vela-experiment-infra && break
+            sleep $((n*3))
+          done
