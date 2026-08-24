@@ -1,0 +1,104 @@
+{
+  "status": "VELA_RWKV7_0P4B_RESIDUAL_DIAGNOSTIC_V1_AGGREGATE",
+  "arms": {
+    "baseline_supheavy": {
+      "status": "FAIL_BEFORE_RESULT",
+      "arm": "baseline_supheavy",
+      "source_commit": "54e72098faef3e9e2ea94a43c12835946c11d8cc"
+    },
+    "joint_status4": {
+      "status": "FAIL_BEFORE_RESULT",
+      "arm": "joint_status4",
+      "source_commit": "54e72098faef3e9e2ea94a43c12835946c11d8cc"
+    },
+    "joint_status8": {
+      "status": "FAIL_BEFORE_RESULT",
+      "arm": "joint_status8",
+      "source_commit": "54e72098faef3e9e2ea94a43c12835946c11d8cc"
+    },
+    "patch_status_lr1e5": {
+      "status": "FAIL_BEFORE_RESULT",
+      "arm": "patch_status_lr1e5",
+      "source_commit": "54e72098faef3e9e2ea94a43c12835946c11d8cc"
+    },
+    "patch_status_lr5e6": {
+      "status": "FAIL_BEFORE_RESULT",
+      "arm": "patch_status_lr5e6",
+      "source_commit": "54e72098faef3e9e2ea94a43c12835946c11d8cc"
+    }
+  },
+  "ranking": [
+    {
+      "arm": "baseline_supheavy",
+      "status": "FAIL_BEFORE_RESULT",
+      "core_retention_qualified": false,
+      "status_generalization_qualified": false,
+      "status_holdout_accuracy": -1,
+      "superseded_codeword_correct": -1,
+      "superseded_verification_correct": -1,
+      "superseded_full_success": -1,
+      "overall_full_success": -1,
+      "residual_failure_count": null
+    },
+    {
+      "arm": "joint_status4",
+      "status": "FAIL_BEFORE_RESULT",
+      "core_retention_qualified": false,
+      "status_generalization_qualified": false,
+      "status_holdout_accuracy": -1,
+      "superseded_codeword_correct": -1,
+      "superseded_verification_correct": -1,
+      "superseded_full_success": -1,
+      "overall_full_success": -1,
+      "residual_failure_count": null
+    },
+    {
+      "arm": "joint_status8",
+      "status": "FAIL_BEFORE_RESULT",
+      "core_retention_qualified": false,
+      "status_generalization_qualified": false,
+      "status_holdout_accuracy": -1,
+      "superseded_codeword_correct": -1,
+      "superseded_verification_correct": -1,
+      "superseded_full_success": -1,
+      "overall_full_success": -1,
+      "residual_failure_count": null
+    },
+    {
+      "arm": "patch_status_lr1e5",
+      "status": "FAIL_BEFORE_RESULT",
+      "core_retention_qualified": false,
+      "status_generalization_qualified": false,
+      "status_holdout_accuracy": -1,
+      "superseded_codeword_correct": -1,
+      "superseded_verification_correct": -1,
+      "superseded_full_success": -1,
+      "overall_full_success": -1,
+      "residual_failure_count": null
+    },
+    {
+      "arm": "patch_status_lr5e6",
+      "status": "FAIL_BEFORE_RESULT",
+      "core_retention_qualified": false,
+      "status_generalization_qualified": false,
+      "status_holdout_accuracy": -1,
+      "superseded_codeword_correct": -1,
+      "superseded_verification_correct": -1,
+      "superseded_full_success": -1,
+      "overall_full_success": -1,
+      "residual_failure_count": null
+    }
+  ],
+  "summary": {
+    "best_arm": null,
+    "all_arms_present": true,
+    "baseline_superseded_codeword_13_of_13": false,
+    "baseline_full_fixture_13_of_13": false,
+    "baseline_residual_failure_probe_sets": [],
+    "overwrite_residual_reclassified_as_non_overwrite_retention": false,
+    "targeted_patch_hits_full_13_of_13": false,
+    "targeted_patch_preserves_core_and_status": false,
+    "next_gate": "If the baseline codeword probe is already 13/13, stop treating 11/13 full-fixture success as an overwrite-specific blocker. Use the best retention-safe arm for RWKV-7 0.4B chained W1->W2->W3 qualification, while carrying persistent-fact retention into G7."
+  },
+  "claim_boundary": "This aggregate explicitly separates overwrite-specific codeword accuracy from unrelated persistent verification retention. The repeated 38-fixture suite remains diagnostic, not a general benchmark."
+}
