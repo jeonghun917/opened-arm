@@ -1,0 +1,10 @@
+{
+  "claim_boundary": "Local CI subprocess/filesystem crash simulation only; not distributed storage or OS/power-loss proof.",
+  "invalid_state_promoted": false,
+  "scope": "process-boundary checkpoint/event-log crash remnants and restart recovery",
+  "source_commit": "317d55e53bcf538e3630b4c23aaa490c2d741826",
+  "source_ref": "vela-foundation-runtime",
+  "source_repository": "jeonghun917/Ars-Mentis",
+  "status": "PASS",
+  "test_count": 4
+}
