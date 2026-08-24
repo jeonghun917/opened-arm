@@ -1,0 +1,111 @@
+{
+  "claim_boundary": "Measures the current durable file repository on one CI runner filesystem. It is not a production object-store/database latency result and does not justify freezing checkpoint interval=2.",
+  "policies": [
+    {
+      "checkpoint_sequences": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      "event_count": 16,
+      "policy": "every_event",
+      "read_ms": {
+        "median": 10.14864199999721,
+        "p95": 10.840192000003412,
+        "rounds": 3,
+        "worst": 10.840192000003412
+      },
+      "recovery": {
+        "integrity_failures": [],
+        "orphan_state_removed": [
+          "process-crash-orphan"
+        ],
+        "stale_temp_removed": [
+          ".process-crash.bin.temp"
+        ],
+        "verified_count": 16
+      },
+      "repository_disk_bytes_before_recovery_injection": 104118684,
+      "roundtrip_ok": true,
+      "state_bytes": 6507147,
+      "stored_checkpoint_count": 16,
+      "write_ms": {
+        "median": 4.532098999998624,
+        "p95": 8.945995000004814,
+        "worst": 8.945995000004814
+      }
+    },
+    {
+      "checkpoint_sequences": [
+        1,
+        3,
+        5,
+        7,
+        9,
+        11,
+        13,
+        15
+      ],
+      "event_count": 16,
+      "policy": "fixed_n2",
+      "read_ms": {
+        "median": 10.059519000002126,
+        "p95": 10.882985000002066,
+        "rounds": 3,
+        "worst": 10.882985000002066
+      },
+      "recovery": {
+        "integrity_failures": [],
+        "orphan_state_removed": [
+          "process-crash-orphan"
+        ],
+        "stale_temp_removed": [
+          ".process-crash.bin.temp"
+        ],
+        "verified_count": 8
+      },
+      "repository_disk_bytes_before_recovery_injection": 52059318,
+      "roundtrip_ok": true,
+      "state_bytes": 6507147,
+      "stored_checkpoint_count": 8,
+      "write_ms": {
+        "median": 4.188086000002755,
+        "p95": 5.0583430000017415,
+        "worst": 5.0583430000017415
+      }
+    }
+  ],
+  "protocol": {
+    "backend": "FileCheckpointRepository on runner local filesystem",
+    "event_count": 16,
+    "policies": [
+      "every_event",
+      "fixed_n2"
+    ],
+    "purpose": "Integration-level durable repository I/O check for the leading fixed_n2 candidate versus every-event; this does not freeze interval=2.",
+    "state_bytes": 6507147
+  },
+  "source_commit": "317d55e53bcf538e3630b4c23aaa490c2d741826",
+  "source_ref": "vela-foundation-runtime",
+  "source_repository": "jeonghun917/Ars-Mentis",
+  "status": "VELA_G8_DURABLE_FILE_REPOSITORY_IO_V2",
+  "summary": {
+    "all_roundtrip_ok": true,
+    "fixed_n2_disk_ratio_vs_every_event": 0.49999976949382113,
+    "fixed_n2_expected_checkpoint_ratio": 0.5,
+    "recovery_clean": true
+  }
+}
