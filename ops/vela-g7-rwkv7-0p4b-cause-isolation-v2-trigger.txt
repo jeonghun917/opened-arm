@@ -1,0 +1,2 @@
+Trigger formal G7 v2 cause-isolation run after workflow registration.
+Predeclared interpretation: separate native instability from migration-only excess drift; evaluate one-step-older W2 anchor rescue without using W3-native for selection.
