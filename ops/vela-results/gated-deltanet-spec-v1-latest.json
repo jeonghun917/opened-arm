@@ -1,5 +1,5 @@
 {
-  "status": "VELA_GATED_DELTANET_SPEC_V1_ERROR",
+  "status": "VELA_GATED_DELTANET_SPEC_V1",
   "device": "cpu",
   "dtype": "float32",
   "checks": {
@@ -8,21 +8,62 @@
       "parameter_numel": 24998,
       "mode": "fused_recurrent",
       "use_short_conv": false
+    },
+    "cache_contract": {
+      "pass": true,
+      "cache_class": "Cache",
+      "state_numel": 1536,
+      "seen_tokens": 7,
+      "rebuilt_seen_tokens": 7,
+      "restore_max_abs_diff": 0.0,
+      "finite_state_independent_of_seen_tokens": true
+    },
+    "cpu_transition": {
+      "pass": false,
+      "error_type": "RuntimeError",
+      "error": "0 active drivers ([]). There should only be one.",
+      "traceback_tail": [
+        "                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+        "  File \"/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/torch/autograd/function.py\", line 625, in apply",
+        "    return super().apply(*args, **kwargs)  # type: ignore[misc]",
+        "           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+        "  File \"/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/fla/utils/_decorators.py\", line 152, in wrapper",
+        "    return fn(*processed_args, **processed_kwargs)",
+        "           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+        "  File \"/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/fla/ops/gated_delta_rule/fused_recurrent.py\", line 275, in forward",
+        "    o, final_state = fused_recurrent_gated_delta_rule_fwd(",
+        "                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+        "  File \"/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/fla/ops/gated_delta_rule/fused_recurrent.py\", line 218, in fused_recurrent_gated_delta_rule_fwd",
+        "    fused_recurrent_gated_delta_rule_fwd_kernel[grid](",
+        "  File \"/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/triton/runtime/jit.py\", line 370, in <lambda>",
+        "    return lambda *args, **kwargs: self.run(grid=grid, warmup=False, *args, **kwargs)",
+        "                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+        "  File \"/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/triton/runtime/autotuner.py\", line 459, in run",
+        "    return self.fn.run(*args, **kwargs)",
+        "           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+        "  File \"/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/triton/runtime/jit.py\", line 713, in run",
+        "    device = driver.active.get_current_device()",
+        "             ^^^^^^^^^^^^^",
+        "  File \"/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/triton/runtime/driver.py\", line 39, in active",
+        "    self._active = self.default",
+        "                   ^^^^^^^^^^^^",
+        "  File \"/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/triton/runtime/driver.py\", line 33, in default",
+        "    self._default = _create_driver()",
+        "                    ^^^^^^^^^^^^^^^^",
+        "  File \"/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/triton/runtime/driver.py\", line 20, in _create_driver",
+        "    raise RuntimeError(f\"{len(active_drivers)} active drivers ({active_drivers}). There should only be one.\")",
+        "RuntimeError: 0 active drivers ([]). There should only be one."
+      ],
+      "interpretation": "CPU runner/kernel availability failure is an environment limitation; cache-contract validity is judged separately."
     }
   },
   "fla_version": "0.5.2",
+  "transformers_version": "5.15.1",
   "torch_version": "2.13.0+cpu",
-  "error_type": "ValueError",
-  "error": "You should provide exactly one of `layers` or `layer_class_to_replicate` to initialize a Cache.",
-  "traceback_tail": [
-    "Traceback (most recent call last):",
-    "  File \"/home/runner/work/opened-arm/opened-arm/experiments/vela-active-state/gated-deltanet-spec-v1/gated_deltanet_spec_probe.py\", line 93, in run",
-    "    cache = LegacyFLACache()",
-    "            ^^^^^^^^^^^^^^^^",
-    "  File \"/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/fla/models/utils.py\", line 205, in __init__",
-    "    super().__init__()",
-    "  File \"/opt/hostedtoolcache/Python/3.11.16/x64/lib/python3.11/site-packages/transformers/cache_utils.py\", line 1296, in __init__",
-    "    raise ValueError(",
-    "ValueError: You should provide exactly one of `layers` or `layer_class_to_replicate` to initialize a Cache."
-  ]
+  "summary": {
+    "cache_contract_pass": true,
+    "cpu_transition_pass": false,
+    "spec_candidate": true
+  },
+  "claim_boundary": "Gated DeltaNet layer/cache spec probe on a tiny randomly initialized layer. This tests finite recurrent-state/cache mechanics and, when available, CPU recurrent-transition/restore equivalence. It is not a language-model quality or supersession benchmark."
 }
