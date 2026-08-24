@@ -1,0 +1,105 @@
+name: VELA RWKV7 0.4B chained upgrade v1
+
+on:
+  push:
+    branches: [vela-experiment-infra]
+    paths:
+      - 'experiments/vela-active-state/rwkv7-0p4b-chain-v1/**'
+      - '.github/workflows/vela-rwkv7-0p4b-chain-v1.yml'
+      - 'ops/vela-rwkv7-0p4b-chain-v1-trigger.txt'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: vela-rwkv7-0p4b-chain-v1
+  cancel-in-progress: true
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: vela-experiment-infra
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install runtime
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install 'torch>=2.2,<3' 'transformers>=4.57,<4.58' huggingface_hub
+      - name: Run chained qualification
+        shell: bash
+        env:
+          HF_HUB_DISABLE_TELEMETRY: '1'
+          VELA_RESULT_PATH: /tmp/vela-rwkv7-0p4b-chain-v1.json
+        run: |
+          set +e
+          python experiments/vela-active-state/rwkv7-0p4b-chain-v1/rwkv7_0p4b_chained_upgrade.py > /tmp/vela-chain-stdout.log 2> /tmp/vela-chain-stderr.log
+          rc=$?
+          cat /tmp/vela-chain-stdout.log || true
+          cat /tmp/vela-chain-stderr.log >&2 || true
+          if [[ ! -f "$VELA_RESULT_PATH" ]]; then
+            python - <<'PY'
+          import json, os
+          from pathlib import Path
+          report={
+              'status':'VELA_RWKV7_0P4B_CHAINED_UPGRADE_V1_FAIL_BEFORE_RESULT',
+              'source_commit':os.environ.get('GITHUB_SHA'),
+              'stdout_tail':Path('/tmp/vela-chain-stdout.log').read_text(encoding='utf-8',errors='replace').splitlines()[-100:],
+              'stderr_tail':Path('/tmp/vela-chain-stderr.log').read_text(encoding='utf-8',errors='replace').splitlines()[-140:],
+          }
+          Path(os.environ['VELA_RESULT_PATH']).write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+          PY
+          fi
+          exit $rc
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: vela-rwkv7-0p4b-chain-v1
+          path: /tmp/vela-rwkv7-0p4b-chain-v1.json
+          if-no-files-found: error
+
+  record:
+    if: always()
+    needs: run
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: vela-experiment-infra
+      - uses: actions/download-artifact@v4
+        with:
+          name: vela-rwkv7-0p4b-chain-v1
+          path: /tmp/vela-chain
+      - name: Record result
+        shell: bash
+        run: |
+          mkdir -p ops/vela-results
+          cp /tmp/vela-chain/vela-rwkv7-0p4b-chain-v1.json ops/vela-results/rwkv7-0p4b-chain-v1-latest.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('ops/vela-results/rwkv7-0p4b-chain-v1-latest.json')
+          row=json.loads(p.read_text(encoding='utf-8'))
+          print(json.dumps({
+              'status':row.get('status'),
+              'capability_gate':row.get('capability_gate'),
+              'continuity':row.get('continuity'),
+          },ensure_ascii=False,indent=2))
+          PY
+      - name: Commit result snapshot
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add ops/vela-results/rwkv7-0p4b-chain-v1-latest.json
+          git diff --cached --quiet || git commit -m 'Record VELA RWKV7 0.4B chained upgrade v1 [skip ci]'
+          for n in 1 2 3 4 5; do
+            git pull --rebase origin vela-experiment-infra && git push origin HEAD:vela-experiment-infra && break
+            sleep $((n*3))
+          done
