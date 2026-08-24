@@ -1,0 +1,13 @@
+{
+  "status": "VELA_GATED_DELTANET_GPU_SPEC_V1_ERROR",
+  "error_type": "CalledProcessError",
+  "error": "Command '['/usr/bin/python3', '-m', 'pip', 'install', '--quiet', 'flash-linear-attention[cuda]==0.5.2']' returned non-zero exit status 1.",
+  "traceback_tail": [
+    "Traceback (most recent call last):",
+    "  File \"/kaggle/src/script.py\", line 60, in run",
+    "    subprocess.run(",
+    "  File \"/usr/lib/python3.12/subprocess.py\", line 571, in run",
+    "    raise CalledProcessError(retcode, process.args,",
+    "subprocess.CalledProcessError: Command '['/usr/bin/python3', '-m', 'pip', 'install', '--quiet', 'flash-linear-attention[cuda]==0.5.2']' returned non-zero exit status 1."
+  ]
+}
