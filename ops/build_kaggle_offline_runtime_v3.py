@@ -25,20 +25,33 @@ def sha256_file(path: Path) -> str:
 
 
 def write_manifest_v3() -> None:
-    """Hash transport-stable payloads; Matcha source is identity-gated by git SHA later.
+    """Hash only payloads whose path and bytes survive Kaggle Dataset transport.
 
-    Kaggle can re-materialize nested archives when creating a Dataset version. The
-    outer/nested archive byte identity is therefore not a valid Kaggle transport
-    invariant. This relaxation is Kaggle-only: exact Matcha git commit, cleaner SHA,
-    E280 SHA and checkpoint metadata gates remain unchanged.
+    Kaggle can re-materialize wheel/deb/archive-like files when creating a Dataset
+    version, including changing the mounted filename. Those payloads therefore cannot
+    participate in a path+SHA transport invariant. Their provenance remains in the
+    builder output and their runtime validity is enforced by network-free pip/dpkg plus
+    import/version checks. This relaxation is Kaggle-only: non-archive payload hashes,
+    exact Matcha identity, cleaner SHA, E280 SHA and checkpoint metadata stay strict.
     """
     rows = []
+    archive_payloads = []
     for path in sorted(base.RUNTIME.rglob("*")):
         if not path.is_file() or path.name in {"runtime-manifest.json", "matcha-source.tar.gz"}:
             continue
+        rel = path.relative_to(base.RUNTIME)
+        if rel.parts and rel.parts[0] in {"wheelhouse", "debs"}:
+            archive_payloads.append(
+                {
+                    "path": str(rel),
+                    "bytes": path.stat().st_size,
+                    "sha256": sha256_file(path),
+                }
+            )
+            continue
         rows.append(
             {
-                "path": str(path.relative_to(base.RUNTIME)),
+                "path": str(rel),
                 "bytes": path.stat().st_size,
                 "sha256": sha256_file(path),
             }
@@ -49,16 +62,21 @@ def write_manifest_v3() -> None:
         "network_required_at_kaggle_runtime": False,
         "torch_vendored": False,
         "transport_integrity_policy": (
-            "Kaggle-only archive-byte exemption; hashes retained as provenance, while "
-            "wheel/deb usability is verified by offline install and imports; Matcha is "
-            "verified by exact git commit and patched cleaner SHA"
+            "Strict path+SHA for transport-stable files; wheel/deb path+SHA retained "
+            "as provenance only because Kaggle may re-materialize them; their usability "
+            "is verified by network-free install/import gates"
         ),
         "files": rows,
+        "archive_payload_provenance": archive_payloads,
     }
     (base.RUNTIME / "runtime-manifest.json").write_text(
         json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
     )
-    print("C3_OFFLINE_MANIFEST_V3_PASS", flush=True)
+    print(
+        f"C3_OFFLINE_MANIFEST_V3_PASS strict_files={len(rows)} "
+        f"archive_provenance={len(archive_payloads)}",
+        flush=True,
+    )
 
 
 def _read_runtime_manifest_from_download(root: Path) -> dict | None:
@@ -157,9 +175,10 @@ def write_kaggle_cpu_validator(source_path: Path, destination: Path) -> None:
     """Patch only the Kaggle copy of the validator.
 
     Kaggle has now changed byte identity for .tar.gz and .whl payloads in real runs.
-    Keep file-existence checks, but treat wheel/deb SHA mismatches as Kaggle transport
-    artifacts. The next stages must still successfully install them offline and import
-    the required packages. Non-archive payload hashes remain strict, including E280.
+    The v3 manifest excludes wheel/deb payloads from strict path+SHA verification, so
+    this compatibility patch is now only a defense for older runtime manifests. The
+    next stages must still successfully install archives offline and import the required
+    packages. Non-archive payload hashes remain strict, including E280.
     """
     source = source_path.read_text(encoding="utf-8")
     old = '''    for row in manifest.get("files", []):\n        path = runtime / row["path"]\n        if not path.is_file() or sha256_file(path) != row["sha256"]:\n            raise RuntimeError(f"runtime integrity mismatch: {row['path']}")\n    print("C3_OFFLINE_RUNTIME_SHA_PASS", flush=True)\n'''
