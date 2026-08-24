@@ -1,4 +1,4 @@
 VELA foundation CI trigger.
-Run: 2026-08-24 semantic-change analysis and live-cause replay scope integration.
-Ars-Mentis target: vela-foundation-runtime @ 772baa13b44b73050dcea208516d4cb9e66db2c4
-Trigger revision: 5
+Run: 2026-08-24 G7 trajectory + G8 retention + G9 resilience primitives.
+Ars-Mentis target: vela-foundation-runtime @ 2a91d6ad0670057ad3138d490621b95c85481073
+Trigger revision: 6
