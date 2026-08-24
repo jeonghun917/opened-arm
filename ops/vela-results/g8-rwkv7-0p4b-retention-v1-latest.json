@@ -1,0 +1,1082 @@
+{
+  "status": "VELA_G8_RWKV7_0P4B_RETENTION_POLICY_V1",
+  "source_commit": "501adc83a353f79da0e1218959153401b7d0eefe",
+  "device": "cpu",
+  "model": {
+    "weight_repo": "BlinkDL/rwkv7-g1",
+    "weight_file": "rwkv7-g1a-0.4b-20250905-ctx4096.pth",
+    "weight_revision": "4aa0981b66af4f727181a147bcea1457ad7c84cb"
+  },
+  "protocol": {
+    "policies": [
+      "every_event",
+      "fixed_n2",
+      "fixed_n4",
+      "fixed_n8",
+      "fixed_n16",
+      "semantic_only",
+      "hybrid_semantic_maxgap8"
+    ],
+    "semantic_markers_predeclared": [
+      "Project ",
+      "old codeword",
+      "Correction:",
+      "New correction:",
+      "Verification ",
+      "External action "
+    ],
+    "hybrid_max_gap": 8,
+    "safe_anchor_rule": "latest retained W2-origin checkpoint at or before frozen chain-v2 selected anchor; else full replay",
+    "missing_corrupt_rule": "remove chosen retained checkpoint, use previous safe retained checkpoint or full replay",
+    "percentile_rule": "nearest-rank",
+    "selector_oracle_usage": "none; W3-native is evaluation-only"
+  },
+  "training": {
+    "w2_mean_loss": 0.5272096102139585,
+    "w3_mean_loss": 1.7828144077211618
+  },
+  "checkpoint_io_microbenchmark": {
+    "serialized_bytes": 6507147,
+    "write_ms_median": 5.358850999982678,
+    "read_ms_median": 5.5635139999594685,
+    "rounds": 3
+  },
+  "aggregate": {
+    "every_event": {
+      "fixture_count": 4,
+      "stored_checkpoint_count_total": 27,
+      "estimated_storage_bytes_total": 175692969,
+      "storage_bytes_per_fixture_event": 3137374.4464285714,
+      "safe_anchor_availability_rate": 1.0,
+      "functional_success_before_fallback_rate": 1.0,
+      "full_replay_fallback_rate": 0.0,
+      "recovery_success_rate": 1.0,
+      "missing_or_corrupt_recovery_success_rate": 1.0,
+      "replayed_events": {
+        "p50": 1,
+        "p95": 4,
+        "worst": 4
+      },
+      "replayed_tokens": {
+        "p50": 7,
+        "p95": 31,
+        "worst": 31
+      },
+      "estimated_checkpoint_write_ms_total": 144.68897699953231,
+      "estimated_checkpoint_read_ms_per_selected_migration": 5.5635139999594685,
+      "storage_amplification_vs_every_event": 1.0
+    },
+    "fixed_n2": {
+      "fixture_count": 4,
+      "stored_checkpoint_count_total": 13,
+      "estimated_storage_bytes_total": 84592911,
+      "storage_bytes_per_fixture_event": 1510587.6964285714,
+      "safe_anchor_availability_rate": 1.0,
+      "functional_success_before_fallback_rate": 1.0,
+      "full_replay_fallback_rate": 0.0,
+      "recovery_success_rate": 1.0,
+      "missing_or_corrupt_recovery_success_rate": 1.0,
+      "replayed_events": {
+        "p50": 2,
+        "p95": 4,
+        "worst": 4
+      },
+      "replayed_tokens": {
+        "p50": 14,
+        "p95": 31,
+        "worst": 31
+      },
+      "estimated_checkpoint_write_ms_total": 69.66506299977482,
+      "estimated_checkpoint_read_ms_per_selected_migration": 5.5635139999594685,
+      "storage_amplification_vs_every_event": 0.48148148148148145
+    },
+    "fixed_n4": {
+      "fixture_count": 4,
+      "stored_checkpoint_count_total": 6,
+      "estimated_storage_bytes_total": 39042882,
+      "storage_bytes_per_fixture_event": 697194.3214285715,
+      "safe_anchor_availability_rate": 0.5,
+      "functional_success_before_fallback_rate": 1.0,
+      "full_replay_fallback_rate": 0.5,
+      "recovery_success_rate": 1.0,
+      "missing_or_corrupt_recovery_success_rate": 1.0,
+      "replayed_events": {
+        "p50": 4,
+        "p95": 20,
+        "worst": 20
+      },
+      "replayed_tokens": {
+        "p50": 31,
+        "p95": 175,
+        "worst": 175
+      },
+      "estimated_checkpoint_write_ms_total": 32.15310599989607,
+      "estimated_checkpoint_read_ms_per_selected_migration": 5.5635139999594685,
+      "storage_amplification_vs_every_event": 0.2222222222222222
+    },
+    "fixed_n8": {
+      "fixture_count": 4,
+      "stored_checkpoint_count_total": 2,
+      "estimated_storage_bytes_total": 13014294,
+      "storage_bytes_per_fixture_event": 232398.10714285713,
+      "safe_anchor_availability_rate": 0.25,
+      "functional_success_before_fallback_rate": 1.0,
+      "full_replay_fallback_rate": 0.75,
+      "recovery_success_rate": 1.0,
+      "missing_or_corrupt_recovery_success_rate": 1.0,
+      "replayed_events": {
+        "p50": 8,
+        "p95": 20,
+        "worst": 20
+      },
+      "replayed_tokens": {
+        "p50": 69,
+        "p95": 175,
+        "worst": 175
+      },
+      "estimated_checkpoint_write_ms_total": 10.717701999965357,
+      "estimated_checkpoint_read_ms_per_selected_migration": 5.5635139999594685,
+      "storage_amplification_vs_every_event": 0.07407407407407407
+    },
+    "fixed_n16": {
+      "fixture_count": 4,
+      "stored_checkpoint_count_total": 0,
+      "estimated_storage_bytes_total": 0,
+      "storage_bytes_per_fixture_event": 0.0,
+      "safe_anchor_availability_rate": 0.0,
+      "functional_success_before_fallback_rate": 1.0,
+      "full_replay_fallback_rate": 1.0,
+      "recovery_success_rate": 1.0,
+      "missing_or_corrupt_recovery_success_rate": 1.0,
+      "replayed_events": {
+        "p50": 12,
+        "p95": 20,
+        "worst": 20
+      },
+      "replayed_tokens": {
+        "p50": 100,
+        "p95": 175,
+        "worst": 175
+      },
+      "estimated_checkpoint_write_ms_total": 0.0,
+      "estimated_checkpoint_read_ms_per_selected_migration": 5.5635139999594685,
+      "storage_amplification_vs_every_event": 0.0
+    },
+    "semantic_only": {
+      "fixture_count": 4,
+      "stored_checkpoint_count_total": 9,
+      "estimated_storage_bytes_total": 58564323,
+      "storage_bytes_per_fixture_event": 1045791.4821428572,
+      "safe_anchor_availability_rate": 0.75,
+      "functional_success_before_fallback_rate": 1.0,
+      "full_replay_fallback_rate": 0.25,
+      "recovery_success_rate": 1.0,
+      "missing_or_corrupt_recovery_success_rate": 1.0,
+      "replayed_events": {
+        "p50": 4,
+        "p95": 20,
+        "worst": 20
+      },
+      "replayed_tokens": {
+        "p50": 31,
+        "p95": 175,
+        "worst": 175
+      },
+      "estimated_checkpoint_write_ms_total": 48.229658999844105,
+      "estimated_checkpoint_read_ms_per_selected_migration": 5.5635139999594685,
+      "storage_amplification_vs_every_event": 0.3333333333333333
+    },
+    "hybrid_semantic_maxgap8": {
+      "fixture_count": 4,
+      "stored_checkpoint_count_total": 10,
+      "estimated_storage_bytes_total": 65071470,
+      "storage_bytes_per_fixture_event": 1161990.5357142857,
+      "safe_anchor_availability_rate": 0.75,
+      "functional_success_before_fallback_rate": 1.0,
+      "full_replay_fallback_rate": 0.25,
+      "recovery_success_rate": 1.0,
+      "missing_or_corrupt_recovery_success_rate": 1.0,
+      "replayed_events": {
+        "p50": 4,
+        "p95": 20,
+        "worst": 20
+      },
+      "replayed_tokens": {
+        "p50": 31,
+        "p95": 175,
+        "worst": 175
+      },
+      "estimated_checkpoint_write_ms_total": 53.58850999982678,
+      "estimated_checkpoint_read_ms_per_selected_migration": 5.5635139999594685,
+      "storage_amplification_vs_every_event": 0.37037037037037035
+    }
+  },
+  "safety_qualified_policies": [
+    "every_event",
+    "fixed_n2",
+    "fixed_n4",
+    "fixed_n8",
+    "fixed_n16",
+    "semantic_only",
+    "hybrid_semantic_maxgap8"
+  ],
+  "fixtures_by_policy": {
+    "every_event": [
+      {
+        "fixture": "superseded_base",
+        "native_valid": true,
+        "chain_v2_safe_anchor_pos": 65,
+        "chain_v2_safe_anchor_source_generation": "W2",
+        "retained_positions": [
+          51,
+          55,
+          65,
+          69
+        ],
+        "stored_checkpoint_count": 4,
+        "safe_anchor_available": true,
+        "selected_retained_checkpoint_pos": 65,
+        "selected_mode": "retained_checkpoint",
+        "replayed_events": 1,
+        "replayed_tokens": 4,
+        "functional_success_before_fallback": true,
+        "full_replay_fallback_used": false,
+        "recovered_successfully": true,
+        "missing_or_corrupt_injection": {
+          "removed_checkpoint_pos": 65,
+          "recovery_checkpoint_pos": 55,
+          "recovery_mode": "retained_checkpoint",
+          "recovered_successfully": true
+        },
+        "functional_vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 0.672705650604412
+        }
+      },
+      {
+        "fixture": "superseded_suffix4",
+        "native_valid": true,
+        "chain_v2_safe_anchor_pos": 69,
+        "chain_v2_safe_anchor_source_generation": "W2",
+        "retained_positions": [
+          51,
+          55,
+          65,
+          69,
+          77,
+          86,
+          93,
+          100
+        ],
+        "stored_checkpoint_count": 8,
+        "safe_anchor_available": true,
+        "selected_retained_checkpoint_pos": 69,
+        "selected_mode": "retained_checkpoint",
+        "replayed_events": 4,
+        "replayed_tokens": 31,
+        "functional_success_before_fallback": true,
+        "full_replay_fallback_used": false,
+        "recovered_successfully": true,
+        "missing_or_corrupt_injection": {
+          "removed_checkpoint_pos": 69,
+          "recovery_checkpoint_pos": 65,
+          "recovery_mode": "retained_checkpoint",
+          "recovered_successfully": true
+        },
+        "functional_vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 0.6160253692965919
+        }
+      },
+      {
+        "fixture": "superseded_suffix8",
+        "native_valid": true,
+        "chain_v2_safe_anchor_pos": 121,
+        "chain_v2_safe_anchor_source_generation": "W2",
+        "retained_positions": [
+          51,
+          55,
+          65,
+          69,
+          77,
+          86,
+          93,
+          100,
+          108,
+          114,
+          121,
+          130
+        ],
+        "stored_checkpoint_count": 12,
+        "safe_anchor_available": true,
+        "selected_retained_checkpoint_pos": 121,
+        "selected_mode": "retained_checkpoint",
+        "replayed_events": 1,
+        "replayed_tokens": 9,
+        "functional_success_before_fallback": true,
+        "full_replay_fallback_used": false,
+        "recovered_successfully": true,
+        "missing_or_corrupt_injection": {
+          "removed_checkpoint_pos": 121,
+          "recovery_checkpoint_pos": 114,
+          "recovery_mode": "retained_checkpoint",
+          "recovered_successfully": true
+        },
+        "functional_vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 0.8029121581463188
+        }
+      },
+      {
+        "fixture": "superseded_old_value_echoes",
+        "native_valid": true,
+        "chain_v2_safe_anchor_pos": 168,
+        "chain_v2_safe_anchor_source_generation": "W2",
+        "retained_positions": [
+          159,
+          168,
+          175
+        ],
+        "stored_checkpoint_count": 3,
+        "safe_anchor_available": true,
+        "selected_retained_checkpoint_pos": 168,
+        "selected_mode": "retained_checkpoint",
+        "replayed_events": 1,
+        "replayed_tokens": 7,
+        "functional_success_before_fallback": true,
+        "full_replay_fallback_used": false,
+        "recovered_successfully": true,
+        "missing_or_corrupt_injection": {
+          "removed_checkpoint_pos": 168,
+          "recovery_checkpoint_pos": 159,
+          "recovery_mode": "retained_checkpoint",
+          "recovered_successfully": true
+        },
+        "functional_vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 1.1166220648941507
+        }
+      }
+    ],
+    "fixed_n2": [
+      {
+        "fixture": "superseded_base",
+        "native_valid": true,
+        "chain_v2_safe_anchor_pos": 65,
+        "chain_v2_safe_anchor_source_generation": "W2",
+        "retained_positions": [
+          55,
+          69
+        ],
+        "stored_checkpoint_count": 2,
+        "safe_anchor_available": true,
+        "selected_retained_checkpoint_pos": 55,
+        "selected_mode": "retained_checkpoint",
+        "replayed_events": 2,
+        "replayed_tokens": 14,
+        "functional_success_before_fallback": true,
+        "full_replay_fallback_used": false,
+        "recovered_successfully": true,
+        "missing_or_corrupt_injection": {
+          "removed_checkpoint_pos": 55,
+          "recovery_checkpoint_pos": null,
+          "recovery_mode": "full_replay",
+          "recovered_successfully": true
+        },
+        "functional_vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 0.6607666192351167
+        }
+      },
+      {
+        "fixture": "superseded_suffix4",
+        "native_valid": true,
+        "chain_v2_safe_anchor_pos": 69,
+        "chain_v2_safe_anchor_source_generation": "W2",
+        "retained_positions": [
+          55,
+          69,
+          86,
+          100
+        ],
+        "stored_checkpoint_count": 4,
+        "safe_anchor_available": true,
+        "selected_retained_checkpoint_pos": 69,
+        "selected_mode": "retained_checkpoint",
+        "replayed_events": 4,
+        "replayed_tokens": 31,
+        "functional_success_before_fallback": true,
+        "full_replay_fallback_used": false,
+        "recovered_successfully": true,
+        "missing_or_corrupt_injection": {
+          "removed_checkpoint_pos": 69,
+          "recovery_checkpoint_pos": 55,
+          "recovery_mode": "retained_checkpoint",
+          "recovered_successfully": true
+        },
+        "functional_vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 0.6160253692965919
+        }
+      },
+      {
+        "fixture": "superseded_suffix8",
+        "native_valid": true,
+        "chain_v2_safe_anchor_pos": 121,
+        "chain_v2_safe_anchor_source_generation": "W2",
+        "retained_positions": [
+          55,
+          69,
+          86,
+          100,
+          114,
+          130
+        ],
+        "stored_checkpoint_count": 6,
+        "safe_anchor_available": true,
+        "selected_retained_checkpoint_pos": 114,
+        "selected_mode": "retained_checkpoint",
+        "replayed_events": 2,
+        "replayed_tokens": 16,
+        "functional_success_before_fallback": true,
+        "full_replay_fallback_used": false,
+        "recovered_successfully": true,
+        "missing_or_corrupt_injection": {
+          "removed_checkpoint_pos": 114,
+          "recovery_checkpoint_pos": 100,
+          "recovery_mode": "retained_checkpoint",
+          "recovered_successfully": true
+        },
+        "functional_vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 0.7676053371969362
+        }
+      },
+      {
+        "fixture": "superseded_old_value_echoes",
+        "native_valid": true,
+        "chain_v2_safe_anchor_pos": 168,
+        "chain_v2_safe_anchor_source_generation": "W2",
+        "retained_positions": [
+          168
+        ],
+        "stored_checkpoint_count": 1,
+        "safe_anchor_available": true,
+        "selected_retained_checkpoint_pos": 168,
+        "selected_mode": "retained_checkpoint",
+        "replayed_events": 1,
+        "replayed_tokens": 7,
+        "functional_success_before_fallback": true,
+        "full_replay_fallback_used": false,
+        "recovered_successfully": true,
+        "missing_or_corrupt_injection": {
+          "removed_checkpoint_pos": 168,
+          "recovery_checkpoint_pos": null,
+          "recovery_mode": "full_replay",
+          "recovered_successfully": true
+        },
+        "functional_vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 1.1166220648941507
+        }
+      }
+    ],
+    "fixed_n4": [
+      {
+        "fixture": "superseded_base",
+        "native_valid": true,
+        "chain_v2_safe_anchor_pos": 65,
+        "chain_v2_safe_anchor_source_generation": "W2",
+        "retained_positions": [
+          69
+        ],
+        "stored_checkpoint_count": 1,
+        "safe_anchor_available": false,
+        "selected_retained_checkpoint_pos": null,
+        "selected_mode": "full_replay",
+        "replayed_events": 8,
+        "replayed_tokens": 69,
+        "functional_success_before_fallback": true,
+        "full_replay_fallback_used": true,
+        "recovered_successfully": true,
+        "missing_or_corrupt_injection": {
+          "removed_checkpoint_pos": null,
+          "recovery_checkpoint_pos": null,
+          "recovery_mode": "full_replay",
+          "recovered_successfully": true
+        },
+        "functional_vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 0.0
+        }
+      },
+      {
+        "fixture": "superseded_suffix4",
+        "native_valid": true,
+        "chain_v2_safe_anchor_pos": 69,
+        "chain_v2_safe_anchor_source_generation": "W2",
+        "retained_positions": [
+          69,
+          100
+        ],
+        "stored_checkpoint_count": 2,
+        "safe_anchor_available": true,
+        "selected_retained_checkpoint_pos": 69,
+        "selected_mode": "retained_checkpoint",
+        "replayed_events": 4,
+        "replayed_tokens": 31,
+        "functional_success_before_fallback": true,
+        "full_replay_fallback_used": false,
+        "recovered_successfully": true,
+        "missing_or_corrupt_injection": {
+          "removed_checkpoint_pos": 69,
+          "recovery_checkpoint_pos": null,
+          "recovery_mode": "full_replay",
+          "recovered_successfully": true
+        },
+        "functional_vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 0.6160253692965919
+        }
+      },
+      {
+        "fixture": "superseded_suffix8",
+        "native_valid": true,
+        "chain_v2_safe_anchor_pos": 121,
+        "chain_v2_safe_anchor_source_generation": "W2",
+        "retained_positions": [
+          69,
+          100,
+          130
+        ],
+        "stored_checkpoint_count": 3,
+        "safe_anchor_available": true,
+        "selected_retained_checkpoint_pos": 100,
+        "selected_mode": "retained_checkpoint",
+        "replayed_events": 4,
+        "replayed_tokens": 30,
+        "functional_success_before_fallback": true,
+        "full_replay_fallback_used": false,
+        "recovered_successfully": true,
+        "missing_or_corrupt_injection": {
+          "removed_checkpoint_pos": 100,
+          "recovery_checkpoint_pos": 69,
+          "recovery_mode": "retained_checkpoint",
+          "recovered_successfully": true
+        },
+        "functional_vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 0.7073768059313015
+        }
+      },
+      {
+        "fixture": "superseded_old_value_echoes",
+        "native_valid": true,
+        "chain_v2_safe_anchor_pos": 168,
+        "chain_v2_safe_anchor_source_generation": "W2",
+        "retained_positions": [],
+        "stored_checkpoint_count": 0,
+        "safe_anchor_available": false,
+        "selected_retained_checkpoint_pos": null,
+        "selected_mode": "full_replay",
+        "replayed_events": 20,
+        "replayed_tokens": 175,
+        "functional_success_before_fallback": true,
+        "full_replay_fallback_used": true,
+        "recovered_successfully": true,
+        "missing_or_corrupt_injection": {
+          "removed_checkpoint_pos": null,
+          "recovery_checkpoint_pos": null,
+          "recovery_mode": "full_replay",
+          "recovered_successfully": true
+        },
+        "functional_vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 0.0
+        }
+      }
+    ],
+    "fixed_n8": [
+      {
+        "fixture": "superseded_base",
+        "native_valid": true,
+        "chain_v2_safe_anchor_pos": 65,
+        "chain_v2_safe_anchor_source_generation": "W2",
+        "retained_positions": [],
+        "stored_checkpoint_count": 0,
+        "safe_anchor_available": false,
+        "selected_retained_checkpoint_pos": null,
+        "selected_mode": "full_replay",
+        "replayed_events": 8,
+        "replayed_tokens": 69,
+        "functional_success_before_fallback": true,
+        "full_replay_fallback_used": true,
+        "recovered_successfully": true,
+        "missing_or_corrupt_injection": {
+          "removed_checkpoint_pos": null,
+          "recovery_checkpoint_pos": null,
+          "recovery_mode": "full_replay",
+          "recovered_successfully": true
+        },
+        "functional_vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 0.0
+        }
+      },
+      {
+        "fixture": "superseded_suffix4",
+        "native_valid": true,
+        "chain_v2_safe_anchor_pos": 69,
+        "chain_v2_safe_anchor_source_generation": "W2",
+        "retained_positions": [
+          100
+        ],
+        "stored_checkpoint_count": 1,
+        "safe_anchor_available": false,
+        "selected_retained_checkpoint_pos": null,
+        "selected_mode": "full_replay",
+        "replayed_events": 12,
+        "replayed_tokens": 100,
+        "functional_success_before_fallback": true,
+        "full_replay_fallback_used": true,
+        "recovered_successfully": true,
+        "missing_or_corrupt_injection": {
+          "removed_checkpoint_pos": null,
+          "recovery_checkpoint_pos": null,
+          "recovery_mode": "full_replay",
+          "recovered_successfully": true
+        },
+        "functional_vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 0.0
+        }
+      },
+      {
+        "fixture": "superseded_suffix8",
+        "native_valid": true,
+        "chain_v2_safe_anchor_pos": 121,
+        "chain_v2_safe_anchor_source_generation": "W2",
+        "retained_positions": [
+          100
+        ],
+        "stored_checkpoint_count": 1,
+        "safe_anchor_available": true,
+        "selected_retained_checkpoint_pos": 100,
+        "selected_mode": "retained_checkpoint",
+        "replayed_events": 4,
+        "replayed_tokens": 30,
+        "functional_success_before_fallback": true,
+        "full_replay_fallback_used": false,
+        "recovered_successfully": true,
+        "missing_or_corrupt_injection": {
+          "removed_checkpoint_pos": 100,
+          "recovery_checkpoint_pos": null,
+          "recovery_mode": "full_replay",
+          "recovered_successfully": true
+        },
+        "functional_vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 0.7073768059313015
+        }
+      },
+      {
+        "fixture": "superseded_old_value_echoes",
+        "native_valid": true,
+        "chain_v2_safe_anchor_pos": 168,
+        "chain_v2_safe_anchor_source_generation": "W2",
+        "retained_positions": [],
+        "stored_checkpoint_count": 0,
+        "safe_anchor_available": false,
+        "selected_retained_checkpoint_pos": null,
+        "selected_mode": "full_replay",
+        "replayed_events": 20,
+        "replayed_tokens": 175,
+        "functional_success_before_fallback": true,
+        "full_replay_fallback_used": true,
+        "recovered_successfully": true,
+        "missing_or_corrupt_injection": {
+          "removed_checkpoint_pos": null,
+          "recovery_checkpoint_pos": null,
+          "recovery_mode": "full_replay",
+          "recovered_successfully": true
+        },
+        "functional_vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 0.0
+        }
+      }
+    ],
+    "fixed_n16": [
+      {
+        "fixture": "superseded_base",
+        "native_valid": true,
+        "chain_v2_safe_anchor_pos": 65,
+        "chain_v2_safe_anchor_source_generation": "W2",
+        "retained_positions": [],
+        "stored_checkpoint_count": 0,
+        "safe_anchor_available": false,
+        "selected_retained_checkpoint_pos": null,
+        "selected_mode": "full_replay",
+        "replayed_events": 8,
+        "replayed_tokens": 69,
+        "functional_success_before_fallback": true,
+        "full_replay_fallback_used": true,
+        "recovered_successfully": true,
+        "missing_or_corrupt_injection": {
+          "removed_checkpoint_pos": null,
+          "recovery_checkpoint_pos": null,
+          "recovery_mode": "full_replay",
+          "recovered_successfully": true
+        },
+        "functional_vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 0.0
+        }
+      },
+      {
+        "fixture": "superseded_suffix4",
+        "native_valid": true,
+        "chain_v2_safe_anchor_pos": 69,
+        "chain_v2_safe_anchor_source_generation": "W2",
+        "retained_positions": [],
+        "stored_checkpoint_count": 0,
+        "safe_anchor_available": false,
+        "selected_retained_checkpoint_pos": null,
+        "selected_mode": "full_replay",
+        "replayed_events": 12,
+        "replayed_tokens": 100,
+        "functional_success_before_fallback": true,
+        "full_replay_fallback_used": true,
+        "recovered_successfully": true,
+        "missing_or_corrupt_injection": {
+          "removed_checkpoint_pos": null,
+          "recovery_checkpoint_pos": null,
+          "recovery_mode": "full_replay",
+          "recovered_successfully": true
+        },
+        "functional_vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 0.0
+        }
+      },
+      {
+        "fixture": "superseded_suffix8",
+        "native_valid": true,
+        "chain_v2_safe_anchor_pos": 121,
+        "chain_v2_safe_anchor_source_generation": "W2",
+        "retained_positions": [],
+        "stored_checkpoint_count": 0,
+        "safe_anchor_available": false,
+        "selected_retained_checkpoint_pos": null,
+        "selected_mode": "full_replay",
+        "replayed_events": 16,
+        "replayed_tokens": 130,
+        "functional_success_before_fallback": true,
+        "full_replay_fallback_used": true,
+        "recovered_successfully": true,
+        "missing_or_corrupt_injection": {
+          "removed_checkpoint_pos": null,
+          "recovery_checkpoint_pos": null,
+          "recovery_mode": "full_replay",
+          "recovered_successfully": true
+        },
+        "functional_vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 0.0
+        }
+      },
+      {
+        "fixture": "superseded_old_value_echoes",
+        "native_valid": true,
+        "chain_v2_safe_anchor_pos": 168,
+        "chain_v2_safe_anchor_source_generation": "W2",
+        "retained_positions": [],
+        "stored_checkpoint_count": 0,
+        "safe_anchor_available": false,
+        "selected_retained_checkpoint_pos": null,
+        "selected_mode": "full_replay",
+        "replayed_events": 20,
+        "replayed_tokens": 175,
+        "functional_success_before_fallback": true,
+        "full_replay_fallback_used": true,
+        "recovered_successfully": true,
+        "missing_or_corrupt_injection": {
+          "removed_checkpoint_pos": null,
+          "recovery_checkpoint_pos": null,
+          "recovery_mode": "full_replay",
+          "recovered_successfully": true
+        },
+        "functional_vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 0.0
+        }
+      }
+    ],
+    "semantic_only": [
+      {
+        "fixture": "superseded_base",
+        "native_valid": true,
+        "chain_v2_safe_anchor_pos": 65,
+        "chain_v2_safe_anchor_source_generation": "W2",
+        "retained_positions": [
+          51,
+          55,
+          69
+        ],
+        "stored_checkpoint_count": 3,
+        "safe_anchor_available": true,
+        "selected_retained_checkpoint_pos": 55,
+        "selected_mode": "retained_checkpoint",
+        "replayed_events": 2,
+        "replayed_tokens": 14,
+        "functional_success_before_fallback": true,
+        "full_replay_fallback_used": false,
+        "recovered_successfully": true,
+        "missing_or_corrupt_injection": {
+          "removed_checkpoint_pos": 55,
+          "recovery_checkpoint_pos": 51,
+          "recovery_mode": "retained_checkpoint",
+          "recovered_successfully": true
+        },
+        "functional_vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 0.6607666192351167
+        }
+      },
+      {
+        "fixture": "superseded_suffix4",
+        "native_valid": true,
+        "chain_v2_safe_anchor_pos": 69,
+        "chain_v2_safe_anchor_source_generation": "W2",
+        "retained_positions": [
+          51,
+          55,
+          69
+        ],
+        "stored_checkpoint_count": 3,
+        "safe_anchor_available": true,
+        "selected_retained_checkpoint_pos": 69,
+        "selected_mode": "retained_checkpoint",
+        "replayed_events": 4,
+        "replayed_tokens": 31,
+        "functional_success_before_fallback": true,
+        "full_replay_fallback_used": false,
+        "recovered_successfully": true,
+        "missing_or_corrupt_injection": {
+          "removed_checkpoint_pos": 69,
+          "recovery_checkpoint_pos": 55,
+          "recovery_mode": "retained_checkpoint",
+          "recovered_successfully": true
+        },
+        "functional_vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 0.6160253692965919
+        }
+      },
+      {
+        "fixture": "superseded_suffix8",
+        "native_valid": true,
+        "chain_v2_safe_anchor_pos": 121,
+        "chain_v2_safe_anchor_source_generation": "W2",
+        "retained_positions": [
+          51,
+          55,
+          69
+        ],
+        "stored_checkpoint_count": 3,
+        "safe_anchor_available": true,
+        "selected_retained_checkpoint_pos": 69,
+        "selected_mode": "retained_checkpoint",
+        "replayed_events": 8,
+        "replayed_tokens": 61,
+        "functional_success_before_fallback": true,
+        "full_replay_fallback_used": false,
+        "recovered_successfully": true,
+        "missing_or_corrupt_injection": {
+          "removed_checkpoint_pos": 69,
+          "recovery_checkpoint_pos": 55,
+          "recovery_mode": "retained_checkpoint",
+          "recovered_successfully": true
+        },
+        "functional_vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 0.5819951964403205
+        }
+      },
+      {
+        "fixture": "superseded_old_value_echoes",
+        "native_valid": true,
+        "chain_v2_safe_anchor_pos": 168,
+        "chain_v2_safe_anchor_source_generation": "W2",
+        "retained_positions": [],
+        "stored_checkpoint_count": 0,
+        "safe_anchor_available": false,
+        "selected_retained_checkpoint_pos": null,
+        "selected_mode": "full_replay",
+        "replayed_events": 20,
+        "replayed_tokens": 175,
+        "functional_success_before_fallback": true,
+        "full_replay_fallback_used": true,
+        "recovered_successfully": true,
+        "missing_or_corrupt_injection": {
+          "removed_checkpoint_pos": null,
+          "recovery_checkpoint_pos": null,
+          "recovery_mode": "full_replay",
+          "recovered_successfully": true
+        },
+        "functional_vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 0.0
+        }
+      }
+    ],
+    "hybrid_semantic_maxgap8": [
+      {
+        "fixture": "superseded_base",
+        "native_valid": true,
+        "chain_v2_safe_anchor_pos": 65,
+        "chain_v2_safe_anchor_source_generation": "W2",
+        "retained_positions": [
+          51,
+          55,
+          69
+        ],
+        "stored_checkpoint_count": 3,
+        "safe_anchor_available": true,
+        "selected_retained_checkpoint_pos": 55,
+        "selected_mode": "retained_checkpoint",
+        "replayed_events": 2,
+        "replayed_tokens": 14,
+        "functional_success_before_fallback": true,
+        "full_replay_fallback_used": false,
+        "recovered_successfully": true,
+        "missing_or_corrupt_injection": {
+          "removed_checkpoint_pos": 55,
+          "recovery_checkpoint_pos": 51,
+          "recovery_mode": "retained_checkpoint",
+          "recovered_successfully": true
+        },
+        "functional_vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 0.6607666192351167
+        }
+      },
+      {
+        "fixture": "superseded_suffix4",
+        "native_valid": true,
+        "chain_v2_safe_anchor_pos": 69,
+        "chain_v2_safe_anchor_source_generation": "W2",
+        "retained_positions": [
+          51,
+          55,
+          69
+        ],
+        "stored_checkpoint_count": 3,
+        "safe_anchor_available": true,
+        "selected_retained_checkpoint_pos": 69,
+        "selected_mode": "retained_checkpoint",
+        "replayed_events": 4,
+        "replayed_tokens": 31,
+        "functional_success_before_fallback": true,
+        "full_replay_fallback_used": false,
+        "recovered_successfully": true,
+        "missing_or_corrupt_injection": {
+          "removed_checkpoint_pos": 69,
+          "recovery_checkpoint_pos": 55,
+          "recovery_mode": "retained_checkpoint",
+          "recovered_successfully": true
+        },
+        "functional_vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 0.6160253692965919
+        }
+      },
+      {
+        "fixture": "superseded_suffix8",
+        "native_valid": true,
+        "chain_v2_safe_anchor_pos": 121,
+        "chain_v2_safe_anchor_source_generation": "W2",
+        "retained_positions": [
+          51,
+          55,
+          69,
+          130
+        ],
+        "stored_checkpoint_count": 4,
+        "safe_anchor_available": true,
+        "selected_retained_checkpoint_pos": 69,
+        "selected_mode": "retained_checkpoint",
+        "replayed_events": 8,
+        "replayed_tokens": 61,
+        "functional_success_before_fallback": true,
+        "full_replay_fallback_used": false,
+        "recovered_successfully": true,
+        "missing_or_corrupt_injection": {
+          "removed_checkpoint_pos": 69,
+          "recovery_checkpoint_pos": 55,
+          "recovery_mode": "retained_checkpoint",
+          "recovered_successfully": true
+        },
+        "functional_vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 0.5819951964403205
+        }
+      },
+      {
+        "fixture": "superseded_old_value_echoes",
+        "native_valid": true,
+        "chain_v2_safe_anchor_pos": 168,
+        "chain_v2_safe_anchor_source_generation": "W2",
+        "retained_positions": [],
+        "stored_checkpoint_count": 0,
+        "safe_anchor_available": false,
+        "selected_retained_checkpoint_pos": null,
+        "selected_mode": "full_replay",
+        "replayed_events": 20,
+        "replayed_tokens": 175,
+        "functional_success_before_fallback": true,
+        "full_replay_fallback_used": true,
+        "recovered_successfully": true,
+        "missing_or_corrupt_injection": {
+          "removed_checkpoint_pos": null,
+          "recovery_checkpoint_pos": null,
+          "recovery_mode": "full_replay",
+          "recovered_successfully": true
+        },
+        "functional_vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 0.0
+        }
+      }
+    ]
+  },
+  "claim_boundary": "G8 policy evidence on four predeclared RWKV-7 0.4B chain fixtures. Storage uses measured serialized recurrent-state size and median local serialization I/O multiplied by policy write counts. No checkpoint interval/policy is frozen by this result; Gate G8 remains PENDING until source/workflow/result audit and later integration-level I/O confirmation."
+}
