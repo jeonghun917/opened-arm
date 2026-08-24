@@ -1,0 +1,100 @@
+{
+  "status": "VELA_RWKV7_0P4B_NARROW_SWEEP_V2_AGGREGATE",
+  "arms": {
+    "balanced_lr1e5": {
+      "status": "FAIL_BEFORE_RESULT",
+      "arm": "balanced_lr1e5",
+      "source_commit": "309853fda12720ec7d7909c38a62e6818587e698"
+    },
+    "balanced_lr1p5e5": {
+      "status": "FAIL_BEFORE_RESULT",
+      "arm": "balanced_lr1p5e5",
+      "source_commit": "309853fda12720ec7d7909c38a62e6818587e698"
+    },
+    "balanced_lr2e5": {
+      "status": "FAIL_BEFORE_RESULT",
+      "arm": "balanced_lr2e5",
+      "source_commit": "309853fda12720ec7d7909c38a62e6818587e698"
+    },
+    "balanced_lr7p5e6": {
+      "status": "FAIL_BEFORE_RESULT",
+      "arm": "balanced_lr7p5e6",
+      "source_commit": "309853fda12720ec7d7909c38a62e6818587e698"
+    },
+    "supheavy_lr1e5": {
+      "status": "FAIL_BEFORE_RESULT",
+      "arm": "supheavy_lr1e5",
+      "source_commit": "309853fda12720ec7d7909c38a62e6818587e698"
+    }
+  },
+  "ranking_retention_qualified": [
+    {
+      "arm": "balanced_lr1e5",
+      "status": "FAIL_BEFORE_RESULT",
+      "superseded_full_success": -1,
+      "overall_full_success": -1,
+      "correction_accuracy": null,
+      "control_accuracy": null,
+      "epoch": null,
+      "optimizer_steps": null,
+      "learning_rate": null,
+      "curriculum": null
+    },
+    {
+      "arm": "balanced_lr1p5e5",
+      "status": "FAIL_BEFORE_RESULT",
+      "superseded_full_success": -1,
+      "overall_full_success": -1,
+      "correction_accuracy": null,
+      "control_accuracy": null,
+      "epoch": null,
+      "optimizer_steps": null,
+      "learning_rate": null,
+      "curriculum": null
+    },
+    {
+      "arm": "balanced_lr2e5",
+      "status": "FAIL_BEFORE_RESULT",
+      "superseded_full_success": -1,
+      "overall_full_success": -1,
+      "correction_accuracy": null,
+      "control_accuracy": null,
+      "epoch": null,
+      "optimizer_steps": null,
+      "learning_rate": null,
+      "curriculum": null
+    },
+    {
+      "arm": "balanced_lr7p5e6",
+      "status": "FAIL_BEFORE_RESULT",
+      "superseded_full_success": -1,
+      "overall_full_success": -1,
+      "correction_accuracy": null,
+      "control_accuracy": null,
+      "epoch": null,
+      "optimizer_steps": null,
+      "learning_rate": null,
+      "curriculum": null
+    },
+    {
+      "arm": "supheavy_lr1e5",
+      "status": "FAIL_BEFORE_RESULT",
+      "superseded_full_success": -1,
+      "overall_full_success": -1,
+      "correction_accuracy": null,
+      "control_accuracy": null,
+      "epoch": null,
+      "optimizer_steps": null,
+      "learning_rate": null,
+      "curriculum": null
+    }
+  ],
+  "summary": {
+    "best_retention_qualified_arm": null,
+    "hits_13_of_13_retention_safe": false,
+    "beats_v1_11_of_13": false,
+    "all_arms_present": true,
+    "next_gate": "If 13/13 retention-safe, proceed to RWKV-7 0.4B W1->W2->W3 chained-source migration/replay validation. Otherwise diagnose the two residual fixtures before widening adaptation."
+  },
+  "claim_boundary": "Local tuning uses a repeatedly inspected 38-fixture suite; ranking is diagnostic and cannot by itself establish general overwrite capability."
+}
