@@ -56,6 +56,49 @@ def write_report(report):
     print(json.dumps(report, ensure_ascii=False, indent=2))
 
 
+def score_candidate_from_logits(model, ns, tok, base_out, base_state, candidate):
+    cids = tok.encode(candidate)
+    if not cids:
+        raise RuntimeError("empty candidate")
+    out = base_out
+    st = rw.clone_state(base_state)
+    total = 0.0
+    with torch.no_grad():
+        for j, tid in enumerate(cids):
+            total += float(torch.log_softmax(out.float(), dim=-1)[tid])
+            if j + 1 < len(cids):
+                out, st = rw.run_tokens(model, ns, [tid], st)
+    return total
+
+
+def evaluate_heldout(model, ns, tok):
+    rows = []
+    kinds = {"correction": [0, 0], "control": [0, 0]}
+    for fx in rw.HELDOUT:
+        pids = tok.encode(fx["prompt"])
+        with torch.no_grad():
+            out, st = rw.run_tokens(model, ns, pids, rw.zero_state(model.args, model))
+            st = rw.clone_state(st)
+        if out is None:
+            raise RuntimeError(f"empty prompt for {fx['id']}")
+        scores = {
+            c: score_candidate_from_logits(model, ns, tok, out, st, c)
+            for c in fx["candidates"]
+        }
+        chosen = max(scores, key=scores.get)
+        ok = chosen == fx["expected"]
+        kinds[fx["kind"]][0] += int(ok)
+        kinds[fx["kind"]][1] += 1
+        rows.append({"id": fx["id"], "chosen": chosen, "expected": fx["expected"], "correct": ok, "scores": scores})
+    correct = sum(int(r["correct"]) for r in rows)
+    return {
+        "accuracy": correct / max(len(rows), 1),
+        "correction_accuracy": kinds["correction"][0] / max(kinds["correction"][1], 1),
+        "control_accuracy": kinds["control"][0] / max(kinds["control"][1], 1),
+        "rows": rows,
+    }
+
+
 def evaluate_suite(model, ns, tok):
     rows = []
     for fx in rob.FIXTURES:
@@ -86,7 +129,7 @@ def evaluate_suite(model, ns, tok):
 
 
 def summarize_checkpoint(epoch, model, ns, tok):
-    heldout = rw.eval_model(model, ns, tok)
+    heldout = evaluate_heldout(model, ns, tok)
     suite = evaluate_suite(model, ns, tok)
     return {
         "epoch": epoch,
@@ -120,7 +163,6 @@ def run():
             urllib.request.urlretrieve(rw.VOCAB_URL, vp)
             tok = rw.RWKVTokenizer(str(vp))
 
-            # Use the same known-working update scope as the earlier RWKV-7 learned-upgrade test.
             trainable = []
             for p in model.z.values():
                 if isinstance(p, torch.Tensor):
