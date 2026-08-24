@@ -1,0 +1,4 @@
+G9 engine-neutral failure matrix CPU run.
+Private Ars-Mentis source pinned at b5400c5d878f351223095eae8b08cae1f4166582.
+13 failure classes + previous-engine recovery outcomes.
+Triggered: 2026-08-24 KST.
