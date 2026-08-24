@@ -1,0 +1,137 @@
+name: VELA RWKV7 retention adaptation v2
+
+on:
+  push:
+    branches: [vela-experiment-infra]
+    paths:
+      - 'experiments/vela-active-state/rwkv7-retention-adaptation-v2/**'
+      - '.github/workflows/vela-rwkv7-retention-adaptation-v2.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: vela-rwkv7-retention-adaptation-v2
+  cancel-in-progress: true
+
+jobs:
+  arm:
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    strategy:
+      fail-fast: false
+      matrix:
+        arm:
+          - key_sup_only_lr5e5
+          - key_balanced_lr5e5
+          - key_balanced_lr1e5
+          - kvr_balanced_lr1e5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: vela-experiment-infra
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install runtime
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install 'torch>=2.2,<3' 'transformers>=4.57,<4.58' huggingface_hub
+      - name: Run arm
+        env:
+          HF_HUB_DISABLE_TELEMETRY: '1'
+          VELA_RWKV7_ARM: ${{ matrix.arm }}
+          VELA_RESULT_PATH: /tmp/vela-rwkv7-${{ matrix.arm }}.json
+        run: python experiments/vela-active-state/rwkv7-retention-adaptation-v2/rwkv7_retention_adaptation.py
+      - name: Ensure result exists
+        if: always()
+        shell: bash
+        run: |
+          if [[ ! -f /tmp/vela-rwkv7-${{ matrix.arm }}.json ]]; then
+            printf '{"status":"FAIL_BEFORE_RESULT","arm":"%s","source_commit":"%s"}\n' '${{ matrix.arm }}' "$GITHUB_SHA" > /tmp/vela-rwkv7-${{ matrix.arm }}.json
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: vela-rwkv7-${{ matrix.arm }}
+          path: /tmp/vela-rwkv7-${{ matrix.arm }}.json
+          if-no-files-found: error
+
+  aggregate:
+    if: always()
+    needs: arm
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: vela-experiment-infra
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: vela-rwkv7-*
+          path: /tmp/vela-rwkv7-results
+          merge-multiple: true
+      - name: Aggregate result
+        shell: bash
+        run: |
+          mkdir -p ops/vela-results
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          src=Path('/tmp/vela-rwkv7-results')
+          arms={}
+          for p in sorted(src.glob('*.json')):
+              row=json.loads(p.read_text(encoding='utf-8'))
+              arms[row.get('arm',p.stem)]=row
+
+          def safe_best(row):
+              return ((row.get('summary') or {}).get('retention_qualified_best') or {})
+
+          ranked=[]
+          for name,row in arms.items():
+              b=safe_best(row)
+              ranked.append({
+                  'arm':name,
+                  'status':row.get('status'),
+                  'superseded_full_success':b.get('superseded_full_success',-1),
+                  'overall_full_success':b.get('overall_full_success',-1),
+                  'control_accuracy':b.get('control_accuracy'),
+                  'correction_accuracy':b.get('correction_accuracy'),
+                  'epoch':b.get('epoch'),
+                  'trainable_numel':((row.get('design') or {}).get('trainable_numel')),
+              })
+          ranked.sort(key=lambda x:(x['superseded_full_success'],x['overall_full_success']),reverse=True)
+          usable=[x for x in ranked if x['superseded_full_success'] >= 0]
+          best=usable[0] if usable else None
+          report={
+              'status':'VELA_RWKV7_RETENTION_ADAPTATION_V2_AGGREGATE',
+              'arms':arms,
+              'ranking_retention_qualified':ranked,
+              'summary':{
+                  'best_retention_qualified_arm':best,
+                  'retention_safe_supersession_recovery_observed':bool(best and best['superseded_full_success']>0),
+                  'all_arms_present':len(arms)==4,
+              },
+              'claim_boundary':'Arm ranking only uses checkpoints that keep heldout correction and control at 100%. Raw-best checkpoints remain in each arm for diagnosis but cannot win the retention-safe ranking.'
+          }
+          Path('ops/vela-results/rwkv7-retention-adaptation-v2-latest.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+          print(json.dumps(report['summary'],ensure_ascii=False,indent=2))
+          PY
+      - name: Commit result snapshot
+        if: always()
+        shell: bash
+        run: |
+          if [[ ! -f ops/vela-results/rwkv7-retention-adaptation-v2-latest.json ]]; then
+            mkdir -p ops/vela-results
+            printf '{"status":"FAIL_BEFORE_AGGREGATE","source_commit":"%s"}\n' "$GITHUB_SHA" > ops/vela-results/rwkv7-retention-adaptation-v2-latest.json
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add ops/vela-results/rwkv7-retention-adaptation-v2-latest.json
+          git diff --cached --quiet || git commit -m 'Record VELA RWKV7 retention adaptation v2 [skip ci]'
+          for n in 1 2 3 4 5; do
+            git pull --rebase origin vela-experiment-infra && git push origin HEAD:vela-experiment-infra && break
+            sleep $((n*3))
+          done
