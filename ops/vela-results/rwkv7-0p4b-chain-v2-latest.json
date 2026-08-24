@@ -1,0 +1,1125 @@
+{
+  "status": "VELA_RWKV7_0P4B_CHAINED_UPGRADE_PROVENANCE_V2",
+  "source_commit": "524481d5099b38d9bc8ef1e89209161b86c8011b",
+  "weight_revision": "4aa0981b66af4f727181a147bcea1457ad7c84cb",
+  "weight_file": "rwkv7-g1a-0.4b-20250905-ctx4096.pth",
+  "device": "cpu",
+  "dtype": "float32",
+  "design": {
+    "question": "Does the promoted target-free replay policy preserve functional continuity across a real RWKV-7 0.4B W1->W2->W3 carried-lineage chain, without resetting hop 2 to W2-native?",
+    "W1": "released 0.4B base checkpoint",
+    "W2": "one sup-heavy KVR pass, 16 examples, lr=1e-5",
+    "W3": "one disjoint status-retention KVR patch pass, 8 examples, lr=5e-6",
+    "trainable_scope": "blocks.*.att.{key,value,receptance}.weight",
+    "trainable_numel": 75497472,
+    "fixtures_predeclared": [
+      "superseded_base",
+      "superseded_suffix4",
+      "superseded_suffix8",
+      "superseded_old_value_echoes"
+    ],
+    "selector_oracle_usage": "No native full-history target is used for selection or pruning; W2/W3 native states are evaluation-only.",
+    "generation_capability_metric": "Fixed 50-case composite = 8 ordinary heldout decisions + 4 disjoint status holdout decisions + 38 long-history full-fixture successes."
+  },
+  "training": {
+    "w2_mean_loss": 0.5272096102139585,
+    "w3_mean_loss": 1.7828144077211618
+  },
+  "generations": {
+    "W1": {
+      "fixed_composite_accuracy": 0.48,
+      "fixed_composite_correct": 24,
+      "fixed_composite_count": 50,
+      "ordinary_accuracy": 0.875,
+      "ordinary_correction_accuracy": 0.8333333333333334,
+      "ordinary_control_accuracy": 1.0,
+      "status_holdout_accuracy": 0.75,
+      "long_history_full_success": 14,
+      "long_history_count": 38,
+      "superseded_full_success": 5
+    },
+    "W2": {
+      "fixed_composite_accuracy": 0.84,
+      "fixed_composite_correct": 42,
+      "fixed_composite_count": 50,
+      "ordinary_accuracy": 1.0,
+      "ordinary_correction_accuracy": 1.0,
+      "ordinary_control_accuracy": 1.0,
+      "status_holdout_accuracy": 0.75,
+      "long_history_full_success": 31,
+      "long_history_count": 38,
+      "superseded_full_success": 11
+    },
+    "W3": {
+      "fixed_composite_accuracy": 1.0,
+      "fixed_composite_correct": 50,
+      "fixed_composite_count": 50,
+      "ordinary_accuracy": 1.0,
+      "ordinary_correction_accuracy": 1.0,
+      "ordinary_control_accuracy": 1.0,
+      "status_holdout_accuracy": 1.0,
+      "long_history_full_success": 38,
+      "long_history_count": 38,
+      "superseded_full_success": 13
+    }
+  },
+  "capability_gate": {
+    "strict_w1_lt_w2_lt_w3": true,
+    "scores": [
+      0.48,
+      0.84,
+      1.0
+    ]
+  },
+  "continuity": {
+    "fixture_count": 4,
+    "w3_native_valid": 4,
+    "hop1_full_functional_agreement": 4,
+    "hop2_full_functional_agreement": 4,
+    "final_chain_full_functional_agreement": 4,
+    "hop2_anchor_source_generation_w2": 4,
+    "suite_pass": true
+  },
+  "fixtures": [
+    {
+      "fixture": "superseded_base",
+      "history_tokens": 69,
+      "w2_native_expected_accuracy": 1.0,
+      "w3_native_expected_accuracy": 1.0,
+      "hop1_w1_to_w2": {
+        "selected_anchor_event": 4,
+        "anchor_pos": 36,
+        "replay_fraction": 0.4782608695652174,
+        "selected_segments": [
+          2,
+          4
+        ],
+        "vs_w2_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 0.7561640002681613
+        }
+      },
+      "carried_w2_lineage_before_hop2": {
+        "state_error_vs_full_w2_native": {
+          "rms": 0.023946781365596127,
+          "l2": 30.49823567092103,
+          "max_abs": 4.8312835693359375,
+          "numel": 1622016
+        },
+        "final_source_generation": "W2"
+      },
+      "hop2_actual_lineage_to_w3": {
+        "selected_anchor_event": 7,
+        "anchor_pos": 65,
+        "anchor_source_generation": "W2",
+        "replay_fraction": 0.057971014492753624,
+        "selected_segments": [
+          0,
+          1,
+          2,
+          7
+        ],
+        "vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 0.672705650604412
+        },
+        "semantic_drift_top5": [
+          {
+            "segment": 2,
+            "start": 14,
+            "end": 28,
+            "text": "Correction: the current codeword is BETA, not ALPHA. ",
+            "state_rms": 0.042602832497130025,
+            "decision_flips": 0,
+            "score_rms": 1.655367480847893,
+            "margin_shift_sum": 0.5832631587982178,
+            "detector_score": 1.7136937967277148,
+            "per_probe": [
+              {
+                "id": "codeword",
+                "old_choice": " BETA",
+                "new_choice": " BETA",
+                "decision_flip": false
+              },
+              {
+                "id": "verification",
+                "old_choice": " complete",
+                "new_choice": " complete",
+                "decision_flip": false
+              },
+              {
+                "id": "project",
+                "old_choice": " active",
+                "new_choice": " active",
+                "decision_flip": false
+              },
+              {
+                "id": "action",
+                "old_choice": " allowed",
+                "new_choice": " allowed",
+                "decision_flip": false
+              }
+            ]
+          },
+          {
+            "segment": 1,
+            "start": 6,
+            "end": 14,
+            "text": "The old codeword was ALPHA. ",
+            "state_rms": 0.03062782937864687,
+            "decision_flips": 0,
+            "score_rms": 1.2093814978769837,
+            "margin_shift_sum": 0.563873291015625,
+            "detector_score": 1.265768826978546,
+            "per_probe": [
+              {
+                "id": "codeword",
+                "old_choice": " ALPHA",
+                "new_choice": " ALPHA",
+                "decision_flip": false
+              },
+              {
+                "id": "verification",
+                "old_choice": " complete",
+                "new_choice": " complete",
+                "decision_flip": false
+              },
+              {
+                "id": "project",
+                "old_choice": " active",
+                "new_choice": " active",
+                "decision_flip": false
+              },
+              {
+                "id": "action",
+                "old_choice": " allowed",
+                "new_choice": " allowed",
+                "decision_flip": false
+              }
+            ]
+          },
+          {
+            "segment": 0,
+            "start": 0,
+            "end": 6,
+            "text": "Project Orion remains active. ",
+            "state_rms": 0.017392826518005854,
+            "decision_flips": 0,
+            "score_rms": 0.8098691535952689,
+            "margin_shift_sum": 0.9563356637954712,
+            "detector_score": 0.905502719974816,
+            "per_probe": [
+              {
+                "id": "codeword",
+                "old_choice": " ALPHA",
+                "new_choice": " ALPHA",
+                "decision_flip": false
+              },
+              {
+                "id": "verification",
+                "old_choice": " complete",
+                "new_choice": " complete",
+                "decision_flip": false
+              },
+              {
+                "id": "project",
+                "old_choice": " active",
+                "new_choice": " active",
+                "decision_flip": false
+              },
+              {
+                "id": "action",
+                "old_choice": " allowed",
+                "new_choice": " allowed",
+                "decision_flip": false
+              }
+            ]
+          },
+          {
+            "segment": 3,
+            "start": 28,
+            "end": 36,
+            "text": "Unrelated telemetry packet 17 was archived. ",
+            "state_rms": 0.015638817917421048,
+            "decision_flips": 0,
+            "score_rms": 0.22512460127061046,
+            "margin_shift_sum": 0.47745728492736816,
+            "detector_score": 0.2728703297633473,
+            "per_probe": [
+              {
+                "id": "codeword",
+                "old_choice": " BETA",
+                "new_choice": " BETA",
+                "decision_flip": false
+              },
+              {
+                "id": "verification",
+                "old_choice": " complete",
+                "new_choice": " complete",
+                "decision_flip": false
+              },
+              {
+                "id": "project",
+                "old_choice": " active",
+                "new_choice": " active",
+                "decision_flip": false
+              },
+              {
+                "id": "action",
+                "old_choice": " blocked",
+                "new_choice": " blocked",
+                "decision_flip": false
+              }
+            ]
+          },
+          {
+            "segment": 7,
+            "start": 65,
+            "end": 69,
+            "text": "External action remains blocked.",
+            "state_rms": 0.0066513744558455165,
+            "decision_flips": 0,
+            "score_rms": 0.1829645446887677,
+            "margin_shift_sum": 0.3602036088705063,
+            "detector_score": 0.21898490557581832,
+            "per_probe": [
+              {
+                "id": "codeword",
+                "old_choice": " GAMMA",
+                "new_choice": " GAMMA",
+                "decision_flip": false
+              },
+              {
+                "id": "verification",
+                "old_choice": " incomplete",
+                "new_choice": " incomplete",
+                "decision_flip": false
+              },
+              {
+                "id": "project",
+                "old_choice": " active",
+                "new_choice": " active",
+                "decision_flip": false
+              },
+              {
+                "id": "action",
+                "old_choice": " blocked",
+                "new_choice": " blocked",
+                "decision_flip": false
+              }
+            ]
+          }
+        ]
+      },
+      "final_chain_w3": {
+        "state_error_vs_w3_native": {
+          "rms": 0.03121771541660952,
+          "l2": 39.75838035801104,
+          "max_abs": 2.135136127471924,
+          "numel": 1622016
+        },
+        "functional_vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 0.672705650604412
+        },
+        "final_source_generation": "W3"
+      },
+      "direct_w1_to_w3_control": {
+        "selected_anchor_event": 2,
+        "anchor_pos": 14,
+        "vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 0.3354898382084514
+        }
+      }
+    },
+    {
+      "fixture": "superseded_suffix4",
+      "history_tokens": 100,
+      "w2_native_expected_accuracy": 0.75,
+      "w3_native_expected_accuracy": 1.0,
+      "hop1_w1_to_w2": {
+        "selected_anchor_event": 4,
+        "anchor_pos": 36,
+        "replay_fraction": 0.64,
+        "selected_segments": [
+          0,
+          1,
+          2,
+          4
+        ],
+        "vs_w2_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 0.75,
+          "score_rms_error": 0.6133113021929739
+        }
+      },
+      "carried_w2_lineage_before_hop2": {
+        "state_error_vs_full_w2_native": {
+          "rms": 0.014871316956183118,
+          "l2": 18.93987013713006,
+          "max_abs": 2.5117454528808594,
+          "numel": 1622016
+        },
+        "final_source_generation": "W2"
+      },
+      "hop2_actual_lineage_to_w3": {
+        "selected_anchor_event": 8,
+        "anchor_pos": 69,
+        "anchor_source_generation": "W2",
+        "replay_fraction": 0.31,
+        "selected_segments": [
+          0,
+          1,
+          2,
+          8
+        ],
+        "vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 0.6160253692965919
+        },
+        "semantic_drift_top5": [
+          {
+            "segment": 2,
+            "start": 14,
+            "end": 28,
+            "text": "Correction: the current codeword is BETA, not ALPHA. ",
+            "state_rms": 0.042602832497130025,
+            "decision_flips": 0,
+            "score_rms": 1.655367480847893,
+            "margin_shift_sum": 0.5832631587982178,
+            "detector_score": 1.7136937967277148,
+            "per_probe": [
+              {
+                "id": "codeword",
+                "old_choice": " BETA",
+                "new_choice": " BETA",
+                "decision_flip": false
+              },
+              {
+                "id": "verification",
+                "old_choice": " complete",
+                "new_choice": " complete",
+                "decision_flip": false
+              },
+              {
+                "id": "project",
+                "old_choice": " active",
+                "new_choice": " active",
+                "decision_flip": false
+              },
+              {
+                "id": "action",
+                "old_choice": " allowed",
+                "new_choice": " allowed",
+                "decision_flip": false
+              }
+            ]
+          },
+          {
+            "segment": 1,
+            "start": 6,
+            "end": 14,
+            "text": "The old codeword was ALPHA. ",
+            "state_rms": 0.03062782937864687,
+            "decision_flips": 0,
+            "score_rms": 1.2093814978769837,
+            "margin_shift_sum": 0.563873291015625,
+            "detector_score": 1.265768826978546,
+            "per_probe": [
+              {
+                "id": "codeword",
+                "old_choice": " ALPHA",
+                "new_choice": " ALPHA",
+                "decision_flip": false
+              },
+              {
+                "id": "verification",
+                "old_choice": " complete",
+                "new_choice": " complete",
+                "decision_flip": false
+              },
+              {
+                "id": "project",
+                "old_choice": " active",
+                "new_choice": " active",
+                "decision_flip": false
+              },
+              {
+                "id": "action",
+                "old_choice": " allowed",
+                "new_choice": " allowed",
+                "decision_flip": false
+              }
+            ]
+          },
+          {
+            "segment": 0,
+            "start": 0,
+            "end": 6,
+            "text": "Project Orion remains active. ",
+            "state_rms": 0.017392826518005854,
+            "decision_flips": 0,
+            "score_rms": 0.8098691535952689,
+            "margin_shift_sum": 0.9563356637954712,
+            "detector_score": 0.905502719974816,
+            "per_probe": [
+              {
+                "id": "codeword",
+                "old_choice": " ALPHA",
+                "new_choice": " ALPHA",
+                "decision_flip": false
+              },
+              {
+                "id": "verification",
+                "old_choice": " complete",
+                "new_choice": " complete",
+                "decision_flip": false
+              },
+              {
+                "id": "project",
+                "old_choice": " active",
+                "new_choice": " active",
+                "decision_flip": false
+              },
+              {
+                "id": "action",
+                "old_choice": " allowed",
+                "new_choice": " allowed",
+                "decision_flip": false
+              }
+            ]
+          },
+          {
+            "segment": 3,
+            "start": 28,
+            "end": 36,
+            "text": "Unrelated telemetry packet 17 was archived. ",
+            "state_rms": 0.015638817917421048,
+            "decision_flips": 0,
+            "score_rms": 0.22512460127061046,
+            "margin_shift_sum": 0.47745728492736816,
+            "detector_score": 0.2728703297633473,
+            "per_probe": [
+              {
+                "id": "codeword",
+                "old_choice": " BETA",
+                "new_choice": " BETA",
+                "decision_flip": false
+              },
+              {
+                "id": "verification",
+                "old_choice": " complete",
+                "new_choice": " complete",
+                "decision_flip": false
+              },
+              {
+                "id": "project",
+                "old_choice": " active",
+                "new_choice": " active",
+                "decision_flip": false
+              },
+              {
+                "id": "action",
+                "old_choice": " blocked",
+                "new_choice": " blocked",
+                "decision_flip": false
+              }
+            ]
+          },
+          {
+            "segment": 8,
+            "start": 69,
+            "end": 77,
+            "text": "A storage inventory entry was closed. ",
+            "state_rms": 0.003827064621600029,
+            "decision_flips": 0,
+            "score_rms": 0.1884555349820273,
+            "margin_shift_sum": 0.33305349946022034,
+            "detector_score": 0.22176088492804935,
+            "per_probe": [
+              {
+                "id": "codeword",
+                "old_choice": " GAMMA",
+                "new_choice": " GAMMA",
+                "decision_flip": false
+              },
+              {
+                "id": "verification",
+                "old_choice": " incomplete",
+                "new_choice": " incomplete",
+                "decision_flip": false
+              },
+              {
+                "id": "project",
+                "old_choice": " active",
+                "new_choice": " active",
+                "decision_flip": false
+              },
+              {
+                "id": "action",
+                "old_choice": " blocked",
+                "new_choice": " blocked",
+                "decision_flip": false
+              }
+            ]
+          }
+        ]
+      },
+      "final_chain_w3": {
+        "state_error_vs_w3_native": {
+          "rms": 0.02120131191753658,
+          "l2": 27.001649930403534,
+          "max_abs": 2.4970779418945312,
+          "numel": 1622016
+        },
+        "functional_vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 0.6160253692965919
+        },
+        "final_source_generation": "W3"
+      },
+      "direct_w1_to_w3_control": {
+        "selected_anchor_event": 4,
+        "anchor_pos": 36,
+        "vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 0.5026821196367046
+        }
+      }
+    },
+    {
+      "fixture": "superseded_suffix8",
+      "history_tokens": 130,
+      "w2_native_expected_accuracy": 0.75,
+      "w3_native_expected_accuracy": 1.0,
+      "hop1_w1_to_w2": {
+        "selected_anchor_event": 4,
+        "anchor_pos": 36,
+        "replay_fraction": 0.7230769230769231,
+        "selected_segments": [
+          0,
+          1,
+          2,
+          4
+        ],
+        "vs_w2_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 0.75,
+          "score_rms_error": 0.3791518976425871
+        }
+      },
+      "carried_w2_lineage_before_hop2": {
+        "state_error_vs_full_w2_native": {
+          "rms": 0.01445015062103163,
+          "l2": 18.403479465247866,
+          "max_abs": 1.9613533020019531,
+          "numel": 1622016
+        },
+        "final_source_generation": "W2"
+      },
+      "hop2_actual_lineage_to_w3": {
+        "selected_anchor_event": 15,
+        "anchor_pos": 121,
+        "anchor_source_generation": "W2",
+        "replay_fraction": 0.06923076923076923,
+        "selected_segments": [
+          0,
+          1,
+          2,
+          15
+        ],
+        "vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 0.8029121581463188
+        },
+        "semantic_drift_top5": [
+          {
+            "segment": 15,
+            "start": 121,
+            "end": 130,
+            "text": "Routine diagnostics reported no actionable change. ",
+            "state_rms": 0.0024466760905931233,
+            "decision_flips": 1,
+            "score_rms": 0.04238062802503604,
+            "margin_shift_sum": 0.09554362297058105,
+            "detector_score": 1000.0519349903221,
+            "per_probe": [
+              {
+                "id": "codeword",
+                "old_choice": " GAMMA",
+                "new_choice": " GAMMA",
+                "decision_flip": false
+              },
+              {
+                "id": "verification",
+                "old_choice": " complete",
+                "new_choice": " incomplete",
+                "decision_flip": true
+              },
+              {
+                "id": "project",
+                "old_choice": " active",
+                "new_choice": " active",
+                "decision_flip": false
+              },
+              {
+                "id": "action",
+                "old_choice": " blocked",
+                "new_choice": " blocked",
+                "decision_flip": false
+              }
+            ]
+          },
+          {
+            "segment": 2,
+            "start": 14,
+            "end": 28,
+            "text": "Correction: the current codeword is BETA, not ALPHA. ",
+            "state_rms": 0.042602832497130025,
+            "decision_flips": 0,
+            "score_rms": 1.655367480847893,
+            "margin_shift_sum": 0.5832631587982178,
+            "detector_score": 1.7136937967277148,
+            "per_probe": [
+              {
+                "id": "codeword",
+                "old_choice": " BETA",
+                "new_choice": " BETA",
+                "decision_flip": false
+              },
+              {
+                "id": "verification",
+                "old_choice": " complete",
+                "new_choice": " complete",
+                "decision_flip": false
+              },
+              {
+                "id": "project",
+                "old_choice": " active",
+                "new_choice": " active",
+                "decision_flip": false
+              },
+              {
+                "id": "action",
+                "old_choice": " allowed",
+                "new_choice": " allowed",
+                "decision_flip": false
+              }
+            ]
+          },
+          {
+            "segment": 1,
+            "start": 6,
+            "end": 14,
+            "text": "The old codeword was ALPHA. ",
+            "state_rms": 0.03062782937864687,
+            "decision_flips": 0,
+            "score_rms": 1.2093814978769837,
+            "margin_shift_sum": 0.563873291015625,
+            "detector_score": 1.265768826978546,
+            "per_probe": [
+              {
+                "id": "codeword",
+                "old_choice": " ALPHA",
+                "new_choice": " ALPHA",
+                "decision_flip": false
+              },
+              {
+                "id": "verification",
+                "old_choice": " complete",
+                "new_choice": " complete",
+                "decision_flip": false
+              },
+              {
+                "id": "project",
+                "old_choice": " active",
+                "new_choice": " active",
+                "decision_flip": false
+              },
+              {
+                "id": "action",
+                "old_choice": " allowed",
+                "new_choice": " allowed",
+                "decision_flip": false
+              }
+            ]
+          },
+          {
+            "segment": 0,
+            "start": 0,
+            "end": 6,
+            "text": "Project Orion remains active. ",
+            "state_rms": 0.017392826518005854,
+            "decision_flips": 0,
+            "score_rms": 0.8098691535952689,
+            "margin_shift_sum": 0.9563356637954712,
+            "detector_score": 0.905502719974816,
+            "per_probe": [
+              {
+                "id": "codeword",
+                "old_choice": " ALPHA",
+                "new_choice": " ALPHA",
+                "decision_flip": false
+              },
+              {
+                "id": "verification",
+                "old_choice": " complete",
+                "new_choice": " complete",
+                "decision_flip": false
+              },
+              {
+                "id": "project",
+                "old_choice": " active",
+                "new_choice": " active",
+                "decision_flip": false
+              },
+              {
+                "id": "action",
+                "old_choice": " allowed",
+                "new_choice": " allowed",
+                "decision_flip": false
+              }
+            ]
+          },
+          {
+            "segment": 3,
+            "start": 28,
+            "end": 36,
+            "text": "Unrelated telemetry packet 17 was archived. ",
+            "state_rms": 0.015638817917421048,
+            "decision_flips": 0,
+            "score_rms": 0.22512460127061046,
+            "margin_shift_sum": 0.47745728492736816,
+            "detector_score": 0.2728703297633473,
+            "per_probe": [
+              {
+                "id": "codeword",
+                "old_choice": " BETA",
+                "new_choice": " BETA",
+                "decision_flip": false
+              },
+              {
+                "id": "verification",
+                "old_choice": " complete",
+                "new_choice": " complete",
+                "decision_flip": false
+              },
+              {
+                "id": "project",
+                "old_choice": " active",
+                "new_choice": " active",
+                "decision_flip": false
+              },
+              {
+                "id": "action",
+                "old_choice": " blocked",
+                "new_choice": " blocked",
+                "decision_flip": false
+              }
+            ]
+          }
+        ]
+      },
+      "final_chain_w3": {
+        "state_error_vs_w3_native": {
+          "rms": 0.02426155804690784,
+          "l2": 30.899130190472096,
+          "max_abs": 1.9347991943359375,
+          "numel": 1622016
+        },
+        "functional_vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 0.8029121581463188
+        },
+        "final_source_generation": "W3"
+      },
+      "direct_w1_to_w3_control": {
+        "selected_anchor_event": 15,
+        "anchor_pos": 121,
+        "vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 1.1011913430008058
+        }
+      }
+    },
+    {
+      "fixture": "superseded_old_value_echoes",
+      "history_tokens": 175,
+      "w2_native_expected_accuracy": 1.0,
+      "w3_native_expected_accuracy": 1.0,
+      "hop1_w1_to_w2": {
+        "selected_anchor_event": 17,
+        "anchor_pos": 151,
+        "replay_fraction": 0.13714285714285715,
+        "selected_segments": [
+          4,
+          5,
+          6,
+          7,
+          13,
+          17
+        ],
+        "vs_w2_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 1.3859024671240554
+        }
+      },
+      "carried_w2_lineage_before_hop2": {
+        "state_error_vs_full_w2_native": {
+          "rms": 0.022924754131089263,
+          "l2": 29.196598219765637,
+          "max_abs": 3.371532440185547,
+          "numel": 1622016
+        },
+        "final_source_generation": "W2"
+      },
+      "hop2_actual_lineage_to_w3": {
+        "selected_anchor_event": 19,
+        "anchor_pos": 168,
+        "anchor_source_generation": "W2",
+        "replay_fraction": 0.04,
+        "selected_segments": [
+          1,
+          4,
+          5,
+          13,
+          19
+        ],
+        "vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 1.1166220648941507
+        },
+        "semantic_drift_top5": [
+          {
+            "segment": 1,
+            "start": 8,
+            "end": 15,
+            "text": "A maintenance checksum completed without incident. ",
+            "state_rms": 0.016411387748102073,
+            "decision_flips": 1,
+            "score_rms": 0.3076337571763222,
+            "margin_shift_sum": 0.3323190212249756,
+            "detector_score": 1000.3408656592987,
+            "per_probe": [
+              {
+                "id": "codeword",
+                "old_choice": " ALPHA",
+                "new_choice": " ALPHA",
+                "decision_flip": false
+              },
+              {
+                "id": "verification",
+                "old_choice": " complete",
+                "new_choice": " complete",
+                "decision_flip": false
+              },
+              {
+                "id": "project",
+                "old_choice": " active",
+                "new_choice": " active",
+                "decision_flip": false
+              },
+              {
+                "id": "action",
+                "old_choice": " allowed",
+                "new_choice": " blocked",
+                "decision_flip": true
+              }
+            ]
+          },
+          {
+            "segment": 5,
+            "start": 36,
+            "end": 50,
+            "text": "Correction: the current codeword is BETA, not ALPHA. ",
+            "state_rms": 0.01188326262382411,
+            "decision_flips": 0,
+            "score_rms": 1.285184681550416,
+            "margin_shift_sum": 0.16090357303619385,
+            "detector_score": 1.3012750388540353,
+            "per_probe": [
+              {
+                "id": "codeword",
+                "old_choice": " BETA",
+                "new_choice": " BETA",
+                "decision_flip": false
+              },
+              {
+                "id": "verification",
+                "old_choice": " complete",
+                "new_choice": " complete",
+                "decision_flip": false
+              },
+              {
+                "id": "project",
+                "old_choice": " active",
+                "new_choice": " active",
+                "decision_flip": false
+              },
+              {
+                "id": "action",
+                "old_choice": " allowed",
+                "new_choice": " allowed",
+                "decision_flip": false
+              }
+            ]
+          },
+          {
+            "segment": 13,
+            "start": 118,
+            "end": 133,
+            "text": "New correction: the current codeword is GAMMA, not BETA. ",
+            "state_rms": 0.01132638988100461,
+            "decision_flips": 0,
+            "score_rms": 1.062444498870394,
+            "margin_shift_sum": 0.1479957103729248,
+            "detector_score": 1.0772440699076866,
+            "per_probe": [
+              {
+                "id": "codeword",
+                "old_choice": " GAMMA",
+                "new_choice": " GAMMA",
+                "decision_flip": false
+              },
+              {
+                "id": "verification",
+                "old_choice": " complete",
+                "new_choice": " complete",
+                "decision_flip": false
+              },
+              {
+                "id": "project",
+                "old_choice": " active",
+                "new_choice": " active",
+                "decision_flip": false
+              },
+              {
+                "id": "action",
+                "old_choice": " allowed",
+                "new_choice": " allowed",
+                "decision_flip": false
+              }
+            ]
+          },
+          {
+            "segment": 4,
+            "start": 28,
+            "end": 36,
+            "text": "The old codeword was ALPHA. ",
+            "state_rms": 0.022548583052156068,
+            "decision_flips": 0,
+            "score_rms": 0.8807589509854722,
+            "margin_shift_sum": 0.28741538524627686,
+            "detector_score": 0.9095004895100999,
+            "per_probe": [
+              {
+                "id": "codeword",
+                "old_choice": " ALPHA",
+                "new_choice": " ALPHA",
+                "decision_flip": false
+              },
+              {
+                "id": "verification",
+                "old_choice": " complete",
+                "new_choice": " complete",
+                "decision_flip": false
+              },
+              {
+                "id": "project",
+                "old_choice": " active",
+                "new_choice": " active",
+                "decision_flip": false
+              },
+              {
+                "id": "action",
+                "old_choice": " allowed",
+                "new_choice": " allowed",
+                "decision_flip": false
+              }
+            ]
+          },
+          {
+            "segment": 0,
+            "start": 0,
+            "end": 8,
+            "text": "Telemetry packet 41 was archived. ",
+            "state_rms": 0.02939692692336894,
+            "decision_flips": 0,
+            "score_rms": 0.33300614371559895,
+            "margin_shift_sum": 0.6695325374603271,
+            "detector_score": 0.39995939746163167,
+            "per_probe": [
+              {
+                "id": "codeword",
+                "old_choice": " ALPHA",
+                "new_choice": " ALPHA",
+                "decision_flip": false
+              },
+              {
+                "id": "verification",
+                "old_choice": " complete",
+                "new_choice": " complete",
+                "decision_flip": false
+              },
+              {
+                "id": "project",
+                "old_choice": " active",
+                "new_choice": " active",
+                "decision_flip": false
+              },
+              {
+                "id": "action",
+                "old_choice": " allowed",
+                "new_choice": " allowed",
+                "decision_flip": false
+              }
+            ]
+          }
+        ]
+      },
+      "final_chain_w3": {
+        "state_error_vs_w3_native": {
+          "rms": 0.02831579980951085,
+          "l2": 36.062547305074325,
+          "max_abs": 2.9333419799804688,
+          "numel": 1622016
+        },
+        "functional_vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 1.1166220648941507
+        },
+        "final_source_generation": "W3"
+      },
+      "direct_w1_to_w3_control": {
+        "selected_anchor_event": 13,
+        "anchor_pos": 118,
+        "vs_w3_native": {
+          "decision_agreement": 1.0,
+          "expected_accuracy": 1.0,
+          "score_rms_error": 0.5315245579500483
+        }
+      }
+    }
+  ],
+  "success_definition": "PASS requires strict fixed-metric W1<W2<W3 capability gain, W3-native validity on every predeclared fixture, 100% hop1/hop2/final functional agreement, and every hop2 selected anchor to come from the actual W2-produced lineage rather than a W1-origin bypass.",
+  "claim_boundary": "One released RWKV-7 0.4B checkpoint, KVR-only synthetic adaptation, four predeclared overwrite/suffix fixtures, and a repeatedly inspected 38-fixture component in the capability metric. This qualifies the carried-lineage mechanism at larger scale; it is not final-backbone, long-horizon, or identity proof.",
+  "policy_variant": {
+    "name": "latest-carried-generation functional-equivalence tiebreak",
+    "oracle_usage": "none for selection; W3-native remains evaluation-only",
+    "purpose": "distinguish a continuity failure from v1 provenance-blind anchor preference"
+  }
+}
