@@ -1,0 +1,138 @@
+name: VELA RWKV7 KVR sweep v3
+
+on:
+  push:
+    branches: [vela-experiment-infra]
+    paths:
+      - 'experiments/vela-active-state/rwkv7-kvr-sweep-v3/**'
+      - '.github/workflows/vela-rwkv7-kvr-sweep-v3.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: vela-rwkv7-kvr-sweep-v3
+  cancel-in-progress: true
+
+jobs:
+  arm:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    strategy:
+      fail-fast: false
+      matrix:
+        arm:
+          - kvr_balanced_lr5e6_e5
+          - kvr_balanced_lr1e5_e5
+          - kvr_balanced_lr2e5_e5
+          - kvr_balanced_lr1e5_e10
+          - kvr_supheavy_lr1e5_e5
+          - kvr_supheavy_lr1e5_e10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: vela-experiment-infra
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install runtime
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install 'torch>=2.2,<3' 'transformers>=4.57,<4.58' huggingface_hub
+      - name: Run sweep arm
+        env:
+          HF_HUB_DISABLE_TELEMETRY: '1'
+          VELA_RWKV7_ARM: ${{ matrix.arm }}
+          VELA_RESULT_PATH: /tmp/vela-rwkv7-v3-${{ matrix.arm }}.json
+        run: python experiments/vela-active-state/rwkv7-kvr-sweep-v3/rwkv7_kvr_sweep.py
+      - name: Ensure result exists
+        if: always()
+        shell: bash
+        run: |
+          if [[ ! -f /tmp/vela-rwkv7-v3-${{ matrix.arm }}.json ]]; then
+            printf '{"status":"FAIL_BEFORE_RESULT","arm":"%s","source_commit":"%s"}\n' '${{ matrix.arm }}' "$GITHUB_SHA" > /tmp/vela-rwkv7-v3-${{ matrix.arm }}.json
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: vela-rwkv7-v3-${{ matrix.arm }}
+          path: /tmp/vela-rwkv7-v3-${{ matrix.arm }}.json
+          if-no-files-found: error
+
+  aggregate:
+    if: always()
+    needs: arm
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: vela-experiment-infra
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: vela-rwkv7-v3-*
+          path: /tmp/vela-rwkv7-v3-results
+          merge-multiple: true
+      - name: Aggregate result
+        shell: bash
+        run: |
+          mkdir -p ops/vela-results
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          src=Path('/tmp/vela-rwkv7-v3-results')
+          arms={}
+          for p in sorted(src.glob('*.json')):
+              row=json.loads(p.read_text(encoding='utf-8'))
+              arms[row.get('arm',p.stem)]=row
+
+          ranked=[]
+          for name,row in arms.items():
+              best=((row.get('summary') or {}).get('retention_qualified_best'))
+              ranked.append({
+                  'arm':name,
+                  'status':row.get('status'),
+                  'superseded_full_success':best.get('superseded_full_success',-1) if best else -1,
+                  'overall_full_success':best.get('overall_full_success',-1) if best else -1,
+                  'control_accuracy':best.get('control_accuracy') if best else None,
+                  'correction_accuracy':best.get('correction_accuracy') if best else None,
+                  'epoch':best.get('epoch') if best else None,
+                  'optimizer_steps':best.get('optimizer_steps') if best else None,
+                  'learning_rate':((row.get('design') or {}).get('learning_rate')),
+                  'curriculum':((row.get('design') or {}).get('curriculum')),
+              })
+          ranked.sort(key=lambda x:(x['superseded_full_success'],x['overall_full_success']),reverse=True)
+          usable=[x for x in ranked if x['superseded_full_success'] >= 0]
+          best=usable[0] if usable else None
+          report={
+              'status':'VELA_RWKV7_KVR_SWEEP_V3_AGGREGATE',
+              'arms':arms,
+              'ranking_retention_qualified':ranked,
+              'summary':{
+                  'best_retention_qualified_arm':best,
+                  'beats_v2_supersession_3_of_13':bool(best and best['superseded_full_success']>3),
+                  'all_arms_present':len(arms)==6,
+              },
+              'claim_boundary':'Ranking uses only checkpoints preserving 100% heldout correction and control. v2 reference to beat is 3/13 supersession with 9/38 overall.'
+          }
+          Path('ops/vela-results/rwkv7-kvr-sweep-v3-latest.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+          print(json.dumps(report['summary'],ensure_ascii=False,indent=2))
+          PY
+      - name: Commit result snapshot
+        if: always()
+        shell: bash
+        run: |
+          if [[ ! -f ops/vela-results/rwkv7-kvr-sweep-v3-latest.json ]]; then
+            mkdir -p ops/vela-results
+            printf '{"status":"FAIL_BEFORE_AGGREGATE","source_commit":"%s"}\n' "$GITHUB_SHA" > ops/vela-results/rwkv7-kvr-sweep-v3-latest.json
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add ops/vela-results/rwkv7-kvr-sweep-v3-latest.json
+          git diff --cached --quiet || git commit -m 'Record VELA RWKV7 KVR sweep v3 [skip ci]'
+          for n in 1 2 3 4 5; do
+            git pull --rebase origin vela-experiment-infra && git push origin HEAD:vela-experiment-infra && break
+            sleep $((n*3))
+          done
