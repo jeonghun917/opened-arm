@@ -1,13 +1,19 @@
 {
   "status": "VELA_GATED_DELTANET_GPU_SPEC_V1_ERROR",
-  "error_type": "CalledProcessError",
-  "error": "Command '['/usr/bin/python3', '-m', 'pip', 'install', '--quiet', 'flash-linear-attention[cuda]==0.5.2']' returned non-zero exit status 1.",
+  "environment_before_install": {
+    "python": "3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]",
+    "torch_version": "2.10.0+cpu",
+    "cuda_version": null,
+    "cuda_available": false,
+    "device_name": null,
+    "triton_version": "unavailable:ModuleNotFoundError:No module named 'triton'"
+  },
+  "error_type": "RuntimeError",
+  "error": "Kaggle GPU kernel started without CUDA availability",
   "traceback_tail": [
     "Traceback (most recent call last):",
-    "  File \"/kaggle/src/script.py\", line 60, in run",
-    "    subprocess.run(",
-    "  File \"/usr/lib/python3.12/subprocess.py\", line 571, in run",
-    "    raise CalledProcessError(retcode, process.args,",
-    "subprocess.CalledProcessError: Command '['/usr/bin/python3', '-m', 'pip', 'install', '--quiet', 'flash-linear-attention[cuda]==0.5.2']' returned non-zero exit status 1."
+    "  File \"/kaggle/src/script.py\", line 86, in run",
+    "    raise RuntimeError('Kaggle GPU kernel started without CUDA availability')",
+    "RuntimeError: Kaggle GPU kernel started without CUDA availability"
   ]
 }
