@@ -1,0 +1,3 @@
+Trigger VELA foundation G8 durable FileCheckpointRepository I/O v2.
+Target: jeonghun917/Ars-Mentis vela-foundation-runtime @ 317d55e53bcf538e3630b4c23aaa490c2d741826
+Compare every-event vs fixed_n2 without freezing interval=2.
