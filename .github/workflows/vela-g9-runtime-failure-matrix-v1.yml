@@ -1,0 +1,110 @@
+name: VELA G9 runtime failure matrix v1
+
+on:
+  push:
+    branches: [vela-experiment-infra]
+    paths:
+      - '.github/workflows/vela-g9-runtime-failure-matrix-v1.yml'
+      - 'ops/vela-g9-runtime-failure-matrix-v1-trigger.txt'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: vela-g9-runtime-failure-matrix-v1
+  cancel-in-progress: true
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: vela-experiment-infra
+          path: opened-arm
+      - name: Checkout private Ars-Mentis G9 source
+        uses: actions/checkout@v4
+        with:
+          repository: jeonghun917/Ars-Mentis
+          ref: b5400c5d878f351223095eae8b08cae1f4166582
+          token: ${{ secrets.ARS_MENTIS_READ_TOKEN }}
+          path: ars-mentis
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run private deterministic G9 matrix
+        shell: bash
+        env:
+          VELA_G9_RESULT_PATH: /tmp/vela-g9-runtime-failure-matrix-v1.json
+        run: |
+          set +e
+          cd ars-mentis
+          PYTHONPATH=src python tools/g9_failure_matrix.py > "$VELA_G9_RESULT_PATH" 2> /tmp/vela-g9-private-stderr.log
+          rc=$?
+          cd ..
+          set -e
+          if [[ ! -s "$VELA_G9_RESULT_PATH" ]]; then
+            python - <<'PY'
+          import json, os
+          from pathlib import Path
+          Path(os.environ['VELA_G9_RESULT_PATH']).write_text(json.dumps({
+              'status':'VELA_G9_FAILURE_MATRIX_V1_FAIL_BEFORE_RESULT',
+              'source_commit':'b5400c5d878f351223095eae8b08cae1f4166582',
+              'matrix_pass':False,
+              'claim_boundary':'Public failure summary only; private traceback suppressed.'
+          },indent=2)+'\n',encoding='utf-8')
+          PY
+          fi
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          p=Path(os.environ['VELA_G9_RESULT_PATH'])
+          row=json.loads(p.read_text(encoding='utf-8'))
+          row['source_commit']='b5400c5d878f351223095eae8b08cae1f4166582'
+          p.write_text(json.dumps(row,ensure_ascii=False,sort_keys=True,indent=2)+'\n',encoding='utf-8')
+          print(json.dumps({
+              'status':row.get('status'),
+              'source_commit':row.get('source_commit'),
+              'matrix_case_count':row.get('matrix_case_count'),
+              'passed_case_count':row.get('passed_case_count'),
+              'matrix_pass':row.get('matrix_pass'),
+              'previous_engine_rollback_verified_for':row.get('previous_engine_rollback_verified_for'),
+          },ensure_ascii=False,indent=2))
+          PY
+          exit "$rc"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: vela-g9-runtime-failure-matrix-v1
+          path: /tmp/vela-g9-runtime-failure-matrix-v1.json
+          if-no-files-found: error
+
+  record:
+    if: always()
+    needs: run
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: vela-experiment-infra
+      - uses: actions/download-artifact@v4
+        with:
+          name: vela-g9-runtime-failure-matrix-v1
+          path: /tmp/vela-g9
+      - name: Record public matrix result
+        shell: bash
+        run: |
+          mkdir -p ops/vela-results
+          cp /tmp/vela-g9/vela-g9-runtime-failure-matrix-v1.json ops/vela-results/g9-runtime-failure-matrix-v1-latest.json
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add ops/vela-results/g9-runtime-failure-matrix-v1-latest.json
+          git diff --cached --quiet || git commit -m 'Record VELA G9 runtime failure matrix v1 [skip ci]'
+          for n in 1 2 3 4 5; do
+            git pull --rebase origin vela-experiment-infra && git push origin HEAD:vela-experiment-infra && break
+            sleep $((n*3))
+          done
