@@ -1,0 +1,4 @@
+Formal G7 CPU run.
+RWKV-7 0.4B + frozen chain-v2 selector/provenance.
+Horizons: 128 / 512 / 2048.
+Triggered: 2026-08-24 KST.
