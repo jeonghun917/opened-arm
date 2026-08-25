@@ -1,4 +1,4 @@
 VELA foundation CI trigger.
-Run: 2026-08-25 carried-anchor guard + selector audit propagation through replay executor.
-Ars-Mentis target: vela-foundation-runtime @ c3eaf6d0c21e30c60e18848c88446fdb8e1e1d53
-Trigger revision: 10
+Run: 2026-08-26 target-free model evidence port + evidence-backed anchor selector integration.
+Ars-Mentis target: vela-foundation-runtime @ 7f369f6dbb11bf3fcd936232a776e64a071c2b5f
+Trigger revision: 11
