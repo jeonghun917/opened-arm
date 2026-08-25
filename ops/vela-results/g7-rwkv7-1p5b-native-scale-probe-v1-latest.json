@@ -1,0 +1,444 @@
+{
+  "status": "VELA_G7_RWKV7_1P5B_NATIVE_SCALE_PROBE_V1",
+  "source_commit": "658f02b2eba12c783590e49f5946432594acb0db",
+  "device": "cpu",
+  "dtype": "float32",
+  "model": {
+    "weight_repo": "BlinkDL/rwkv7-g1",
+    "weight_file": "rwkv7-g1i-1.5b-20260805-ctx16384.pth",
+    "weight_revision": "ede85bf8ab2e59aff7d7ca909fbbc73317866d89"
+  },
+  "protocol": {
+    "question": "Separate migration-induced long-horizon drift from native backbone instability, and test whether a one-step older carried W2 anchor rescues native-stable migration failures.",
+    "chain_policy": "frozen chain-v2 provenance selector",
+    "fixtures": [
+      "superseded_old_value_echoes"
+    ],
+    "future_streams": [
+      "telemetry",
+      "inventory"
+    ],
+    "horizons": [
+      128,
+      512,
+      2048
+    ],
+    "native_stable_rule": "W3-native task invariant must remain true at 128, 512, and 2048 for a fixture/future case to enter the migration-only denominator.",
+    "migration_excess_rule": "On a native-stable case, selected migrated state must keep task invariants and functional decision agreement=1.0 at every horizon.",
+    "native_coverage_gate": "At least 2/2 cases native-stable and at least one native-stable stream per fixture.",
+    "anchor_ablation": "Evaluation-only comparison of chain-v2 selected W2-origin anchor against the immediately older available W2-origin anchor. W3-native is evaluation-only and is not used to select either anchor.",
+    "oracle_usage": "none for selector or ablation anchor choice"
+  },
+  "training": {
+    "w2_mean_loss": 0.11463710906251379,
+    "w3_mean_loss": 0.009997403109636593
+  },
+  "summary": {
+    "fixture_count": 1,
+    "future_stream_count": 2,
+    "case_count": 2,
+    "initial_chain_qualified": 0,
+    "native_stable_case_count": 0,
+    "native_unstable_case_count": 2,
+    "per_fixture_native_stable_streams": {
+      "superseded_old_value_echoes": 0
+    },
+    "native_coverage_gate": false,
+    "migration_only_excess_failure_count": 0,
+    "migration_only_excess_failure_cases": [],
+    "selector_depth_rescue_count": 0,
+    "selector_depth_rescue_cases": [],
+    "migration_excess_gate": true,
+    "formal_g7_v2_pass_candidate": false
+  },
+  "cases": [
+    {
+      "fixture": "superseded_old_value_echoes",
+      "future_stream": "telemetry",
+      "future_meta": {
+        "id": "telemetry",
+        "chunks_generated": 128,
+        "tokens_used": 2048,
+        "semantic_exclusion": "templates avoid fixture project/codeword/verification/action/correction terms"
+      },
+      "initial": {
+        "w3_native_expected_accuracy": 0.75,
+        "hop1_decision_agreement": 1.0,
+        "hop2_decision_agreement": 1.0,
+        "selected_final_decision_agreement": 1.0,
+        "selected_anchor_seg": 0,
+        "selected_anchor_pos": 0,
+        "selected_anchor_origin": "W1",
+        "older_w2_anchor_seg": null,
+        "older_w2_anchor_pos": null,
+        "native_margin": {
+          "per_probe_expected_margin": {
+            "codeword": -0.705298095872422,
+            "verification": 13.414029121415297,
+            "project": 27.353475453455758,
+            "action": 25.659476762637496
+          },
+          "min_expected_margin": -0.705298095872422,
+          "mean_expected_margin": 16.430420810409032
+        },
+        "selected_margin": {
+          "per_probe_expected_margin": {
+            "codeword": -0.705298095872422,
+            "verification": 13.414029121415297,
+            "project": 27.353475453455758,
+            "action": 25.659476762637496
+          },
+          "min_expected_margin": -0.705298095872422,
+          "mean_expected_margin": 16.430420810409032
+        },
+        "older_margin": null,
+        "qualified": false
+      },
+      "selected": {
+        "native_stable": false,
+        "path_stable_vs_native": false,
+        "first_trace_divergence_step": null,
+        "trace_agreement": {
+          "128": 1.0,
+          "512": 1.0,
+          "2048": 1.0
+        },
+        "milestones": {
+          "128": {
+            "functional_vs_native": {
+              "decision_agreement": 1.0,
+              "expected_accuracy": 0.75,
+              "score_rms_error": 0.0
+            },
+            "native_expected_accuracy": 0.75,
+            "path_expected_accuracy": 0.75,
+            "native_flags": {
+              "task_invariant_ok": false,
+              "correction_ok": false,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "path_flags": {
+              "task_invariant_ok": false,
+              "correction_ok": false,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "native_margin": {
+              "per_probe_expected_margin": {
+                "codeword": -1.3566931779766946,
+                "verification": 13.314105987556104,
+                "project": 26.487392070164788,
+                "action": 25.590587390586734
+              },
+              "min_expected_margin": -1.3566931779766946,
+              "mean_expected_margin": 16.008848067582733
+            },
+            "path_margin": {
+              "per_probe_expected_margin": {
+                "codeword": -1.3566931779766946,
+                "verification": 13.314105987556104,
+                "project": 26.487392070164788,
+                "action": 25.590587390586734
+              },
+              "min_expected_margin": -1.3566931779766946,
+              "mean_expected_margin": 16.008848067582733
+            }
+          },
+          "512": {
+            "functional_vs_native": {
+              "decision_agreement": 1.0,
+              "expected_accuracy": 0.75,
+              "score_rms_error": 0.0
+            },
+            "native_expected_accuracy": 0.75,
+            "path_expected_accuracy": 0.75,
+            "native_flags": {
+              "task_invariant_ok": false,
+              "correction_ok": false,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "path_flags": {
+              "task_invariant_ok": false,
+              "correction_ok": false,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "native_margin": {
+              "per_probe_expected_margin": {
+                "codeword": -2.309100291740833,
+                "verification": 12.792443990715583,
+                "project": 24.557962778257206,
+                "action": 26.263359582982957
+              },
+              "min_expected_margin": -2.309100291740833,
+              "mean_expected_margin": 15.326166515053728
+            },
+            "path_margin": {
+              "per_probe_expected_margin": {
+                "codeword": -2.309100291740833,
+                "verification": 12.792443990715583,
+                "project": 24.557962778257206,
+                "action": 26.263359582982957
+              },
+              "min_expected_margin": -2.309100291740833,
+              "mean_expected_margin": 15.326166515053728
+            }
+          },
+          "2048": {
+            "functional_vs_native": {
+              "decision_agreement": 1.0,
+              "expected_accuracy": 0.75,
+              "score_rms_error": 0.0
+            },
+            "native_expected_accuracy": 0.75,
+            "path_expected_accuracy": 0.75,
+            "native_flags": {
+              "task_invariant_ok": false,
+              "correction_ok": false,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "path_flags": {
+              "task_invariant_ok": false,
+              "correction_ok": false,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "native_margin": {
+              "per_probe_expected_margin": {
+                "codeword": -2.9752272810496834,
+                "verification": 12.535887122163786,
+                "project": 20.65204491301847,
+                "action": 26.86366083426401
+              },
+              "min_expected_margin": -2.9752272810496834,
+              "mean_expected_margin": 14.269091397099146
+            },
+            "path_margin": {
+              "per_probe_expected_margin": {
+                "codeword": -2.9752272810496834,
+                "verification": 12.535887122163786,
+                "project": 20.65204491301847,
+                "action": 26.86366083426401
+              },
+              "min_expected_margin": -2.9752272810496834,
+              "mean_expected_margin": 14.269091397099146
+            }
+          }
+        }
+      },
+      "older_w2_anchor": null,
+      "native_stable_case": false,
+      "migration_excess_failure": false,
+      "selector_depth_rescue": false
+    },
+    {
+      "fixture": "superseded_old_value_echoes",
+      "future_stream": "inventory",
+      "future_meta": {
+        "id": "inventory",
+        "chunks_generated": 121,
+        "tokens_used": 2048,
+        "semantic_exclusion": "templates avoid fixture project/codeword/verification/action/correction terms"
+      },
+      "initial": {
+        "w3_native_expected_accuracy": 0.75,
+        "hop1_decision_agreement": 1.0,
+        "hop2_decision_agreement": 1.0,
+        "selected_final_decision_agreement": 1.0,
+        "selected_anchor_seg": 0,
+        "selected_anchor_pos": 0,
+        "selected_anchor_origin": "W1",
+        "older_w2_anchor_seg": null,
+        "older_w2_anchor_pos": null,
+        "native_margin": {
+          "per_probe_expected_margin": {
+            "codeword": -0.705298095872422,
+            "verification": 13.414029121415297,
+            "project": 27.353475453455758,
+            "action": 25.659476762637496
+          },
+          "min_expected_margin": -0.705298095872422,
+          "mean_expected_margin": 16.430420810409032
+        },
+        "selected_margin": {
+          "per_probe_expected_margin": {
+            "codeword": -0.705298095872422,
+            "verification": 13.414029121415297,
+            "project": 27.353475453455758,
+            "action": 25.659476762637496
+          },
+          "min_expected_margin": -0.705298095872422,
+          "mean_expected_margin": 16.430420810409032
+        },
+        "older_margin": null,
+        "qualified": false
+      },
+      "selected": {
+        "native_stable": false,
+        "path_stable_vs_native": false,
+        "first_trace_divergence_step": null,
+        "trace_agreement": {
+          "128": 1.0,
+          "512": 1.0,
+          "2048": 1.0
+        },
+        "milestones": {
+          "128": {
+            "functional_vs_native": {
+              "decision_agreement": 1.0,
+              "expected_accuracy": 0.75,
+              "score_rms_error": 0.0
+            },
+            "native_expected_accuracy": 0.75,
+            "path_expected_accuracy": 0.75,
+            "native_flags": {
+              "task_invariant_ok": false,
+              "correction_ok": false,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "path_flags": {
+              "task_invariant_ok": false,
+              "correction_ok": false,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "native_margin": {
+              "per_probe_expected_margin": {
+                "codeword": -0.2940834757334869,
+                "verification": 14.045535445222868,
+                "project": 27.949440003096242,
+                "action": 22.202591348439455
+              },
+              "min_expected_margin": -0.2940834757334869,
+              "mean_expected_margin": 15.97587083025627
+            },
+            "path_margin": {
+              "per_probe_expected_margin": {
+                "codeword": -0.2940834757334869,
+                "verification": 14.045535445222868,
+                "project": 27.949440003096242,
+                "action": 22.202591348439455
+              },
+              "min_expected_margin": -0.2940834757334869,
+              "mean_expected_margin": 15.97587083025627
+            }
+          },
+          "512": {
+            "functional_vs_native": {
+              "decision_agreement": 1.0,
+              "expected_accuracy": 0.75,
+              "score_rms_error": 0.0
+            },
+            "native_expected_accuracy": 0.75,
+            "path_expected_accuracy": 0.75,
+            "native_flags": {
+              "task_invariant_ok": false,
+              "correction_ok": false,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "path_flags": {
+              "task_invariant_ok": false,
+              "correction_ok": false,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "native_margin": {
+              "per_probe_expected_margin": {
+                "codeword": -1.7688300896816145,
+                "verification": 13.934318542484561,
+                "project": 26.45795869905487,
+                "action": 23.70934795960784
+              },
+              "min_expected_margin": -1.7688300896816145,
+              "mean_expected_margin": 15.583198777866414
+            },
+            "path_margin": {
+              "per_probe_expected_margin": {
+                "codeword": -1.7688300896816145,
+                "verification": 13.934318542484561,
+                "project": 26.45795869905487,
+                "action": 23.70934795960784
+              },
+              "min_expected_margin": -1.7688300896816145,
+              "mean_expected_margin": 15.583198777866414
+            }
+          },
+          "2048": {
+            "functional_vs_native": {
+              "decision_agreement": 1.0,
+              "expected_accuracy": 0.75,
+              "score_rms_error": 0.0
+            },
+            "native_expected_accuracy": 0.75,
+            "path_expected_accuracy": 0.75,
+            "native_flags": {
+              "task_invariant_ok": false,
+              "correction_ok": false,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "path_flags": {
+              "task_invariant_ok": false,
+              "correction_ok": false,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "native_margin": {
+              "per_probe_expected_margin": {
+                "codeword": -1.9073076095919532,
+                "verification": 14.059953212743494,
+                "project": 25.011709453192452,
+                "action": 25.38918768276926
+              },
+              "min_expected_margin": -1.9073076095919532,
+              "mean_expected_margin": 15.638385684778314
+            },
+            "path_margin": {
+              "per_probe_expected_margin": {
+                "codeword": -1.9073076095919532,
+                "verification": 14.059953212743494,
+                "project": 25.011709453192452,
+                "action": 25.38918768276926
+              },
+              "min_expected_margin": -1.9073076095919532,
+              "mean_expected_margin": 15.638385684778314
+            }
+          }
+        }
+      },
+      "older_w2_anchor": null,
+      "native_stable_case": false,
+      "migration_excess_failure": false,
+      "selector_depth_rescue": false
+    }
+  ],
+  "interpretation_rule": {
+    "migration_problem": "native_coverage_gate=true and migration_only_excess_failure_count>0",
+    "selector_pruning_problem": "migration-only excess failures are rescued by the older W2 anchor",
+    "backbone_problem": "native_coverage_gate=false or native instability is widespread",
+    "clean_pass": "all immediate chain fixtures qualify, native coverage gate passes, and migration-only excess failure count is zero"
+  },
+  "claim_boundary": "Focused CPU scale diagnostic on one preregistered native-unstable fixture and two neutral future streams. It is not a full 1.5B G7 qualification and does not freeze the backbone.",
+  "scale_probe": {
+    "purpose": "test whether the 0.4B W3-native old_value_echoes instability is materially reduced by scaling to the released RWKV-7 1.5B checkpoint",
+    "reference_0p4b": {
+      "fixture": "superseded_old_value_echoes",
+      "native_stable_streams": "0/2",
+      "g7_v2_total_native_stable": "6/8"
+    },
+    "model": "RWKV-7 g1i 1.5B, 24 layers, width 2048, ctx16384",
+    "protocol": "same W2/W3 adaptation recipe; same telemetry/inventory future streams; horizons 128/512/2048",
+    "primary_readout": "native_stable_case_count out of 2",
+    "decision_rule": {
+      "2/2": "strong evidence that 0.4B capacity/robustness is an important native-stability bottleneck; then run full 1.5B G7 qualification",
+      "1/2": "partial scale benefit; consider full 1.5B + 2.9B direction only after selector-v3 result",
+      "0/2": "no focused native-stability benefit; do not scale blindly"
+    },
+    "paid_gpu": false
+  }
+}
