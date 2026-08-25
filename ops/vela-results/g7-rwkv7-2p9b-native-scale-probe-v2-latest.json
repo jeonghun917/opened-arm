@@ -1,21 +1,225 @@
 {
-  "status": "VELA_G7_RWKV7_2P9B_NATIVE_SCALE_PROBE_V2_ERROR",
-  "source_commit": "0475d67ac504911fff1695bdca21a962de701f2e",
-  "actual_checked_out_head": "0475d67ac504911fff1695bdca21a962de701f2e",
+  "status": "VELA_G7_RWKV7_2P9B_NATIVE_SCALE_PROBE_V2",
+  "source_commit": "4cf22827cc5d9f012d42a5f38e40506b26f97ead",
+  "actual_checked_out_head": "4cf22827cc5d9f012d42a5f38e40506b26f97ead",
   "wrapper_blob": "6571c6c086d519a4afd645db52b8607e880573bf",
-  "scientific_failure": false,
-  "failure_class": "runtime_before_scientific_result",
-  "error_type": "ModuleNotFoundError",
-  "error": "No module named 'numpy'",
-  "max_rss_gib": 2.209392547607422,
-  "traceback_tail": [
-    "Traceback (most recent call last):",
-    "  File \"/home/runner/work/opened-arm/opened-arm/experiments/vela-active-state/g7-scale-2p9b-v2/rwkv7_2p9b_native_scale_probe_v2.py\", line 246, in run",
-    "    model, args, ns = chain.scale.load_reference_scaled(weight_path)",
-    "                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
-    "  File \"/home/runner/work/opened-arm/opened-arm/experiments/vela-active-state/rwkv7-scale-0p4b-v1/rwkv7_scale_0p4b.py\", line 75, in load_reference_scaled",
-    "    exec(compile(source, rw.SOURCE_PATH, \"exec\"), ns, ns)",
-    "  File \"RWKV-v7/rwkv_v7_demo_rnn.py\", line 5, in <module>",
-    "ModuleNotFoundError: No module named 'numpy'"
-  ]
+  "device": "cpu",
+  "dtype": "float32",
+  "model": {
+    "repo": "BlinkDL/rwkv7-g1",
+    "revision": "ede85bf8ab2e59aff7d7ca909fbbc73317866d89",
+    "file": "rwkv7-g1i-2.9b-20260805-ctx16384.pth",
+    "layers": 32,
+    "embedding_dim": 2560,
+    "head_size": 64,
+    "vocab_size": 65536
+  },
+  "protocol": {
+    "fixture": "superseded_old_value_echoes",
+    "future_streams": [
+      "telemetry",
+      "inventory"
+    ],
+    "horizons": [
+      128,
+      512,
+      2048
+    ],
+    "adaptation": "same sequential W2 sup-heavy then W3 status8 KVR-only AdamW recipe as chain-v1",
+    "optimizer_low_peak_change": "AdamW foreach=False; algorithm/learning-rate/rows/order/clip/weight-decay unchanged",
+    "removed_as_irrelevant_to_native_scale_readout": "W1/W2 lineage construction, W1/W2/W3 KVR RAM snapshots, migration/selector evaluation",
+    "trainable_numel": 629145600,
+    "w2_lr": 1e-05,
+    "w3_lr": 5e-06,
+    "w2_examples": 16,
+    "w3_examples": 8
+  },
+  "training": {
+    "w2_mean_loss": 0.10876518780018207,
+    "w3_mean_loss": 0.33180533590633843,
+    "max_rss_gib": 14.94369125366211
+  },
+  "immediate_native": {
+    "expected_accuracy": 1.0,
+    "flags": {
+      "task_invariant_ok": true,
+      "correction_ok": true,
+      "control_ok": true,
+      "persistent_fact_ok": true
+    },
+    "margin": {
+      "per_probe_expected_margin": {
+        "codeword": 22.471961267119696,
+        "verification": 13.46546518802893,
+        "project": 20.13111436964391,
+        "action": 22.17324174114765
+      },
+      "min_expected_margin": 13.46546518802893,
+      "mean_expected_margin": 19.560445641485046
+    },
+    "qualified": true
+  },
+  "cases": [
+    {
+      "fixture": "superseded_old_value_echoes",
+      "future_stream": "telemetry",
+      "future_meta": {
+        "id": "telemetry",
+        "chunks_generated": 128,
+        "tokens_used": 2048,
+        "semantic_exclusion": "templates avoid fixture project/codeword/verification/action/correction terms"
+      },
+      "native_stable_case": true,
+      "native_roll": {
+        "native_stable": true,
+        "milestones": {
+          "128": {
+            "native_expected_accuracy": 1.0,
+            "native_flags": {
+              "task_invariant_ok": true,
+              "correction_ok": true,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "native_margin": {
+              "per_probe_expected_margin": {
+                "codeword": 16.37910030909279,
+                "verification": 11.186216235344546,
+                "project": 20.683654412219767,
+                "action": 22.380198811966693
+              },
+              "min_expected_margin": 11.186216235344546,
+              "mean_expected_margin": 17.65729244215595
+            }
+          },
+          "512": {
+            "native_expected_accuracy": 1.0,
+            "native_flags": {
+              "task_invariant_ok": true,
+              "correction_ok": true,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "native_margin": {
+              "per_probe_expected_margin": {
+                "codeword": 15.845408544520069,
+                "verification": 11.151357412676589,
+                "project": 20.88776686199708,
+                "action": 21.973839255864732
+              },
+              "min_expected_margin": 11.151357412676589,
+              "mean_expected_margin": 17.464593018764617
+            }
+          },
+          "2048": {
+            "native_expected_accuracy": 1.0,
+            "native_flags": {
+              "task_invariant_ok": true,
+              "correction_ok": true,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "native_margin": {
+              "per_probe_expected_margin": {
+                "codeword": 11.820096382382872,
+                "verification": 10.684947252822894,
+                "project": 19.45804561546538,
+                "action": 20.929277697694488
+              },
+              "min_expected_margin": 10.684947252822894,
+              "mean_expected_margin": 15.723091737091409
+            }
+          }
+        }
+      }
+    },
+    {
+      "fixture": "superseded_old_value_echoes",
+      "future_stream": "inventory",
+      "future_meta": {
+        "id": "inventory",
+        "chunks_generated": 121,
+        "tokens_used": 2048,
+        "semantic_exclusion": "templates avoid fixture project/codeword/verification/action/correction terms"
+      },
+      "native_stable_case": true,
+      "native_roll": {
+        "native_stable": true,
+        "milestones": {
+          "128": {
+            "native_expected_accuracy": 1.0,
+            "native_flags": {
+              "task_invariant_ok": true,
+              "correction_ok": true,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "native_margin": {
+              "per_probe_expected_margin": {
+                "codeword": 19.290763327597233,
+                "verification": 10.094747186642053,
+                "project": 20.790662540646736,
+                "action": 20.84138968703337
+              },
+              "min_expected_margin": 10.094747186642053,
+              "mean_expected_margin": 17.754390685479848
+            }
+          },
+          "512": {
+            "native_expected_accuracy": 1.0,
+            "native_flags": {
+              "task_invariant_ok": true,
+              "correction_ok": true,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "native_margin": {
+              "per_probe_expected_margin": {
+                "codeword": 17.451186635207705,
+                "verification": 9.587986591563094,
+                "project": 17.803485529962927,
+                "action": 20.57224888764904
+              },
+              "min_expected_margin": 9.587986591563094,
+              "mean_expected_margin": 16.35372691109569
+            }
+          },
+          "2048": {
+            "native_expected_accuracy": 1.0,
+            "native_flags": {
+              "task_invariant_ok": true,
+              "correction_ok": true,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "native_margin": {
+              "per_probe_expected_margin": {
+                "codeword": 12.359532353910254,
+                "verification": 9.666334273650136,
+                "project": 17.27013768395409,
+                "action": 19.911263008616515
+              },
+              "min_expected_margin": 9.666334273650136,
+              "mean_expected_margin": 14.801816830032749
+            }
+          }
+        }
+      }
+    }
+  ],
+  "summary": {
+    "native_stable_case_count": 2,
+    "native_stable_case_total": 2,
+    "immediate_native_qualified": true
+  },
+  "scale_probe": {
+    "reference_0p4b_native_stable_streams": "0/2",
+    "reference_1p5b_native_stable_streams": "0/2",
+    "decision_rule": {
+      "2/2": "strong focused scale evidence; consider full 2.9B G7 qualification",
+      "1/2": "partial scale benefit; inspect horizon and margins",
+      "0/2": "no focused native-stability benefit under this adaptation recipe"
+    }
+  },
+  "claim_boundary": "Focused 2.9B CPU native-only scale diagnostic. The W2/W3 KVR AdamW adaptation recipe and preregistered old_value_echoes/telemetry/inventory/128-512-2048 readout are preserved, while migration-only allocations are removed. No paid GPU and no final-backbone freeze."
 }
