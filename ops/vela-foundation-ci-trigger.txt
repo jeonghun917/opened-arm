@@ -1,5 +1,5 @@
 VELA foundation CI trigger.
-Run: 2026-08-26 M6 application engine lifecycle: quiesce/flush -> guarded RWKV upgrade -> post-commit target activation -> compensation/previous-engine recovery + audited 2.9B G7 bridge gate.
-Ars-Mentis target: vela-foundation-runtime @ 498475036539a1b7dafd7f259d474d581868fded
+Run: 2026-08-26 M6 durable lifecycle journal: crash-window reconciliation for source-flushed/target-committed states + activation retry/compensation + audited 2.9B G7 bridge gate.
+Ars-Mentis target: vela-foundation-runtime @ e3e16abb948f7714b7081a1484132bf643cdb924
 Experiment result snapshot: 1bc953fe99a640d8047e5fbc580f1cb796f6ca99
-Trigger revision: 16
+Trigger revision: 17
