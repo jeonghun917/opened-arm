@@ -94,4 +94,34 @@ Decision discipline:
 - `0/2`: no focused benefit under this recipe; do not infer all larger RWKV are impossible.
 - OOM/timeout/download/runtime failure before a valid result: infrastructure failure, NOT scientific failure. The next step may be a separately labelled memory-adapted probe; do not silently change precision/optimizer and call it the same protocol.
 
+## F. Reproducibility audit after user challenge
+
+The historical W1->W2->W3 work did have a real provenance issue: an earlier chain could appear valid while hop2 selected a W1-origin path. That issue was later closed by chain-v2's carried-W2 provenance requirement. The user therefore asked whether the failed G7/1.5B evidence could have been distorted by a similar hash/value/JSON problem.
+
+Audit of Run `32802357103`:
+
+- run and record jobs both completed successfully;
+- the workflow's frozen dependency verification passed for all seven declared core dependency blobs;
+- the authoritative result is a full result, not `FAIL_BEFORE_RESULT`, and contains protocol/model/training/summary/case/horizon data;
+- the failure is already present at immediate W3-native qualification (`0.75`, codeword failure), before long-horizon aggregation, so a missing later summary field cannot explain the result;
+- no evidence was found that a dependency hash drift or missing JSON value actually occurred in this 1.5B run.
+
+However, a genuine workflow reproducibility weakness exists: the run job checks out the mutable branch name `vela-experiment-infra` rather than exact `${{ github.sha }}`. The frozen hash step protects the seven listed dependencies but does not independently assert the experiment wrapper blob. Therefore a branch move between trigger and checkout could theoretically execute a different wrapper while retaining the trigger SHA as metadata.
+
+For the audited 1.5B run, the next branch movement occurred after its checkout and did not introduce experiment-code changes, so there is no evidence that this theoretical race affected the result.
+
+Required hardening for future experiment runs:
+
+1. run-job checkout must use exact `${{ github.sha }}`;
+2. assert `git rev-parse HEAD == $GITHUB_SHA` before execution;
+3. hash/assert the experiment wrapper itself in addition to core dependencies;
+4. serialize actual checked-out HEAD and wrapper blob hash into the result JSON;
+5. the record job may still checkout the branch because it must commit the result snapshot.
+
+Do not mutate the already-running 2.9B protocol mid-run. After Run `32810175701` ends, explicitly audit its actual checkout SHA/timing and wrapper blob before interpreting its scientific result.
+
+For the historical 0.4B cause-isolation-v2 run, the exact checkout timing could not be reconstructed with enough confidence to claim absolute execution immutability. Nevertheless, selector-v3 later independently reproduced the same native pattern (`6/8` stable, `old_value_echoes 0/2`) while changing only the migration-side failure count (`4 -> 0`). That reproduction strongly supports the current native-blocker and late-anchor diagnosis rather than a single corrupted JSON artifact.
+
+Gate status does not change from this audit.
+
 No mainline merge, irreversible storage migration, final freeze, or paid GPU without separate approval.
