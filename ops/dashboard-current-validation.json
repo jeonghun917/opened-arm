@@ -1,16 +1,16 @@
 {
   "schema": 2,
-  "targetSha": "87b07293a3ec03c2471f11ff89812f4b701487d4",
-  "actualSha": "87b07293a3ec03c2471f11ff89812f4b701487d4",
+  "targetSha": "69c4e5925ac2acdcf9f12a65f6a3dacb38e95301",
+  "actualSha": "69c4e5925ac2acdcf9f12a65f6a3dacb38e95301",
   "targetResolution": "success",
   "credentialGate": "success",
   "pendingStatusPublish": "success",
   "privateCheckout": "success",
   "identityCheck": "success",
   "npmCi": "success",
-  "npmRunCheck": "failure",
+  "npmRunCheck": "success",
   "finalStatusPublish": "success",
   "statusContext": "dashboard-public-validation",
-  "runId": "32841265803",
+  "runId": "32841613132",
   "runAttempt": "1"
 }
