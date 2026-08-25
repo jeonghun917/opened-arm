@@ -33,6 +33,13 @@ jobs:
           path: runner-control
           persist-credentials: true
 
+      - name: Checkout exact audited 2.9B G7 result snapshot
+        uses: actions/checkout@v4
+        with:
+          ref: 1bc953fe99a640d8047e5fbc580f1cb796f6ca99
+          path: experiment
+          persist-credentials: false
+
       - name: Checkout private Ars-Mentis source
         uses: actions/checkout@v4
         with:
@@ -80,6 +87,74 @@ jobs:
             exit "$status"
           fi
 
+      - name: Verify audited RWKV 2.9B G7 evidence bridge
+        shell: bash
+        run: |
+          set -euo pipefail
+          dst=runner-control/ops/vela-foundation-rwkv-g7-evidence-bridge-latest.json
+          rm -f "$dst" /tmp/vela-rwkv-g7-bridge-full.json /tmp/vela-rwkv-g7-bridge.log
+          source_commit=$(git -C ars-mentis rev-parse HEAD)
+          experiment_commit=$(git -C experiment rev-parse HEAD)
+          if [[ ! -f ars-mentis/tools/verify_rwkv_g7_evidence_bridge.py ]]; then
+            SOURCE_COMMIT="$source_commit" EXPERIMENT_COMMIT="$experiment_commit" python - <<'PY'
+          import json, os
+          from pathlib import Path
+          Path('runner-control/ops/vela-foundation-rwkv-g7-evidence-bridge-latest.json').write_text(
+              json.dumps({
+                  'status': 'SKIPPED_SOURCE_PREDATES_BRIDGE',
+                  'foundation_source_commit': os.environ['SOURCE_COMMIT'],
+                  'experiment_result_commit': os.environ['EXPERIMENT_COMMIT'],
+                  'claim_boundary': 'The selected historical foundation ref predates the RWKV real-evidence bridge verifier.'
+              }, indent=2, sort_keys=True) + '\n'
+          )
+          PY
+            echo "RWKV evidence bridge: skipped for historical source"
+            exit 0
+          fi
+          set +e
+          PYTHONPATH=ars-mentis/src python ars-mentis/tools/verify_rwkv_g7_evidence_bridge.py \
+            experiment/ops/vela-results/g7-rwkv7-2p9b-full-selector-v3-v1-latest.json \
+            --output /tmp/vela-rwkv-g7-bridge-full.json \
+            > /tmp/vela-rwkv-g7-bridge.log 2>&1
+          bridge_status=$?
+          set -e
+          SOURCE_COMMIT="$source_commit" EXPERIMENT_COMMIT="$experiment_commit" BRIDGE_STATUS="$bridge_status" python - <<'PY'
+          import json, os
+          from pathlib import Path
+          src = Path('/tmp/vela-rwkv-g7-bridge-full.json')
+          if src.exists():
+              full = json.loads(src.read_text())
+              payload = {
+                  'status': full['status'],
+                  'foundation_source_commit': os.environ['SOURCE_COMMIT'],
+                  'experiment_result_commit': os.environ['EXPERIMENT_COMMIT'],
+                  'source_result_sha256': full['source_result_sha256'],
+                  'case_count': full['case_count'],
+                  'selected_anchor_match_count': full['selected_anchor_match_count'],
+                  'eligible_set_match_count': full['eligible_set_match_count'],
+                  'oracle_free_case_count': full['oracle_free_case_count'],
+                  'native_stable_case_count': full['native_stable_case_count'],
+                  'migration_clean_case_count': full['migration_clean_case_count'],
+                  'foundation_path': full['foundation_path'],
+                  'claim_boundary': full['claim_boundary'],
+              }
+          else:
+              payload = {
+                  'status': 'FAIL_BEFORE_RESULT',
+                  'foundation_source_commit': os.environ['SOURCE_COMMIT'],
+                  'experiment_result_commit': os.environ['EXPERIMENT_COMMIT'],
+                  'claim_boundary': 'Bridge verifier failed before a public-safe summary could be produced.'
+              }
+          Path('runner-control/ops/vela-foundation-rwkv-g7-evidence-bridge-latest.json').write_text(
+              json.dumps(payload, indent=2, sort_keys=True) + '\n'
+          )
+          PY
+          if [[ "$bridge_status" -ne 0 ]]; then
+            echo "::error::RWKV real-evidence bridge failed. Detailed verifier output is intentionally suppressed."
+            exit "$bridge_status"
+          fi
+          echo "RWKV real-evidence bridge: PASS"
+
       - name: Commit public result snapshot
         if: always()
         working-directory: runner-control
@@ -92,6 +167,9 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add ops/vela-foundation-ci-latest.json
+          if [[ -f ops/vela-foundation-rwkv-g7-evidence-bridge-latest.json ]]; then
+            git add ops/vela-foundation-rwkv-g7-evidence-bridge-latest.json
+          fi
           git diff --cached --quiet || git commit -m 'Record VELA foundation CI result [skip ci]'
           for n in 1 2 3 4; do
             git pull --rebase origin vela-foundation-ci && git push origin HEAD:vela-foundation-ci && break
