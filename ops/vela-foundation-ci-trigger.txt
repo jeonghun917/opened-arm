@@ -1,4 +1,4 @@
 VELA foundation CI trigger.
-Run: 2026-08-25 engine-neutral conservative carried-anchor guard selector + selector-depth tests.
-Ars-Mentis target: vela-foundation-runtime @ ad28c92c86f664cc3cb1ecee874a7702a880e82b
-Trigger revision: 9
+Run: 2026-08-25 carried-anchor guard + selector audit propagation through replay executor.
+Ars-Mentis target: vela-foundation-runtime @ c3eaf6d0c21e30c60e18848c88446fdb8e1e1d53
+Trigger revision: 10
