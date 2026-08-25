@@ -1,7 +1,7 @@
 # VELA Experiment Handoff — CURRENT
 
 Date: 2026-08-25 KST  
-Status: CORE BASELINE PROMOTED / CHAIN-V2 PASS / G7 MIGRATION SUBGATE PASS / NATIVE BACKBONE OPEN / G8-G9 STRONG EVIDENCE / FINAL FREEZE BLOCKED
+Status: CORE BASELINE PROMOTED / CHAIN-V2 PASS / G7 MIGRATION SUBGATE PASS / NATIVE BACKBONE OPEN / SELECTOR-V3 FOUNDATION INTEGRATION PASS / G8-G9 STRONG EVIDENCE / FINAL FREEZE BLOCKED
 
 This document is continuity insurance for a new session or maintainer. Active work continues.
 
@@ -22,7 +22,7 @@ Public isolated foundation CI:
 - `jeonghun917/opened-arm`
 - `vela-foundation-ci`
 
-Do not infer success from a workflow trigger. Re-read the authoritative result JSON and distinguish scientific failure from infrastructure failure. Do not touch unrelated projects or mainline. Paid GPU, mainline merge, irreversible storage migration, and final backbone/schema/checkpoint/selector freeze require separate user approval.
+Do not infer success from a workflow trigger. Re-read authoritative result JSONs and distinguish scientific failure from infrastructure failure. Do not touch unrelated projects or mainline. Paid GPU, mainline merge, irreversible storage migration, and final backbone/schema/checkpoint/selector freeze require separate user approval.
 
 ## 2. Project target and promoted core
 
@@ -71,7 +71,7 @@ This is synthetic diagnostic evidence, not a final-backbone or general identity 
 Authoritative result:
 
 - `ops/vela-results/g7-rwkv7-0p4b-cause-isolation-v2-latest.json`
-- source commit: `f1173aaa7054eb4ffaeb5996c51f8742a0c58c96`
+- source commit `f1173aaa7054eb4ffaeb5996c51f8742a0c58c96`
 
 Protocol: 4 fixtures x 2 neutral future streams, horizons `128 / 512 / 2048`.
 
@@ -80,9 +80,9 @@ Observed:
 - immediate chain qualification `4/4`
 - W3-native stable `6/8`
 - W3-native unstable `2/8`, both `superseded_old_value_echoes`
-- migration-only excess failures on native-stable cases: `4`
-- failures: `suffix4` and `suffix8`, both streams
-- one-step older W2 anchor rescue: `1/4`
+- migration-only excess failures on native-stable cases `4`
+- failures are `suffix4` and `suffix8`, both streams
+- one-step older W2 anchor rescue `1/4`
 - formal candidate `false`
 
 ### 5.2 Anchor-depth v3 — migration cause isolated
@@ -90,7 +90,7 @@ Observed:
 Authoritative result:
 
 - `ops/vela-results/g7-rwkv7-0p4b-anchor-depth-v3-latest.json`
-- source commit: `67cd1e871616e3c7322b34ee1a5b7ddcdb757169`
+- source commit `67cd1e871616e3c7322b34ee1a5b7ddcdb757169`
 
 Oracle evaluation over the four native-stable migration failures showed:
 
@@ -107,12 +107,12 @@ This proves bounded replay can work on all four; chain-v2 late pruning was the m
 Authoritative result:
 
 - `ops/vela-results/g7-rwkv7-0p4b-selector-v3-latest.json`
-- source commit: `87ae0eff4c7cff81df91cbc7a3f04f4c1441583f`
+- source commit `87ae0eff4c7cff81df91cbc7a3f04f4c1441583f`
 
 Policy:
 
 - preserve chain-v2 target-free candidate detection and immediate functional equivalence;
-- among equivalent carried W2-origin candidates choose the **earliest** carried W2-origin anchor, rather than the latest;
+- among equivalent carried W2-origin candidates choose the **earliest** carried W2-origin anchor rather than the latest;
 - no W3-native/future outcome in anchor choice;
 - no final selector threshold/score freeze.
 
@@ -127,12 +127,12 @@ Observed:
 
 Current G7 conclusion: **migration-specific long-horizon drift is removed on the native-stable synthetic denominator; native backbone stability remains open.**
 
-## 6. Foundation selector-v3 integration — implemented and CI PASS
+## 6. Foundation selector-v3 integration — implemented and latest CI PASS
 
-Private foundation branch now contains an engine-neutral policy primitive:
+Private foundation branch now contains an engine-neutral selector-v3 consequence:
 
 - `EquivalentCarriedAnchorGuardSelector`
-- tested code-changing commit: `ad28c92c86f664cc3cb1ecee874a7702a880e82b`
+- latest code-changing tested commit `c3eaf6d0c21e30c60e18848c88446fdb8e1e1d53`
 
 Properties:
 
@@ -141,17 +141,18 @@ Properties:
 - filters to the specified carried `EngineGeneration`;
 - chooses the earliest eligible checkpoint no later than the wrapped selector boundary;
 - never weakens a required full replay;
-- records policy/baseline/eligible/escalation audit metadata;
 - contains no RWKV tensor assumptions, native/future oracle, frozen score or threshold.
 
-Isolated CI:
+Replay integration now also records an `anchor_selection` audit event before prepare, carrying selected/baseline/eligible checkpoints, selected generation, escalation flag, replay start/count and selector/scope metadata under the same replay transaction id. This makes selector-depth decisions traceable through the real prepare -> validate -> commit/fallback path.
 
-- public workflow run `32812124108`
-- tested source commit `ad28c92c86f664cc3cb1ecee874a7702a880e82b`
+Latest isolated CI:
+
+- run `32812722263`
+- tested source commit `c3eaf6d0c21e30c60e18848c88446fdb8e1e1d53`
 - Python 3.11 / ubuntu-latest
-- `53/53 PASS`
+- `54/54 PASS`
 
-This is an integration primitive, not a final universal selector rule.
+This is a replaceable integration primitive, not a final universal selector rule. The remaining integration step is model-specific target-free equivalence/candidate evidence feeding this generic guard in an end-to-end experiment path.
 
 ## 7. Backbone scale track
 
@@ -160,8 +161,8 @@ This is an integration primitive, not a final universal selector rule.
 Authoritative result:
 
 - `ops/vela-results/g7-rwkv7-1p5b-native-scale-probe-v1-latest.json`
-- source commit: `658f02b2eba12c783590e49f5946432594acb0db`
-- checkpoint: `rwkv7-g1i-1.5b-20260805-ctx16384.pth`
+- source commit `658f02b2eba12c783590e49f5946432594acb0db`
+- checkpoint `rwkv7-g1i-1.5b-20260805-ctx16384.pth`
 
 Observed on `superseded_old_value_echoes`:
 
@@ -173,15 +174,12 @@ Therefore this is a **recipe/checkpoint NO-GO**, not clean evidence that scale c
 
 ### 7.2 2.9B probe — infrastructure failure, no scientific result
 
-Workflow run:
-
-- run `32810175701`
-- head `888641c178d7444c314c8987ad0dcb83db825876`
+Run `32810175701`, head `888641c178d7444c314c8987ad0dcb83db825876`.
 
 Verified:
 
-- checkout/python/frozen dependency/resource inspection/runtime install: PASS
-- scientific probe step: exit code `143`
+- checkout/python/frozen dependency/resource inspection/runtime install PASS
+- scientific probe step exited `143`
 - runner reported shutdown signal
 - artifact upload skipped
 - record job failed because no artifact existed
@@ -193,13 +191,13 @@ Do not grow 0.4B into 1.5B from scratch now. Larger-model work should first make
 
 ## 8. G8 current evidence
 
-Retention/storage evidence is strong but the production interval is not frozen.
+Retention/storage evidence is strong but production interval is not frozen.
 
 The small suite showed `fixed_n2` as a promising cost/safety point, and the durable follow-up used real `FileCheckpointRepository` I/O with roughly `6.5 MB` state payloads. Keep retention policy replaceable and above repository semantics.
 
 ## 9. G9 current evidence
 
-Failure-matrix and process-boundary crash/recovery evidence are strong. The invariant remains:
+Failure-matrix and process-boundary crash/recovery evidence are strong. Invariant:
 
 - invalid/corrupt/incompatible candidates never silently become canonical;
 - unrecoverable paths preserve prior canonical state;
@@ -222,8 +220,8 @@ Do not freeze or merge without explicit approval:
 
 ## 11. Immediate work order
 
-1. Connect model-specific target-free equivalence/candidate evidence to the generic `EquivalentCarriedAnchorGuardSelector` and preserve its audit metadata through the real replay transaction path.
-2. Run focused G7 regression through the integrated foundation path, then the full G7 protocol with native-stable/native-unstable denominators separated.
+1. Feed actual model-specific target-free equivalence/candidate evidence into the generic `EquivalentCarriedAnchorGuardSelector`.
+2. Run focused native-stable G7 regression through that integrated foundation path, then full G7 with native-stable/native-unstable denominators separated.
 3. For scale, first qualify the larger checkpoint at time zero; only then compare native long-horizon stability. Treat the 2.9B exit-143 run as infrastructure only.
 4. Keep G8/G9 regression coverage while selector integration changes.
 5. Only after native G7 coverage is resolved review final backbone/state/checkpoint/selector freeze and end-to-end adapter integration.
@@ -233,10 +231,10 @@ Do not freeze or merge without explicit approval:
 A new session should:
 
 1. read Drive CURRENT 기준관리 and Gate Ledger;
-2. read Drive `00_CURRENT_VELA_개발_인수인계` and the overall branch summary;
+2. read Drive `00_CURRENT_VELA_개발_인수인계` and the overall summary;
 3. read this file and private `Ars-Mentis/docs/G7_G9_INTEGRATION_HANDOFF.md`;
-4. re-fetch chain-v2, G7 cause-isolation, anchor-depth-v3, selector-v3, and 1.5B result JSONs;
-5. verify whether a real 2.9B result has appeared before discussing its scientific outcome;
-6. verify latest private foundation CI result before calling new runtime changes passed.
+4. re-fetch chain-v2, G7 cause-isolation, anchor-depth-v3, selector-v3 and 1.5B result JSONs;
+5. treat 2.9B run `32810175701` as infrastructure failure unless a later authoritative result JSON exists;
+6. verify latest private foundation CI before calling newer runtime changes passed.
 
-Key fact to preserve: **selector-v3 has eliminated the migration-only G7 failures on the native-stable denominator, while native backbone coverage is still the blocker.**
+Key fact to preserve: **selector-v3 has eliminated migration-only G7 failures on the native-stable denominator, and that guard is now wired into generic selector/audit infrastructure; native backbone coverage is still the blocker.**
