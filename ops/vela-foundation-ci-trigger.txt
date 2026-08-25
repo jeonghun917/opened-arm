@@ -1,5 +1,5 @@
 VELA foundation CI trigger.
-Run: 2026-08-26 durable event-log recovery -> lineage rebuild -> RWKV guarded upgrade -> restart persistence + audited 2.9B G7 bridge gate.
-Ars-Mentis target: vela-foundation-runtime @ 4eb76be5cf7704b174732333dfce01b1798069c5
+Run: 2026-08-26 M6 application engine lifecycle: quiesce/flush -> guarded RWKV upgrade -> post-commit target activation -> compensation/previous-engine recovery + audited 2.9B G7 bridge gate.
+Ars-Mentis target: vela-foundation-runtime @ 498475036539a1b7dafd7f259d474d581868fded
 Experiment result snapshot: 1bc953fe99a640d8047e5fbc580f1cb796f6ca99
-Trigger revision: 15
+Trigger revision: 16
