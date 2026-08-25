@@ -1,0 +1,1533 @@
+{
+  "status": "VELA_G7_RWKV7_0P4B_SELECTOR_V3_CONSERVATIVE",
+  "source_commit": "87ae0eff4c7cff81df91cbc7a3f04f4c1441583f",
+  "device": "cpu",
+  "dtype": "float32",
+  "model": {
+    "weight_repo": "BlinkDL/rwkv7-g1",
+    "weight_file": "rwkv7-g1a-0.4b-20250905-ctx4096.pth",
+    "weight_revision": "4aa0981b66af4f727181a147bcea1457ad7c84cb"
+  },
+  "protocol": {
+    "question": "Separate migration-induced long-horizon drift from native backbone instability, and test whether a one-step older carried W2 anchor rescues native-stable migration failures.",
+    "chain_policy": "frozen chain-v2 provenance selector",
+    "fixtures": [
+      "superseded_base",
+      "superseded_suffix4",
+      "superseded_suffix8",
+      "superseded_old_value_echoes"
+    ],
+    "future_streams": [
+      "telemetry",
+      "inventory"
+    ],
+    "horizons": [
+      128,
+      512,
+      2048
+    ],
+    "native_stable_rule": "W3-native task invariant must remain true at 128, 512, and 2048 for a fixture/future case to enter the migration-only denominator.",
+    "migration_excess_rule": "On a native-stable case, selected migrated state must keep task invariants and functional decision agreement=1.0 at every horizon.",
+    "native_coverage_gate": "At least 6/8 cases native-stable and at least one native-stable stream per fixture.",
+    "anchor_ablation": "Evaluation-only comparison of chain-v2 selected W2-origin anchor against the immediately older available W2-origin anchor. W3-native is evaluation-only and is not used to select either anchor.",
+    "oracle_usage": "none for selector or ablation anchor choice"
+  },
+  "training": {
+    "w2_mean_loss": 0.5272212644172214,
+    "w3_mean_loss": 1.7828345345333219
+  },
+  "summary": {
+    "fixture_count": 4,
+    "future_stream_count": 2,
+    "case_count": 8,
+    "initial_chain_qualified": 4,
+    "native_stable_case_count": 6,
+    "native_unstable_case_count": 2,
+    "per_fixture_native_stable_streams": {
+      "superseded_base": 2,
+      "superseded_suffix4": 2,
+      "superseded_suffix8": 2,
+      "superseded_old_value_echoes": 0
+    },
+    "native_coverage_gate": false,
+    "migration_only_excess_failure_count": 0,
+    "migration_only_excess_failure_cases": [],
+    "selector_depth_rescue_count": 0,
+    "selector_depth_rescue_cases": [],
+    "migration_excess_gate": true,
+    "formal_g7_v2_pass_candidate": false,
+    "selector_v3_migration_subgate_pass": true
+  },
+  "cases": [
+    {
+      "fixture": "superseded_base",
+      "future_stream": "telemetry",
+      "future_meta": {
+        "id": "telemetry",
+        "chunks_generated": 128,
+        "tokens_used": 2048,
+        "semantic_exclusion": "templates avoid fixture project/codeword/verification/action/correction terms"
+      },
+      "initial": {
+        "w3_native_expected_accuracy": 1.0,
+        "hop1_decision_agreement": 1.0,
+        "hop2_decision_agreement": 1.0,
+        "selected_final_decision_agreement": 1.0,
+        "selected_anchor_seg": 5,
+        "selected_anchor_pos": 51,
+        "selected_anchor_origin": "W2",
+        "older_w2_anchor_seg": null,
+        "older_w2_anchor_pos": null,
+        "native_margin": {
+          "per_probe_expected_margin": {
+            "codeword": 4.550825305406761,
+            "verification": 5.040610309690237,
+            "project": 5.083545565605164,
+            "action": 3.408755302429199
+          },
+          "min_expected_margin": 3.408755302429199,
+          "mean_expected_margin": 4.52093412078284
+        },
+        "selected_margin": {
+          "per_probe_expected_margin": {
+            "codeword": 5.286068820292712,
+            "verification": 4.416134476661682,
+            "project": 4.52396821975708,
+            "action": 2.818362236022949
+          },
+          "min_expected_margin": 2.818362236022949,
+          "mean_expected_margin": 4.261133438183606
+        },
+        "older_margin": null,
+        "qualified": true
+      },
+      "selected": {
+        "native_stable": true,
+        "path_stable_vs_native": true,
+        "first_trace_divergence_step": 12,
+        "trace_agreement": {
+          "128": 0.9921875,
+          "512": 0.998046875,
+          "2048": 0.99951171875
+        },
+        "milestones": {
+          "128": {
+            "functional_vs_native": {
+              "decision_agreement": 1.0,
+              "expected_accuracy": 1.0,
+              "score_rms_error": 0.3263146967172983
+            },
+            "native_expected_accuracy": 1.0,
+            "path_expected_accuracy": 1.0,
+            "native_flags": {
+              "task_invariant_ok": true,
+              "correction_ok": true,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "path_flags": {
+              "task_invariant_ok": true,
+              "correction_ok": true,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "native_margin": {
+              "per_probe_expected_margin": {
+                "codeword": 3.8772496373858303,
+                "verification": 2.0619841516017914,
+                "project": 5.776443600654602,
+                "action": 4.084661483764648
+              },
+              "min_expected_margin": 2.0619841516017914,
+              "mean_expected_margin": 3.950084718351718
+            },
+            "path_margin": {
+              "per_probe_expected_margin": {
+                "codeword": 4.258992432733066,
+                "verification": 1.7538715600967407,
+                "project": 4.935820579528809,
+                "action": 3.5270423889160156
+              },
+              "min_expected_margin": 1.7538715600967407,
+              "mean_expected_margin": 3.618931740318658
+            }
+          },
+          "512": {
+            "functional_vs_native": {
+              "decision_agreement": 1.0,
+              "expected_accuracy": 1.0,
+              "score_rms_error": 0.4691957210313696
+            },
+            "native_expected_accuracy": 1.0,
+            "path_expected_accuracy": 1.0,
+            "native_flags": {
+              "task_invariant_ok": true,
+              "correction_ok": true,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "path_flags": {
+              "task_invariant_ok": true,
+              "correction_ok": true,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "native_margin": {
+              "per_probe_expected_margin": {
+                "codeword": 1.8462326551089063,
+                "verification": 1.6071649193763733,
+                "project": 6.247602105140686,
+                "action": 4.78997278213501
+              },
+              "min_expected_margin": 1.6071649193763733,
+              "mean_expected_margin": 3.622743115440244
+            },
+            "path_margin": {
+              "per_probe_expected_margin": {
+                "codeword": 2.7006875667721033,
+                "verification": 1.1502156257629395,
+                "project": 5.268467903137207,
+                "action": 4.250448226928711
+              },
+              "min_expected_margin": 1.1502156257629395,
+              "mean_expected_margin": 3.34245483065024
+            }
+          },
+          "2048": {
+            "functional_vs_native": {
+              "decision_agreement": 1.0,
+              "expected_accuracy": 1.0,
+              "score_rms_error": 0.48640854973519404
+            },
+            "native_expected_accuracy": 1.0,
+            "path_expected_accuracy": 1.0,
+            "native_flags": {
+              "task_invariant_ok": true,
+              "correction_ok": true,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "path_flags": {
+              "task_invariant_ok": true,
+              "correction_ok": true,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "native_margin": {
+              "per_probe_expected_margin": {
+                "codeword": 1.1652705263113603,
+                "verification": 1.9204015731811523,
+                "project": 6.544964790344238,
+                "action": 5.191518783569336
+              },
+              "min_expected_margin": 1.1652705263113603,
+              "mean_expected_margin": 3.7055389183515217
+            },
+            "path_margin": {
+              "per_probe_expected_margin": {
+                "codeword": 2.1379708314780146,
+                "verification": 1.2757492065429688,
+                "project": 5.642063736915588,
+                "action": 4.844878196716309
+              },
+              "min_expected_margin": 1.2757492065429688,
+              "mean_expected_margin": 3.47516549291322
+            }
+          }
+        }
+      },
+      "older_w2_anchor": null,
+      "native_stable_case": true,
+      "migration_excess_failure": false,
+      "selector_depth_rescue": false
+    },
+    {
+      "fixture": "superseded_base",
+      "future_stream": "inventory",
+      "future_meta": {
+        "id": "inventory",
+        "chunks_generated": 121,
+        "tokens_used": 2048,
+        "semantic_exclusion": "templates avoid fixture project/codeword/verification/action/correction terms"
+      },
+      "initial": {
+        "w3_native_expected_accuracy": 1.0,
+        "hop1_decision_agreement": 1.0,
+        "hop2_decision_agreement": 1.0,
+        "selected_final_decision_agreement": 1.0,
+        "selected_anchor_seg": 5,
+        "selected_anchor_pos": 51,
+        "selected_anchor_origin": "W2",
+        "older_w2_anchor_seg": null,
+        "older_w2_anchor_pos": null,
+        "native_margin": {
+          "per_probe_expected_margin": {
+            "codeword": 4.550825305406761,
+            "verification": 5.040610309690237,
+            "project": 5.083545565605164,
+            "action": 3.408755302429199
+          },
+          "min_expected_margin": 3.408755302429199,
+          "mean_expected_margin": 4.52093412078284
+        },
+        "selected_margin": {
+          "per_probe_expected_margin": {
+            "codeword": 5.286068820292712,
+            "verification": 4.416134476661682,
+            "project": 4.52396821975708,
+            "action": 2.818362236022949
+          },
+          "min_expected_margin": 2.818362236022949,
+          "mean_expected_margin": 4.261133438183606
+        },
+        "older_margin": null,
+        "qualified": true
+      },
+      "selected": {
+        "native_stable": true,
+        "path_stable_vs_native": true,
+        "first_trace_divergence_step": 4,
+        "trace_agreement": {
+          "128": 0.96875,
+          "512": 0.9921875,
+          "2048": 0.99755859375
+        },
+        "milestones": {
+          "128": {
+            "functional_vs_native": {
+              "decision_agreement": 1.0,
+              "expected_accuracy": 1.0,
+              "score_rms_error": 0.5232645402689148
+            },
+            "native_expected_accuracy": 1.0,
+            "path_expected_accuracy": 1.0,
+            "native_flags": {
+              "task_invariant_ok": true,
+              "correction_ok": true,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "path_flags": {
+              "task_invariant_ok": true,
+              "correction_ok": true,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "native_margin": {
+              "per_probe_expected_margin": {
+                "codeword": 3.241836607863661,
+                "verification": 1.5485538840293884,
+                "project": 6.208512663841248,
+                "action": 3.9121851921081543
+              },
+              "min_expected_margin": 1.5485538840293884,
+              "mean_expected_margin": 3.727772086960613
+            },
+            "path_margin": {
+              "per_probe_expected_margin": {
+                "codeword": 3.886576753051486,
+                "verification": 1.032063066959381,
+                "project": 4.97382926940918,
+                "action": 3.1201539039611816
+              },
+              "min_expected_margin": 1.032063066959381,
+              "mean_expected_margin": 3.253155748345307
+            }
+          },
+          "512": {
+            "functional_vs_native": {
+              "decision_agreement": 1.0,
+              "expected_accuracy": 1.0,
+              "score_rms_error": 0.8366580982056833
+            },
+            "native_expected_accuracy": 1.0,
+            "path_expected_accuracy": 1.0,
+            "native_flags": {
+              "task_invariant_ok": true,
+              "correction_ok": true,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "path_flags": {
+              "task_invariant_ok": true,
+              "correction_ok": true,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "native_margin": {
+              "per_probe_expected_margin": {
+                "codeword": 1.301559965359047,
+                "verification": 1.142167568206787,
+                "project": 6.718387603759766,
+                "action": 4.659465789794922
+              },
+              "min_expected_margin": 1.142167568206787,
+              "mean_expected_margin": 3.4553952317801304
+            },
+            "path_margin": {
+              "per_probe_expected_margin": {
+                "codeword": 2.5379809411242604,
+                "verification": 0.5697441697120667,
+                "project": 5.586349725723267,
+                "action": 3.9831223487854004
+              },
+              "min_expected_margin": 0.5697441697120667,
+              "mean_expected_margin": 3.1692992963362485
+            }
+          },
+          "2048": {
+            "functional_vs_native": {
+              "decision_agreement": 1.0,
+              "expected_accuracy": 1.0,
+              "score_rms_error": 0.5462081214726
+            },
+            "native_expected_accuracy": 1.0,
+            "path_expected_accuracy": 1.0,
+            "native_flags": {
+              "task_invariant_ok": true,
+              "correction_ok": true,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "path_flags": {
+              "task_invariant_ok": true,
+              "correction_ok": true,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "native_margin": {
+              "per_probe_expected_margin": {
+                "codeword": 0.2969835437834263,
+                "verification": 2.245324045419693,
+                "project": 5.965051889419556,
+                "action": 6.077389717102051
+              },
+              "min_expected_margin": 0.2969835437834263,
+              "mean_expected_margin": 3.6461872989311814
+            },
+            "path_margin": {
+              "per_probe_expected_margin": {
+                "codeword": 1.7146343977656215,
+                "verification": 1.4950352907180786,
+                "project": 5.281551361083984,
+                "action": 5.721780776977539
+              },
+              "min_expected_margin": 1.4950352907180786,
+              "mean_expected_margin": 3.553250456636306
+            }
+          }
+        }
+      },
+      "older_w2_anchor": null,
+      "native_stable_case": true,
+      "migration_excess_failure": false,
+      "selector_depth_rescue": false
+    },
+    {
+      "fixture": "superseded_suffix4",
+      "future_stream": "telemetry",
+      "future_meta": {
+        "id": "telemetry",
+        "chunks_generated": 128,
+        "tokens_used": 2048,
+        "semantic_exclusion": "templates avoid fixture project/codeword/verification/action/correction terms"
+      },
+      "initial": {
+        "w3_native_expected_accuracy": 1.0,
+        "hop1_decision_agreement": 1.0,
+        "hop2_decision_agreement": 1.0,
+        "selected_final_decision_agreement": 1.0,
+        "selected_anchor_seg": 5,
+        "selected_anchor_pos": 51,
+        "selected_anchor_origin": "W2",
+        "older_w2_anchor_seg": null,
+        "older_w2_anchor_pos": null,
+        "native_margin": {
+          "per_probe_expected_margin": {
+            "codeword": 2.5867480773013085,
+            "verification": 0.9233322441577911,
+            "project": 6.014222621917725,
+            "action": 3.8663721084594727
+          },
+          "min_expected_margin": 0.9233322441577911,
+          "mean_expected_margin": 3.3476687629590742
+        },
+        "selected_margin": {
+          "per_probe_expected_margin": {
+            "codeword": 3.3084046449512243,
+            "verification": 0.6675500869750977,
+            "project": 5.1659815311431885,
+            "action": 3.531346321105957
+          },
+          "min_expected_margin": 0.6675500869750977,
+          "mean_expected_margin": 3.168320646043867
+        },
+        "older_margin": null,
+        "qualified": true
+      },
+      "selected": {
+        "native_stable": true,
+        "path_stable_vs_native": true,
+        "first_trace_divergence_step": null,
+        "trace_agreement": {
+          "128": 1.0,
+          "512": 1.0,
+          "2048": 1.0
+        },
+        "milestones": {
+          "128": {
+            "functional_vs_native": {
+              "decision_agreement": 1.0,
+              "expected_accuracy": 1.0,
+              "score_rms_error": 0.48495622262185045
+            },
+            "native_expected_accuracy": 1.0,
+            "path_expected_accuracy": 1.0,
+            "native_flags": {
+              "task_invariant_ok": true,
+              "correction_ok": true,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "path_flags": {
+              "task_invariant_ok": true,
+              "correction_ok": true,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "native_margin": {
+              "per_probe_expected_margin": {
+                "codeword": 2.834584096330218,
+                "verification": 1.417747974395752,
+                "project": 6.150270938873291,
+                "action": 4.019710540771484
+              },
+              "min_expected_margin": 1.417747974395752,
+              "mean_expected_margin": 3.6055783875926863
+            },
+            "path_margin": {
+              "per_probe_expected_margin": {
+                "codeword": 3.213043285650201,
+                "verification": 0.8698911070823669,
+                "project": 5.181095600128174,
+                "action": 3.540371894836426
+              },
+              "min_expected_margin": 0.8698911070823669,
+              "mean_expected_margin": 3.201100471924292
+            }
+          },
+          "512": {
+            "functional_vs_native": {
+              "decision_agreement": 1.0,
+              "expected_accuracy": 1.0,
+              "score_rms_error": 0.6895146340184267
+            },
+            "native_expected_accuracy": 1.0,
+            "path_expected_accuracy": 1.0,
+            "native_flags": {
+              "task_invariant_ok": true,
+              "correction_ok": true,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "path_flags": {
+              "task_invariant_ok": true,
+              "correction_ok": true,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "native_margin": {
+              "per_probe_expected_margin": {
+                "codeword": 1.30326245771721,
+                "verification": 1.0981793403625488,
+                "project": 6.517585754394531,
+                "action": 4.643523693084717
+              },
+              "min_expected_margin": 1.0981793403625488,
+              "mean_expected_margin": 3.3906378113897517
+            },
+            "path_margin": {
+              "per_probe_expected_margin": {
+                "codeword": 2.0248940375167876,
+                "verification": 0.5068740844726562,
+                "project": 5.481095790863037,
+                "action": 4.068504333496094
+              },
+              "min_expected_margin": 0.5068740844726562,
+              "mean_expected_margin": 3.0203420615871437
+            }
+          },
+          "2048": {
+            "functional_vs_native": {
+              "decision_agreement": 1.0,
+              "expected_accuracy": 1.0,
+              "score_rms_error": 0.5519950419595672
+            },
+            "native_expected_accuracy": 1.0,
+            "path_expected_accuracy": 1.0,
+            "native_flags": {
+              "task_invariant_ok": true,
+              "correction_ok": true,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "path_flags": {
+              "task_invariant_ok": true,
+              "correction_ok": true,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "native_margin": {
+              "per_probe_expected_margin": {
+                "codeword": 0.6854307660833001,
+                "verification": 1.5531883239746094,
+                "project": 6.693339824676514,
+                "action": 5.217666864395142
+              },
+              "min_expected_margin": 0.6854307660833001,
+              "mean_expected_margin": 3.537406444782391
+            },
+            "path_margin": {
+              "per_probe_expected_margin": {
+                "codeword": 1.622994416859001,
+                "verification": 0.8869704604148865,
+                "project": 5.828132152557373,
+                "action": 4.73689603805542
+              },
+              "min_expected_margin": 0.8869704604148865,
+              "mean_expected_margin": 3.26874826697167
+            }
+          }
+        }
+      },
+      "older_w2_anchor": null,
+      "native_stable_case": true,
+      "migration_excess_failure": false,
+      "selector_depth_rescue": false
+    },
+    {
+      "fixture": "superseded_suffix4",
+      "future_stream": "inventory",
+      "future_meta": {
+        "id": "inventory",
+        "chunks_generated": 121,
+        "tokens_used": 2048,
+        "semantic_exclusion": "templates avoid fixture project/codeword/verification/action/correction terms"
+      },
+      "initial": {
+        "w3_native_expected_accuracy": 1.0,
+        "hop1_decision_agreement": 1.0,
+        "hop2_decision_agreement": 1.0,
+        "selected_final_decision_agreement": 1.0,
+        "selected_anchor_seg": 5,
+        "selected_anchor_pos": 51,
+        "selected_anchor_origin": "W2",
+        "older_w2_anchor_seg": null,
+        "older_w2_anchor_pos": null,
+        "native_margin": {
+          "per_probe_expected_margin": {
+            "codeword": 2.5867480773013085,
+            "verification": 0.9233322441577911,
+            "project": 6.014222621917725,
+            "action": 3.8663721084594727
+          },
+          "min_expected_margin": 0.9233322441577911,
+          "mean_expected_margin": 3.3476687629590742
+        },
+        "selected_margin": {
+          "per_probe_expected_margin": {
+            "codeword": 3.3084046449512243,
+            "verification": 0.6675500869750977,
+            "project": 5.1659815311431885,
+            "action": 3.531346321105957
+          },
+          "min_expected_margin": 0.6675500869750977,
+          "mean_expected_margin": 3.168320646043867
+        },
+        "older_margin": null,
+        "qualified": true
+      },
+      "selected": {
+        "native_stable": true,
+        "path_stable_vs_native": true,
+        "first_trace_divergence_step": 9,
+        "trace_agreement": {
+          "128": 0.9765625,
+          "512": 0.994140625,
+          "2048": 0.99853515625
+        },
+        "milestones": {
+          "128": {
+            "functional_vs_native": {
+              "decision_agreement": 1.0,
+              "expected_accuracy": 1.0,
+              "score_rms_error": 0.5455989289239128
+            },
+            "native_expected_accuracy": 1.0,
+            "path_expected_accuracy": 1.0,
+            "native_flags": {
+              "task_invariant_ok": true,
+              "correction_ok": true,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "path_flags": {
+              "task_invariant_ok": true,
+              "correction_ok": true,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "native_margin": {
+              "per_probe_expected_margin": {
+                "codeword": 2.216768033162225,
+                "verification": 1.0171909928321838,
+                "project": 6.350961685180664,
+                "action": 3.9206366539001465
+              },
+              "min_expected_margin": 1.0171909928321838,
+              "mean_expected_margin": 3.376389341268805
+            },
+            "path_margin": {
+              "per_probe_expected_margin": {
+                "codeword": 2.9439094404224306,
+                "verification": 0.5622524619102478,
+                "project": 5.301357269287109,
+                "action": 3.23471736907959
+              },
+              "min_expected_margin": 0.5622524619102478,
+              "mean_expected_margin": 3.0105591351748444
+            }
+          },
+          "512": {
+            "functional_vs_native": {
+              "decision_agreement": 1.0,
+              "expected_accuracy": 1.0,
+              "score_rms_error": 0.8369263830683662
+            },
+            "native_expected_accuracy": 1.0,
+            "path_expected_accuracy": 1.0,
+            "native_flags": {
+              "task_invariant_ok": true,
+              "correction_ok": true,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "path_flags": {
+              "task_invariant_ok": true,
+              "correction_ok": true,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "native_margin": {
+              "per_probe_expected_margin": {
+                "codeword": 1.18166409782134,
+                "verification": 1.0245952010154724,
+                "project": 7.0076000690460205,
+                "action": 4.543905258178711
+              },
+              "min_expected_margin": 1.0245952010154724,
+              "mean_expected_margin": 3.439441156515386
+            },
+            "path_margin": {
+              "per_probe_expected_margin": {
+                "codeword": 2.3654535207897425,
+                "verification": 0.46027570962905884,
+                "project": 5.961988925933838,
+                "action": 3.851898193359375
+              },
+              "min_expected_margin": 0.46027570962905884,
+              "mean_expected_margin": 3.1599040874280035
+            }
+          },
+          "2048": {
+            "functional_vs_native": {
+              "decision_agreement": 1.0,
+              "expected_accuracy": 1.0,
+              "score_rms_error": 0.5711517986754299
+            },
+            "native_expected_accuracy": 1.0,
+            "path_expected_accuracy": 1.0,
+            "native_flags": {
+              "task_invariant_ok": true,
+              "correction_ok": true,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "path_flags": {
+              "task_invariant_ok": true,
+              "correction_ok": true,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "native_margin": {
+              "per_probe_expected_margin": {
+                "codeword": 0.2512632746947929,
+                "verification": 1.8960451185703278,
+                "project": 6.39307427406311,
+                "action": 5.610297203063965
+              },
+              "min_expected_margin": 0.2512632746947929,
+              "mean_expected_margin": 3.537669967598049
+            },
+            "path_margin": {
+              "per_probe_expected_margin": {
+                "codeword": 1.607187356101349,
+                "verification": 1.2274398803710938,
+                "project": 5.7239298820495605,
+                "action": 5.201373100280762
+              },
+              "min_expected_margin": 1.2274398803710938,
+              "mean_expected_margin": 3.4399825547006913
+            }
+          }
+        }
+      },
+      "older_w2_anchor": null,
+      "native_stable_case": true,
+      "migration_excess_failure": false,
+      "selector_depth_rescue": false
+    },
+    {
+      "fixture": "superseded_suffix8",
+      "future_stream": "telemetry",
+      "future_meta": {
+        "id": "telemetry",
+        "chunks_generated": 128,
+        "tokens_used": 2048,
+        "semantic_exclusion": "templates avoid fixture project/codeword/verification/action/correction terms"
+      },
+      "initial": {
+        "w3_native_expected_accuracy": 1.0,
+        "hop1_decision_agreement": 1.0,
+        "hop2_decision_agreement": 1.0,
+        "selected_final_decision_agreement": 1.0,
+        "selected_anchor_seg": 5,
+        "selected_anchor_pos": 51,
+        "selected_anchor_origin": "W2",
+        "older_w2_anchor_seg": null,
+        "older_w2_anchor_pos": null,
+        "native_margin": {
+          "per_probe_expected_margin": {
+            "codeword": 1.9514825716614723,
+            "verification": 1.9905787706375122,
+            "project": 5.833134412765503,
+            "action": 4.728133678436279
+          },
+          "min_expected_margin": 1.9514825716614723,
+          "mean_expected_margin": 3.6258323583751917
+        },
+        "selected_margin": {
+          "per_probe_expected_margin": {
+            "codeword": 2.4709820792777464,
+            "verification": 1.3139075934886932,
+            "project": 4.857153058052063,
+            "action": 4.312885522842407
+          },
+          "min_expected_margin": 1.3139075934886932,
+          "mean_expected_margin": 3.2387320634152275
+        },
+        "older_margin": null,
+        "qualified": true
+      },
+      "selected": {
+        "native_stable": true,
+        "path_stable_vs_native": true,
+        "first_trace_divergence_step": null,
+        "trace_agreement": {
+          "128": 1.0,
+          "512": 1.0,
+          "2048": 1.0
+        },
+        "milestones": {
+          "128": {
+            "functional_vs_native": {
+              "decision_agreement": 1.0,
+              "expected_accuracy": 1.0,
+              "score_rms_error": 0.41299312121823367
+            },
+            "native_expected_accuracy": 1.0,
+            "path_expected_accuracy": 1.0,
+            "native_flags": {
+              "task_invariant_ok": true,
+              "correction_ok": true,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "path_flags": {
+              "task_invariant_ok": true,
+              "correction_ok": true,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "native_margin": {
+              "per_probe_expected_margin": {
+                "codeword": 2.663589443836827,
+                "verification": 1.2209372222423553,
+                "project": 6.28687846660614,
+                "action": 4.67167329788208
+              },
+              "min_expected_margin": 1.2209372222423553,
+              "mean_expected_margin": 3.7107696076418506
+            },
+            "path_margin": {
+              "per_probe_expected_margin": {
+                "codeword": 2.9724126249784604,
+                "verification": 0.5447978377342224,
+                "project": 5.185657262802124,
+                "action": 4.079611301422119
+              },
+              "min_expected_margin": 0.5447978377342224,
+              "mean_expected_margin": 3.1956197567342315
+            }
+          },
+          "512": {
+            "functional_vs_native": {
+              "decision_agreement": 1.0,
+              "expected_accuracy": 1.0,
+              "score_rms_error": 0.5514054048326544
+            },
+            "native_expected_accuracy": 1.0,
+            "path_expected_accuracy": 1.0,
+            "native_flags": {
+              "task_invariant_ok": true,
+              "correction_ok": true,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "path_flags": {
+              "task_invariant_ok": true,
+              "correction_ok": true,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "native_margin": {
+              "per_probe_expected_margin": {
+                "codeword": 1.587428665603511,
+                "verification": 0.9729561805725098,
+                "project": 6.645861625671387,
+                "action": 5.196345329284668
+              },
+              "min_expected_margin": 0.9729561805725098,
+              "mean_expected_margin": 3.600647950283019
+            },
+            "path_margin": {
+              "per_probe_expected_margin": {
+                "codeword": 2.143579381518066,
+                "verification": 0.23175007104873657,
+                "project": 5.513005971908569,
+                "action": 4.544130325317383
+              },
+              "min_expected_margin": 0.23175007104873657,
+              "mean_expected_margin": 3.1081164374481887
+            }
+          },
+          "2048": {
+            "functional_vs_native": {
+              "decision_agreement": 1.0,
+              "expected_accuracy": 1.0,
+              "score_rms_error": 0.4993689567724839
+            },
+            "native_expected_accuracy": 1.0,
+            "path_expected_accuracy": 1.0,
+            "native_flags": {
+              "task_invariant_ok": true,
+              "correction_ok": true,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "path_flags": {
+              "task_invariant_ok": true,
+              "correction_ok": true,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "native_margin": {
+              "per_probe_expected_margin": {
+                "codeword": 0.5109563492005691,
+                "verification": 1.421414315700531,
+                "project": 6.766643762588501,
+                "action": 5.47678542137146
+              },
+              "min_expected_margin": 0.5109563492005691,
+              "mean_expected_margin": 3.5439499622152653
+            },
+            "path_margin": {
+              "per_probe_expected_margin": {
+                "codeword": 1.3727539875544608,
+                "verification": 0.7047619819641113,
+                "project": 5.880316376686096,
+                "action": 4.949869155883789
+              },
+              "min_expected_margin": 0.7047619819641113,
+              "mean_expected_margin": 3.2269253755221143
+            }
+          }
+        }
+      },
+      "older_w2_anchor": null,
+      "native_stable_case": true,
+      "migration_excess_failure": false,
+      "selector_depth_rescue": false
+    },
+    {
+      "fixture": "superseded_suffix8",
+      "future_stream": "inventory",
+      "future_meta": {
+        "id": "inventory",
+        "chunks_generated": 121,
+        "tokens_used": 2048,
+        "semantic_exclusion": "templates avoid fixture project/codeword/verification/action/correction terms"
+      },
+      "initial": {
+        "w3_native_expected_accuracy": 1.0,
+        "hop1_decision_agreement": 1.0,
+        "hop2_decision_agreement": 1.0,
+        "selected_final_decision_agreement": 1.0,
+        "selected_anchor_seg": 5,
+        "selected_anchor_pos": 51,
+        "selected_anchor_origin": "W2",
+        "older_w2_anchor_seg": null,
+        "older_w2_anchor_pos": null,
+        "native_margin": {
+          "per_probe_expected_margin": {
+            "codeword": 1.9514825716614723,
+            "verification": 1.9905787706375122,
+            "project": 5.833134412765503,
+            "action": 4.728133678436279
+          },
+          "min_expected_margin": 1.9514825716614723,
+          "mean_expected_margin": 3.6258323583751917
+        },
+        "selected_margin": {
+          "per_probe_expected_margin": {
+            "codeword": 2.4709820792777464,
+            "verification": 1.3139075934886932,
+            "project": 4.857153058052063,
+            "action": 4.312885522842407
+          },
+          "min_expected_margin": 1.3139075934886932,
+          "mean_expected_margin": 3.2387320634152275
+        },
+        "older_margin": null,
+        "qualified": true
+      },
+      "selected": {
+        "native_stable": true,
+        "path_stable_vs_native": true,
+        "first_trace_divergence_step": null,
+        "trace_agreement": {
+          "128": 1.0,
+          "512": 1.0,
+          "2048": 1.0
+        },
+        "milestones": {
+          "128": {
+            "functional_vs_native": {
+              "decision_agreement": 1.0,
+              "expected_accuracy": 1.0,
+              "score_rms_error": 0.5393750215623682
+            },
+            "native_expected_accuracy": 1.0,
+            "path_expected_accuracy": 1.0,
+            "native_flags": {
+              "task_invariant_ok": true,
+              "correction_ok": true,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "path_flags": {
+              "task_invariant_ok": true,
+              "correction_ok": true,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "native_margin": {
+              "per_probe_expected_margin": {
+                "codeword": 1.5291666843695566,
+                "verification": 1.0228490829467773,
+                "project": 6.493404746055603,
+                "action": 4.181767463684082
+              },
+              "min_expected_margin": 1.0228490829467773,
+              "mean_expected_margin": 3.3067969942640048
+            },
+            "path_margin": {
+              "per_probe_expected_margin": {
+                "codeword": 2.4124722839333117,
+                "verification": 0.37155628204345703,
+                "project": 5.314822673797607,
+                "action": 3.5006446838378906
+              },
+              "min_expected_margin": 0.37155628204345703,
+              "mean_expected_margin": 2.8998739809030667
+            }
+          },
+          "512": {
+            "functional_vs_native": {
+              "decision_agreement": 1.0,
+              "expected_accuracy": 1.0,
+              "score_rms_error": 0.752986125932784
+            },
+            "native_expected_accuracy": 1.0,
+            "path_expected_accuracy": 1.0,
+            "native_flags": {
+              "task_invariant_ok": true,
+              "correction_ok": true,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "path_flags": {
+              "task_invariant_ok": true,
+              "correction_ok": true,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "native_margin": {
+              "per_probe_expected_margin": {
+                "codeword": 1.0012936263810843,
+                "verification": 1.176832675933838,
+                "project": 7.204741716384888,
+                "action": 4.52204704284668
+              },
+              "min_expected_margin": 1.0012936263810843,
+              "mean_expected_margin": 3.4762287653866224
+            },
+            "path_margin": {
+              "per_probe_expected_margin": {
+                "codeword": 2.2287605609744787,
+                "verification": 0.3971124291419983,
+                "project": 6.093897819519043,
+                "action": 3.8523592948913574
+              },
+              "min_expected_margin": 0.3971124291419983,
+              "mean_expected_margin": 3.1430325261317194
+            }
+          },
+          "2048": {
+            "functional_vs_native": {
+              "decision_agreement": 1.0,
+              "expected_accuracy": 1.0,
+              "score_rms_error": 0.5279071352468663
+            },
+            "native_expected_accuracy": 1.0,
+            "path_expected_accuracy": 1.0,
+            "native_flags": {
+              "task_invariant_ok": true,
+              "correction_ok": true,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "path_flags": {
+              "task_invariant_ok": true,
+              "correction_ok": true,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "native_margin": {
+              "per_probe_expected_margin": {
+                "codeword": 0.02438210998661816,
+                "verification": 1.6799059212207794,
+                "project": 6.468661785125732,
+                "action": 5.33803915977478
+              },
+              "min_expected_margin": 0.02438210998661816,
+              "mean_expected_margin": 3.3777472440269776
+            },
+            "path_margin": {
+              "per_probe_expected_margin": {
+                "codeword": 1.3912121928296983,
+                "verification": 0.9015789031982422,
+                "project": 5.799299120903015,
+                "action": 4.94183087348938
+              },
+              "min_expected_margin": 0.9015789031982422,
+              "mean_expected_margin": 3.258480272605084
+            }
+          }
+        }
+      },
+      "older_w2_anchor": null,
+      "native_stable_case": true,
+      "migration_excess_failure": false,
+      "selector_depth_rescue": false
+    },
+    {
+      "fixture": "superseded_old_value_echoes",
+      "future_stream": "telemetry",
+      "future_meta": {
+        "id": "telemetry",
+        "chunks_generated": 128,
+        "tokens_used": 2048,
+        "semantic_exclusion": "templates avoid fixture project/codeword/verification/action/correction terms"
+      },
+      "initial": {
+        "w3_native_expected_accuracy": 1.0,
+        "hop1_decision_agreement": 1.0,
+        "hop2_decision_agreement": 1.0,
+        "selected_final_decision_agreement": 1.0,
+        "selected_anchor_seg": 18,
+        "selected_anchor_pos": 159,
+        "selected_anchor_origin": "W2",
+        "older_w2_anchor_seg": null,
+        "older_w2_anchor_pos": null,
+        "native_margin": {
+          "per_probe_expected_margin": {
+            "codeword": 1.6771666444547009,
+            "verification": 2.205678015947342,
+            "project": 3.7718324661254883,
+            "action": 7.820316553115845
+          },
+          "min_expected_margin": 1.6771666444547009,
+          "mean_expected_margin": 3.868748419910844
+        },
+        "selected_margin": {
+          "per_probe_expected_margin": {
+            "codeword": 0.8425935975974426,
+            "verification": 0.823387622833252,
+            "project": 3.788620710372925,
+            "action": 5.899611473083496
+          },
+          "min_expected_margin": 0.823387622833252,
+          "mean_expected_margin": 2.838553350971779
+        },
+        "older_margin": null,
+        "qualified": true
+      },
+      "selected": {
+        "native_stable": false,
+        "path_stable_vs_native": false,
+        "first_trace_divergence_step": 14,
+        "trace_agreement": {
+          "128": 0.9921875,
+          "512": 0.998046875,
+          "2048": 0.9990234375
+        },
+        "milestones": {
+          "128": {
+            "functional_vs_native": {
+              "decision_agreement": 0.5,
+              "expected_accuracy": 0.5,
+              "score_rms_error": 0.9466315214212858
+            },
+            "native_expected_accuracy": 1.0,
+            "path_expected_accuracy": 0.5,
+            "native_flags": {
+              "task_invariant_ok": true,
+              "correction_ok": true,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "path_flags": {
+              "task_invariant_ok": false,
+              "correction_ok": false,
+              "control_ok": true,
+              "persistent_fact_ok": false
+            },
+            "native_margin": {
+              "per_probe_expected_margin": {
+                "codeword": 0.613815379459993,
+                "verification": 0.8307037353515625,
+                "project": 4.896660327911377,
+                "action": 5.468440294265747
+              },
+              "min_expected_margin": 0.613815379459993,
+              "mean_expected_margin": 2.95240493424717
+            },
+            "path_margin": {
+              "per_probe_expected_margin": {
+                "codeword": -0.012236255977768451,
+                "verification": -0.1846599578857422,
+                "project": 4.4434356689453125,
+                "action": 4.36793327331543
+              },
+              "min_expected_margin": -0.1846599578857422,
+              "mean_expected_margin": 2.153618182099308
+            }
+          },
+          "512": {
+            "functional_vs_native": {
+              "decision_agreement": 0.75,
+              "expected_accuracy": 0.5,
+              "score_rms_error": 0.8522707078664785
+            },
+            "native_expected_accuracy": 0.75,
+            "path_expected_accuracy": 0.5,
+            "native_flags": {
+              "task_invariant_ok": false,
+              "correction_ok": false,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "path_flags": {
+              "task_invariant_ok": false,
+              "correction_ok": false,
+              "control_ok": true,
+              "persistent_fact_ok": false
+            },
+            "native_margin": {
+              "per_probe_expected_margin": {
+                "codeword": -0.9345117799530271,
+                "verification": 0.3047681450843811,
+                "project": 5.000666856765747,
+                "action": 5.629285097122192
+              },
+              "min_expected_margin": -0.9345117799530271,
+              "mean_expected_margin": 2.5000520797548234
+            },
+            "path_margin": {
+              "per_probe_expected_margin": {
+                "codeword": -1.1943728504702449,
+                "verification": -0.7613186836242676,
+                "project": 4.432511568069458,
+                "action": 4.364847660064697
+              },
+              "min_expected_margin": -1.1943728504702449,
+              "mean_expected_margin": 1.7104169235099107
+            }
+          },
+          "2048": {
+            "functional_vs_native": {
+              "decision_agreement": 0.75,
+              "expected_accuracy": 0.5,
+              "score_rms_error": 0.7659540517602612
+            },
+            "native_expected_accuracy": 0.75,
+            "path_expected_accuracy": 0.5,
+            "native_flags": {
+              "task_invariant_ok": false,
+              "correction_ok": false,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "path_flags": {
+              "task_invariant_ok": false,
+              "correction_ok": false,
+              "control_ok": true,
+              "persistent_fact_ok": false
+            },
+            "native_margin": {
+              "per_probe_expected_margin": {
+                "codeword": -2.117002549173776,
+                "verification": 0.4959712028503418,
+                "project": 5.142885684967041,
+                "action": 5.761876583099365
+              },
+              "min_expected_margin": -2.117002549173776,
+              "mean_expected_margin": 2.320932730435743
+            },
+            "path_margin": {
+              "per_probe_expected_margin": {
+                "codeword": -2.0905953124165535,
+                "verification": -0.6295690536499023,
+                "project": 4.511507034301758,
+                "action": 4.404342174530029
+              },
+              "min_expected_margin": -2.0905953124165535,
+              "mean_expected_margin": 1.5489212106913328
+            }
+          }
+        }
+      },
+      "older_w2_anchor": null,
+      "native_stable_case": false,
+      "migration_excess_failure": false,
+      "selector_depth_rescue": false
+    },
+    {
+      "fixture": "superseded_old_value_echoes",
+      "future_stream": "inventory",
+      "future_meta": {
+        "id": "inventory",
+        "chunks_generated": 121,
+        "tokens_used": 2048,
+        "semantic_exclusion": "templates avoid fixture project/codeword/verification/action/correction terms"
+      },
+      "initial": {
+        "w3_native_expected_accuracy": 1.0,
+        "hop1_decision_agreement": 1.0,
+        "hop2_decision_agreement": 1.0,
+        "selected_final_decision_agreement": 1.0,
+        "selected_anchor_seg": 18,
+        "selected_anchor_pos": 159,
+        "selected_anchor_origin": "W2",
+        "older_w2_anchor_seg": null,
+        "older_w2_anchor_pos": null,
+        "native_margin": {
+          "per_probe_expected_margin": {
+            "codeword": 1.6771666444547009,
+            "verification": 2.205678015947342,
+            "project": 3.7718324661254883,
+            "action": 7.820316553115845
+          },
+          "min_expected_margin": 1.6771666444547009,
+          "mean_expected_margin": 3.868748419910844
+        },
+        "selected_margin": {
+          "per_probe_expected_margin": {
+            "codeword": 0.8425935975974426,
+            "verification": 0.823387622833252,
+            "project": 3.788620710372925,
+            "action": 5.899611473083496
+          },
+          "min_expected_margin": 0.823387622833252,
+          "mean_expected_margin": 2.838553350971779
+        },
+        "older_margin": null,
+        "qualified": true
+      },
+      "selected": {
+        "native_stable": false,
+        "path_stable_vs_native": false,
+        "first_trace_divergence_step": 1696,
+        "trace_agreement": {
+          "128": 1.0,
+          "512": 1.0,
+          "2048": 0.9990234375
+        },
+        "milestones": {
+          "128": {
+            "functional_vs_native": {
+              "decision_agreement": 0.75,
+              "expected_accuracy": 0.75,
+              "score_rms_error": 0.8737942112360948
+            },
+            "native_expected_accuracy": 1.0,
+            "path_expected_accuracy": 0.75,
+            "native_flags": {
+              "task_invariant_ok": true,
+              "correction_ok": true,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "path_flags": {
+              "task_invariant_ok": false,
+              "correction_ok": true,
+              "control_ok": true,
+              "persistent_fact_ok": false
+            },
+            "native_margin": {
+              "per_probe_expected_margin": {
+                "codeword": 1.0052149857510813,
+                "verification": 0.13482284545898438,
+                "project": 4.919927716255188,
+                "action": 4.90268611907959
+              },
+              "min_expected_margin": 0.13482284545898438,
+              "mean_expected_margin": 2.740662916636211
+            },
+            "path_margin": {
+              "per_probe_expected_margin": {
+                "codeword": 0.412155972677283,
+                "verification": -0.7263211607933044,
+                "project": 4.3106818199157715,
+                "action": 3.7246217727661133
+              },
+              "min_expected_margin": -0.7263211607933044,
+              "mean_expected_margin": 1.9302846011414658
+            }
+          },
+          "512": {
+            "functional_vs_native": {
+              "decision_agreement": 0.75,
+              "expected_accuracy": 0.5,
+              "score_rms_error": 0.8372567082977759
+            },
+            "native_expected_accuracy": 0.75,
+            "path_expected_accuracy": 0.5,
+            "native_flags": {
+              "task_invariant_ok": false,
+              "correction_ok": false,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "path_flags": {
+              "task_invariant_ok": false,
+              "correction_ok": false,
+              "control_ok": true,
+              "persistent_fact_ok": false
+            },
+            "native_margin": {
+              "per_probe_expected_margin": {
+                "codeword": -0.24586180777987465,
+                "verification": 0.13434457778930664,
+                "project": 5.156759262084961,
+                "action": 4.812853813171387
+              },
+              "min_expected_margin": -0.24586180777987465,
+              "mean_expected_margin": 2.464523961316445
+            },
+            "path_margin": {
+              "per_probe_expected_margin": {
+                "codeword": -0.416511403163895,
+                "verification": -0.9355249404907227,
+                "project": 4.704580307006836,
+                "action": 3.5278701782226562
+              },
+              "min_expected_margin": -0.9355249404907227,
+              "mean_expected_margin": 1.7201035353937186
+            }
+          },
+          "2048": {
+            "functional_vs_native": {
+              "decision_agreement": 0.75,
+              "expected_accuracy": 0.5,
+              "score_rms_error": 0.8061807603492126
+            },
+            "native_expected_accuracy": 0.75,
+            "path_expected_accuracy": 0.5,
+            "native_flags": {
+              "task_invariant_ok": false,
+              "correction_ok": false,
+              "control_ok": true,
+              "persistent_fact_ok": true
+            },
+            "path_flags": {
+              "task_invariant_ok": false,
+              "correction_ok": false,
+              "control_ok": true,
+              "persistent_fact_ok": false
+            },
+            "native_margin": {
+              "per_probe_expected_margin": {
+                "codeword": -1.9082225232268684,
+                "verification": 0.588432252407074,
+                "project": 4.612554311752319,
+                "action": 5.705410957336426
+              },
+              "min_expected_margin": -1.9082225232268684,
+              "mean_expected_margin": 2.2495437495672377
+            },
+            "path_margin": {
+              "per_probe_expected_margin": {
+                "codeword": -1.6480581779032946,
+                "verification": -0.6810698509216309,
+                "project": 4.282358646392822,
+                "action": 4.308121204376221
+              },
+              "min_expected_margin": -1.6480581779032946,
+              "mean_expected_margin": 1.5653379554860294
+            }
+          }
+        }
+      },
+      "older_w2_anchor": null,
+      "native_stable_case": false,
+      "migration_excess_failure": false,
+      "selector_depth_rescue": false
+    }
+  ],
+  "interpretation_rule": {
+    "migration_problem": "native_coverage_gate=true and migration_only_excess_failure_count>0",
+    "selector_pruning_problem": "migration-only excess failures are rescued by the older W2 anchor",
+    "backbone_problem": "native_coverage_gate=false or native instability is widespread",
+    "clean_pass": "all immediate chain fixtures qualify, native coverage gate passes, and migration-only excess failure count is zero"
+  },
+  "claim_boundary": "Synthetic target-free selector-v3 diagnostic on the same RWKV-7 0.4B G7 cause-isolation suite. The policy uses no future/native oracle for anchor choice. Passing the migration-only denominator would show that conservative bounded replay can fix the observed migration drift; it would not resolve native 0.4B instability or justify final selector/backbone freeze.",
+  "selector_v3_policy": {
+    "name": "earliest-carried-W2 functional-equivalence guard",
+    "basis": "G7 anchor-depth v3 showed all four native-stable migration failures are rescuable by a carried W2-origin anchor",
+    "oracle_usage": "none for selection; W3-native remains evaluation-only in the inherited G7 protocol",
+    "intent": "test whether conservative replay depth eliminates migration-only excess failures without changing the backbone or adaptation recipe",
+    "freeze_status": "diagnostic only; do not freeze this policy even if it passes"
+  }
+}
