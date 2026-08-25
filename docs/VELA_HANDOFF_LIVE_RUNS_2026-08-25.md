@@ -75,24 +75,19 @@ Official released source checkpoint verified before launch:
 - source revision: `ede85bf8ab2e59aff7d7ca909fbbc73317866d89`
 - shape: 32 layers, width 2560, head size 64, vocab 65536, ctx16384
 
-## E. RWKV-7 2.9B native scale probe — RUNNING
+## E. RWKV-7 2.9B native scale probe v1 — EXECUTION FAIL / NO SCIENTIFIC RESULT
 
 - Experiment source: `experiments/vela-active-state/g7-scale-2p9b-v1/rwkv7_2p9b_g7_native_scale_probe.py`
 - Source-add commit: `0023abc085d92bec61a4741c21828c321cfe5111`
 - Workflow: `.github/workflows/vela-g7-rwkv7-2p9b-native-scale-probe-v1.yml`
 - Workflow-add/source-run commit: `888641c178d7444c314c8987ad0dcb83db825876`
 - Run ID: `32810175701`
-- Last verified state: setup/checkout/python/frozen dependency verification/resource inspection PASS; runtime install in progress; scientific probe pending.
-- Scope: same preregistered `superseded_old_value_echoes` x telemetry/inventory x horizons 128/512/2048.
-- Same adaptation recipe and CPU float32 path are preserved initially; no paid GPU.
-- Planned authoritative result: `ops/vela-results/g7-rwkv7-2p9b-native-scale-probe-v1-latest.json`
+- Workflow conclusion: FAILURE.
+- Exact scientific step exit: `143`; GitHub runner reported shutdown signal.
+- No scientific artifact/result JSON was produced.
+- Classification: `EXECUTION FAIL / INFRASTRUCTURE-RUNTIME TERMINATION / SCIENTIFIC RESULT UNAVAILABLE`.
 
-Decision discipline:
-
-- `2/2` native stable: strong scale evidence; consider full 2.9B G7, but no backbone freeze.
-- `1/2`: partial scale benefit; inspect horizons/margins before expanding.
-- `0/2`: no focused benefit under this recipe; do not infer all larger RWKV are impossible.
-- OOM/timeout/download/runtime failure before a valid result: infrastructure failure, NOT scientific failure. The next step may be a separately labelled memory-adapted probe; do not silently change precision/optimizer and call it the same protocol.
+Root-cause analysis: the v1 runner exposed 15 GiB RAM + 3 GiB swap. The 2.9B reference path loads the full model as CPU float32, makes about 629,145,600 K/V/R parameters trainable under AdamW, and reused the full G7 chain/cause-isolation path including W1/W2 lineage and multiple KVR snapshots even though the scale question was native-only. Exit 143 is not direct proof of an OOM kill, but this memory structure is the strongest technical cause candidate and makes v1 structurally inappropriate for the runner.
 
 ## F. Reproducibility audit after user challenge
 
@@ -106,22 +101,54 @@ Audit of Run `32802357103`:
 - the failure is already present at immediate W3-native qualification (`0.75`, codeword failure), before long-horizon aggregation, so a missing later summary field cannot explain the result;
 - no evidence was found that a dependency hash drift or missing JSON value actually occurred in this 1.5B run.
 
-However, a genuine workflow reproducibility weakness exists: the run job checks out the mutable branch name `vela-experiment-infra` rather than exact `${{ github.sha }}`. The frozen hash step protects the seven listed dependencies but does not independently assert the experiment wrapper blob. Therefore a branch move between trigger and checkout could theoretically execute a different wrapper while retaining the trigger SHA as metadata.
+However, a genuine workflow reproducibility weakness exists: historical run jobs check out the mutable branch name `vela-experiment-infra` rather than exact `${{ github.sha }}`. Frozen hash steps protect listed dependencies but do not necessarily assert the experiment wrapper blob. Therefore a branch move between trigger and checkout could theoretically execute a different wrapper while retaining the trigger SHA as metadata.
 
-For the audited 1.5B run, the next branch movement occurred after its checkout and did not introduce experiment-code changes, so there is no evidence that this theoretical race affected the result.
+For the audited 1.5B run, no evidence was found that this theoretical race actually affected the result.
 
-Required hardening for future experiment runs:
+## G. 2.9B v2 hardening and rerun — CURRENT OVERRIDE
 
-1. run-job checkout must use exact `${{ github.sha }}`;
-2. assert `git rev-parse HEAD == $GITHUB_SHA` before execution;
-3. hash/assert the experiment wrapper itself in addition to core dependencies;
-4. serialize actual checked-out HEAD and wrapper blob hash into the result JSON;
-5. the record job may still checkout the branch because it must commit the result snapshot.
+New source:
 
-Do not mutate the already-running 2.9B protocol mid-run. After Run `32810175701` ends, explicitly audit its actual checkout SHA/timing and wrapper blob before interpreting its scientific result.
+- `experiments/vela-active-state/g7-scale-2p9b-v2/rwkv7_2p9b_native_scale_probe_v2.py`
+- wrapper blob: `6571c6c086d519a4afd645db52b8607e880573bf`
 
-For the historical 0.4B cause-isolation-v2 run, the exact checkout timing could not be reconstructed with enough confidence to claim absolute execution immutability. Nevertheless, selector-v3 later independently reproduced the same native pattern (`6/8` stable, `old_value_echoes 0/2`) while changing only the migration-side failure count (`4 -> 0`). That reproduction strongly supports the current native-blocker and late-anchor diagnosis rather than a single corrupted JSON artifact.
+Protocol boundary:
 
-Gate status does not change from this audit.
+- same `superseded_old_value_echoes` x telemetry/inventory x `128/512/2048` native readout;
+- same sequential W2 then W3 KVR-only AdamW adaptation rows, learning rates, order, clipping and zero weight decay;
+- native-scale-irrelevant W1/W2 lineage, migration/selector evaluation and W1/W2/W3 KVR RAM snapshots removed;
+- AdamW `foreach=False` to reduce peak allocation; this is an execution-memory change, not a different target or readout.
+
+Workflow hardening:
+
+1. checkout exact `${{ github.sha }}`;
+2. assert `git rev-parse HEAD == $GITHUB_SHA`;
+3. assert wrapper blob plus transitive frozen protocol blobs;
+4. serialize actual checked-out HEAD and wrapper blob into result JSON;
+5. install CPU-only PyTorch explicitly;
+6. add 16 GiB swap, heartbeat/max-RSS telemetry, and always-uploaded failure artifact/result marker.
+
+Run `32813968989` validated exact SHA/blob/swap/CPU-only runtime but failed before scientific execution because `numpy` was omitted from the minimized dependency set. It produced a failure artifact with `scientific_failure=false`; this is not a 2.9B model result.
+
+The missing `numpy` dependency was fixed without changing the experiment wrapper/protocol. Current rerun:
+
+- Run ID: `32814109278`
+- triggering/head SHA: `4cf22827cc5d9f012d42a5f38e40506b26f97ead`
+- exact-SHA/frozen-blob/swap/runtime-install steps: PASS at last audit
+- scientific 2.9B native-only step: RUNNING at last audit
+- paid GPU: no
+
+Do not infer 2.9B native stability until a scientific result JSON exists. Gate remains `G7 PARTIAL / MIGRATION SUBGATE PASS / NATIVE COVERAGE FAIL`.
+
+## H. CPU-backbone selection constraint
+
+For VELA, `runs inference on CPU` is insufficient. A useful backbone should also expose checkpointable active state, support deterministic restore/continuation, keep working state fixed-size or bounded with history length, and allow a small learned-upgrade/adapter experiment on CPU without requiring a proprietary GPU kernel.
+
+Current practical order:
+
+1. RWKV — primary. Existing VELA restore/upgrade/chain/selector evidence and mature CPU inference paths make it the cheapest architecture to continue testing.
+2. Mamba — secondary cross-architecture candidate. SSM state is attractive and VELA already has Mamba restore/learned-upgrade evidence; CPU feasibility for the exact learned-upgrade path must remain an explicit gate because the fastest upstream kernels are GPU-oriented.
+3. RecurrentGemma/Griffin — exploratory third candidate. CPU execution and fixed-size recurrent state are viable, but local sliding-window attention makes active-state serialization/migration more complex than RWKV or pure Mamba.
+4. xLSTM — deprioritized under the current no-paid-GPU constraint; toy state restore and a practical full G7 learned-upgrade comparison are different questions.
 
 No mainline merge, irreversible storage migration, final freeze, or paid GPU without separate approval.
