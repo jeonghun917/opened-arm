@@ -1,4 +1,4 @@
 VELA foundation CI trigger.
-Run: 2026-08-25 G8 durable FileCheckpointRepository I/O benchmark plumbing + G9 process-boundary recovery tests.
-Ars-Mentis target: vela-foundation-runtime @ 317d55e53bcf538e3630b4c23aaa490c2d741826
-Trigger revision: 8
+Run: 2026-08-25 engine-neutral conservative carried-anchor guard selector + selector-depth tests.
+Ars-Mentis target: vela-foundation-runtime @ ad28c92c86f664cc3cb1ecee874a7702a880e82b
+Trigger revision: 9
