@@ -1,0 +1,205 @@
+name: VELA G7 RWKV7 2.9B native scale probe v2
+
+on:
+  push:
+    branches: [vela-experiment-infra]
+    paths:
+      - 'experiments/vela-active-state/g7-scale-2p9b-v2/rwkv7_2p9b_native_scale_probe_v2.py'
+      - '.github/workflows/vela-g7-rwkv7-2p9b-native-scale-probe-v2.yml'
+      - 'ops/vela-g7-rwkv7-2p9b-native-scale-probe-v2-trigger.txt'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: vela-g7-rwkv7-2p9b-native-scale-probe-v2
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - name: Checkout exact triggering commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Verify exact SHA and frozen protocol blobs
+        shell: bash
+        run: |
+          set -euo pipefail
+          actual_head="$(git rev-parse HEAD)"
+          if [[ "$actual_head" != "$GITHUB_SHA" ]]; then
+            echo "::error::checkout drift: expected GITHUB_SHA=$GITHUB_SHA actual=$actual_head"
+            exit 1
+          fi
+          check_blob() {
+            path="$1"
+            expected="$2"
+            actual="$(git hash-object "$path")"
+            if [[ "$actual" != "$expected" ]]; then
+              echo "::error::Frozen dependency changed: $path expected=$expected actual=$actual"
+              exit 1
+            fi
+          }
+          check_blob experiments/vela-active-state/g7-scale-2p9b-v2/rwkv7_2p9b_native_scale_probe_v2.py 6571c6c086d519a4afd645db52b8607e880573bf
+          check_blob experiments/vela-active-state/rwkv7-0p4b-chain-v1/rwkv7_0p4b_chained_upgrade.py 0d5aeeb4804c36616dc213200a7b053dcc31fc84
+          check_blob experiments/vela-active-state/rwkv7-scale-0p4b-v1/rwkv7_scale_0p4b.py 519928f88d550bfd38756f09b41832f06bfafa93
+          check_blob experiments/vela-active-state/rwkv7-0p4b-residual-diagnostic-v1/rwkv7_0p4b_residual_diagnostic.py 52c49bb58ba4e50be2070243ec0d9137f5f1924b
+          check_blob experiments/vela-active-state/rwkv7-learned-upgrade-v1/rwkv7_learned_upgrade.py 792fc09a0a17efe0a614d625b2da95e8ef4ca913
+          check_blob experiments/vela-active-state/rwkv7-target-free-anchor-selector-v1/rwkv7_target_free_selector.py 4351517cee1ea6c37db2e354968e46e6773b7415
+          check_blob experiments/vela-active-state/rwkv7-causal-anchor-v2/rwkv7_causal_anchor_v2.py 7415d0f319cccda9a1c4820d4adae254173a49dc
+          check_blob experiments/vela-active-state/rwkv7-supersession-adaptation-v1/rwkv7_supersession_adaptation.py 2bfb4473077c888b7b6421e007425336a2626b1a
+          check_blob experiments/vela-active-state/rwkv7-retention-adaptation-v2/rwkv7_retention_adaptation.py 86d33768ca552d0bf13dae75cd3bb27783a78a71
+          check_blob experiments/vela-active-state/rwkv7-native-long-history-v1/rwkv7_native_long_history.py 634b241e0783bd2e7fa3c236f5f25de2cfc37fbf
+          check_blob experiments/vela-active-state/long-history-native-robustness-v1/mamba_long_history_native_robustness.py b6d69ab6688d9335e19835f72ff54aadeb85bb09
+          check_blob experiments/vela-active-state/rwkv7-0p4b-narrow-sweep-v2/rwkv7_0p4b_narrow_sweep.py 4caf67a9ba0a1c0507136b2465d95b5b5ed34e96
+          wrapper_blob="$(git hash-object experiments/vela-active-state/g7-scale-2p9b-v2/rwkv7_2p9b_native_scale_probe_v2.py)"
+          echo "VELA_CHECKED_OUT_HEAD=$actual_head" >> "$GITHUB_ENV"
+          echo "VELA_WRAPPER_BLOB=$wrapper_blob" >> "$GITHUB_ENV"
+          echo "checked_out_head=$actual_head"
+          echo "wrapper_blob=$wrapper_blob"
+
+      - name: Provision swap and inspect runner resources
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo 'before:'
+          free -h
+          df -h /
+          if ! swapon --show | grep -q '/mnt/vela-swapfile'; then
+            sudo fallocate -l 16G /mnt/vela-swapfile
+            sudo chmod 600 /mnt/vela-swapfile
+            sudo mkswap /mnt/vela-swapfile
+            sudo swapon /mnt/vela-swapfile
+          fi
+          echo 'after:'
+          free -h
+          swapon --show
+          total_virtual_kib=$(awk '/MemTotal:/ {m=$2} END {print m}' /proc/meminfo)
+          swap_kib=$(awk '/SwapTotal:/ {print $2}' /proc/meminfo)
+          total_virtual_kib=$((total_virtual_kib + swap_kib))
+          if (( total_virtual_kib < 24000000 )); then
+            echo "::error::Insufficient RAM+swap for protocol-preserving 2.9B float32 AdamW run: ${total_virtual_kib} KiB"
+            exit 1
+          fi
+
+      - name: Install CPU-only runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --upgrade pip
+          python -m pip install --index-url https://download.pytorch.org/whl/cpu 'torch>=2.2,<3'
+          python -m pip install 'huggingface_hub>=0.36,<2'
+          python - <<'PY'
+          import torch
+          print({'torch': torch.__version__, 'cuda_available': torch.cuda.is_available()})
+          assert not torch.cuda.is_available()
+          PY
+
+      - name: Run focused 2.9B native-only scale probe v2
+        shell: bash
+        env:
+          HF_HUB_DISABLE_TELEMETRY: '1'
+          VELA_RESULT_PATH: /tmp/vela-g7-rwkv7-2p9b-native-scale-probe-v2.json
+          PYTHONUNBUFFERED: '1'
+          MALLOC_ARENA_MAX: '2'
+          OMP_NUM_THREADS: '2'
+          MKL_NUM_THREADS: '2'
+        run: |
+          set +e
+          set -o pipefail
+          python experiments/vela-active-state/g7-scale-2p9b-v2/rwkv7_2p9b_native_scale_probe_v2.py 2>&1 | tee /tmp/vela-2p9b-v2.log
+          rc=${PIPESTATUS[0]}
+          set -e
+          if [[ ! -f "$VELA_RESULT_PATH" ]]; then
+            python - <<'PY'
+          import json, os
+          from pathlib import Path
+          report={
+              'status':'VELA_G7_RWKV7_2P9B_NATIVE_SCALE_PROBE_V2_FAIL_BEFORE_RESULT',
+              'source_commit':os.environ.get('GITHUB_SHA'),
+              'actual_checked_out_head':os.environ.get('VELA_CHECKED_OUT_HEAD'),
+              'wrapper_blob':os.environ.get('VELA_WRAPPER_BLOB'),
+              'failure_class':'infrastructure_or_runtime_before_result',
+              'scientific_failure':False,
+              'log_tail':Path('/tmp/vela-2p9b-v2.log').read_text(encoding='utf-8',errors='replace').splitlines()[-160:],
+          }
+          Path(os.environ['VELA_RESULT_PATH']).write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+          PY
+          fi
+          exit "$rc"
+
+      - name: Upload scientific or failure artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: vela-g7-rwkv7-2p9b-native-scale-probe-v2
+          path: /tmp/vela-g7-rwkv7-2p9b-native-scale-probe-v2.json
+          if-no-files-found: warn
+
+  record:
+    if: always()
+    needs: run
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: vela-experiment-infra
+
+      - name: Download artifact if available
+        id: download
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: vela-g7-rwkv7-2p9b-native-scale-probe-v2
+          path: /tmp/vela-2p9b-v2
+
+      - name: Record result or execution-failure marker
+        shell: bash
+        env:
+          RUN_RESULT: ${{ needs.run.result }}
+        run: |
+          set -euo pipefail
+          mkdir -p ops/vela-results
+          dst=ops/vela-results/g7-rwkv7-2p9b-native-scale-probe-v2-latest.json
+          src=/tmp/vela-2p9b-v2/vela-g7-rwkv7-2p9b-native-scale-probe-v2.json
+          if [[ -f "$src" ]]; then
+            cp "$src" "$dst"
+          else
+            python - <<'PY'
+          import json, os
+          from pathlib import Path
+          row={
+              'status':'VELA_G7_RWKV7_2P9B_NATIVE_SCALE_PROBE_V2_EXECUTION_FAIL_NO_ARTIFACT',
+              'source_commit':os.environ.get('GITHUB_SHA'),
+              'run_result':os.environ.get('RUN_RESULT'),
+              'failure_class':'runner_or_infrastructure_before_artifact',
+              'scientific_failure':False,
+              'claim_boundary':'No scientific 2.9B result is inferred when the run terminates before an artifact is produced.',
+          }
+          Path('ops/vela-results/g7-rwkv7-2p9b-native-scale-probe-v2-latest.json').write_text(json.dumps(row,indent=2)+'\n')
+          PY
+          fi
+          cat "$dst"
+
+      - name: Commit result snapshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add ops/vela-results/g7-rwkv7-2p9b-native-scale-probe-v2-latest.json
+          git diff --cached --quiet || git commit -m 'Record VELA G7 RWKV7 2.9B scale probe v2 [skip ci]'
+          for n in 1 2 3 4 5; do
+            git pull --rebase origin vela-experiment-infra && git push origin HEAD:vela-experiment-infra && break
+            sleep $((n*3))
+          done
