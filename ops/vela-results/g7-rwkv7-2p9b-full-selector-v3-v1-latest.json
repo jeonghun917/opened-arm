@@ -1,0 +1,1868 @@
+{
+  "status": "VELA_G7_RWKV7_2P9B_FULL_SELECTOR_V3_V1",
+  "source_commit": "db96d09fcb0893280590b449523a10db31c1ec4f",
+  "model": {
+    "repo": "BlinkDL/rwkv7-g1",
+    "revision": "ede85bf8ab2e59aff7d7ca909fbbc73317866d89",
+    "file": "rwkv7-g1i-2.9b-20260805-ctx16384.pth"
+  },
+  "protocol": {
+    "fixtures": [
+      "superseded_base",
+      "superseded_old_value_echoes",
+      "superseded_suffix4",
+      "superseded_suffix8"
+    ],
+    "future_streams": [
+      "telemetry",
+      "inventory"
+    ],
+    "horizons": [
+      128,
+      512,
+      2048
+    ],
+    "selector": "selector-v3 earliest carried-W2 immediate-functional-equivalence guard",
+    "adaptation_reuse": "one W2/W3 adaptation build reused by all fixture shards",
+    "oracle_usage": "W3-native/future evaluation-only"
+  },
+  "rows": [
+    {
+      "fixture": "superseded_base",
+      "initial_qualified": true,
+      "cases": [
+        {
+          "fixture": "superseded_base",
+          "future_stream": "telemetry",
+          "future_meta": {
+            "id": "telemetry",
+            "chunks_generated": 128,
+            "tokens_used": 2048
+          },
+          "initial": {
+            "qualified": true,
+            "w3_native_expected_accuracy": 1.0,
+            "hop1_decision_agreement": 1.0,
+            "hop2_decision_agreement": 1.0,
+            "selected_final_decision_agreement": 1.0,
+            "selected_anchor_seg": 2,
+            "selected_anchor_pos": 14,
+            "selected_anchor_origin": "W2",
+            "selector_v3": {
+              "used": true,
+              "chain_v2_chosen_seg": 7,
+              "final_chosen_seg": 2,
+              "eligible_equivalent_w2_segments": [
+                2,
+                3,
+                4,
+                5,
+                6,
+                7
+              ],
+              "policy": "earliest carried W2-origin anchor among immediate-functional-equivalent candidates",
+              "oracle_usage": "none"
+            },
+            "provenance_tiebreak": {
+              "v1_chosen_seg": 0,
+              "final_chosen_seg": 7,
+              "used": true,
+              "w2_candidates": [
+                {
+                  "segment": 2,
+                  "anchor_pos": 14,
+                  "origin": "W2",
+                  "same_functional_signature_as_v1_result": true
+                },
+                {
+                  "segment": 3,
+                  "anchor_pos": 28,
+                  "origin": "W2",
+                  "same_functional_signature_as_v1_result": true
+                },
+                {
+                  "segment": 4,
+                  "anchor_pos": 36,
+                  "origin": "W2",
+                  "same_functional_signature_as_v1_result": true
+                },
+                {
+                  "segment": 5,
+                  "anchor_pos": 51,
+                  "origin": "W2",
+                  "same_functional_signature_as_v1_result": true
+                },
+                {
+                  "segment": 6,
+                  "anchor_pos": 55,
+                  "origin": "W2",
+                  "same_functional_signature_as_v1_result": true
+                },
+                {
+                  "segment": 7,
+                  "anchor_pos": 65,
+                  "origin": "W2",
+                  "same_functional_signature_as_v1_result": true
+                }
+              ]
+            }
+          },
+          "selected": {
+            "native_stable": true,
+            "path_stable_vs_native": true,
+            "first_trace_divergence_step": null,
+            "trace_agreement": {
+              "128": 1.0,
+              "512": 1.0,
+              "2048": 1.0
+            },
+            "milestones": {
+              "128": {
+                "functional_vs_native": {
+                  "decision_agreement": 1.0,
+                  "expected_accuracy": 1.0,
+                  "score_rms_error": 1.373259437307914
+                },
+                "native_expected_accuracy": 1.0,
+                "path_expected_accuracy": 1.0,
+                "native_flags": {
+                  "task_invariant_ok": true,
+                  "correction_ok": true,
+                  "control_ok": true,
+                  "persistent_fact_ok": true
+                },
+                "path_flags": {
+                  "task_invariant_ok": true,
+                  "correction_ok": true,
+                  "control_ok": true,
+                  "persistent_fact_ok": true
+                },
+                "native_margin": {
+                  "per_probe_expected_margin": {
+                    "codeword": 14.347751016526672,
+                    "verification": 10.81064999125374,
+                    "project": 11.796199545264244,
+                    "action": 21.81141339521855
+                  },
+                  "min_expected_margin": 10.81064999125374,
+                  "mean_expected_margin": 14.691503487065802
+                },
+                "path_margin": {
+                  "per_probe_expected_margin": {
+                    "codeword": 13.007386622126432,
+                    "verification": 9.055395133560523,
+                    "project": 7.694685220718384,
+                    "action": 21.474189054220915
+                  },
+                  "min_expected_margin": 7.694685220718384,
+                  "mean_expected_margin": 12.807914007656564
+                }
+              },
+              "512": {
+                "functional_vs_native": {
+                  "decision_agreement": 1.0,
+                  "expected_accuracy": 1.0,
+                  "score_rms_error": 1.450153086609597
+                },
+                "native_expected_accuracy": 1.0,
+                "path_expected_accuracy": 1.0,
+                "native_flags": {
+                  "task_invariant_ok": true,
+                  "correction_ok": true,
+                  "control_ok": true,
+                  "persistent_fact_ok": true
+                },
+                "path_flags": {
+                  "task_invariant_ok": true,
+                  "correction_ok": true,
+                  "control_ok": true,
+                  "persistent_fact_ok": true
+                },
+                "native_margin": {
+                  "per_probe_expected_margin": {
+                    "codeword": 12.660681760358784,
+                    "verification": 11.00275874154795,
+                    "project": 12.216203466057777,
+                    "action": 21.42920843977481
+                  },
+                  "min_expected_margin": 11.00275874154795,
+                  "mean_expected_margin": 14.32721310193483
+                },
+                "path_margin": {
+                  "per_probe_expected_margin": {
+                    "codeword": 10.848435135368163,
+                    "verification": 9.114873893908225,
+                    "project": 7.750901460647583,
+                    "action": 20.94976473879069
+                  },
+                  "min_expected_margin": 7.750901460647583,
+                  "mean_expected_margin": 12.165993807178666
+                }
+              },
+              "2048": {
+                "functional_vs_native": {
+                  "decision_agreement": 1.0,
+                  "expected_accuracy": 1.0,
+                  "score_rms_error": 1.3328598644753429
+                },
+                "native_expected_accuracy": 1.0,
+                "path_expected_accuracy": 1.0,
+                "native_flags": {
+                  "task_invariant_ok": true,
+                  "correction_ok": true,
+                  "control_ok": true,
+                  "persistent_fact_ok": true
+                },
+                "path_flags": {
+                  "task_invariant_ok": true,
+                  "correction_ok": true,
+                  "control_ok": true,
+                  "persistent_fact_ok": true
+                },
+                "native_margin": {
+                  "per_probe_expected_margin": {
+                    "codeword": 7.614877122434336,
+                    "verification": 10.159047127570375,
+                    "project": 10.467700600624084,
+                    "action": 19.855838696006685
+                  },
+                  "min_expected_margin": 7.614877122434336,
+                  "mean_expected_margin": 12.02436588665887
+                },
+                "path_margin": {
+                  "per_probe_expected_margin": {
+                    "codeword": 6.151223898539683,
+                    "verification": 8.283591664396226,
+                    "project": 7.348456621170044,
+                    "action": 18.659012340009212
+                  },
+                  "min_expected_margin": 6.151223898539683,
+                  "mean_expected_margin": 10.110571131028792
+                }
+              }
+            }
+          },
+          "native_stable_case": true,
+          "migration_excess_failure": false
+        },
+        {
+          "fixture": "superseded_base",
+          "future_stream": "inventory",
+          "future_meta": {
+            "id": "inventory",
+            "chunks_generated": 121,
+            "tokens_used": 2048
+          },
+          "initial": {
+            "qualified": true,
+            "w3_native_expected_accuracy": 1.0,
+            "hop1_decision_agreement": 1.0,
+            "hop2_decision_agreement": 1.0,
+            "selected_final_decision_agreement": 1.0,
+            "selected_anchor_seg": 2,
+            "selected_anchor_pos": 14,
+            "selected_anchor_origin": "W2",
+            "selector_v3": {
+              "used": true,
+              "chain_v2_chosen_seg": 7,
+              "final_chosen_seg": 2,
+              "eligible_equivalent_w2_segments": [
+                2,
+                3,
+                4,
+                5,
+                6,
+                7
+              ],
+              "policy": "earliest carried W2-origin anchor among immediate-functional-equivalent candidates",
+              "oracle_usage": "none"
+            },
+            "provenance_tiebreak": {
+              "v1_chosen_seg": 0,
+              "final_chosen_seg": 7,
+              "used": true,
+              "w2_candidates": [
+                {
+                  "segment": 2,
+                  "anchor_pos": 14,
+                  "origin": "W2",
+                  "same_functional_signature_as_v1_result": true
+                },
+                {
+                  "segment": 3,
+                  "anchor_pos": 28,
+                  "origin": "W2",
+                  "same_functional_signature_as_v1_result": true
+                },
+                {
+                  "segment": 4,
+                  "anchor_pos": 36,
+                  "origin": "W2",
+                  "same_functional_signature_as_v1_result": true
+                },
+                {
+                  "segment": 5,
+                  "anchor_pos": 51,
+                  "origin": "W2",
+                  "same_functional_signature_as_v1_result": true
+                },
+                {
+                  "segment": 6,
+                  "anchor_pos": 55,
+                  "origin": "W2",
+                  "same_functional_signature_as_v1_result": true
+                },
+                {
+                  "segment": 7,
+                  "anchor_pos": 65,
+                  "origin": "W2",
+                  "same_functional_signature_as_v1_result": true
+                }
+              ]
+            }
+          },
+          "selected": {
+            "native_stable": true,
+            "path_stable_vs_native": true,
+            "first_trace_divergence_step": 3,
+            "trace_agreement": {
+              "128": 0.9765625,
+              "512": 0.994140625,
+              "2048": 0.99853515625
+            },
+            "milestones": {
+              "128": {
+                "functional_vs_native": {
+                  "decision_agreement": 1.0,
+                  "expected_accuracy": 1.0,
+                  "score_rms_error": 1.9170177160686879
+                },
+                "native_expected_accuracy": 1.0,
+                "path_expected_accuracy": 1.0,
+                "native_flags": {
+                  "task_invariant_ok": true,
+                  "correction_ok": true,
+                  "control_ok": true,
+                  "persistent_fact_ok": true
+                },
+                "path_flags": {
+                  "task_invariant_ok": true,
+                  "correction_ok": true,
+                  "control_ok": true,
+                  "persistent_fact_ok": true
+                },
+                "native_margin": {
+                  "per_probe_expected_margin": {
+                    "codeword": 15.179390587880334,
+                    "verification": 8.92782915524731,
+                    "project": 12.224666461348534,
+                    "action": 20.64937805198133
+                  },
+                  "min_expected_margin": 8.92782915524731,
+                  "mean_expected_margin": 14.245316064114377
+                },
+                "path_margin": {
+                  "per_probe_expected_margin": {
+                    "codeword": 14.117598556855228,
+                    "verification": 7.349688740156125,
+                    "project": 8.078296661376953,
+                    "action": 20.081767106428742
+                  },
+                  "min_expected_margin": 7.349688740156125,
+                  "mean_expected_margin": 12.406837766204262
+                }
+              },
+              "512": {
+                "functional_vs_native": {
+                  "decision_agreement": 1.0,
+                  "expected_accuracy": 1.0,
+                  "score_rms_error": 1.914129682947663
+                },
+                "native_expected_accuracy": 1.0,
+                "path_expected_accuracy": 1.0,
+                "native_flags": {
+                  "task_invariant_ok": true,
+                  "correction_ok": true,
+                  "control_ok": true,
+                  "persistent_fact_ok": true
+                },
+                "path_flags": {
+                  "task_invariant_ok": true,
+                  "correction_ok": true,
+                  "control_ok": true,
+                  "persistent_fact_ok": true
+                },
+                "native_margin": {
+                  "per_probe_expected_margin": {
+                    "codeword": 12.241483861784218,
+                    "verification": 9.098290928115603,
+                    "project": 8.436711549758911,
+                    "action": 19.953253652900457
+                  },
+                  "min_expected_margin": 8.436711549758911,
+                  "mean_expected_margin": 12.432434998139797
+                },
+                "path_margin": {
+                  "per_probe_expected_margin": {
+                    "codeword": 10.682778518750638,
+                    "verification": 7.269085038162302,
+                    "project": 5.179445743560791,
+                    "action": 18.930374175310135
+                  },
+                  "min_expected_margin": 5.179445743560791,
+                  "mean_expected_margin": 10.515420868945967
+                }
+              },
+              "2048": {
+                "functional_vs_native": {
+                  "decision_agreement": 1.0,
+                  "expected_accuracy": 1.0,
+                  "score_rms_error": 1.8810400660911948
+                },
+                "native_expected_accuracy": 1.0,
+                "path_expected_accuracy": 1.0,
+                "native_flags": {
+                  "task_invariant_ok": true,
+                  "correction_ok": true,
+                  "control_ok": true,
+                  "persistent_fact_ok": true
+                },
+                "path_flags": {
+                  "task_invariant_ok": true,
+                  "correction_ok": true,
+                  "control_ok": true,
+                  "persistent_fact_ok": true
+                },
+                "native_margin": {
+                  "per_probe_expected_margin": {
+                    "codeword": 6.735036506175675,
+                    "verification": 9.93968141204823,
+                    "project": 8.278302788734436,
+                    "action": 19.56991647556424
+                  },
+                  "min_expected_margin": 6.735036506175675,
+                  "mean_expected_margin": 11.130734295630646
+                },
+                "path_margin": {
+                  "per_probe_expected_margin": {
+                    "codeword": 5.8996134772232836,
+                    "verification": 8.454996615066193,
+                    "project": 5.227121353149414,
+                    "action": 18.84225146099925
+                  },
+                  "min_expected_margin": 5.227121353149414,
+                  "mean_expected_margin": 9.605995726609535
+                }
+              }
+            }
+          },
+          "native_stable_case": true,
+          "migration_excess_failure": false
+        }
+      ]
+    },
+    {
+      "fixture": "superseded_suffix4",
+      "initial_qualified": true,
+      "cases": [
+        {
+          "fixture": "superseded_suffix4",
+          "future_stream": "telemetry",
+          "future_meta": {
+            "id": "telemetry",
+            "chunks_generated": 128,
+            "tokens_used": 2048
+          },
+          "initial": {
+            "qualified": true,
+            "w3_native_expected_accuracy": 1.0,
+            "hop1_decision_agreement": 1.0,
+            "hop2_decision_agreement": 1.0,
+            "selected_final_decision_agreement": 1.0,
+            "selected_anchor_seg": 5,
+            "selected_anchor_pos": 51,
+            "selected_anchor_origin": "W2",
+            "selector_v3": {
+              "used": true,
+              "chain_v2_chosen_seg": 11,
+              "final_chosen_seg": 5,
+              "eligible_equivalent_w2_segments": [
+                5,
+                6,
+                7,
+                8,
+                9,
+                10,
+                11
+              ],
+              "policy": "earliest carried W2-origin anchor among immediate-functional-equivalent candidates",
+              "oracle_usage": "none"
+            },
+            "provenance_tiebreak": {
+              "v1_chosen_seg": 2,
+              "final_chosen_seg": 11,
+              "used": true,
+              "w2_candidates": [
+                {
+                  "segment": 5,
+                  "anchor_pos": 51,
+                  "origin": "W2",
+                  "same_functional_signature_as_v1_result": true
+                },
+                {
+                  "segment": 6,
+                  "anchor_pos": 55,
+                  "origin": "W2",
+                  "same_functional_signature_as_v1_result": true
+                },
+                {
+                  "segment": 7,
+                  "anchor_pos": 65,
+                  "origin": "W2",
+                  "same_functional_signature_as_v1_result": true
+                },
+                {
+                  "segment": 8,
+                  "anchor_pos": 69,
+                  "origin": "W2",
+                  "same_functional_signature_as_v1_result": true
+                },
+                {
+                  "segment": 9,
+                  "anchor_pos": 77,
+                  "origin": "W2",
+                  "same_functional_signature_as_v1_result": true
+                },
+                {
+                  "segment": 10,
+                  "anchor_pos": 86,
+                  "origin": "W2",
+                  "same_functional_signature_as_v1_result": true
+                },
+                {
+                  "segment": 11,
+                  "anchor_pos": 93,
+                  "origin": "W2",
+                  "same_functional_signature_as_v1_result": true
+                }
+              ]
+            }
+          },
+          "selected": {
+            "native_stable": true,
+            "path_stable_vs_native": true,
+            "first_trace_divergence_step": 4,
+            "trace_agreement": {
+              "128": 0.9765625,
+              "512": 0.994140625,
+              "2048": 0.99853515625
+            },
+            "milestones": {
+              "128": {
+                "functional_vs_native": {
+                  "decision_agreement": 1.0,
+                  "expected_accuracy": 1.0,
+                  "score_rms_error": 2.108027390685391
+                },
+                "native_expected_accuracy": 1.0,
+                "path_expected_accuracy": 1.0,
+                "native_flags": {
+                  "task_invariant_ok": true,
+                  "correction_ok": true,
+                  "control_ok": true,
+                  "persistent_fact_ok": true
+                },
+                "path_flags": {
+                  "task_invariant_ok": true,
+                  "correction_ok": true,
+                  "control_ok": true,
+                  "persistent_fact_ok": true
+                },
+                "native_margin": {
+                  "per_probe_expected_margin": {
+                    "codeword": 12.281345330500699,
+                    "verification": 11.233088135812977,
+                    "project": 12.688297338783741,
+                    "action": 22.719729248201475
+                  },
+                  "min_expected_margin": 11.233088135812977,
+                  "mean_expected_margin": 14.730615013324723
+                },
+                "path_margin": {
+                  "per_probe_expected_margin": {
+                    "codeword": 12.558209392648678,
+                    "verification": 6.921643394744024,
+                    "project": 11.856445789337158,
+                    "action": 20.79749673511833
+                  },
+                  "min_expected_margin": 6.921643394744024,
+                  "mean_expected_margin": 13.033448827962047
+                }
+              },
+              "512": {
+                "functional_vs_native": {
+                  "decision_agreement": 1.0,
+                  "expected_accuracy": 1.0,
+                  "score_rms_error": 1.943559450957464
+                },
+                "native_expected_accuracy": 1.0,
+                "path_expected_accuracy": 1.0,
+                "native_flags": {
+                  "task_invariant_ok": true,
+                  "correction_ok": true,
+                  "control_ok": true,
+                  "persistent_fact_ok": true
+                },
+                "path_flags": {
+                  "task_invariant_ok": true,
+                  "correction_ok": true,
+                  "control_ok": true,
+                  "persistent_fact_ok": true
+                },
+                "native_margin": {
+                  "per_probe_expected_margin": {
+                    "codeword": 11.117419930724282,
+                    "verification": 11.397475004264379,
+                    "project": 12.801374405622482,
+                    "action": 22.26579942042008
+                  },
+                  "min_expected_margin": 11.117419930724282,
+                  "mean_expected_margin": 14.395517190257806
+                },
+                "path_margin": {
+                  "per_probe_expected_margin": {
+                    "codeword": 11.748057077969861,
+                    "verification": 7.151949719176628,
+                    "project": 12.452040910720825,
+                    "action": 20.550239518284798
+                  },
+                  "min_expected_margin": 7.151949719176628,
+                  "mean_expected_margin": 12.975571806538028
+                }
+              },
+              "2048": {
+                "functional_vs_native": {
+                  "decision_agreement": 1.0,
+                  "expected_accuracy": 1.0,
+                  "score_rms_error": 1.9043434237104486
+                },
+                "native_expected_accuracy": 1.0,
+                "path_expected_accuracy": 1.0,
+                "native_flags": {
+                  "task_invariant_ok": true,
+                  "correction_ok": true,
+                  "control_ok": true,
+                  "persistent_fact_ok": true
+                },
+                "path_flags": {
+                  "task_invariant_ok": true,
+                  "correction_ok": true,
+                  "control_ok": true,
+                  "persistent_fact_ok": true
+                },
+                "native_margin": {
+                  "per_probe_expected_margin": {
+                    "codeword": 8.037085474168634,
+                    "verification": 10.711443782118295,
+                    "project": 11.750295594334602,
+                    "action": 21.017251604236662
+                  },
+                  "min_expected_margin": 8.037085474168634,
+                  "mean_expected_margin": 12.879019113714548
+                },
+                "path_margin": {
+                  "per_probe_expected_margin": {
+                    "codeword": 8.419851093124635,
+                    "verification": 6.82585705735255,
+                    "project": 12.444149732589722,
+                    "action": 18.45908946916461
+                  },
+                  "min_expected_margin": 6.82585705735255,
+                  "mean_expected_margin": 11.53723683805788
+                }
+              }
+            }
+          },
+          "native_stable_case": true,
+          "migration_excess_failure": false
+        },
+        {
+          "fixture": "superseded_suffix4",
+          "future_stream": "inventory",
+          "future_meta": {
+            "id": "inventory",
+            "chunks_generated": 121,
+            "tokens_used": 2048
+          },
+          "initial": {
+            "qualified": true,
+            "w3_native_expected_accuracy": 1.0,
+            "hop1_decision_agreement": 1.0,
+            "hop2_decision_agreement": 1.0,
+            "selected_final_decision_agreement": 1.0,
+            "selected_anchor_seg": 5,
+            "selected_anchor_pos": 51,
+            "selected_anchor_origin": "W2",
+            "selector_v3": {
+              "used": true,
+              "chain_v2_chosen_seg": 11,
+              "final_chosen_seg": 5,
+              "eligible_equivalent_w2_segments": [
+                5,
+                6,
+                7,
+                8,
+                9,
+                10,
+                11
+              ],
+              "policy": "earliest carried W2-origin anchor among immediate-functional-equivalent candidates",
+              "oracle_usage": "none"
+            },
+            "provenance_tiebreak": {
+              "v1_chosen_seg": 2,
+              "final_chosen_seg": 11,
+              "used": true,
+              "w2_candidates": [
+                {
+                  "segment": 5,
+                  "anchor_pos": 51,
+                  "origin": "W2",
+                  "same_functional_signature_as_v1_result": true
+                },
+                {
+                  "segment": 6,
+                  "anchor_pos": 55,
+                  "origin": "W2",
+                  "same_functional_signature_as_v1_result": true
+                },
+                {
+                  "segment": 7,
+                  "anchor_pos": 65,
+                  "origin": "W2",
+                  "same_functional_signature_as_v1_result": true
+                },
+                {
+                  "segment": 8,
+                  "anchor_pos": 69,
+                  "origin": "W2",
+                  "same_functional_signature_as_v1_result": true
+                },
+                {
+                  "segment": 9,
+                  "anchor_pos": 77,
+                  "origin": "W2",
+                  "same_functional_signature_as_v1_result": true
+                },
+                {
+                  "segment": 10,
+                  "anchor_pos": 86,
+                  "origin": "W2",
+                  "same_functional_signature_as_v1_result": true
+                },
+                {
+                  "segment": 11,
+                  "anchor_pos": 93,
+                  "origin": "W2",
+                  "same_functional_signature_as_v1_result": true
+                }
+              ]
+            }
+          },
+          "selected": {
+            "native_stable": true,
+            "path_stable_vs_native": true,
+            "first_trace_divergence_step": 3,
+            "trace_agreement": {
+              "128": 0.9765625,
+              "512": 0.994140625,
+              "2048": 0.99853515625
+            },
+            "milestones": {
+              "128": {
+                "functional_vs_native": {
+                  "decision_agreement": 1.0,
+                  "expected_accuracy": 1.0,
+                  "score_rms_error": 1.398484652307786
+                },
+                "native_expected_accuracy": 1.0,
+                "path_expected_accuracy": 1.0,
+                "native_flags": {
+                  "task_invariant_ok": true,
+                  "correction_ok": true,
+                  "control_ok": true,
+                  "persistent_fact_ok": true
+                },
+                "path_flags": {
+                  "task_invariant_ok": true,
+                  "correction_ok": true,
+                  "control_ok": true,
+                  "persistent_fact_ok": true
+                },
+                "native_margin": {
+                  "per_probe_expected_margin": {
+                    "codeword": 13.86573983287417,
+                    "verification": 7.069286352372728,
+                    "project": 11.340984433889389,
+                    "action": 21.69907441549003
+                  },
+                  "min_expected_margin": 7.069286352372728,
+                  "mean_expected_margin": 13.49377125865658
+                },
+                "path_margin": {
+                  "per_probe_expected_margin": {
+                    "codeword": 13.641978644774099,
+                    "verification": 4.279939419589937,
+                    "project": 11.089985370635986,
+                    "action": 19.871240022592247
+                  },
+                  "min_expected_margin": 4.279939419589937,
+                  "mean_expected_margin": 12.220785864398067
+                }
+              },
+              "512": {
+                "functional_vs_native": {
+                  "decision_agreement": 1.0,
+                  "expected_accuracy": 1.0,
+                  "score_rms_error": 1.364064845592887
+                },
+                "native_expected_accuracy": 1.0,
+                "path_expected_accuracy": 1.0,
+                "native_flags": {
+                  "task_invariant_ok": true,
+                  "correction_ok": true,
+                  "control_ok": true,
+                  "persistent_fact_ok": true
+                },
+                "path_flags": {
+                  "task_invariant_ok": true,
+                  "correction_ok": true,
+                  "control_ok": true,
+                  "persistent_fact_ok": true
+                },
+                "native_margin": {
+                  "per_probe_expected_margin": {
+                    "codeword": 11.95885302757597,
+                    "verification": 7.2607756978832185,
+                    "project": 9.338706016540527,
+                    "action": 21.046758115291595
+                  },
+                  "min_expected_margin": 7.2607756978832185,
+                  "mean_expected_margin": 12.401273214322828
+                },
+                "path_margin": {
+                  "per_probe_expected_margin": {
+                    "codeword": 11.44714622527863,
+                    "verification": 4.490414765663445,
+                    "project": 8.704078674316406,
+                    "action": 18.565372802317142
+                  },
+                  "min_expected_margin": 4.490414765663445,
+                  "mean_expected_margin": 10.801753116893906
+                }
+              },
+              "2048": {
+                "functional_vs_native": {
+                  "decision_agreement": 1.0,
+                  "expected_accuracy": 1.0,
+                  "score_rms_error": 1.5249800884040488
+                },
+                "native_expected_accuracy": 1.0,
+                "path_expected_accuracy": 1.0,
+                "native_flags": {
+                  "task_invariant_ok": true,
+                  "correction_ok": true,
+                  "control_ok": true,
+                  "persistent_fact_ok": true
+                },
+                "path_flags": {
+                  "task_invariant_ok": true,
+                  "correction_ok": true,
+                  "control_ok": true,
+                  "persistent_fact_ok": true
+                },
+                "native_margin": {
+                  "per_probe_expected_margin": {
+                    "codeword": 8.668686632315257,
+                    "verification": 7.947034064214677,
+                    "project": 9.546563267707825,
+                    "action": 20.28351361770183
+                  },
+                  "min_expected_margin": 7.947034064214677,
+                  "mean_expected_margin": 11.611449395484897
+                },
+                "path_margin": {
+                  "per_probe_expected_margin": {
+                    "codeword": 8.784656794658076,
+                    "verification": 4.667272802442312,
+                    "project": 10.515147686004639,
+                    "action": 18.52208405919373
+                  },
+                  "min_expected_margin": 4.667272802442312,
+                  "mean_expected_margin": 10.62229033557469
+                }
+              }
+            }
+          },
+          "native_stable_case": true,
+          "migration_excess_failure": false
+        }
+      ]
+    },
+    {
+      "fixture": "superseded_suffix8",
+      "initial_qualified": true,
+      "cases": [
+        {
+          "fixture": "superseded_suffix8",
+          "future_stream": "telemetry",
+          "future_meta": {
+            "id": "telemetry",
+            "chunks_generated": 128,
+            "tokens_used": 2048
+          },
+          "initial": {
+            "qualified": true,
+            "w3_native_expected_accuracy": 1.0,
+            "hop1_decision_agreement": 1.0,
+            "hop2_decision_agreement": 1.0,
+            "selected_final_decision_agreement": 1.0,
+            "selected_anchor_seg": 5,
+            "selected_anchor_pos": 51,
+            "selected_anchor_origin": "W2",
+            "selector_v3": {
+              "used": true,
+              "chain_v2_chosen_seg": 15,
+              "final_chosen_seg": 5,
+              "eligible_equivalent_w2_segments": [
+                5,
+                6,
+                7,
+                8,
+                9,
+                10,
+                11,
+                12,
+                13,
+                14,
+                15
+              ],
+              "policy": "earliest carried W2-origin anchor among immediate-functional-equivalent candidates",
+              "oracle_usage": "none"
+            },
+            "provenance_tiebreak": {
+              "v1_chosen_seg": 7,
+              "final_chosen_seg": 15,
+              "used": true,
+              "w2_candidates": [
+                {
+                  "segment": 5,
+                  "anchor_pos": 51,
+                  "origin": "W2",
+                  "same_functional_signature_as_v1_result": true
+                },
+                {
+                  "segment": 6,
+                  "anchor_pos": 55,
+                  "origin": "W2",
+                  "same_functional_signature_as_v1_result": true
+                },
+                {
+                  "segment": 7,
+                  "anchor_pos": 65,
+                  "origin": "W2",
+                  "same_functional_signature_as_v1_result": true
+                },
+                {
+                  "segment": 8,
+                  "anchor_pos": 69,
+                  "origin": "W2",
+                  "same_functional_signature_as_v1_result": true
+                },
+                {
+                  "segment": 9,
+                  "anchor_pos": 77,
+                  "origin": "W2",
+                  "same_functional_signature_as_v1_result": true
+                },
+                {
+                  "segment": 10,
+                  "anchor_pos": 86,
+                  "origin": "W2",
+                  "same_functional_signature_as_v1_result": true
+                },
+                {
+                  "segment": 11,
+                  "anchor_pos": 93,
+                  "origin": "W2",
+                  "same_functional_signature_as_v1_result": true
+                },
+                {
+                  "segment": 12,
+                  "anchor_pos": 100,
+                  "origin": "W2",
+                  "same_functional_signature_as_v1_result": true
+                },
+                {
+                  "segment": 13,
+                  "anchor_pos": 108,
+                  "origin": "W2",
+                  "same_functional_signature_as_v1_result": true
+                },
+                {
+                  "segment": 14,
+                  "anchor_pos": 114,
+                  "origin": "W2",
+                  "same_functional_signature_as_v1_result": true
+                },
+                {
+                  "segment": 15,
+                  "anchor_pos": 121,
+                  "origin": "W2",
+                  "same_functional_signature_as_v1_result": true
+                }
+              ]
+            }
+          },
+          "selected": {
+            "native_stable": true,
+            "path_stable_vs_native": true,
+            "first_trace_divergence_step": 4,
+            "trace_agreement": {
+              "128": 0.984375,
+              "512": 0.99609375,
+              "2048": 0.9990234375
+            },
+            "milestones": {
+              "128": {
+                "functional_vs_native": {
+                  "decision_agreement": 1.0,
+                  "expected_accuracy": 1.0,
+                  "score_rms_error": 1.877316247552631
+                },
+                "native_expected_accuracy": 1.0,
+                "path_expected_accuracy": 1.0,
+                "native_flags": {
+                  "task_invariant_ok": true,
+                  "correction_ok": true,
+                  "control_ok": true,
+                  "persistent_fact_ok": true
+                },
+                "path_flags": {
+                  "task_invariant_ok": true,
+                  "correction_ok": true,
+                  "control_ok": true,
+                  "persistent_fact_ok": true
+                },
+                "native_margin": {
+                  "per_probe_expected_margin": {
+                    "codeword": 11.697918653513625,
+                    "verification": 9.819206120118906,
+                    "project": 12.868172988295555,
+                    "action": 21.60427529225126
+                  },
+                  "min_expected_margin": 9.819206120118906,
+                  "mean_expected_margin": 13.997393263544836
+                },
+                "path_margin": {
+                  "per_probe_expected_margin": {
+                    "codeword": 12.187509934841728,
+                    "verification": 5.304731409065425,
+                    "project": 12.447011470794678,
+                    "action": 19.63130922615528
+                  },
+                  "min_expected_margin": 5.304731409065425,
+                  "mean_expected_margin": 12.392640510214278
+                }
+              },
+              "512": {
+                "functional_vs_native": {
+                  "decision_agreement": 1.0,
+                  "expected_accuracy": 1.0,
+                  "score_rms_error": 1.8421174265178568
+                },
+                "native_expected_accuracy": 1.0,
+                "path_expected_accuracy": 1.0,
+                "native_flags": {
+                  "task_invariant_ok": true,
+                  "correction_ok": true,
+                  "control_ok": true,
+                  "persistent_fact_ok": true
+                },
+                "path_flags": {
+                  "task_invariant_ok": true,
+                  "correction_ok": true,
+                  "control_ok": true,
+                  "persistent_fact_ok": true
+                },
+                "native_margin": {
+                  "per_probe_expected_margin": {
+                    "codeword": 11.32463854935304,
+                    "verification": 10.002224446412583,
+                    "project": 12.922876477241516,
+                    "action": 21.271357910707593
+                  },
+                  "min_expected_margin": 10.002224446412583,
+                  "mean_expected_margin": 13.880274345928683
+                },
+                "path_margin": {
+                  "per_probe_expected_margin": {
+                    "codeword": 11.494474620501023,
+                    "verification": 5.421572841703892,
+                    "project": 12.718127727508545,
+                    "action": 19.35861064493656
+                  },
+                  "min_expected_margin": 5.421572841703892,
+                  "mean_expected_margin": 12.248196458662505
+                }
+              },
+              "2048": {
+                "functional_vs_native": {
+                  "decision_agreement": 1.0,
+                  "expected_accuracy": 1.0,
+                  "score_rms_error": 1.7635409270507176
+                },
+                "native_expected_accuracy": 1.0,
+                "path_expected_accuracy": 1.0,
+                "native_flags": {
+                  "task_invariant_ok": true,
+                  "correction_ok": true,
+                  "control_ok": true,
+                  "persistent_fact_ok": true
+                },
+                "path_flags": {
+                  "task_invariant_ok": true,
+                  "correction_ok": true,
+                  "control_ok": true,
+                  "persistent_fact_ok": true
+                },
+                "native_margin": {
+                  "per_probe_expected_margin": {
+                    "codeword": 8.059641884005941,
+                    "verification": 9.478753808165493,
+                    "project": 11.85068166255951,
+                    "action": 19.860420174896717
+                  },
+                  "min_expected_margin": 8.059641884005941,
+                  "mean_expected_margin": 12.312374382406915
+                },
+                "path_margin": {
+                  "per_probe_expected_margin": {
+                    "codeword": 8.508690365182701,
+                    "verification": 5.429807586595416,
+                    "project": 12.629472374916077,
+                    "action": 17.34791866131127
+                  },
+                  "min_expected_margin": 5.429807586595416,
+                  "mean_expected_margin": 10.978972247001366
+                }
+              }
+            }
+          },
+          "native_stable_case": true,
+          "migration_excess_failure": false
+        },
+        {
+          "fixture": "superseded_suffix8",
+          "future_stream": "inventory",
+          "future_meta": {
+            "id": "inventory",
+            "chunks_generated": 121,
+            "tokens_used": 2048
+          },
+          "initial": {
+            "qualified": true,
+            "w3_native_expected_accuracy": 1.0,
+            "hop1_decision_agreement": 1.0,
+            "hop2_decision_agreement": 1.0,
+            "selected_final_decision_agreement": 1.0,
+            "selected_anchor_seg": 5,
+            "selected_anchor_pos": 51,
+            "selected_anchor_origin": "W2",
+            "selector_v3": {
+              "used": true,
+              "chain_v2_chosen_seg": 15,
+              "final_chosen_seg": 5,
+              "eligible_equivalent_w2_segments": [
+                5,
+                6,
+                7,
+                8,
+                9,
+                10,
+                11,
+                12,
+                13,
+                14,
+                15
+              ],
+              "policy": "earliest carried W2-origin anchor among immediate-functional-equivalent candidates",
+              "oracle_usage": "none"
+            },
+            "provenance_tiebreak": {
+              "v1_chosen_seg": 7,
+              "final_chosen_seg": 15,
+              "used": true,
+              "w2_candidates": [
+                {
+                  "segment": 5,
+                  "anchor_pos": 51,
+                  "origin": "W2",
+                  "same_functional_signature_as_v1_result": true
+                },
+                {
+                  "segment": 6,
+                  "anchor_pos": 55,
+                  "origin": "W2",
+                  "same_functional_signature_as_v1_result": true
+                },
+                {
+                  "segment": 7,
+                  "anchor_pos": 65,
+                  "origin": "W2",
+                  "same_functional_signature_as_v1_result": true
+                },
+                {
+                  "segment": 8,
+                  "anchor_pos": 69,
+                  "origin": "W2",
+                  "same_functional_signature_as_v1_result": true
+                },
+                {
+                  "segment": 9,
+                  "anchor_pos": 77,
+                  "origin": "W2",
+                  "same_functional_signature_as_v1_result": true
+                },
+                {
+                  "segment": 10,
+                  "anchor_pos": 86,
+                  "origin": "W2",
+                  "same_functional_signature_as_v1_result": true
+                },
+                {
+                  "segment": 11,
+                  "anchor_pos": 93,
+                  "origin": "W2",
+                  "same_functional_signature_as_v1_result": true
+                },
+                {
+                  "segment": 12,
+                  "anchor_pos": 100,
+                  "origin": "W2",
+                  "same_functional_signature_as_v1_result": true
+                },
+                {
+                  "segment": 13,
+                  "anchor_pos": 108,
+                  "origin": "W2",
+                  "same_functional_signature_as_v1_result": true
+                },
+                {
+                  "segment": 14,
+                  "anchor_pos": 114,
+                  "origin": "W2",
+                  "same_functional_signature_as_v1_result": true
+                },
+                {
+                  "segment": 15,
+                  "anchor_pos": 121,
+                  "origin": "W2",
+                  "same_functional_signature_as_v1_result": true
+                }
+              ]
+            }
+          },
+          "selected": {
+            "native_stable": true,
+            "path_stable_vs_native": true,
+            "first_trace_divergence_step": 3,
+            "trace_agreement": {
+              "128": 0.9609375,
+              "512": 0.990234375,
+              "2048": 0.99755859375
+            },
+            "milestones": {
+              "128": {
+                "functional_vs_native": {
+                  "decision_agreement": 1.0,
+                  "expected_accuracy": 1.0,
+                  "score_rms_error": 1.3447932489066994
+                },
+                "native_expected_accuracy": 1.0,
+                "path_expected_accuracy": 1.0,
+                "native_flags": {
+                  "task_invariant_ok": true,
+                  "correction_ok": true,
+                  "control_ok": true,
+                  "persistent_fact_ok": true
+                },
+                "path_flags": {
+                  "task_invariant_ok": true,
+                  "correction_ok": true,
+                  "control_ok": true,
+                  "persistent_fact_ok": true
+                },
+                "native_margin": {
+                  "per_probe_expected_margin": {
+                    "codeword": 11.932868907297234,
+                    "verification": 7.076869726646692,
+                    "project": 12.778478562831879,
+                    "action": 20.95763991167769
+                  },
+                  "min_expected_margin": 7.076869726646692,
+                  "mean_expected_margin": 13.186464277113373
+                },
+                "path_margin": {
+                  "per_probe_expected_margin": {
+                    "codeword": 12.147491758522847,
+                    "verification": 4.14986420981586,
+                    "project": 12.308455348014832,
+                    "action": 18.820488904602826
+                  },
+                  "min_expected_margin": 4.14986420981586,
+                  "mean_expected_margin": 11.856575055239091
+                }
+              },
+              "512": {
+                "functional_vs_native": {
+                  "decision_agreement": 1.0,
+                  "expected_accuracy": 1.0,
+                  "score_rms_error": 1.4068940317664298
+                },
+                "native_expected_accuracy": 1.0,
+                "path_expected_accuracy": 1.0,
+                "native_flags": {
+                  "task_invariant_ok": true,
+                  "correction_ok": true,
+                  "control_ok": true,
+                  "persistent_fact_ok": true
+                },
+                "path_flags": {
+                  "task_invariant_ok": true,
+                  "correction_ok": true,
+                  "control_ok": true,
+                  "persistent_fact_ok": true
+                },
+                "native_margin": {
+                  "per_probe_expected_margin": {
+                    "codeword": 11.115832391216827,
+                    "verification": 6.96633252868196,
+                    "project": 10.38942039012909,
+                    "action": 20.586590739898384
+                  },
+                  "min_expected_margin": 6.96633252868196,
+                  "mean_expected_margin": 12.264544012481565
+                },
+                "path_margin": {
+                  "per_probe_expected_margin": {
+                    "codeword": 10.475266272873341,
+                    "verification": 4.059408146888018,
+                    "project": 9.62901782989502,
+                    "action": 17.866529097780585
+                  },
+                  "min_expected_margin": 4.059408146888018,
+                  "mean_expected_margin": 10.507555336859241
+                }
+              },
+              "2048": {
+                "functional_vs_native": {
+                  "decision_agreement": 1.0,
+                  "expected_accuracy": 1.0,
+                  "score_rms_error": 1.4308411094864475
+                },
+                "native_expected_accuracy": 1.0,
+                "path_expected_accuracy": 1.0,
+                "native_flags": {
+                  "task_invariant_ok": true,
+                  "correction_ok": true,
+                  "control_ok": true,
+                  "persistent_fact_ok": true
+                },
+                "path_flags": {
+                  "task_invariant_ok": true,
+                  "correction_ok": true,
+                  "control_ok": true,
+                  "persistent_fact_ok": true
+                },
+                "native_margin": {
+                  "per_probe_expected_margin": {
+                    "codeword": 8.184883329651711,
+                    "verification": 7.265891916293185,
+                    "project": 10.12405914068222,
+                    "action": 19.718095022719353
+                  },
+                  "min_expected_margin": 7.265891916293185,
+                  "mean_expected_margin": 11.323232352336618
+                },
+                "path_margin": {
+                  "per_probe_expected_margin": {
+                    "codeword": 8.016152837486516,
+                    "verification": 3.908443434163928,
+                    "project": 10.900044798851013,
+                    "action": 17.63367515709251
+                  },
+                  "min_expected_margin": 3.908443434163928,
+                  "mean_expected_margin": 10.114579056898492
+                }
+              }
+            }
+          },
+          "native_stable_case": true,
+          "migration_excess_failure": false
+        }
+      ]
+    },
+    {
+      "fixture": "superseded_old_value_echoes",
+      "initial_qualified": true,
+      "cases": [
+        {
+          "fixture": "superseded_old_value_echoes",
+          "future_stream": "telemetry",
+          "future_meta": {
+            "id": "telemetry",
+            "chunks_generated": 128,
+            "tokens_used": 2048
+          },
+          "initial": {
+            "qualified": true,
+            "w3_native_expected_accuracy": 1.0,
+            "hop1_decision_agreement": 1.0,
+            "hop2_decision_agreement": 1.0,
+            "selected_final_decision_agreement": 1.0,
+            "selected_anchor_seg": 14,
+            "selected_anchor_pos": 133,
+            "selected_anchor_origin": "W2",
+            "selector_v3": {
+              "used": true,
+              "chain_v2_chosen_seg": 19,
+              "final_chosen_seg": 14,
+              "eligible_equivalent_w2_segments": [
+                14,
+                15,
+                16,
+                17,
+                18,
+                19
+              ],
+              "policy": "earliest carried W2-origin anchor among immediate-functional-equivalent candidates",
+              "oracle_usage": "none"
+            },
+            "provenance_tiebreak": {
+              "v1_chosen_seg": 7,
+              "final_chosen_seg": 19,
+              "used": true,
+              "w2_candidates": [
+                {
+                  "segment": 14,
+                  "anchor_pos": 133,
+                  "origin": "W2",
+                  "same_functional_signature_as_v1_result": true
+                },
+                {
+                  "segment": 15,
+                  "anchor_pos": 137,
+                  "origin": "W2",
+                  "same_functional_signature_as_v1_result": true
+                },
+                {
+                  "segment": 16,
+                  "anchor_pos": 147,
+                  "origin": "W2",
+                  "same_functional_signature_as_v1_result": true
+                },
+                {
+                  "segment": 17,
+                  "anchor_pos": 151,
+                  "origin": "W2",
+                  "same_functional_signature_as_v1_result": true
+                },
+                {
+                  "segment": 18,
+                  "anchor_pos": 159,
+                  "origin": "W2",
+                  "same_functional_signature_as_v1_result": true
+                },
+                {
+                  "segment": 19,
+                  "anchor_pos": 168,
+                  "origin": "W2",
+                  "same_functional_signature_as_v1_result": true
+                }
+              ]
+            }
+          },
+          "selected": {
+            "native_stable": true,
+            "path_stable_vs_native": true,
+            "first_trace_divergence_step": 9,
+            "trace_agreement": {
+              "128": 0.984375,
+              "512": 0.99609375,
+              "2048": 0.9990234375
+            },
+            "milestones": {
+              "128": {
+                "functional_vs_native": {
+                  "decision_agreement": 1.0,
+                  "expected_accuracy": 1.0,
+                  "score_rms_error": 4.017728963890461
+                },
+                "native_expected_accuracy": 1.0,
+                "path_expected_accuracy": 1.0,
+                "native_flags": {
+                  "task_invariant_ok": true,
+                  "correction_ok": true,
+                  "control_ok": true,
+                  "persistent_fact_ok": true
+                },
+                "path_flags": {
+                  "task_invariant_ok": true,
+                  "correction_ok": true,
+                  "control_ok": true,
+                  "persistent_fact_ok": true
+                },
+                "native_margin": {
+                  "per_probe_expected_margin": {
+                    "codeword": 16.379042725185172,
+                    "verification": 11.18553519267698,
+                    "project": 20.680982931575272,
+                    "action": 22.37975284983986
+                  },
+                  "min_expected_margin": 11.18553519267698,
+                  "mean_expected_margin": 17.65632842481932
+                },
+                "path_margin": {
+                  "per_probe_expected_margin": {
+                    "codeword": 19.134720307693897,
+                    "verification": 10.25257003644947,
+                    "project": 9.15378923714161,
+                    "action": 19.578059151768684
+                  },
+                  "min_expected_margin": 9.15378923714161,
+                  "mean_expected_margin": 14.529784683263415
+                }
+              },
+              "512": {
+                "functional_vs_native": {
+                  "decision_agreement": 1.0,
+                  "expected_accuracy": 1.0,
+                  "score_rms_error": 4.105727987778381
+                },
+                "native_expected_accuracy": 1.0,
+                "path_expected_accuracy": 1.0,
+                "native_flags": {
+                  "task_invariant_ok": true,
+                  "correction_ok": true,
+                  "control_ok": true,
+                  "persistent_fact_ok": true
+                },
+                "path_flags": {
+                  "task_invariant_ok": true,
+                  "correction_ok": true,
+                  "control_ok": true,
+                  "persistent_fact_ok": true
+                },
+                "native_margin": {
+                  "per_probe_expected_margin": {
+                    "codeword": 15.847350463730436,
+                    "verification": 11.150657415728347,
+                    "project": 20.88522090902552,
+                    "action": 21.97332462912891
+                  },
+                  "min_expected_margin": 11.150657415728347,
+                  "mean_expected_margin": 17.464138354403303
+                },
+                "path_margin": {
+                  "per_probe_expected_margin": {
+                    "codeword": 19.284470808551305,
+                    "verification": 10.5309678442718,
+                    "project": 9.217487066984177,
+                    "action": 18.956870243884623
+                  },
+                  "min_expected_margin": 9.217487066984177,
+                  "mean_expected_margin": 14.497448990922976
+                }
+              },
+              "2048": {
+                "functional_vs_native": {
+                  "decision_agreement": 1.0,
+                  "expected_accuracy": 1.0,
+                  "score_rms_error": 4.041545121602626
+                },
+                "native_expected_accuracy": 1.0,
+                "path_expected_accuracy": 1.0,
+                "native_flags": {
+                  "task_invariant_ok": true,
+                  "correction_ok": true,
+                  "control_ok": true,
+                  "persistent_fact_ok": true
+                },
+                "path_flags": {
+                  "task_invariant_ok": true,
+                  "correction_ok": true,
+                  "control_ok": true,
+                  "persistent_fact_ok": true
+                },
+                "native_margin": {
+                  "per_probe_expected_margin": {
+                    "codeword": 11.822213041107716,
+                    "verification": 10.684261560989398,
+                    "project": 19.45581151288934,
+                    "action": 20.928700723685324
+                  },
+                  "min_expected_margin": 10.684261560989398,
+                  "mean_expected_margin": 15.722746709667945
+                },
+                "path_margin": {
+                  "per_probe_expected_margin": {
+                    "codeword": 11.341466678927645,
+                    "verification": 9.488972816936439,
+                    "project": 8.526411592960358,
+                    "action": 16.455406989902258
+                  },
+                  "min_expected_margin": 8.526411592960358,
+                  "mean_expected_margin": 11.453064519681675
+                }
+              }
+            }
+          },
+          "native_stable_case": true,
+          "migration_excess_failure": false
+        },
+        {
+          "fixture": "superseded_old_value_echoes",
+          "future_stream": "inventory",
+          "future_meta": {
+            "id": "inventory",
+            "chunks_generated": 121,
+            "tokens_used": 2048
+          },
+          "initial": {
+            "qualified": true,
+            "w3_native_expected_accuracy": 1.0,
+            "hop1_decision_agreement": 1.0,
+            "hop2_decision_agreement": 1.0,
+            "selected_final_decision_agreement": 1.0,
+            "selected_anchor_seg": 14,
+            "selected_anchor_pos": 133,
+            "selected_anchor_origin": "W2",
+            "selector_v3": {
+              "used": true,
+              "chain_v2_chosen_seg": 19,
+              "final_chosen_seg": 14,
+              "eligible_equivalent_w2_segments": [
+                14,
+                15,
+                16,
+                17,
+                18,
+                19
+              ],
+              "policy": "earliest carried W2-origin anchor among immediate-functional-equivalent candidates",
+              "oracle_usage": "none"
+            },
+            "provenance_tiebreak": {
+              "v1_chosen_seg": 7,
+              "final_chosen_seg": 19,
+              "used": true,
+              "w2_candidates": [
+                {
+                  "segment": 14,
+                  "anchor_pos": 133,
+                  "origin": "W2",
+                  "same_functional_signature_as_v1_result": true
+                },
+                {
+                  "segment": 15,
+                  "anchor_pos": 137,
+                  "origin": "W2",
+                  "same_functional_signature_as_v1_result": true
+                },
+                {
+                  "segment": 16,
+                  "anchor_pos": 147,
+                  "origin": "W2",
+                  "same_functional_signature_as_v1_result": true
+                },
+                {
+                  "segment": 17,
+                  "anchor_pos": 151,
+                  "origin": "W2",
+                  "same_functional_signature_as_v1_result": true
+                },
+                {
+                  "segment": 18,
+                  "anchor_pos": 159,
+                  "origin": "W2",
+                  "same_functional_signature_as_v1_result": true
+                },
+                {
+                  "segment": 19,
+                  "anchor_pos": 168,
+                  "origin": "W2",
+                  "same_functional_signature_as_v1_result": true
+                }
+              ]
+            }
+          },
+          "selected": {
+            "native_stable": true,
+            "path_stable_vs_native": true,
+            "first_trace_divergence_step": 7,
+            "trace_agreement": {
+              "128": 0.9765625,
+              "512": 0.994140625,
+              "2048": 0.99853515625
+            },
+            "milestones": {
+              "128": {
+                "functional_vs_native": {
+                  "decision_agreement": 1.0,
+                  "expected_accuracy": 1.0,
+                  "score_rms_error": 3.638279084993453
+                },
+                "native_expected_accuracy": 1.0,
+                "path_expected_accuracy": 1.0,
+                "native_flags": {
+                  "task_invariant_ok": true,
+                  "correction_ok": true,
+                  "control_ok": true,
+                  "persistent_fact_ok": true
+                },
+                "path_flags": {
+                  "task_invariant_ok": true,
+                  "correction_ok": true,
+                  "control_ok": true,
+                  "persistent_fact_ok": true
+                },
+                "native_margin": {
+                  "per_probe_expected_margin": {
+                    "codeword": 19.28949088772788,
+                    "verification": 10.095141054134729,
+                    "project": 20.787364853953477,
+                    "action": 20.841260344866896
+                  },
+                  "min_expected_margin": 10.095141054134729,
+                  "mean_expected_margin": 17.753314285170745
+                },
+                "path_margin": {
+                  "per_probe_expected_margin": {
+                    "codeword": 20.858972435684336,
+                    "verification": 7.530804672394879,
+                    "project": 10.782011866569519,
+                    "action": 18.03267427580431
+                  },
+                  "min_expected_margin": 7.530804672394879,
+                  "mean_expected_margin": 14.301115812613261
+                }
+              },
+              "512": {
+                "functional_vs_native": {
+                  "decision_agreement": 1.0,
+                  "expected_accuracy": 1.0,
+                  "score_rms_error": 3.808967749068179
+                },
+                "native_expected_accuracy": 1.0,
+                "path_expected_accuracy": 1.0,
+                "native_flags": {
+                  "task_invariant_ok": true,
+                  "correction_ok": true,
+                  "control_ok": true,
+                  "persistent_fact_ok": true
+                },
+                "path_flags": {
+                  "task_invariant_ok": true,
+                  "correction_ok": true,
+                  "control_ok": true,
+                  "persistent_fact_ok": true
+                },
+                "native_margin": {
+                  "per_probe_expected_margin": {
+                    "codeword": 17.451541163809452,
+                    "verification": 9.588161113962997,
+                    "project": 17.801138752605766,
+                    "action": 20.571392845595255
+                  },
+                  "min_expected_margin": 9.588161113962997,
+                  "mean_expected_margin": 16.353058468993368
+                },
+                "path_margin": {
+                  "per_probe_expected_margin": {
+                    "codeword": 18.471718848604723,
+                    "verification": 7.0928610659902915,
+                    "project": 7.37427681684494,
+                    "action": 16.75309524871409
+                  },
+                  "min_expected_margin": 7.0928610659902915,
+                  "mean_expected_margin": 12.422987995038511
+                }
+              },
+              "2048": {
+                "functional_vs_native": {
+                  "decision_agreement": 1.0,
+                  "expected_accuracy": 1.0,
+                  "score_rms_error": 3.854204118326474
+                },
+                "native_expected_accuracy": 1.0,
+                "path_expected_accuracy": 1.0,
+                "native_flags": {
+                  "task_invariant_ok": true,
+                  "correction_ok": true,
+                  "control_ok": true,
+                  "persistent_fact_ok": true
+                },
+                "path_flags": {
+                  "task_invariant_ok": true,
+                  "correction_ok": true,
+                  "control_ok": true,
+                  "persistent_fact_ok": true
+                },
+                "native_margin": {
+                  "per_probe_expected_margin": {
+                    "codeword": 12.361229531210483,
+                    "verification": 9.666265609099355,
+                    "project": 17.26671554101631,
+                    "action": 19.910736818768783
+                  },
+                  "min_expected_margin": 9.666265609099355,
+                  "mean_expected_margin": 14.801236875023733
+                },
+                "path_margin": {
+                  "per_probe_expected_margin": {
+                    "codeword": 13.132392384201012,
+                    "verification": 7.187218897335697,
+                    "project": 7.075746476650238,
+                    "action": 15.806714184582233
+                  },
+                  "min_expected_margin": 7.075746476650238,
+                  "mean_expected_margin": 10.800517985692295
+                }
+              }
+            }
+          },
+          "native_stable_case": true,
+          "migration_excess_failure": false
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "fixture_count": 4,
+    "case_count": 8,
+    "initial_chain_qualified": 4,
+    "native_stable_case_count": 8,
+    "per_fixture_native_stable": {
+      "superseded_base": 2,
+      "superseded_old_value_echoes": 2,
+      "superseded_suffix4": 2,
+      "superseded_suffix8": 2
+    },
+    "migration_only_excess_failure_count": 0,
+    "native_coverage_gate": true,
+    "migration_excess_gate": true,
+    "formal_g7_2p9b_pass_candidate": true
+  },
+  "claim_boundary": "Full 4-fixture x 2-stream synthetic G7 qualification on one released RWKV-7 2.9B checkpoint. Passing does not freeze final backbone, selector formula, canonical state schema, checkpoint interval, or production hardware."
+}
