@@ -1,0 +1,14 @@
+{
+  "case_count": 8,
+  "claim_boundary": "Replays serialized target-free selector/provenance evidence from the audited 2.9B G7 result through foundation selection code. It does not rerun the 2.9B model or prove production backend performance.",
+  "eligible_set_match_count": 8,
+  "experiment_result_commit": "1bc953fe99a640d8047e5fbc580f1cb796f6ca99",
+  "foundation_path": "RWKVTargetFreeAnchorEvidenceProvider -> EvidenceBackedAnchorSelector -> EquivalentCarriedAnchorGuardSelector",
+  "foundation_source_commit": "07712b507e91dcacf8237c1a46249f0cb68f9981",
+  "migration_clean_case_count": 8,
+  "native_stable_case_count": 8,
+  "oracle_free_case_count": 8,
+  "selected_anchor_match_count": 8,
+  "source_result_sha256": "317e3647ac3259408a85621062cf02a914ca5b47186a9b5db1b91ded5acabdb4",
+  "status": "PASS"
+}
