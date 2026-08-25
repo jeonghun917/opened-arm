@@ -1,4 +1,4 @@
 VELA foundation CI trigger.
-Run: 2026-08-26 target-free model evidence port + evidence-backed anchor selector integration.
-Ars-Mentis target: vela-foundation-runtime @ 7f369f6dbb11bf3fcd936232a776e64a071c2b5f
-Trigger revision: 11
+Run: 2026-08-26 RWKV target-free evidence provider + ReplayAdapter end-to-end transaction integration.
+Ars-Mentis target: vela-foundation-runtime @ 884936cb3533aa64ce3f88e5c972a58b4a031fbe
+Trigger revision: 12
