@@ -1,0 +1,296 @@
+name: VELA G7 RWKV7 2.9B full selector-v3 v1
+
+on:
+  push:
+    branches: [vela-experiment-infra]
+    paths:
+      - 'experiments/vela-active-state/g7-2p9b-full-selector-v3-v1/rwkv7_2p9b_full_g7_selector_v3.py'
+      - '.github/workflows/vela-g7-rwkv7-2p9b-full-selector-v3-v1.yml'
+      - 'ops/vela-g7-rwkv7-2p9b-full-selector-v3-v1-trigger.txt'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: vela-g7-rwkv7-2p9b-full-selector-v3-v1
+  cancel-in-progress: false
+
+env:
+  EXPERIMENT: experiments/vela-active-state/g7-2p9b-full-selector-v3-v1/rwkv7_2p9b_full_g7_selector_v3.py
+  WRAPPER_BLOB: 82bafd7fa91d1fb2d450e77f760dd7200834c3c1
+  WORK_DIR: /tmp/vela-g7-2p9b-full-v1
+
+jobs:
+  build-adaptation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - name: Checkout exact triggering commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Verify exact SHA and frozen experiment graph
+        shell: bash
+        run: |
+          set -euo pipefail
+          actual_head="$(git rev-parse HEAD)"
+          [[ "$actual_head" == "$GITHUB_SHA" ]] || { echo "::error::checkout drift expected=$GITHUB_SHA actual=$actual_head"; exit 1; }
+          check_blob() { path="$1"; expected="$2"; actual="$(git hash-object "$path")"; [[ "$actual" == "$expected" ]] || { echo "::error::blob drift $path expected=$expected actual=$actual"; exit 1; }; }
+          check_blob "$EXPERIMENT" "$WRAPPER_BLOB"
+          check_blob experiments/vela-active-state/g7-selector-v3/rwkv7_0p4b_g7_selector_v3.py bf2f95f0f651f6365082a67a9baa2b4d37be5589
+          check_blob experiments/vela-active-state/g7-cause-isolation-v2/rwkv7_0p4b_g7_cause_isolation_v2.py 07d0b0a99f54e2f9e2387e8c2e2ff2d1e10635fb
+          check_blob experiments/vela-active-state/rwkv7-0p4b-chain-v2/rwkv7_0p4b_chained_provenance.py 33e3bca5b736c4e63c6bfaa58db772d77ccc08cf
+          check_blob experiments/vela-active-state/rwkv7-0p4b-chain-v1/rwkv7_0p4b_chained_upgrade.py 0d5aeeb4804c36616dc213200a7b053dcc31fc84
+          check_blob experiments/vela-active-state/rwkv7-scale-0p4b-v1/rwkv7_scale_0p4b.py 519928f88d550bfd38756f09b41832f06bfafa93
+          check_blob experiments/vela-active-state/rwkv7-0p4b-residual-diagnostic-v1/rwkv7_0p4b_residual_diagnostic.py 52c49bb58ba4e50be2070243ec0d9137f5f1924b
+          check_blob experiments/vela-active-state/rwkv7-learned-upgrade-v1/rwkv7_learned_upgrade.py 792fc09a0a17efe0a614d625b2da95e8ef4ca913
+          check_blob experiments/vela-active-state/rwkv7-target-free-anchor-selector-v1/rwkv7_target_free_selector.py 4351517cee1ea6c37db2e354968e46e6773b7415
+          check_blob experiments/vela-active-state/rwkv7-causal-anchor-v2/rwkv7_causal_anchor_v2.py 7415d0f319cccda9a1c4820d4adae254173a49dc
+          check_blob experiments/vela-active-state/rwkv7-supersession-adaptation-v1/rwkv7_supersession_adaptation.py 2bfb4473077c888b7b6421e007425336a2626b1a
+          check_blob experiments/vela-active-state/rwkv7-retention-adaptation-v2/rwkv7_retention_adaptation.py 86d33768ca552d0bf13dae75cd3bb27783a78a71
+          echo "VELA_CHECKED_OUT_HEAD=$actual_head" >> "$GITHUB_ENV"
+          echo "VELA_WRAPPER_BLOB=$WRAPPER_BLOB" >> "$GITHUB_ENV"
+
+      - name: Provision swap
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo fallocate -l 16G /mnt/vela-swapfile
+          sudo chmod 600 /mnt/vela-swapfile
+          sudo mkswap /mnt/vela-swapfile
+          sudo swapon /mnt/vela-swapfile
+          free -h
+          swapon --show
+
+      - name: Install CPU-only runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --index-url https://download.pytorch.org/whl/cpu 'torch>=2.2,<3'
+          python -m pip install 'numpy>=1.26,<3' 'huggingface_hub>=0.36,<2'
+          python - <<'PY'
+          import torch
+          print({'torch':torch.__version__,'cuda_available':torch.cuda.is_available()})
+          assert not torch.cuda.is_available()
+          PY
+
+      - name: Build one reusable W2/W3 adaptation
+        shell: bash
+        env:
+          VELA_PHASE: build
+          VELA_WORK_DIR: ${{ env.WORK_DIR }}
+          PYTHONUNBUFFERED: '1'
+          MALLOC_ARENA_MAX: '2'
+          OMP_NUM_THREADS: '2'
+          MKL_NUM_THREADS: '2'
+          HF_HUB_DISABLE_TELEMETRY: '1'
+        run: |
+          set -o pipefail
+          python "$EXPERIMENT" 2>&1 | tee /tmp/vela-g7-2p9b-build.log
+
+      - name: Upload reusable adaptation package
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: vela-g7-2p9b-full-adaptation-v1
+          path: ${{ env.WORK_DIR }}
+          compression-level: 0
+          retention-days: 1
+          if-no-files-found: warn
+
+  eval:
+    needs: build-adaptation
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - shard: a
+            fixtures: superseded_base,superseded_suffix4
+          - shard: b
+            fixtures: superseded_suffix8,superseded_old_value_echoes
+    steps:
+      - name: Checkout exact triggering commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Verify exact SHA and wrapper
+        shell: bash
+        run: |
+          set -euo pipefail
+          actual_head="$(git rev-parse HEAD)"
+          [[ "$actual_head" == "$GITHUB_SHA" ]]
+          [[ "$(git hash-object "$EXPERIMENT")" == "$WRAPPER_BLOB" ]]
+          echo "VELA_CHECKED_OUT_HEAD=$actual_head" >> "$GITHUB_ENV"
+          echo "VELA_WRAPPER_BLOB=$WRAPPER_BLOB" >> "$GITHUB_ENV"
+
+      - name: Provision swap
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo fallocate -l 16G /mnt/vela-swapfile
+          sudo chmod 600 /mnt/vela-swapfile
+          sudo mkswap /mnt/vela-swapfile
+          sudo swapon /mnt/vela-swapfile
+
+      - name: Install CPU-only runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --index-url https://download.pytorch.org/whl/cpu 'torch>=2.2,<3'
+          python -m pip install 'numpy>=1.26,<3' 'huggingface_hub>=0.36,<2'
+
+      - name: Download the single adaptation package
+        uses: actions/download-artifact@v4
+        with:
+          name: vela-g7-2p9b-full-adaptation-v1
+          path: ${{ env.WORK_DIR }}
+
+      - name: Evaluate fixture shard
+        shell: bash
+        env:
+          VELA_PHASE: eval
+          VELA_WORK_DIR: ${{ env.WORK_DIR }}
+          VELA_FIXTURE_IDS: ${{ matrix.fixtures }}
+          VELA_RESULT_PATH: /tmp/vela-g7-2p9b-eval-${{ matrix.shard }}.json
+          PYTHONUNBUFFERED: '1'
+          MALLOC_ARENA_MAX: '2'
+          OMP_NUM_THREADS: '2'
+          MKL_NUM_THREADS: '2'
+          HF_HUB_DISABLE_TELEMETRY: '1'
+        run: |
+          set -o pipefail
+          python "$EXPERIMENT" 2>&1 | tee /tmp/vela-g7-2p9b-eval-${{ matrix.shard }}.log
+
+      - name: Upload shard result
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: vela-g7-2p9b-full-eval-${{ matrix.shard }}
+          path: /tmp/vela-g7-2p9b-eval-${{ matrix.shard }}.json
+          if-no-files-found: warn
+
+  aggregate:
+    if: always()
+    needs: [build-adaptation, eval]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Download shard results
+        id: dl
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          pattern: vela-g7-2p9b-full-eval-*
+          path: /tmp/vela-g7-2p9b-shards
+          merge-multiple: true
+
+      - name: Aggregate authoritative result
+        shell: bash
+        env:
+          BUILD_RESULT: ${{ needs.build-adaptation.result }}
+          EVAL_RESULT: ${{ needs.eval.result }}
+        run: |
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          out=Path('/tmp/g7-rwkv7-2p9b-full-selector-v3-v1-latest.json')
+          files=sorted(Path('/tmp/vela-g7-2p9b-shards').glob('*.json')) if Path('/tmp/vela-g7-2p9b-shards').exists() else []
+          shards=[]
+          for p in files:
+              try: shards.append(json.loads(p.read_text()))
+              except Exception: pass
+          rows=[]
+          for s in shards:
+              if s.get('status')=='VELA_G7_RWKV7_2P9B_FULL_SELECTOR_V3_EVAL_SHARD_V1': rows.extend(s.get('rows',[]))
+          required={'superseded_base','superseded_suffix4','superseded_suffix8','superseded_old_value_echoes'}
+          got={r.get('fixture') for r in rows}
+          if got != required:
+              report={
+                'status':'VELA_G7_RWKV7_2P9B_FULL_SELECTOR_V3_V1_EXECUTION_INCOMPLETE',
+                'source_commit':os.environ.get('GITHUB_SHA'),
+                'build_result':os.environ.get('BUILD_RESULT'),
+                'eval_result':os.environ.get('EVAL_RESULT'),
+                'fixtures_present':sorted(x for x in got if x),
+                'scientific_failure':False,
+                'claim_boundary':'Missing shard evidence is an execution/infrastructure outcome, not a G7 scientific failure.'
+              }
+          else:
+              cases=[c for r in rows for c in r['cases']]
+              iq=sum(int(r['initial_qualified']) for r in rows)
+              native=[c for c in cases if c['native_stable_case']]
+              mig=[c for c in cases if c['migration_excess_failure']]
+              per={fid:sum(int(c['native_stable_case']) for c in cases if c['fixture']==fid) for fid in sorted(required)}
+              native_gate=len(native)>=6 and all(v>=1 for v in per.values())
+              mig_gate=len(mig)==0
+              formal=iq==4 and native_gate and mig_gate
+              report={
+                'status':'VELA_G7_RWKV7_2P9B_FULL_SELECTOR_V3_V1',
+                'source_commit':os.environ.get('GITHUB_SHA'),
+                'model':{'repo':'BlinkDL/rwkv7-g1','revision':'ede85bf8ab2e59aff7d7ca909fbbc73317866d89','file':'rwkv7-g1i-2.9b-20260805-ctx16384.pth'},
+                'protocol':{'fixtures':sorted(required),'future_streams':['telemetry','inventory'],'horizons':[128,512,2048],'selector':'selector-v3 earliest carried-W2 immediate-functional-equivalence guard','adaptation_reuse':'one W2/W3 adaptation build reused by all fixture shards','oracle_usage':'W3-native/future evaluation-only'},
+                'rows':rows,
+                'summary':{'fixture_count':4,'case_count':len(cases),'initial_chain_qualified':iq,'native_stable_case_count':len(native),'per_fixture_native_stable':per,'migration_only_excess_failure_count':len(mig),'native_coverage_gate':native_gate,'migration_excess_gate':mig_gate,'formal_g7_2p9b_pass_candidate':formal},
+                'claim_boundary':'Full 4-fixture x 2-stream synthetic G7 qualification on one released RWKV-7 2.9B checkpoint. Passing does not freeze final backbone, selector formula, canonical state schema, checkpoint interval, or production hardware.'
+              }
+          out.write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n')
+          print(out.read_text())
+          PY
+
+      - name: Upload aggregate result
+        uses: actions/upload-artifact@v4
+        with:
+          name: vela-g7-2p9b-full-aggregate-v1
+          path: /tmp/g7-rwkv7-2p9b-full-selector-v3-v1-latest.json
+
+  record:
+    if: always()
+    needs: aggregate
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: vela-experiment-infra
+
+      - name: Download aggregate result
+        id: download
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: vela-g7-2p9b-full-aggregate-v1
+          path: /tmp/vela-g7-2p9b-aggregate
+
+      - name: Record result snapshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p ops/vela-results
+          dst=ops/vela-results/g7-rwkv7-2p9b-full-selector-v3-v1-latest.json
+          src=/tmp/vela-g7-2p9b-aggregate/g7-rwkv7-2p9b-full-selector-v3-v1-latest.json
+          if [[ -f "$src" ]]; then cp "$src" "$dst"; else printf '%s\n' '{"status":"VELA_G7_RWKV7_2P9B_FULL_SELECTOR_V3_V1_NO_AGGREGATE_ARTIFACT","scientific_failure":false}' > "$dst"; fi
+          cat "$dst"
+
+      - name: Commit result snapshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add ops/vela-results/g7-rwkv7-2p9b-full-selector-v3-v1-latest.json
+          git diff --cached --quiet || git commit -m 'Record VELA G7 RWKV7 2.9B full selector-v3 v1 [skip ci]'
+          for n in 1 2 3 4 5; do git pull --rebase origin vela-experiment-infra && git push origin HEAD:vela-experiment-infra && break; sleep $((n*3)); done
