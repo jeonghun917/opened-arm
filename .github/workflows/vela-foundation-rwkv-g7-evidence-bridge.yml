@@ -1,0 +1,109 @@
+name: VELA Foundation RWKV G7 Evidence Bridge
+
+on:
+  push:
+    branches:
+      - vela-foundation-ci
+    paths:
+      - 'ops/vela-foundation-rwkv-g7-evidence-bridge-trigger.txt'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: vela-foundation-rwkv-g7-evidence-bridge
+  cancel-in-progress: false
+
+env:
+  EXPECTED_ARS_COMMIT: 07712b507e91dcacf8237c1a46249f0cb68f9981
+  EXPERIMENT_RESULT_COMMIT: 1bc953fe99a640d8047e5fbc580f1cb796f6ca99
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout runner-control branch
+        uses: actions/checkout@v4
+        with:
+          ref: vela-foundation-ci
+          path: runner-control
+          persist-credentials: true
+
+      - name: Checkout exact public G7 result snapshot
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.EXPERIMENT_RESULT_COMMIT }}
+          path: experiment
+          persist-credentials: false
+
+      - name: Checkout private foundation source
+        uses: actions/checkout@v4
+        with:
+          repository: jeonghun917/Ars-Mentis
+          ref: ${{ env.EXPECTED_ARS_COMMIT }}
+          token: ${{ secrets.ARS_MENTIS_READ_TOKEN }}
+          path: ars-mentis
+          persist-credentials: false
+
+      - name: Verify exact source commits
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git -C ars-mentis rev-parse HEAD)" = "$EXPECTED_ARS_COMMIT"
+          test "$(git -C experiment rev-parse HEAD)" = "$EXPERIMENT_RESULT_COMMIT"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Replay audited 2.9B G7 evidence through foundation selector path
+        shell: bash
+        run: |
+          set -euo pipefail
+          PYTHONPATH=ars-mentis/src python ars-mentis/tools/verify_rwkv_g7_evidence_bridge.py \
+            experiment/ops/vela-results/g7-rwkv7-2p9b-full-selector-v3-v1-latest.json \
+            --output /tmp/bridge.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          source = json.loads(Path('/tmp/bridge.json').read_text())
+          public = {
+              'status': source['status'],
+              'foundation_source_commit': '07712b507e91dcacf8237c1a46249f0cb68f9981',
+              'experiment_result_commit': '1bc953fe99a640d8047e5fbc580f1cb796f6ca99',
+              'source_result_sha256': source['source_result_sha256'],
+              'case_count': source['case_count'],
+              'selected_anchor_match_count': source['selected_anchor_match_count'],
+              'eligible_set_match_count': source['eligible_set_match_count'],
+              'oracle_free_case_count': source['oracle_free_case_count'],
+              'native_stable_case_count': source['native_stable_case_count'],
+              'migration_clean_case_count': source['migration_clean_case_count'],
+              'foundation_path': source['foundation_path'],
+              'claim_boundary': source['claim_boundary'],
+          }
+          out = Path('runner-control/ops/vela-foundation-rwkv-g7-evidence-bridge-latest.json')
+          out.parent.mkdir(parents=True, exist_ok=True)
+          out.write_text(json.dumps(public, indent=2, sort_keys=True) + '\n')
+          PY
+
+      - name: Commit public bridge result
+        if: always()
+        working-directory: runner-control
+        shell: bash
+        run: |
+          set -euo pipefail
+          dst=ops/vela-foundation-rwkv-g7-evidence-bridge-latest.json
+          if [[ ! -f "$dst" ]]; then
+            mkdir -p ops
+            printf '{"status":"FAIL_BEFORE_RESULT","foundation_source_commit":"%s","experiment_result_commit":"%s"}\n' "$EXPECTED_ARS_COMMIT" "$EXPERIMENT_RESULT_COMMIT" > "$dst"
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add "$dst"
+          git diff --cached --quiet || git commit -m 'Record VELA RWKV G7 foundation evidence bridge [skip ci]'
+          for n in 1 2 3 4; do
+            git pull --rebase origin vela-foundation-ci && git push origin HEAD:vela-foundation-ci && break
+            sleep $((n*3))
+          done
