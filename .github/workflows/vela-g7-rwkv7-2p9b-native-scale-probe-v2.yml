@@ -97,10 +97,10 @@ jobs:
           set -euo pipefail
           python -m pip install --upgrade pip
           python -m pip install --index-url https://download.pytorch.org/whl/cpu 'torch>=2.2,<3'
-          python -m pip install 'huggingface_hub>=0.36,<2'
+          python -m pip install 'numpy>=1.26,<3' 'huggingface_hub>=0.36,<2'
           python - <<'PY'
-          import torch
-          print({'torch': torch.__version__, 'cuda_available': torch.cuda.is_available()})
+          import numpy, torch
+          print({'torch': torch.__version__, 'numpy': numpy.__version__, 'cuda_available': torch.cuda.is_available()})
           assert not torch.cuda.is_available()
           PY
 
