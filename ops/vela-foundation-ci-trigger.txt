@@ -1,4 +1,5 @@
 VELA foundation CI trigger.
-Run: 2026-08-26 RWKV target-free evidence provider + ReplayAdapter end-to-end transaction integration.
-Ars-Mentis target: vela-foundation-runtime @ 884936cb3533aa64ce3f88e5c972a58b4a031fbe
-Trigger revision: 12
+Run: 2026-08-26 RWKV ReplayAdapter/EvidenceProvider + audited 2.9B G7 real-evidence bridge gate.
+Ars-Mentis target: vela-foundation-runtime @ 07712b507e91dcacf8237c1a46249f0cb68f9981
+Experiment result snapshot: 1bc953fe99a640d8047e5fbc580f1cb796f6ca99
+Trigger revision: 13
