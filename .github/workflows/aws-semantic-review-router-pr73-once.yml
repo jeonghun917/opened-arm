@@ -23,48 +23,40 @@ jobs:
       SEMANTIC_REVIEW_OUTPUT: semantic-review-router-pr73-results.json
       SEMANTIC_REVIEW_MODEL_ID: qwen.qwen3-coder-30b-a3b-v1:0
       TARGET_SHA: d2b8fd1fac17a1f91d67ea86cdbd1853b47efc47
+      BASE_SHA: fa33bd155f5cfda549154c1c7cdd6a5b791a8f47
 
     steps:
       - name: Check out execution repository
         uses: actions/checkout@v4
 
-      - name: Fetch exact PR 73 diff
+      - name: Check out exact private Dashboard PR head
+        uses: actions/checkout@v4
+        with:
+          repository: jeonghun917/dashboard-control-center
+          ref: ${{ env.TARGET_SHA }}
+          token: ${{ secrets.DASHBOARD_REPO_TOKEN }}
+          path: dashboard
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Build exact TypeScript PR diff
         shell: bash
-        env:
-          DASHBOARD_REPO_TOKEN: ${{ secrets.DASHBOARD_REPO_TOKEN }}
         run: |
           set -euo pipefail
-          test -n "${DASHBOARD_REPO_TOKEN:-}"
-          curl --fail-with-body --silent --show-error \
-            --header "Authorization: Bearer ${DASHBOARD_REPO_TOKEN}" \
-            --header "Accept: application/vnd.github+json" \
-            --header "X-GitHub-Api-Version: 2022-11-28" \
-            "https://api.github.com/repos/jeonghun917/dashboard-control-center/pulls/73" \
-            > pr73.json
-          python3 - <<'PY'
-          import json, os
-          data=json.load(open('pr73.json'))
-          actual=data['head']['sha']
-          expected=os.environ['TARGET_SHA']
-          if actual != expected:
-              raise SystemExit(f'PR head moved: {actual} != {expected}')
-          PY
-          curl --fail-with-body --silent --show-error \
-            --header "Authorization: Bearer ${DASHBOARD_REPO_TOKEN}" \
-            --header "Accept: application/vnd.github.diff" \
-            --header "X-GitHub-Api-Version: 2022-11-28" \
-            "https://api.github.com/repos/jeonghun917/dashboard-control-center/pulls/73" \
-            > pr73.diff
+          cd dashboard
+          actual="$(git rev-parse HEAD)"
+          test "$actual" = "$TARGET_SHA"
+          git cat-file -e "${BASE_SHA}^{commit}"
+          git diff --no-ext-diff "$BASE_SHA" "$TARGET_SHA" -- '*.ts' > ../pr73.diff
+          test -s ../pr73.diff
 
       - name: Build bounded semantic review input
         shell: bash
         run: |
           set -euo pipefail
           python3 - <<'PY'
-          import json, re
-          raw=open('pr73.diff', encoding='utf-8').read()
-          chunks=re.split(r'(?=^diff --git )', raw, flags=re.M)
-          code=''.join(c for c in chunks if re.search(r'^diff --git a/(.+\.ts) b/', c, flags=re.M))
+          import json
+          code=open('pr73.diff', encoding='utf-8').read()
           req='''Review Dashboard Project Resume Router v0 PR #73. Required properties: stable project/alias routing with collision rejection; legacy GPT resume remains compatible; project resumes cannot grant cross-project write authority; HANDOFF_IMPORT writeback is selected-project-only and rejects stale/concurrent versions; workstreams cannot overwrite project primary automatically and terminal workstreams are immutable; dispatch messages are request-only and exact target/claimer constrained; meta resume is read/index only and cannot grant action authority; no hidden automatic provider/merge/deploy authority. Report concrete correctness, authorization, concurrency, data-integrity, async, or boundary defects only. The supplied code is the TypeScript diff, so line numbers refer to the review input, not original files.'''
           payload={
               'task_id':'dashboard-router-pr73-semantic-review',
@@ -73,7 +65,7 @@ jobs:
               'code':code,
           }
           open('semantic-review-router-pr73-input.json','w',encoding='utf-8').write(json.dumps(payload, ensure_ascii=False))
-          print({'diff_chars':len(raw),'review_chars':len(code)})
+          print({'review_chars':len(code)})
           PY
 
       - name: Configure semantic review credentials via OIDC
