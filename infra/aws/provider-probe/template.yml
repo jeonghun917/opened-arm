@@ -1,0 +1,60 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: General AI AWS provider probe v0
+
+Parameters:
+  LambdaRuntimeRoleArn:
+    Type: String
+    Description: ARN of general-ai-lambda-runtime
+
+Resources:
+  GeneralAiAwsProbe:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: general-ai-aws-probe
+      Runtime: python3.12
+      Handler: index.handler
+      Role: !Ref LambdaRuntimeRoleArn
+      Timeout: 5
+      MemorySize: 128
+      Code:
+        ZipFile: |
+          import json
+          import os
+
+          def handler(event, context):
+              return {
+                  "statusCode": 200,
+                  "headers": {
+                      "content-type": "application/json"
+                  },
+                  "body": json.dumps({
+                      "status": "ok",
+                      "service": "general-ai-aws-probe",
+                      "version": "v0",
+                      "region": os.environ.get("AWS_REGION", "unknown")
+                  })
+              }
+      Tags:
+        - Key: Project
+          Value: general-ai
+        - Key: ManagedBy
+          Value: cloudformation
+        - Key: Environment
+          Value: sandbox
+        - Key: Capability
+          Value: provider-probe
+        - Key: Lifecycle
+          Value: persistent
+
+  GeneralAiAwsProbeUrl:
+    Type: AWS::Lambda::Url
+    Properties:
+      TargetFunctionArn: !Ref GeneralAiAwsProbe
+      AuthType: AWS_IAM
+
+Outputs:
+  ProbeFunctionName:
+    Value: !Ref GeneralAiAwsProbe
+
+  ProbeFunctionUrl:
+    Value: !GetAtt GeneralAiAwsProbeUrl.FunctionUrl
