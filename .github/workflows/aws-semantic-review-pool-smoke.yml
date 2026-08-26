@@ -69,9 +69,9 @@ jobs:
           assert data['next_gate'] == 'deterministic_verification_required'
           clusters = data['aggregated_findings']
           assert any(
-              c['category'] == 'authorization'
-              and c['line'] == 3
+              c['line'] == 3
               and c['support_count'] == 3
+              and {'authorization', 'security'}.issubset(set(c.get('category_variants', [])))
               for c in clusters
           )
           print(json.dumps({
