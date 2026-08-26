@@ -1,0 +1,123 @@
+name: AWS Semantic Review Failure Analysis PR74 Once
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/aws-semantic-review-failure-analysis-pr74-once.yml"
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      AWS_ACCOUNT_ID: ${{ vars.AWS_ACCOUNT_ID }}
+      AWS_MAX_ATTEMPTS: "1"
+      AWS_RETRY_MODE: standard
+      SEMANTIC_REVIEW_COUNT: "3"
+      SEMANTIC_REVIEW_INPUT: semantic-review-failure-analysis-pr74-input.json
+      SEMANTIC_REVIEW_OUTPUT: semantic-review-failure-analysis-pr74-results.json
+      SEMANTIC_REVIEW_MODEL_ID: qwen.qwen3-coder-30b-a3b-v1:0
+      TARGET_SHA: a0ea697a79999d47e0d2b5dfe4f6e9dc4e9e257b
+
+    steps:
+      - name: Check out execution repository
+        uses: actions/checkout@v4
+
+      - name: Fetch exact PR 74 diff
+        shell: bash
+        env:
+          DASHBOARD_REPO_TOKEN: ${{ secrets.DASHBOARD_REPO_TOKEN }}
+        run: |
+          set -euo pipefail
+          test -n "${DASHBOARD_REPO_TOKEN:-}"
+          curl --fail-with-body --silent --show-error \
+            --header "Authorization: Bearer ${DASHBOARD_REPO_TOKEN}" \
+            --header "Accept: application/vnd.github+json" \
+            --header "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/jeonghun917/dashboard-control-center/pulls/74" \
+            > pr74.json
+          python3 - <<'PY'
+          import json, os
+          data=json.load(open('pr74.json'))
+          actual=data['head']['sha']
+          expected=os.environ['TARGET_SHA']
+          if actual != expected:
+              raise SystemExit(f'PR head moved: {actual} != {expected}')
+          PY
+          curl --fail-with-body --silent --show-error \
+            --header "Authorization: Bearer ${DASHBOARD_REPO_TOKEN}" \
+            --header "Accept: application/vnd.github.diff" \
+            --header "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/jeonghun917/dashboard-control-center/pulls/74" \
+            > pr74.diff
+
+      - name: Build bounded semantic review input
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, re
+          raw=open('pr74.diff', encoding='utf-8').read()
+          chunks=re.split(r'(?=^diff --git )', raw, flags=re.M)
+          code=''.join(c for c in chunks if re.search(r'^diff --git a/(.+\.ts) b/', c, flags=re.M))
+          req='''Review Dashboard Failure Analysis v1 PR #74. Required properties: deterministic Incident diagnostics remain fact authority; generated failure causes and Semantic Reviewer outputs remain non-authoritative hypotheses; Semantic Reviewer agreement/confidence never grants PASS/FAIL; CONFIRMED/REFUTED requires exact existing EvidenceRef binding plus a registered deterministic verifier; conflicting or unsupported evidence remains UNRESOLVED; no automatic code modification, provider mutation, retry, or hidden production authority; unknown inputs fail closed or stay unresolved; EvidenceRef identity must not be truncated or conflated. Report concrete correctness, authorization, evidence-integrity, data-integrity, boundary, concurrency, or type-contract defects only. The supplied code is the TypeScript diff, so line numbers refer to the review input, not original files.'''
+          payload={
+              'task_id':'dashboard-failure-analysis-pr74-semantic-review',
+              'language':'TypeScript unified diff',
+              'requirements':req,
+              'code':code,
+          }
+          open('semantic-review-failure-analysis-pr74-input.json','w',encoding='utf-8').write(json.dumps(payload, ensure_ascii=False))
+          print({'diff_chars':len(raw),'review_chars':len(code)})
+          PY
+
+      - name: Configure semantic review credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ format('arn:aws:iam::{0}:role/general-ai-semantic-review', vars.AWS_ACCOUNT_ID) }}
+          aws-region: ${{ vars.AWS_REGION }}
+          role-session-name: opened-arm-failure-analysis-pr74-review
+          mask-aws-account-id: true
+          disable-retry: true
+
+      - name: Run three independent semantic reviewers
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 infra/aws/semantic-review/pool.py
+
+      - name: Verify hypothesis-only contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          data=json.load(open('semantic-review-failure-analysis-pr74-results.json'))
+          assert data['schema']=='semantic-review-pool-v0'
+          assert data['authority']=='HYPOTHESIS_ONLY'
+          assert data['production_pass_fail_authority'] is False
+          assert data['automatic_retry'] is False
+          assert data['review_budget']==3
+          assert data['completed_reviews']==3
+          print(json.dumps({
+            'completed_reviews': data['completed_reviews'],
+            'finding_count': data['finding_count'],
+            'wall_latency_ms': data['wall_latency_ms'],
+            'usage': data['usage'],
+            'aggregated_findings': data['aggregated_findings'],
+          }, ensure_ascii=False))
+          PY
+
+      - name: Upload semantic review evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: semantic-review-failure-analysis-pr74
+          path: semantic-review-failure-analysis-pr74-results.json
+          if-no-files-found: ignore
+          retention-days: 14
