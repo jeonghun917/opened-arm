@@ -6,6 +6,7 @@ import re
 import subprocess
 import sys
 import time
+from collections import Counter
 from pathlib import Path
 
 MODEL_ID = os.environ.get("SEMANTIC_REVIEW_MODEL_ID", "qwen.qwen3-coder-30b-a3b-v1:0")
@@ -24,19 +25,18 @@ REVIEWERS = [
 ][:REVIEW_COUNT]
 
 CANONICAL_CATEGORIES = {
-    "correctness",
-    "authorization",
-    "security",
-    "async",
-    "boundary",
-    "nullability",
-    "data_integrity",
-    "error_handling",
-    "concurrency",
-    "resource",
-    "performance",
-    "api_contract",
-    "other",
+    "correctness", "authorization", "security", "async", "boundary",
+    "nullability", "data_integrity", "error_handling", "concurrency",
+    "resource", "performance", "api_contract", "other",
+}
+TITLE_STOPWORDS = {
+    "a", "an", "and", "the", "to", "of", "in", "on", "for", "with",
+    "check", "issue", "potential", "possible", "missing",
+}
+TITLE_TOKEN_MAP = {
+    "bypasses": "bypass", "bypassed": "bypass", "bypassing": "bypass",
+    "unauthorized": "authorization", "unauthorised": "authorization",
+    "authorisation": "authorization",
 }
 
 
@@ -104,7 +104,6 @@ def canonicalize_category(raw_category: str, title: str, rationale: str) -> str:
     raw = re.sub(r"[^a-z0-9_]+", "_", raw_category.strip().lower()).strip("_")
     if raw in CANONICAL_CATEGORIES:
         return raw
-
     text = f"{raw} {title} {rationale}".lower()
     if any(token in text for token in ("authorization", "authorisation", "permission", "access control", "access_control", "auth bypass", "auth_bypass", "unauthorized", "unauthorised")):
         return "authorization"
@@ -128,17 +127,14 @@ def canonicalize_category(raw_category: str, title: str, rationale: str) -> str:
         return "performance"
     if any(token in text for token in ("api", "contract", "schema")):
         return "api_contract"
-    if raw:
-        return "correctness"
-    return "other"
+    return "correctness" if raw else "other"
 
 
 def normalize_finding(raw: dict) -> dict:
     severity = str(raw.get("severity", "medium")).lower()
     if severity not in {"high", "medium", "low"}:
         severity = "medium"
-    confidence = float(raw.get("confidence", 0.0) or 0.0)
-    confidence = max(0.0, min(1.0, confidence))
+    confidence = max(0.0, min(1.0, float(raw.get("confidence", 0.0) or 0.0)))
     title = str(raw.get("title", "")).strip()[:200]
     rationale = str(raw.get("rationale", "")).strip()[:1200]
     category = canonicalize_category(str(raw.get("category", "")), title, rationale)
@@ -156,23 +152,17 @@ def invoke_one(request: dict, reviewer_id: str, focus: str) -> dict:
     messages = [{"role": "user", "content": [{"text": prompt_for(request, reviewer_id, focus)}]}]
     inference = {"maxTokens": 800, "temperature": 0.25, "topP": 0.9}
     cmd = [
-        "aws",
-        "--cli-connect-timeout", "5",
-        "--cli-read-timeout", "60",
-        "bedrock-runtime",
-        "converse",
-        "--model-id", MODEL_ID,
+        "aws", "--cli-connect-timeout", "5", "--cli-read-timeout", "60",
+        "bedrock-runtime", "converse", "--model-id", MODEL_ID,
         "--messages", json.dumps(messages, separators=(",", ":")),
         "--inference-config", json.dumps(inference, separators=(",", ":")),
-        "--output", "json",
-        "--no-cli-pager",
+        "--output", "json", "--no-cli-pager",
     ]
     started = time.monotonic()
     proc = subprocess.run(cmd, text=True, capture_output=True, timeout=70)
     latency_ms = round((time.monotonic() - started) * 1000)
     if proc.returncode != 0:
         raise RuntimeError(proc.stderr.strip() or proc.stdout.strip() or f"aws cli exit {proc.returncode}")
-
     response = json.loads(proc.stdout)
     content = response.get("output", {}).get("message", {}).get("content", [])
     text = "\n".join(part.get("text", "") for part in content if isinstance(part, dict) and "text" in part).strip()
@@ -191,29 +181,65 @@ def invoke_one(request: dict, reviewer_id: str, focus: str) -> dict:
     }
 
 
+def title_tokens(title: str) -> set[str]:
+    tokens = re.findall(r"[a-z0-9]+", title.lower())
+    normalized = []
+    for token in tokens:
+        token = TITLE_TOKEN_MAP.get(token, token)
+        if token not in TITLE_STOPWORDS:
+            normalized.append(token)
+    return set(normalized)
+
+
+def title_similarity(a: str, b: str) -> float:
+    left, right = title_tokens(a), title_tokens(b)
+    if not left or not right:
+        return 0.0
+    return len(left & right) / len(left | right)
+
+
+def same_cluster(a: dict, b: dict) -> bool:
+    if a["line"] != b["line"]:
+        return False
+    if a["category"] == b["category"]:
+        return True
+    return title_similarity(a["title"], b["title"]) >= 0.45
+
+
 def aggregate(reviews: list[dict]) -> list[dict]:
-    grouped = {}
+    clusters = []
     for review in reviews:
         if review.get("status") != "completed":
             continue
         reviewer_id = review["reviewer_id"]
         for finding in review.get("findings", []):
-            key = (finding["category"], finding["line"])
-            bucket = grouped.setdefault(key, {
-                "category": finding["category"],
-                "line": finding["line"],
-                "support_count": 0,
-                "reviewer_ids": [],
-                "observations": [],
-            })
-            if reviewer_id not in bucket["reviewer_ids"]:
-                bucket["support_count"] += 1
-                bucket["reviewer_ids"].append(reviewer_id)
-            bucket["observations"].append({"reviewer_id": reviewer_id, **finding})
+            target = None
+            for cluster in clusters:
+                if any(same_cluster(finding, obs) for obs in cluster["observations"]):
+                    target = cluster
+                    break
+            if target is None:
+                target = {
+                    "category": finding["category"],
+                    "category_variants": [],
+                    "line": finding["line"],
+                    "support_count": 0,
+                    "reviewer_ids": [],
+                    "observations": [],
+                }
+                clusters.append(target)
+            if reviewer_id not in target["reviewer_ids"]:
+                target["reviewer_ids"].append(reviewer_id)
+            target["observations"].append({"reviewer_id": reviewer_id, **finding})
 
-    result = list(grouped.values())
-    result.sort(key=lambda x: (-x["support_count"], x["line"], x["category"]))
-    return result
+    for cluster in clusters:
+        variants = [obs["category"] for obs in cluster["observations"]]
+        counts = Counter(variants)
+        cluster["category"] = sorted(counts, key=lambda c: (-counts[c], c))[0]
+        cluster["category_variants"] = sorted(counts)
+        cluster["support_count"] = len(cluster["reviewer_ids"])
+    clusters.sort(key=lambda x: (-x["support_count"], x["line"], x["category"]))
+    return clusters
 
 
 def main() -> int:
