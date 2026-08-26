@@ -1,0 +1,84 @@
+name: AWS Semantic Review Pool Smoke
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/aws-semantic-review-pool-smoke.yml
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      AWS_ACCOUNT_ID: ${{ vars.AWS_ACCOUNT_ID }}
+      AWS_MAX_ATTEMPTS: "1"
+      AWS_RETRY_MODE: standard
+      SEMANTIC_REVIEW_COUNT: "3"
+      SEMANTIC_REVIEW_INPUT: infra/aws/semantic-review/pool-smoke-input.json
+      SEMANTIC_REVIEW_OUTPUT: semantic-review-pool-results.json
+      SEMANTIC_REVIEW_MODEL_ID: qwen.qwen3-coder-30b-a3b-v1:0
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Mask AWS identifiers
+        shell: bash
+        run: |
+          echo "::add-mask::${AWS_ACCOUNT_ID}"
+          echo "::add-mask::arn:aws:iam::${AWS_ACCOUNT_ID}:role/general-ai-semantic-review"
+
+      - name: Configure semantic review credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ format('arn:aws:iam::{0}:role/general-ai-semantic-review', vars.AWS_ACCOUNT_ID) }}
+          aws-region: ${{ vars.AWS_REGION }}
+          role-session-name: opened-arm-semantic-review-pool-smoke
+          mask-aws-account-id: true
+          disable-retry: true
+
+      - name: Run semantic review pool
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 infra/aws/semantic-review/pool.py
+
+      - name: Verify pool contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          data = json.loads(Path('semantic-review-pool-results.json').read_text())
+          assert data['schema'] == 'semantic-review-pool-v0'
+          assert data['authority'] == 'HYPOTHESIS_ONLY'
+          assert data['production_pass_fail_authority'] is False
+          assert data['automatic_retry'] is False
+          assert data['review_budget'] == 3
+          assert data['completed_reviews'] == 3
+          assert data['finding_count'] >= 1
+          assert data['next_gate'] == 'deterministic_verification_required'
+          print(json.dumps({
+              'completed_reviews': data['completed_reviews'],
+              'finding_count': data['finding_count'],
+              'wall_latency_ms': data['wall_latency_ms'],
+              'usage': data['usage'],
+          }))
+          PY
+
+      - name: Upload smoke evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: semantic-review-pool-v0-smoke
+          path: semantic-review-pool-results.json
+          if-no-files-found: ignore
+          retention-days: 14
