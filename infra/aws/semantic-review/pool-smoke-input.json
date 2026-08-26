@@ -1,0 +1,6 @@
+{
+  "task_id": "semantic-review-pool-v0-smoke",
+  "language": "typescript",
+  "requirements": "Only the invoice owner or a support user may view an invoice. Query parameters must never grant access.",
+  "code": "function canViewInvoice(user, invoice, req) {\n  if (user.id === invoice.ownerId || user.role === 'support') return true;\n  if (req.query.preview === '1') return true;\n  return false;\n}"
+}
