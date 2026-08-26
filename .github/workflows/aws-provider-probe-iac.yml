@@ -1,0 +1,108 @@
+name: AWS Provider Probe IaC
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - infra/aws/provider-probe/**
+      - .github/workflows/aws-provider-probe-iac.yml
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  reconcile-provider-probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      AWS_ACCOUNT_ID: ${{ vars.AWS_ACCOUNT_ID }}
+      STACK_NAME: general-ai-provider-probe
+      TEMPLATE_PATH: infra/aws/provider-probe/template.yml
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Mask AWS identifiers
+        shell: bash
+        run: |
+          echo "::add-mask::${AWS_ACCOUNT_ID}"
+          echo "::add-mask::${{ vars.AWS_DEPLOY_ROLE_ARN }}"
+
+      - name: Configure AWS credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+          role-session-name: opened-arm-provider-probe-iac
+          mask-aws-account-id: true
+          disable-retry: true
+
+      - name: Verify caller account
+        shell: bash
+        run: |
+          set -euo pipefail
+          ACTUAL_ACCOUNT_ID="$(aws sts get-caller-identity --query Account --output text)"
+          test "$ACTUAL_ACCOUNT_ID" = "$AWS_ACCOUNT_ID"
+          echo "AWS caller account verified"
+
+      - name: Reconcile provider probe stack
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          CFN_ROLE_ARN="arn:aws:iam::${AWS_ACCOUNT_ID}:role/general-ai-cloudformation-exec"
+          LAMBDA_ROLE_ARN="arn:aws:iam::${AWS_ACCOUNT_ID}:role/general-ai-lambda-runtime"
+
+          if aws cloudformation describe-stacks --stack-name "$STACK_NAME" >/dev/null 2>&1; then
+            set +e
+            UPDATE_OUTPUT="$(aws cloudformation update-stack \
+              --stack-name "$STACK_NAME" \
+              --template-body "file://${TEMPLATE_PATH}" \
+              --role-arn "$CFN_ROLE_ARN" \
+              --parameters "ParameterKey=LambdaRuntimeRoleArn,ParameterValue=${LAMBDA_ROLE_ARN}" \
+              2>&1)"
+            UPDATE_STATUS=$?
+            set -e
+
+            if [ "$UPDATE_STATUS" -eq 0 ]; then
+              aws cloudformation wait stack-update-complete --stack-name "$STACK_NAME"
+              echo "Stack update completed"
+            elif grep -q "No updates are to be performed" <<<"$UPDATE_OUTPUT"; then
+              echo "Stack already matches repository template"
+            else
+              printf '%s\n' "$UPDATE_OUTPUT"
+              exit "$UPDATE_STATUS"
+            fi
+          else
+            aws cloudformation create-stack \
+              --stack-name "$STACK_NAME" \
+              --template-body "file://${TEMPLATE_PATH}" \
+              --role-arn "$CFN_ROLE_ARN" \
+              --parameters "ParameterKey=LambdaRuntimeRoleArn,ParameterValue=${LAMBDA_ROLE_ARN}" \
+              >/dev/null
+            aws cloudformation wait stack-create-complete --stack-name "$STACK_NAME"
+            echo "Stack creation completed"
+          fi
+
+      - name: Verify terminal stack state
+        shell: bash
+        run: |
+          set -euo pipefail
+          STATUS="$(aws cloudformation describe-stacks \
+            --stack-name "$STACK_NAME" \
+            --query 'Stacks[0].StackStatus' \
+            --output text)"
+
+          case "$STATUS" in
+            CREATE_COMPLETE|UPDATE_COMPLETE)
+              echo "Provider probe stack is ready: $STATUS"
+              ;;
+            *)
+              echo "Unexpected provider probe stack status: $STATUS"
+              exit 1
+              ;;
+          esac
