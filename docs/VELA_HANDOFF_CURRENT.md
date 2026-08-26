@@ -1,3 +1,32 @@
+# VELA Experiment Handoff — CURRENT / FROZEN SNAPSHOT OVERRIDE
+
+Date: 2026-08-26 KST  
+Status: **CURRENT STATE FROZEN / HISTORICAL LOG PRESERVED**
+
+This override freezes the current verified development state. **No future milestone or next-action plan is active from this file.** Any `Next`, `next order`, or milestone language retained below is historical experiment/development log only and must not be treated as an instruction to continue work.
+
+Current verified snapshot:
+- core: `PROMOTED / ACTIVE`
+- G7: `PASS / RWKV-7 2.9B FULL G7 (tested synthetic scope)`
+- G8: `PARTIAL / POLICY-SAFETY BENCHMARK PASS (small synthetic)`
+- G9: `PASS`
+- authoritative full G7 result: `ops/vela-results/g7-rwkv7-2p9b-full-selector-v3-v1-latest.json`
+- experiment source: `db96d09fcb0893280590b449523a10db31c1ec4f`
+- result snapshot: `1bc953fe99a640d8047e5fbc580f1cb796f6ca99`
+- Foundation latest CI-verified source at freeze: `e3e16abb948f7714b7081a1484132bf643cdb924`
+- Foundation CI Run `32877549681`: `72/72 PASS`
+- audited 2.9B evidence bridge on the same tested source: selected-anchor `8/8`, eligible-set `8/8`, status `PASS`
+- later application/reference-host commit `799c02aea762d07517f251cfc88e5923add8134d` exists but is **not part of the frozen verified baseline** because it has not been CI-verified.
+
+Freeze meaning:
+- this freezes the CURRENT handoff/development-state snapshot only;
+- it does **not** finalize backbone, active-state schema, checkpoint policy, selector final rule, production backend/hardware, or mainline;
+- all experiment results, historical interpretation, failure records, prior milestone notes, and authoritative paths below are intentionally preserved.
+
+---
+
+## HISTORICAL EXPERIMENT / DEVELOPMENT LOG — PRESERVED VERBATIM BELOW
+
 # VELA Experiment Handoff — CURRENT
 
 Date: 2026-08-26 KST  
