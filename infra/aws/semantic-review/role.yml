@@ -1,0 +1,55 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: General AI semantic review Bedrock invocation role
+
+Parameters:
+  GitHubOidcSubject:
+    Type: String
+    Default: repo:jeonghun917@109071398/opened-arm@1339350352:ref:refs/heads/main
+    Description: Exact GitHub OIDC sub allowed to assume this role
+
+Resources:
+  GeneralAiSemanticReviewRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: general-ai-semantic-review
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:oidc-provider/token.actions.githubusercontent.com
+            Action: sts:AssumeRoleWithWebIdentity
+            Condition:
+              StringEquals:
+                token.actions.githubusercontent.com:aud: sts.amazonaws.com
+                token.actions.githubusercontent.com:sub: !Ref GitHubOidcSubject
+      Policies:
+        - PolicyName: GeneralAiSemanticReviewBenchmarkModels
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Sid: InvokeBenchmarkModelsOnly
+                Effect: Allow
+                Action:
+                  - bedrock:InvokeModel
+                Resource:
+                  - !Sub arn:${AWS::Partition}:bedrock:${AWS::Region}::foundation-model/qwen.qwen3-coder-30b-a3b-v1:0
+                  - !Sub arn:${AWS::Partition}:bedrock:${AWS::Region}::foundation-model/qwen.qwen3-coder-next
+                  - !Sub arn:${AWS::Partition}:bedrock:${AWS::Region}::foundation-model/zai.glm-4.7-flash
+      Tags:
+        - Key: Project
+          Value: general-ai
+        - Key: ManagedBy
+          Value: cloudformation
+        - Key: Environment
+          Value: sandbox
+        - Key: Capability
+          Value: semantic-review-benchmark
+        - Key: Lifecycle
+          Value: persistent
+
+Outputs:
+  SemanticReviewRoleName:
+    Value: !Ref GeneralAiSemanticReviewRole
+  SemanticReviewRoleArn:
+    Value: !GetAtt GeneralAiSemanticReviewRole.Arn
