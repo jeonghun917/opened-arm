@@ -2,6 +2,7 @@
   {
     "id": "sql-injection-01",
     "language": "python",
+    "requirements": "username is untrusted request input. Database queries must not embed it into SQL text.",
     "expected_verdict": "BUG",
     "expected_category": "SQL_INJECTION",
     "code": "def lookup_user(conn, username):\n    query = f\"SELECT id, email FROM users WHERE username = '{username}'\"\n    return conn.execute(query).fetchone()"
@@ -9,6 +10,7 @@
   {
     "id": "auth-bypass-01",
     "language": "python",
+    "requirements": "Only the invoice owner or a user with role 'support' may view the invoice. Query parameters must never grant access.",
     "expected_verdict": "BUG",
     "expected_category": "AUTH_BYPASS",
     "code": "def can_view_invoice(user, invoice, request):\n    if user.id == invoice.owner_id or user.role == 'support':\n        return True\n    if request.args.get('preview') == '1':\n        return True\n    return False"
@@ -16,6 +18,7 @@
   {
     "id": "missing-await-01",
     "language": "typescript",
+    "requirements": "db.users.findUnique returns Promise<User | null>. The update must happen only after confirming that the user exists.",
     "expected_verdict": "BUG",
     "expected_category": "MISSING_AWAIT",
     "code": "async function saveProfile(db, userId, input) {\n  const existing = db.users.findUnique({ where: { id: userId } });\n  if (!existing) throw new Error('missing user');\n  return db.users.update({ where: { id: userId }, data: input });\n}"
@@ -23,6 +26,7 @@
   {
     "id": "boundary-error-01",
     "language": "python",
+    "requirements": "Return the number of non-empty pages needed for total_items items at page_size items per page. total_items >= 0 and page_size > 0.",
     "expected_verdict": "BUG",
     "expected_category": "BOUNDARY_ERROR",
     "code": "def page_count(total_items, page_size):\n    if total_items == 0:\n        return 0\n    return total_items // page_size + 1"
@@ -30,6 +34,7 @@
   {
     "id": "null-deref-01",
     "language": "typescript",
+    "requirements": "User.profile is nullable exactly as declared. The function must not throw when profile is null.",
     "expected_verdict": "BUG",
     "expected_category": "NULL_DEREFERENCE",
     "code": "type User = { profile: { displayName: string } | null };\n\nfunction displayName(user: User) {\n  return user.profile.displayName.trim();\n}"
@@ -37,6 +42,7 @@
   {
     "id": "clean-sql-01",
     "language": "python",
+    "requirements": "username is untrusted request input. Database queries must not embed it into SQL text.",
     "expected_verdict": "CLEAN",
     "expected_category": "NONE",
     "code": "def lookup_user(conn, username):\n    return conn.execute(\n        'SELECT id, email FROM users WHERE username = ?',\n        (username,),\n    ).fetchone()"
@@ -44,8 +50,17 @@
   {
     "id": "clean-await-01",
     "language": "typescript",
+    "requirements": "db.users.findUnique returns Promise<User | null>. The update must happen only after confirming that the user exists.",
     "expected_verdict": "CLEAN",
     "expected_category": "NONE",
     "code": "async function saveProfile(db, userId, input) {\n  const existing = await db.users.findUnique({ where: { id: userId } });\n  if (!existing) throw new Error('missing user');\n  return db.users.update({ where: { id: userId }, data: input });\n}"
+  },
+  {
+    "id": "clean-auth-01",
+    "language": "python",
+    "requirements": "Only the invoice owner or a user with role 'support' may view the invoice. Query parameters must never grant access.",
+    "expected_verdict": "CLEAN",
+    "expected_category": "NONE",
+    "code": "def can_view_invoice(user, invoice, request):\n    return user.id == invoice.owner_id or user.role == 'support'"
   }
 ]
