@@ -1,0 +1,112 @@
+name: AWS Semantic Review Role IaC
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - infra/aws/semantic-review/role.yml
+      - .github/workflows/aws-semantic-review-role-iac.yml
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  reconcile-semantic-review-role:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      AWS_ACCOUNT_ID: ${{ vars.AWS_ACCOUNT_ID }}
+      STACK_NAME: general-ai-semantic-review-role
+      TEMPLATE_PATH: infra/aws/semantic-review/role.yml
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Mask AWS identifiers
+        shell: bash
+        run: |
+          echo "::add-mask::${AWS_ACCOUNT_ID}"
+          echo "::add-mask::${{ vars.AWS_DEPLOY_ROLE_ARN }}"
+
+      - name: Configure AWS credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+          role-session-name: opened-arm-semantic-review-role-iac
+          mask-aws-account-id: true
+          disable-retry: true
+
+      - name: Verify caller account
+        shell: bash
+        run: |
+          set -euo pipefail
+          ACTUAL_ACCOUNT_ID="$(aws sts get-caller-identity --query Account --output text)"
+          test "$ACTUAL_ACCOUNT_ID" = "$AWS_ACCOUNT_ID"
+          echo "AWS caller account verified"
+
+      - name: Reconcile semantic review role stack
+        shell: bash
+        run: |
+          set -euo pipefail
+          CFN_ROLE_ARN="arn:aws:iam::${AWS_ACCOUNT_ID}:role/general-ai-cloudformation-exec"
+
+          if aws cloudformation describe-stacks --stack-name "$STACK_NAME" >/dev/null 2>&1; then
+            set +e
+            UPDATE_OUTPUT="$(aws cloudformation update-stack \
+              --stack-name "$STACK_NAME" \
+              --template-body "file://${TEMPLATE_PATH}" \
+              --role-arn "$CFN_ROLE_ARN" \
+              --capabilities CAPABILITY_NAMED_IAM \
+              2>&1)"
+            UPDATE_STATUS=$?
+            set -e
+
+            if [ "$UPDATE_STATUS" -eq 0 ]; then
+              aws cloudformation wait stack-update-complete --stack-name "$STACK_NAME"
+              echo "Semantic review role stack update completed"
+            elif grep -q "No updates are to be performed" <<<"$UPDATE_OUTPUT"; then
+              echo "Semantic review role stack already matches repository template"
+            else
+              printf '%s\n' "$UPDATE_OUTPUT"
+              exit "$UPDATE_STATUS"
+            fi
+          else
+            aws cloudformation create-stack \
+              --stack-name "$STACK_NAME" \
+              --template-body "file://${TEMPLATE_PATH}" \
+              --role-arn "$CFN_ROLE_ARN" \
+              --capabilities CAPABILITY_NAMED_IAM \
+              >/dev/null
+            aws cloudformation wait stack-create-complete --stack-name "$STACK_NAME"
+            echo "Semantic review role stack creation completed"
+          fi
+
+      - name: Verify role stack and output
+        shell: bash
+        run: |
+          set -euo pipefail
+          STATUS="$(aws cloudformation describe-stacks \
+            --stack-name "$STACK_NAME" \
+            --query 'Stacks[0].StackStatus' \
+            --output text)"
+          ROLE_NAME="$(aws cloudformation describe-stacks \
+            --stack-name "$STACK_NAME" \
+            --query "Stacks[0].Outputs[?OutputKey=='SemanticReviewRoleName'].OutputValue | [0]" \
+            --output text)"
+
+          case "$STATUS" in
+            CREATE_COMPLETE|UPDATE_COMPLETE)
+              ;;
+            *)
+              echo "Unexpected semantic review role stack status: $STATUS"
+              exit 1
+              ;;
+          esac
+
+          test "$ROLE_NAME" = "general-ai-semantic-review"
+          echo "Semantic review role is ready"
