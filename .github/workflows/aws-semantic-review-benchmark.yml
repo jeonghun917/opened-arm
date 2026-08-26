@@ -2,6 +2,11 @@ name: AWS Semantic Review Benchmark
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/aws-semantic-review-benchmark.yml
 
 permissions:
   id-token: write
