@@ -2,6 +2,13 @@ name: AWS Semantic Review Pool Smoke
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - infra/aws/semantic-review/pool.py
+      - infra/aws/semantic-review/pool-smoke-input.json
+      - .github/workflows/aws-semantic-review-pool-smoke.yml
 
 permissions:
   id-token: write
@@ -59,13 +66,20 @@ jobs:
           assert data['automatic_retry'] is False
           assert data['review_budget'] == 3
           assert data['completed_reviews'] == 3
-          assert data['finding_count'] >= 1
           assert data['next_gate'] == 'deterministic_verification_required'
+          clusters = data['aggregated_findings']
+          assert any(
+              c['category'] == 'authorization'
+              and c['line'] == 3
+              and c['support_count'] == 3
+              for c in clusters
+          )
           print(json.dumps({
               'completed_reviews': data['completed_reviews'],
               'finding_count': data['finding_count'],
               'wall_latency_ms': data['wall_latency_ms'],
               'usage': data['usage'],
+              'top_cluster': clusters[0] if clusters else None,
           }))
           PY
 
