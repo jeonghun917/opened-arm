@@ -23,6 +23,22 @@ REVIEWERS = [
     ("C", "Prioritize async behavior, nullability, boundary conditions, races, and failure handling."),
 ][:REVIEW_COUNT]
 
+CANONICAL_CATEGORIES = {
+    "correctness",
+    "authorization",
+    "security",
+    "async",
+    "boundary",
+    "nullability",
+    "data_integrity",
+    "error_handling",
+    "concurrency",
+    "resource",
+    "performance",
+    "api_contract",
+    "other",
+}
+
 
 def numbered(code: str) -> str:
     return "\n".join(f"{i:04d}: {line}" for i, line in enumerate(code.splitlines(), 1))
@@ -39,7 +55,7 @@ Return exactly one JSON object and no markdown or prose:
   "reviewer_id": "{reviewer_id}",
   "findings": [
     {{
-      "category": "short_machine_readable_category",
+      "category": "correctness|authorization|security|async|boundary|nullability|data_integrity|error_handling|concurrency|resource|performance|api_contract|other",
       "severity": "high|medium|low",
       "line": 0,
       "title": "brief title",
@@ -55,6 +71,7 @@ Rules:
 - Use an empty findings array when no concrete defect is found.
 - line is the first materially relevant line, or 0 only when no single line applies.
 - Maximum 5 findings.
+- Pick the closest category from the fixed category list; do not invent category names.
 
 Task ID: {request.get('task_id', 'unknown')}
 Language: {request.get('language', 'unknown')}
@@ -83,19 +100,54 @@ def extract_json(text: str) -> dict:
     return obj
 
 
+def canonicalize_category(raw_category: str, title: str, rationale: str) -> str:
+    raw = re.sub(r"[^a-z0-9_]+", "_", raw_category.strip().lower()).strip("_")
+    if raw in CANONICAL_CATEGORIES:
+        return raw
+
+    text = f"{raw} {title} {rationale}".lower()
+    if any(token in text for token in ("authorization", "authorisation", "permission", "access control", "access_control", "auth bypass", "auth_bypass", "unauthorized", "unauthorised")):
+        return "authorization"
+    if any(token in text for token in ("injection", "xss", "csrf", "secret", "credential", "crypto", "security")):
+        return "security"
+    if any(token in text for token in ("await", "promise", "async")):
+        return "async"
+    if any(token in text for token in ("null", "nullable", "undefined")):
+        return "nullability"
+    if any(token in text for token in ("boundary", "off by one", "off_by_one", "range")):
+        return "boundary"
+    if any(token in text for token in ("transaction", "integrity", "data loss", "data_loss", "corrupt")):
+        return "data_integrity"
+    if any(token in text for token in ("exception", "error handling", "error_handling", "swallow")):
+        return "error_handling"
+    if any(token in text for token in ("race", "deadlock", "concurrent", "concurrency")):
+        return "concurrency"
+    if any(token in text for token in ("resource", "leak", "close", "cleanup")):
+        return "resource"
+    if any(token in text for token in ("performance", "slow", "latency", "complexity")):
+        return "performance"
+    if any(token in text for token in ("api", "contract", "schema")):
+        return "api_contract"
+    if raw:
+        return "correctness"
+    return "other"
+
+
 def normalize_finding(raw: dict) -> dict:
     severity = str(raw.get("severity", "medium")).lower()
     if severity not in {"high", "medium", "low"}:
         severity = "medium"
     confidence = float(raw.get("confidence", 0.0) or 0.0)
     confidence = max(0.0, min(1.0, confidence))
-    category = re.sub(r"[^a-z0-9_]+", "_", str(raw.get("category", "unknown")).strip().lower()).strip("_") or "unknown"
+    title = str(raw.get("title", "")).strip()[:200]
+    rationale = str(raw.get("rationale", "")).strip()[:1200]
+    category = canonicalize_category(str(raw.get("category", "")), title, rationale)
     return {
         "category": category,
         "severity": severity,
         "line": max(0, int(raw.get("line", 0) or 0)),
-        "title": str(raw.get("title", "")).strip()[:200],
-        "rationale": str(raw.get("rationale", "")).strip()[:1200],
+        "title": title,
+        "rationale": rationale,
         "confidence": confidence,
     }
 
