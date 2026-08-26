@@ -1,0 +1,50 @@
+{
+  "selection": "semantic-review-benchmark-v0.1",
+  "status": "validated_candidate",
+  "selected_model": {
+    "name": "qwen3-coder-30b-a3b",
+    "model_id": "qwen.qwen3-coder-30b-a3b-v1:0"
+  },
+  "benchmark_run": {
+    "github_run_id": 32918832659,
+    "commit_sha": "0857223e91029dbf6ac53bdf738de1953de87d9d",
+    "artifact_id": 9589153156,
+    "planned_invocations": 48,
+    "automatic_retry": false
+  },
+  "selected_metrics": {
+    "completed_invocations": 24,
+    "failed_invocations": 0,
+    "schema_valid_rate": 1.0,
+    "accuracy": 1.0,
+    "bug_recall": 1.0,
+    "false_positive_rate": 0.0,
+    "consistency": 1.0,
+    "quality_score": 1.0,
+    "avg_latency_ms": 4749.3,
+    "estimated_total_cost_usd": 0.00138645,
+    "estimated_cost_per_review_usd": 0.00005777
+  },
+  "comparison": {
+    "qwen3-coder-next": {
+      "accuracy": 0.875,
+      "bug_recall": 0.8,
+      "false_positive_rate": 0.0,
+      "consistency": 1.0,
+      "quality_score": 0.87,
+      "avg_latency_ms": 1537.1,
+      "estimated_cost_per_review_usd": 0.00014676,
+      "eligible": false
+    }
+  },
+  "authority": {
+    "semantic_findings_are_hypotheses": true,
+    "production_pass_fail_authority": false,
+    "deterministic_review_remains_final_gate": true
+  },
+  "notes": [
+    "The selected model passed the bounded v0.1 fixture gate.",
+    "Observed tail latency included individual calls above 40 seconds; pool execution should parallelize independent reviews.",
+    "This selection authorizes semantic-review-pool-v0 experimentation, not autonomous production PASS/FAIL decisions."
+  ]
+}
