@@ -1,0 +1,122 @@
+name: AWS Semantic Review Authority PR78 Once
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/aws-semantic-review-authority-pr78-once.yml"
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      AWS_ACCOUNT_ID: ${{ vars.AWS_ACCOUNT_ID }}
+      AWS_MAX_ATTEMPTS: "1"
+      AWS_RETRY_MODE: standard
+      SEMANTIC_REVIEW_COUNT: "3"
+      SEMANTIC_REVIEW_INPUT: semantic-review-authority-pr78-input.json
+      SEMANTIC_REVIEW_OUTPUT: semantic-review-authority-pr78-results.json
+      SEMANTIC_REVIEW_MODEL_ID: qwen.qwen3-coder-30b-a3b-v1:0
+      TARGET_SHA: 3ee14bfdd6544874a30e7253dd8575d25a42a49d
+      BASE_SHA: 46d498e13d7015aaccb39824844529d63d125907
+
+    steps:
+      - name: Check out execution repository
+        uses: actions/checkout@v4
+
+      - name: Check out exact private Dashboard PR head
+        uses: actions/checkout@v4
+        with:
+          repository: jeonghun917/dashboard-control-center
+          ref: ${{ env.TARGET_SHA }}
+          token: ${{ secrets.DASHBOARD_REPO_TOKEN }}
+          path: dashboard
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Build exact PR diff
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd dashboard
+          actual="$(git rev-parse HEAD)"
+          test "$actual" = "$TARGET_SHA"
+          git cat-file -e "${BASE_SHA}^{commit}"
+          git diff --no-ext-diff "$BASE_SHA" "$TARGET_SHA" -- \
+            api/_lib/projectAuthorityStore.ts \
+            api/_lib/projectResumeWorkstreamStore.ts \
+            shared/authorityPromotion.ts \
+            scripts/test-authority-promotion-envelope.ts \
+            package.json \
+            docs/authority-promotion-envelope-v1-design.md > ../pr78.diff
+          test -s ../pr78.diff
+          test "$(git diff --name-only "$BASE_SHA" "$TARGET_SHA" | sort)" = "$(printf '%s\n' api/_lib/projectAuthorityStore.ts api/_lib/projectResumeWorkstreamStore.ts docs/authority-promotion-envelope-v1-design.md package.json scripts/test-authority-promotion-envelope.ts shared/authorityPromotion.ts | sort)"
+
+      - name: Build bounded semantic review input
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          code=open('pr78.diff', encoding='utf-8').read()
+          req='''Review Dashboard Authority Promotion + Project Authority Envelope PR #78 at the exact supplied diff. Required properties: unpromoted DESIGN/DRAFT/OPEN_PR/WORKSTREAM_OUTPUT/HANDOFF material may be referenced but must not authorize final cross-project ScopeGuard, TaskContract, ExecutionPolicy, provider or mutation policy; policy authority requires an exact durable promotion record whose lifecycle matches MERGED_MAIN, CURRENT_DOCUMENT, or PROMOTED_DECISION; unknown/empty provenance fails closed; the promotion registry is a maintenance/root-of-trust object and no ordinary workstream self-promotion path may be introduced; project maximum-authority envelope is distinct from current Resume task scope; enrolled projects only are envelope-enforced so existing unrelated router projects are not broken; once a project is explicitly enrolled, missing/corrupt envelope fails closed; child workstream repository allowlist must be non-empty and subset of the envelope, project-level forbidden repositories cannot be released or allowed, provider mutation cannot widen, delegated capabilities cannot widen; both workstream creation and later Resume update must enforce the envelope; existing ScopeGuard WHAT and Execution Plane WHERE/HOW separation must remain intact; no general opened-arm mutation permission, provider mutation, DB table, Vercel Function, Coding Worker modification, Shared Plane Claim implementation, merge or deploy authority is introduced. Report concrete correctness, authorization, evidence-integrity, trust-boundary, compatibility, concurrency, failure-handling, or type-contract defects only. Check implementation, tests, package wiring, and design-contract consistency. Do not report style preferences. The supplied code is a unified diff and findings are hypothesis-only.'''
+          payload={
+              'task_id':'dashboard-authority-pr78-semantic-review',
+              'language':'TypeScript/JSON/Markdown unified diff',
+              'requirements':req,
+              'code':code,
+          }
+          open('semantic-review-authority-pr78-input.json','w',encoding='utf-8').write(json.dumps(payload, ensure_ascii=False))
+          print({'review_chars':len(code)})
+          PY
+
+      - name: Configure semantic review credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ format('arn:aws:iam::{0}:role/general-ai-semantic-review', vars.AWS_ACCOUNT_ID) }}
+          aws-region: ${{ vars.AWS_REGION }}
+          role-session-name: opened-arm-authority-pr78-review
+          mask-aws-account-id: true
+          disable-retry: true
+
+      - name: Run three independent semantic reviewers
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 infra/aws/semantic-review/pool.py
+
+      - name: Verify hypothesis-only contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          data=json.load(open('semantic-review-authority-pr78-results.json'))
+          assert data['schema']=='semantic-review-pool-v0'
+          assert data['authority']=='HYPOTHESIS_ONLY'
+          assert data['production_pass_fail_authority'] is False
+          assert data['automatic_retry'] is False
+          assert data['review_budget']==3
+          assert data['completed_reviews']==3
+          print(json.dumps({
+            'completed_reviews': data['completed_reviews'],
+            'finding_count': data['finding_count'],
+            'wall_latency_ms': data['wall_latency_ms'],
+            'usage': data['usage'],
+            'aggregated_findings': data['aggregated_findings'],
+          }, ensure_ascii=False))
+          PY
+
+      - name: Upload semantic review evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: semantic-review-authority-pr78
+          path: semantic-review-authority-pr78-results.json
+          if-no-files-found: ignore
+          retention-days: 14
