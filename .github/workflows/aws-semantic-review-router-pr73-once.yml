@@ -22,7 +22,7 @@ jobs:
       SEMANTIC_REVIEW_INPUT: semantic-review-router-pr73-input.json
       SEMANTIC_REVIEW_OUTPUT: semantic-review-router-pr73-results.json
       SEMANTIC_REVIEW_MODEL_ID: qwen.qwen3-coder-30b-a3b-v1:0
-      TARGET_SHA: d2b8fd1fac17a1f91d67ea86cdbd1853b47efc47
+      TARGET_SHA: c6debd1b6a2560b5074d85167df562f714e87f1a
       BASE_SHA: fa33bd155f5cfda549154c1c7cdd6a5b791a8f47
 
     steps:
