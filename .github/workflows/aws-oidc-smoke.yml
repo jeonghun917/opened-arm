@@ -17,15 +17,26 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
+      - name: Inspect GitHub OIDC claims
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const token = await core.getIDToken('sts.amazonaws.com');
+            const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64url').toString('utf8'));
+            core.info(`sub=${payload.sub}`);
+            core.info(`aud=${payload.aud}`);
+            core.info(`repository=${payload.repository}`);
+            core.info(`ref=${payload.ref}`);
+
       - name: Configure AWS credentials via OIDC
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
           aws-region: ${{ vars.AWS_REGION }}
-          allowed-account-ids: ${{ vars.AWS_ACCOUNT_ID }}
           role-session-name: opened-arm-oidc-smoke
+          disable-retry: true
 
-      - name: Verify caller identity
+      - name: Verify caller identity and account
         shell: bash
         run: |
           set -euo pipefail
