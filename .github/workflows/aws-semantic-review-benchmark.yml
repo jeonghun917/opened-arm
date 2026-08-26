@@ -1,0 +1,87 @@
+name: AWS Semantic Review Benchmark
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - infra/aws/semantic-review/benchmark.py
+      - infra/aws/semantic-review/benchmark-fixtures.json
+      - .github/workflows/aws-semantic-review-benchmark.yml
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      AWS_ACCOUNT_ID: ${{ vars.AWS_ACCOUNT_ID }}
+      AWS_MAX_ATTEMPTS: "1"
+      AWS_RETRY_MODE: standard
+      BENCHMARK_REPEATS: "3"
+      BENCHMARK_MAX_INVOCATIONS: "48"
+      BENCHMARK_OUTPUT: semantic-review-benchmark-results.json
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Mask AWS identifiers
+        shell: bash
+        run: |
+          echo "::add-mask::${AWS_ACCOUNT_ID}"
+          echo "::add-mask::arn:aws:iam::${AWS_ACCOUNT_ID}:role/general-ai-semantic-review"
+
+      - name: Configure semantic review credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ format('arn:aws:iam::{0}:role/general-ai-semantic-review', vars.AWS_ACCOUNT_ID) }}
+          aws-region: ${{ vars.AWS_REGION }}
+          role-session-name: opened-arm-semantic-review-benchmark
+          mask-aws-account-id: true
+          disable-retry: true
+
+      - name: Verify semantic review role
+        shell: bash
+        run: |
+          set -euo pipefail
+          ACTUAL_ACCOUNT_ID="$(aws sts get-caller-identity --query Account --output text)"
+          CALLER_ARN="$(aws sts get-caller-identity --query Arn --output text)"
+          test "$ACTUAL_ACCOUNT_ID" = "$AWS_ACCOUNT_ID"
+          case "$CALLER_ARN" in
+            *:assumed-role/general-ai-semantic-review/*) ;;
+            *) echo "Unexpected caller role"; exit 1 ;;
+          esac
+          echo "Semantic review role verified"
+
+      - name: Run bounded semantic review benchmark
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 infra/aws/semantic-review/benchmark.py
+
+      - name: Publish benchmark summary
+        if: always()
+        shell: bash
+        run: |
+          if [ -f semantic-review-benchmark-results.json ]; then
+            python3 - <<'PY'
+          import json
+          from pathlib import Path
+          data = json.loads(Path('semantic-review-benchmark-results.json').read_text())
+          print(json.dumps({"summaries": data.get("summaries"), "selection": data.get("selection")}, indent=2))
+          PY
+          fi
+
+      - name: Upload benchmark evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: semantic-review-benchmark-v0
+          path: semantic-review-benchmark-results.json
+          if-no-files-found: ignore
+          retention-days: 14
