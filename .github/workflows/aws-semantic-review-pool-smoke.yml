@@ -2,11 +2,6 @@ name: AWS Semantic Review Pool Smoke
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
-    paths:
-      - .github/workflows/aws-semantic-review-pool-smoke.yml
 
 permissions:
   id-token: write
