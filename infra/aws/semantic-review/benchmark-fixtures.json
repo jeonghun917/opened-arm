@@ -1,0 +1,51 @@
+[
+  {
+    "id": "sql-injection-01",
+    "language": "python",
+    "expected_verdict": "BUG",
+    "expected_category": "SQL_INJECTION",
+    "code": "def lookup_user(conn, username):\n    query = f\"SELECT id, email FROM users WHERE username = '{username}'\"\n    return conn.execute(query).fetchone()"
+  },
+  {
+    "id": "auth-bypass-01",
+    "language": "python",
+    "expected_verdict": "BUG",
+    "expected_category": "AUTH_BYPASS",
+    "code": "def can_view_invoice(user, invoice, request):\n    if user.id == invoice.owner_id or user.role == 'support':\n        return True\n    if request.args.get('preview') == '1':\n        return True\n    return False"
+  },
+  {
+    "id": "missing-await-01",
+    "language": "typescript",
+    "expected_verdict": "BUG",
+    "expected_category": "MISSING_AWAIT",
+    "code": "async function saveProfile(db, userId, input) {\n  const existing = db.users.findUnique({ where: { id: userId } });\n  if (!existing) throw new Error('missing user');\n  return db.users.update({ where: { id: userId }, data: input });\n}"
+  },
+  {
+    "id": "boundary-error-01",
+    "language": "python",
+    "expected_verdict": "BUG",
+    "expected_category": "BOUNDARY_ERROR",
+    "code": "def page_count(total_items, page_size):\n    if total_items == 0:\n        return 0\n    return total_items // page_size + 1"
+  },
+  {
+    "id": "null-deref-01",
+    "language": "typescript",
+    "expected_verdict": "BUG",
+    "expected_category": "NULL_DEREFERENCE",
+    "code": "type User = { profile: { displayName: string } | null };\n\nfunction displayName(user: User) {\n  return user.profile.displayName.trim();\n}"
+  },
+  {
+    "id": "clean-sql-01",
+    "language": "python",
+    "expected_verdict": "CLEAN",
+    "expected_category": "NONE",
+    "code": "def lookup_user(conn, username):\n    return conn.execute(\n        'SELECT id, email FROM users WHERE username = ?',\n        (username,),\n    ).fetchone()"
+  },
+  {
+    "id": "clean-await-01",
+    "language": "typescript",
+    "expected_verdict": "CLEAN",
+    "expected_category": "NONE",
+    "code": "async function saveProfile(db, userId, input) {\n  const existing = await db.users.findUnique({ where: { id: userId } });\n  if (!existing) throw new Error('missing user');\n  return db.users.update({ where: { id: userId }, data: input });\n}"
+  }
+]
