@@ -48,9 +48,10 @@
   },
   "adapters": {
     "aiReview": {
-      "status": "AVAILABLE_MANUAL_ONLY",
+      "status": "ADAPTER_READY_MANUAL_ONLY",
       "provider": "AWS_BEDROCK",
       "resource": "infra/aws/semantic-review/pool.py",
+      "ledgerAdapter": "runner/semantic_review_pool_adapter.py",
       "modelSelection": "infra/aws/semantic-review/model-selection.json",
       "automaticRetry": false,
       "automaticExecution": false
