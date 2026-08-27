@@ -1,4 +1,4 @@
-name: Pharos Current Public Validation
+name: Pharos Exact Validation
 
 on:
   workflow_dispatch:
@@ -9,14 +9,14 @@ on:
   push:
     branches: [main]
     paths:
-      - ".github/workflows/pharos-current-validation.yml"
+      - ".github/workflows/pharos-exact-validation.yml"
       - "ops/pharos-validation-target.txt"
 
 permissions:
   contents: write
 
 concurrency:
-  group: pharos-current-public-validation
+  group: pharos-exact-validation
   cancel-in-progress: false
 
 jobs:
@@ -192,6 +192,7 @@ jobs:
               "targetRepository": "jeonghun917/pharos-orbis",
               "targetSha": os.environ.get("TARGET_SHA", ""),
               "actualSha": os.environ.get("ACTUAL_SHA", ""),
+              "recipeVersion": "v0",
               "recipePath": "ops/validation/recipe-v0.sh",
               "targetResolution": os.environ.get("TARGET_STATUS", ""),
               "credentialGate": os.environ.get("CREDENTIAL_STATUS", ""),
@@ -206,13 +207,13 @@ jobs:
               "runId": os.environ.get("GITHUB_RUN_ID", ""),
               "runAttempt": os.environ.get("GITHUB_RUN_ATTEMPT", ""),
           }
-          with open("ops/pharos-current-validation.json", "w", encoding="utf-8") as f:
+          with open("ops/pharos-exact-validation.json", "w", encoding="utf-8") as f:
               json.dump(payload, f, ensure_ascii=False, indent=2)
               f.write("\n")
           PY
-          git add ops/pharos-current-validation.json
+          git add ops/pharos-exact-validation.json
           if ! git diff --cached --quiet; then
-            git commit -m "Record current Pharos validation result"
+            git commit -m "Record Pharos exact validation result"
             git push origin HEAD:main
           fi
 
