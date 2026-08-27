@@ -34,8 +34,10 @@ Dashboard 전용 기본 실행면 구성과 GitHub Console 도구는 이 정본�
 - `allowedPaths`, `forbiddenPaths`, `allowDelete`와 변경량 상한은 계약에 고정한다.
 - 계약은 `coding-worker-contract:v0:sha256:<digest>` 증거로 결합한다.
 - 제안은 대상·경로 정책을 덮어쓸 수 없다.
-- 성공 영수증은 exact 대상, base SHA, 새 commit SHA, changed paths, 계약 digest를 다시 결합한다.
-- 결정론 검증은 observed base, branch HEAD, changed paths, evidence를 독립 확인한다.
+- 실행 영수증은 항상 exact 대상과 계약 digest에 묶인다.
+- 실행기가 변경 적용 전에 실패하면 `applied=false`, `commitSha=null`, 빈 changed paths로 FAILURE를 기록하며 독립 검증을 꾸며내지 않는다.
+- 변경이 실제 적용된 경우에만 새 commit SHA, 정확 changed paths, 실행 증거를 요구하고 이어서 결정론 검증을 수행한다.
+- 결정론 검증은 target commit, observed base, branch HEAD, changed paths, evidence를 독립 확인한다.
 - 성공해도 `CANDIDATE_ONLY`이며 독립 검토가 필요하고 병합·Continuity 완료 권한은 없다.
 
 실제 코딩 모형 실행 공급자는 아직 승인·고정되지 않았으므로 `CONTRACT_READY_EXECUTION_CONFIG_REQUIRED` 상태다. 계약 이관 완료와 실제 유료/공급자 실행 승인은 별개다.
@@ -89,7 +91,8 @@ python3 runner/semantic_review_pool_adapter.py self-test
 
 - Coding Worker exact target / path policy / 계약 digest 고정
 - 대상·경로 권한 덮어쓰기 거부
-- exact base / branch HEAD / changed-path 결정론 검증
+- 적용 전 실행 실패가 가짜 commit/verification 없이 FAILURE로 정상 종결됨
+- 적용 성공 시 exact base / branch HEAD / changed-path 결정론 검증
 - `CANDIDATE_ONLY`, 독립 검토, no-merge / no-self-close
 - 실행면 위임 capability, wrong-plane, paid approval, retry 실패닫힘
 - Shared Platform 소유가 아닌 영구 저장 거부
