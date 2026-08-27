@@ -167,7 +167,7 @@ def invoke_one(request: dict, reviewer_id: str, focus: str) -> dict:
     content = response.get("output", {}).get("message", {}).get("content", [])
     text = "\n".join(part.get("text", "") for part in content if isinstance(part, dict) and "text" in part).strip()
     obj = extract_json(text)
-    findings = [normalize_finding(x) for x in obj.get("findings", [])[:5] if isinstance(x, dict)]
+    findings = [normalize_finding(item) for item in obj.get("findings", [])[:5] if isinstance(item, dict)]
     usage = response.get("usage", {})
     return {
         "reviewer_id": reviewer_id,
@@ -215,7 +215,7 @@ def aggregate(reviews: list[dict]) -> list[dict]:
         for finding in review.get("findings", []):
             target = None
             for cluster in clusters:
-                if any(same_cluster(finding, obs) for obs in cluster["observations"]):
+                if any(same_cluster(finding, observation) for observation in cluster["observations"]):
                     target = cluster
                     break
             if target is None:
@@ -233,12 +233,12 @@ def aggregate(reviews: list[dict]) -> list[dict]:
             target["observations"].append({"reviewer_id": reviewer_id, **finding})
 
     for cluster in clusters:
-        variants = [obs["category"] for obs in cluster["observations"]]
+        variants = [observation["category"] for observation in cluster["observations"]]
         counts = Counter(variants)
-        cluster["category"] = sorted(counts, key=lambda c: (-counts[c], c))[0]
+        cluster["category"] = sorted(counts, key=lambda category: (-counts[category], category))[0]
         cluster["category_variants"] = sorted(counts)
         cluster["support_count"] = len(cluster["reviewer_ids"])
-    clusters.sort(key=lambda x: (-x["support_count"], x["line"], x["category"]))
+    clusters.sort(key=lambda item: (-item["support_count"], item["line"], item["category"]))
     return clusters
 
 
@@ -266,15 +266,17 @@ def main() -> int:
                     "findings": [],
                 })
 
-    reviews.sort(key=lambda x: x["reviewer_id"])
+    reviews.sort(key=lambda item: item["reviewer_id"])
     aggregated = aggregate(reviews)
-    completed = sum(r.get("status") == "completed" for r in reviews)
-    total_input = sum(r.get("usage", {}).get("input_tokens", 0) for r in reviews)
-    total_output = sum(r.get("usage", {}).get("output_tokens", 0) for r in reviews)
+    completed = sum(review.get("status") == "completed" for review in reviews)
+    total_input = sum(review.get("usage", {}).get("input_tokens", 0) for review in reviews)
+    total_output = sum(review.get("usage", {}).get("output_tokens", 0) for review in reviews)
 
     output = {
         "schema": "semantic-review-pool-v0",
         "task_id": request.get("task_id", "unknown"),
+        "candidate_ref": request.get("candidate_ref"),
+        "authority_ref": request.get("authority_ref"),
         "model_id": MODEL_ID,
         "authority": "HYPOTHESIS_ONLY",
         "production_pass_fail_authority": False,

@@ -21,16 +21,17 @@
 
 ## 공통 실행 식별자
 
-모든 실행은 다음 네 값을 고정한다.
+모든 실행은 다음 다섯 값을 고정한다.
 
 - `projectId`
 - `workstreamId`
 - `taskId`
 - `runId`
+- `authorityRef`
+
+`AI_REVIEW`는 여기에 exact `candidateRef`를 추가로 고정한다. 공통 영수증도 같은 `authorityRef`를 반드시 싣고, AI 검수 영수증은 같은 `candidateRef`를 싣는다. task와 receipt 사이 값이 하나라도 다르면 실패한다.
 
 모델 호출 영수증은 이 식별자와 함께 입력 토큰, 출력 토큰, 모델 호출 수, 추정 비용, 실측/provider 비용이 있으면 그 값, 결과, 재시도 횟수, 증거 참조를 기록한다.
-
-실행기가 다른 프로젝트/작업분기/실행 ID를 영수증에 주장하면 실패한다.
 
 ## 프로젝트별 자원 배분
 
@@ -59,7 +60,10 @@
 
 - provider가 실제 비용을 반환하면 `authoritativeCostUsdMicros`에 기록한다.
 - 토큰 단가로 계산한 값은 `estimatedCostUsdMicros`이며 provider 청구액이라고 부르지 않는다.
-- 예산 차감 판단은 실측 비용이 있으면 실측을, 없으면 추정 비용을 사용한다.
+- 실제 비용과 사전 예약은 따로 보존한다.
+- **예산 admission에는 완료 후에도 `max(사전 예약, provider 실측)`을 사용한다.** 영수증이 사전 예약보다 낮은 값을 제시해 다음 유료 실행 여유를 인위적으로 만드는 우회를 허용하지 않는다.
+
+이 보수적 예산 차감은 provider 청구액을 왜곡하는 것이 아니다. 원장에는 `authoritativeCostUsdMicros`를 별도로 유지하고, admission 한도만 사전 예약보다 낮아지지 않게 한다.
 
 ## Coding Worker 권한 보존
 
@@ -96,6 +100,8 @@ AI 검수는 `HYPOTHESIS_ONLY`다. 검수자 수가 많거나 여러 검수자�
 
 기존 실행기는 `automatic_retry=false`를 유지한다. v0 자원 배분기는 실제 유료 호출 전에 프로젝트 예산/승인을 추가로 확인하는 상위 계층이다.
 
+공통 원장으로 가져올 때는 semantic-review 입력의 `candidate_ref`와 `authority_ref`를 결과에 그대로 echo하고, adapter가 실행 task의 exact `candidateRef`/`authorityRef`와 일치하는지 결정론적으로 확인한다. 기존 semantic-review 단독 실행은 이 필드가 없어도 동작하지만, 공통 원장 adapter는 두 값이 없거나 다르면 실패한다.
+
 ## 아직 CONFIG_REQUIRED인 부분
 
 ### 1. 프로젝트 초기 설정
@@ -110,7 +116,9 @@ Coding Worker의 권한 계약은 Dashboard에 있고, 실제 모델 실행 기�
 
 `runner/ai_execution_pool.py`는 저장소 중립적인 결정론적 코어다. 여러 GitHub runner가 동시에 슬롯을 점유하려면 compare-and-set 또는 lease 성격의 승인된 영속 저장 어댑터가 필요하다.
 
-v0는 이 문제를 파일 락이나 단일 전역 FIFO로 가장하지 않는다. 기존 승인 저장 계층을 재사용할 수 있는지 확인하고, 새 비밀키가 필요하면 `CONFIG_REQUIRED`로 남긴다.
+현재 opened-arm의 승인된 semantic-review AWS 역할은 선택 Bedrock 모델 호출만 허용하며 durable store 권한은 없다. Dashboard의 Neon/Vercel OIDC 저장 계층도 Dashboard 소유이므로 Shared Platform이 권한을 가정해 가져오지 않는다. 따라서 새 비밀키·provider 권한 없이 재사용 가능한 원자적 저장 계층이 반환되기 전에는 이 항목을 `CONFIG_REQUIRED`로 유지한다.
+
+v0는 이 문제를 파일 락, process-local lock, GitHub artifact 또는 단일 전역 FIFO로 가장하지 않는다.
 
 ## 자체 검증
 
@@ -127,7 +135,9 @@ python3 runner/ai_execution_pool.py self-test
 - 같은 후보의 AI 검수 2개가 슬롯 2개에서 병렬 배정되는가
 - Coding Worker와 AI Review가 같은 영수증 원장을 쓰는가
 - AI Review에 병합 권한이 생기지 않는가
-- 실행 영수증의 프로젝트/작업분기/실행 ID 불일치가 거부되는가
+- 실행 영수증의 프로젝트/작업분기/실행/authority identity 불일치가 거부되는가
+- AI Review의 exact candidate 불일치가 거부되는가
+- 낮은 사후 영수증 비용으로 사전 예약 예산을 해제할 수 없는가
 - 자동 재시도가 거부되는가
 
 ## 비범위

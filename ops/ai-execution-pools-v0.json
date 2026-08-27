@@ -18,7 +18,8 @@
     "missingBudgetForPaidExecution": "CONFIG_REQUIRED",
     "paidModelCalls": "EXPLICIT_APPROVAL_ONLY",
     "automaticPaidRetries": false,
-    "preRunEstimateRequired": true
+    "preRunEstimateRequired": true,
+    "completedAdmissionCharge": "MAX_PRE_RUN_RESERVATION_OR_AUTHORITATIVE_COST"
   },
   "ledger": {
     "commonAcrossTaskTypes": true,
@@ -26,7 +27,12 @@
       "projectId",
       "workstreamId",
       "taskId",
-      "runId"
+      "runId",
+      "authorityRef",
+      "candidateRef"
+    ],
+    "candidateRefRequiredFor": [
+      "AI_REVIEW"
     ],
     "usageFields": [
       "inputTokens",
@@ -54,7 +60,9 @@
       "ledgerAdapter": "runner/semantic_review_pool_adapter.py",
       "modelSelection": "infra/aws/semantic-review/model-selection.json",
       "automaticRetry": false,
-      "automaticExecution": false
+      "automaticExecution": false,
+      "exactCandidateBindingRequired": true,
+      "authorityBindingRequired": true
     },
     "codingWorker": {
       "status": "INTERFACE_PENDING",
