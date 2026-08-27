@@ -1,0 +1,68 @@
+{
+  "schema": 1,
+  "status": "CONFIG_REQUIRED",
+  "ownerProjectId": "shared-platform",
+  "taskTypes": [
+    "CODING_WORKER",
+    "AI_REVIEW"
+  ],
+  "allocation": {
+    "projectLocalQueues": true,
+    "globalFifoHeadBlocking": false,
+    "projectPolicies": {},
+    "missingProjectPolicy": "CONFIG_REQUIRED",
+    "missingSlotCount": "CONFIG_REQUIRED"
+  },
+  "budget": {
+    "initialProjectBudgets": {},
+    "missingBudgetForPaidExecution": "CONFIG_REQUIRED",
+    "paidModelCalls": "EXPLICIT_APPROVAL_ONLY",
+    "automaticPaidRetries": false,
+    "preRunEstimateRequired": true
+  },
+  "ledger": {
+    "commonAcrossTaskTypes": true,
+    "identityFields": [
+      "projectId",
+      "workstreamId",
+      "taskId",
+      "runId"
+    ],
+    "usageFields": [
+      "inputTokens",
+      "outputTokens",
+      "modelCalls",
+      "estimatedCostUsdMicros",
+      "authoritativeCostUsdMicros",
+      "result",
+      "retryCount"
+    ],
+    "estimateIsNotProviderBilling": true
+  },
+  "authority": {
+    "providerMutation": false,
+    "codingWorkerMayWidenAuthority": false,
+    "codingWorkerResultAuthority": "CANDIDATE_ONLY",
+    "aiReviewResultAuthority": "HYPOTHESIS_ONLY",
+    "aiReviewMayMerge": false
+  },
+  "adapters": {
+    "aiReview": {
+      "status": "AVAILABLE_MANUAL_ONLY",
+      "provider": "AWS_BEDROCK",
+      "resource": "infra/aws/semantic-review/pool.py",
+      "modelSelection": "infra/aws/semantic-review/model-selection.json",
+      "automaticRetry": false,
+      "automaticExecution": false
+    },
+    "codingWorker": {
+      "status": "INTERFACE_PENDING",
+      "sourceProjectId": "dashboard-control-center",
+      "interfaceRequest": "continuity-project-dispatch:v0:dashboard-control-center:primary:shared-platform-ai-pool-interface-request-v0"
+    },
+    "durableAllocatorStore": {
+      "status": "CONFIG_REQUIRED",
+      "note": "The core is storage-neutral. Cross-run slot enforcement requires an approved durable compare-and-set or lease adapter; no new credential is created by v0."
+    }
+  }
+}
