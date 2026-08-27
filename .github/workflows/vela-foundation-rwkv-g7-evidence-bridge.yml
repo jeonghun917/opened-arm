@@ -16,7 +16,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  EXPECTED_ARS_COMMIT: 07712b507e91dcacf8237c1a46249f0cb68f9981
+  EXPECTED_ARS_COMMIT: 17cb867d8f29f89a38e354334fcb16d4867ab62e
   EXPERIMENT_RESULT_COMMIT: 1bc953fe99a640d8047e5fbc580f1cb796f6ca99
 
 jobs:
@@ -58,6 +58,12 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Run full foundation unit tests at exact source commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          (cd ars-mentis && PYTHONPATH=src python -m unittest discover -s tests -v)
+
       - name: Replay audited 2.9B G7 evidence through foundation selector path
         shell: bash
         run: |
@@ -65,14 +71,15 @@ jobs:
           PYTHONPATH=ars-mentis/src python ars-mentis/tools/verify_rwkv_g7_evidence_bridge.py \
             experiment/ops/vela-results/g7-rwkv7-2p9b-full-selector-v3-v1-latest.json \
             --output /tmp/bridge.json
-          python - <<'PY'
+          EXPECTED_ARS_COMMIT="$EXPECTED_ARS_COMMIT" EXPERIMENT_RESULT_COMMIT="$EXPERIMENT_RESULT_COMMIT" python - <<'PY'
           import json
+          import os
           from pathlib import Path
           source = json.loads(Path('/tmp/bridge.json').read_text())
           public = {
               'status': source['status'],
-              'foundation_source_commit': '07712b507e91dcacf8237c1a46249f0cb68f9981',
-              'experiment_result_commit': '1bc953fe99a640d8047e5fbc580f1cb796f6ca99',
+              'foundation_source_commit': os.environ['EXPECTED_ARS_COMMIT'],
+              'experiment_result_commit': os.environ['EXPERIMENT_RESULT_COMMIT'],
               'source_result_sha256': source['source_result_sha256'],
               'case_count': source['case_count'],
               'selected_anchor_match_count': source['selected_anchor_match_count'],
