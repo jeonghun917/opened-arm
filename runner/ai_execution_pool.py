@@ -137,6 +137,12 @@ def _sha(value: Any, field: str) -> str:
     return out
 
 
+def _optional_sha(value: Any, field: str) -> str | None:
+    if value is None:
+        return None
+    return _sha(value, field)
+
+
 def _path(value: Any, field: str = 'path') -> str:
     if not isinstance(value, str):
         raise PoolError(f'{field} must be a string')
@@ -349,30 +355,51 @@ def authorize_coding_mutations(contract_raw: Any, raw_mutations: Any) -> list[di
     return out
 
 
+def _coding_execution(raw: Any) -> dict[str, Any]:
+    if not isinstance(raw, dict):
+        raise PoolError('codingExecution must be an object')
+    changed = raw.get('changedPaths')
+    if not isinstance(changed, list):
+        raise PoolError('codingExecution.changedPaths must be an array')
+    applied = _b(raw.get('applied'), 'codingExecution.applied')
+    commit_sha = _optional_sha(raw.get('commitSha'), 'codingExecution.commitSha')
+    changed_paths = list(dict.fromkeys(_path(item, 'codingExecution.changedPaths') for item in changed))
+    if not applied and (commit_sha is not None or changed_paths):
+        raise PoolError('failed codingExecution must not claim a commit or changed paths')
+    if applied and commit_sha is None:
+        raise PoolError('applied codingExecution requires commitSha')
+    return {
+        'taskId': _id(raw.get('taskId'), 'codingExecution.taskId'),
+        'repository': _repository(raw.get('repository'), 'codingExecution.repository'),
+        'branch': _branch(raw.get('branch'), 'codingExecution.branch'),
+        'baseSha': _sha(raw.get('baseSha'), 'codingExecution.baseSha'),
+        'applied': applied,
+        'commitSha': commit_sha,
+        'changedPaths': changed_paths,
+        'contractEvidenceRef': _text(raw.get('contractEvidenceRef'), 'codingExecution.contractEvidenceRef', 200),
+        'evidenceRefs': _string_list(raw.get('evidenceRefs', []), 'codingExecution.evidenceRefs', 2000),
+        'message': _text(raw.get('message'), 'codingExecution.message', 1500),
+    }
+
+
 def _coding_verification(raw: Any) -> dict[str, Any]:
     if not isinstance(raw, dict):
         raise PoolError('codingVerification must be an object')
-    verifier = raw.get('verifier')
-    if verifier != 'DETERMINISTIC':
+    if raw.get('verifier') != 'DETERMINISTIC':
         raise PoolError('codingVerification.verifier must be DETERMINISTIC')
-    verified = _b(raw.get('verified'), 'codingVerification.verified')
-    changed = raw.get('changedPaths')
     observed = raw.get('observedChangedPaths')
-    if not isinstance(changed, list) or not isinstance(observed, list):
-        raise PoolError('coding verification changed paths must be arrays')
+    unresolved = raw.get('unresolved', [])
+    if not isinstance(observed, list) or not isinstance(unresolved, list):
+        raise PoolError('coding verification observed paths and unresolved must be arrays')
     return {
         'verifier': 'DETERMINISTIC',
-        'verified': verified,
-        'repository': _repository(raw.get('repository'), 'codingVerification.repository'),
-        'branch': _branch(raw.get('branch'), 'codingVerification.branch'),
-        'baseSha': _sha(raw.get('baseSha'), 'codingVerification.baseSha'),
-        'commitSha': _sha(raw.get('commitSha'), 'codingVerification.commitSha'),
-        'changedPaths': list(dict.fromkeys(_path(item, 'codingVerification.changedPaths') for item in changed)),
-        'contractEvidenceRef': _text(raw.get('contractEvidenceRef'), 'codingVerification.contractEvidenceRef', 200),
-        'observedBaseSha': _sha(raw.get('observedBaseSha'), 'codingVerification.observedBaseSha'),
-        'observedBranchHeadSha': _sha(raw.get('observedBranchHeadSha'), 'codingVerification.observedBranchHeadSha'),
+        'verified': _b(raw.get('verified'), 'codingVerification.verified'),
+        'targetCommitSha': _sha(raw.get('targetCommitSha'), 'codingVerification.targetCommitSha'),
+        'observedBaseSha': _optional_sha(raw.get('observedBaseSha'), 'codingVerification.observedBaseSha'),
+        'observedBranchHeadSha': _optional_sha(raw.get('observedBranchHeadSha'), 'codingVerification.observedBranchHeadSha'),
         'observedChangedPaths': list(dict.fromkeys(_path(item, 'codingVerification.observedChangedPaths') for item in observed)),
         'evidenceRefs': _string_list(raw.get('evidenceRefs', []), 'codingVerification.evidenceRefs', 2000),
+        'unresolved': list(dict.fromkeys(_text(item, 'codingVerification.unresolved', 500) for item in unresolved)),
     }
 
 
@@ -468,11 +495,18 @@ def receipt(raw: Any) -> dict[str, Any]:
     authoritative_cost = _n(raw.get('authoritativeCostUsdMicros'), 'authoritativeCostUsdMicros', True)
     if usage_authority == 'ESTIMATE_ONLY' and authoritative_cost is not None:
         raise PoolError('ESTIMATE_ONLY receipt cannot claim authoritative cost')
+
+    coding_execution = None
     coding_verification = None
     if task_type == 'CODING_WORKER':
-        coding_verification = _coding_verification(raw.get('codingVerification'))
-    elif raw.get('codingVerification') is not None:
-        raise PoolError('AI_REVIEW receipt must not carry codingVerification')
+        coding_execution = _coding_execution(raw.get('codingExecution'))
+        if coding_execution['applied']:
+            coding_verification = _coding_verification(raw.get('codingVerification'))
+        elif raw.get('codingVerification') is not None:
+            raise PoolError('failed coding execution must not claim deterministic verification')
+    elif raw.get('codingExecution') is not None or raw.get('codingVerification') is not None:
+        raise PoolError('AI_REVIEW receipt must not carry coding execution fields')
+
     return {
         'receiptId': _id(raw.get('receiptId'), 'receiptId'),
         'taskId': _id(raw.get('taskId'), 'taskId'),
@@ -495,6 +529,7 @@ def receipt(raw: Any) -> dict[str, Any]:
         'sourceRef': _id(raw.get('sourceRef'), 'sourceRef'),
         'startedAt': _iso(raw.get('startedAt'), 'startedAt'),
         'completedAt': _iso(raw.get('completedAt'), 'completedAt'),
+        'codingExecution': coding_execution,
         'codingVerification': coding_verification,
         'resultAuthority': 'HYPOTHESIS_ONLY' if task_type == 'AI_REVIEW' else 'CANDIDATE_ONLY',
         'requiresIndependentReview': task_type == 'CODING_WORKER',
@@ -613,34 +648,56 @@ def allocate_once(raw: Any, now: str | None = None) -> tuple[dict[str, Any], dic
 
 
 def _validate_coding_receipt(execution: dict[str, Any], item: dict[str, Any]) -> None:
+    coding_execution = item['codingExecution']
     verification = item['codingVerification']
     contract = execution['codingContract']
-    if verification is None or contract is None:
-        raise PoolError('CODING_WORKER requires exact coding verification')
+    if coding_execution is None or contract is None:
+        raise PoolError('CODING_WORKER requires exact coding execution receipt')
     target = contract['target']
+    if coding_execution['taskId'] != execution['taskId']:
+        raise PoolError('coding execution task identity mismatch')
     if (
-        verification['repository'] != target['repository']
-        or verification['branch'] != target['branch']
-        or verification['baseSha'] != target['baseSha']
+        coding_execution['repository'] != target['repository']
+        or coding_execution['branch'] != target['branch']
+        or coding_execution['baseSha'] != target['baseSha']
     ):
-        raise PoolError('coding verification target identity mismatch')
-    if verification['contractEvidenceRef'] != execution['codingContractEvidenceRef']:
-        raise PoolError('coding verification contract digest mismatch')
-    if verification['commitSha'] == target['baseSha']:
-        raise PoolError('coding verification commit must advance baseSha')
+        raise PoolError('coding execution target identity mismatch')
+    if coding_execution['contractEvidenceRef'] != execution['codingContractEvidenceRef']:
+        raise PoolError('coding execution contract digest mismatch')
+
     expected_paths = [mutation['path'] for mutation in execution['codingMutations']]
-    if not _same_path_set(expected_paths, verification['changedPaths']):
-        raise PoolError('coding receipt changed paths do not match authorized plan')
-    if verification['observedBaseSha'] != target['baseSha']:
-        raise PoolError('coding verification observed baseSha mismatch')
-    if verification['observedBranchHeadSha'] != verification['commitSha']:
-        raise PoolError('coding verification branch head mismatch')
-    if not _same_path_set(expected_paths, verification['observedChangedPaths']):
-        raise PoolError('coding verification observed changed paths mismatch')
-    if verification['verified'] and not verification['evidenceRefs']:
-        raise PoolError('verified coding receipt requires independent evidence')
+    if not coding_execution['applied']:
+        if item['result'] != 'FAILURE':
+            raise PoolError('non-applied coding execution cannot report SUCCESS')
+        if verification is not None:
+            raise PoolError('non-applied coding execution must not claim verification')
+        return
+
+    if coding_execution['commitSha'] == target['baseSha']:
+        raise PoolError('coding execution commit must advance baseSha')
+    if not _same_path_set(expected_paths, coding_execution['changedPaths']):
+        raise PoolError('coding execution changed paths do not match authorized plan')
+    if not coding_execution['evidenceRefs']:
+        raise PoolError('applied coding execution requires evidence')
+    if verification is None:
+        raise PoolError('applied coding execution requires deterministic verification')
+    if verification['targetCommitSha'] != coding_execution['commitSha']:
+        raise PoolError('coding verification target commit mismatch')
+    if verification['verified']:
+        if verification['observedBaseSha'] != target['baseSha']:
+            raise PoolError('coding verification observed baseSha mismatch')
+        if verification['observedBranchHeadSha'] != coding_execution['commitSha']:
+            raise PoolError('coding verification branch head mismatch')
+        if not _same_path_set(expected_paths, verification['observedChangedPaths']):
+            raise PoolError('coding verification observed changed paths mismatch')
+        if not verification['evidenceRefs']:
+            raise PoolError('verified coding receipt requires independent evidence')
+        if verification['unresolved']:
+            raise PoolError('verified coding receipt cannot contain unresolved items')
     if item['result'] == 'SUCCESS' and not verification['verified']:
         raise PoolError('successful coding receipt requires deterministic verification')
+    if item['result'] == 'FAILURE' and verification['verified']:
+        raise PoolError('verified coding execution cannot report FAILURE')
 
 
 def record_receipt(raw: Any, raw_receipt: Any) -> dict[str, Any]:
@@ -850,7 +907,6 @@ def _delegated(scope: Any, registry: dict[str, Any], capability: str) -> tuple[b
         return False, 'Execution scope delegatedCapabilities is missing.'
     if capability not in registry['registeredCapabilities']:
         return False, f'{capability} is not registered.'
-    normalized = []
     try:
         normalized = [_capability(value, 'delegatedCapabilities') for value in delegated]
     except PoolError as exc:
@@ -1097,20 +1153,68 @@ def _coding_receipt(execution: dict[str, Any], receipt_id: str = 'ra') -> dict[s
         'sourceRef': 'GitHubCommit:test',
         'startedAt': execution['startedAt'],
         'completedAt': '2026-08-27T00:02:00Z',
-        'codingVerification': {
-            'verifier': 'DETERMINISTIC',
-            'verified': True,
+        'codingExecution': {
+            'taskId': execution['taskId'],
             'repository': target['repository'],
             'branch': target['branch'],
             'baseSha': target['baseSha'],
+            'applied': True,
             'commitSha': commit,
             'changedPaths': expected_paths,
             'contractEvidenceRef': execution['codingContractEvidenceRef'],
+            'evidenceRefs': ['GitHubCommit:test'],
+            'message': 'Applied candidate mutation.',
+        },
+        'codingVerification': {
+            'verifier': 'DETERMINISTIC',
+            'verified': True,
+            'targetCommitSha': commit,
             'observedBaseSha': target['baseSha'],
             'observedBranchHeadSha': commit,
             'observedChangedPaths': expected_paths,
             'evidenceRefs': ['GitHubCommit:test', 'GitHubDiff:test'],
+            'unresolved': [],
         },
+    }
+
+
+def _failed_coding_receipt(execution: dict[str, Any], receipt_id: str = 'rfail') -> dict[str, Any]:
+    target = execution['codingContract']['target']
+    return {
+        'receiptId': receipt_id,
+        'taskId': execution['taskId'],
+        'projectId': execution['projectId'],
+        'workstreamId': execution['workstreamId'],
+        'runId': execution['runId'],
+        'taskType': 'CODING_WORKER',
+        'candidateRef': None,
+        'authorityRef': execution['authorityRef'],
+        'provider': 'GITHUB_CONTENTS_TEST',
+        'modelId': None,
+        'result': 'FAILURE',
+        'modelCalls': 0,
+        'inputTokens': 0,
+        'outputTokens': 0,
+        'estimatedCostUsdMicros': 0,
+        'authoritativeCostUsdMicros': 0,
+        'retryCount': 0,
+        'usageAuthority': 'DETERMINISTIC',
+        'sourceRef': 'GitHubExecution:test-failure',
+        'startedAt': execution['startedAt'],
+        'completedAt': '2026-08-27T00:02:00Z',
+        'codingExecution': {
+            'taskId': execution['taskId'],
+            'repository': target['repository'],
+            'branch': target['branch'],
+            'baseSha': target['baseSha'],
+            'applied': False,
+            'commitSha': None,
+            'changedPaths': [],
+            'contractEvidenceRef': execution['codingContractEvidenceRef'],
+            'evidenceRefs': [],
+            'message': 'Executor failed before creating a commit.',
+        },
+        'codingVerification': None,
     }
 
 
@@ -1225,11 +1329,22 @@ def self_test() -> dict[str, Any]:
     assert coding_receipt['requiresIndependentReview'] is True
     assert coding_receipt['mayCloseContinuity'] is False and coding_receipt['mayMerge'] is False
 
-    for field, wrong in (
-        ('branch', 'feat/other'),
-        ('baseSha', '3' * 40),
-        ('contractEvidenceRef', f'{CONTRACT_EVIDENCE_PREFIX}' + '0' * 64),
-        ('observedBranchHeadSha', '4' * 40),
+    failure_state = allocate_once({
+        'schema': SCHEMA,
+        'projects': {'f': {'mode': 'ENFORCED', 'slotCount': 1, 'budgetUsdMicros': 100}},
+        'tasks': [_task('f-1', 'f', 'ws-f', 'run-f', 'CODING_WORKER', zero)],
+        'receipts': [],
+    }, '2026-08-27T00:01:00Z')[0]
+    failure_execution = failure_state['tasks'][0]
+    failure_state = record_receipt(failure_state, _failed_coding_receipt(failure_execution))
+    assert failure_state['tasks'][0]['state'] == 'FAILED'
+    assert failure_state['receipts'][0]['codingVerification'] is None
+
+    for container_name, field, wrong in (
+        ('codingExecution', 'branch', 'feat/other'),
+        ('codingExecution', 'baseSha', '3' * 40),
+        ('codingExecution', 'contractEvidenceRef', f'{CONTRACT_EVIDENCE_PREFIX}' + '0' * 64),
+        ('codingVerification', 'observedBranchHeadSha', '4' * 40),
     ):
         bad_state = allocate_once({
             'schema': SCHEMA,
@@ -1239,13 +1354,13 @@ def self_test() -> dict[str, Any]:
         }, '2026-08-27T00:01:00Z')[0]
         execution = bad_state['tasks'][0]
         bad_receipt = _coding_receipt(execution, 'bad-coding')
-        bad_receipt['codingVerification'][field] = wrong
+        bad_receipt[container_name][field] = wrong
         try:
             record_receipt(bad_state, bad_receipt)
         except PoolError:
             pass
         else:
-            raise AssertionError(f'coding verification {field} mismatch must fail closed')
+            raise AssertionError(f'coding {container_name}.{field} mismatch must fail closed')
 
     allocated = record_receipt(allocated, {
         'receiptId': 'rc', 'taskId': 'c-r1', 'projectId': 'c', 'workstreamId': 'ws-c', 'runId': 'run-c1',
@@ -1368,6 +1483,7 @@ def self_test() -> dict[str, Any]:
             'codingTargetLocked': True,
             'codingPathPolicyLocked': True,
             'codingContractDigestBound': True,
+            'codingExecutionFailureClosable': True,
             'codingReceiptDeterministicallyVerified': True,
             'codingCandidateOnly': True,
             'codingIndependentReviewRequired': True,
