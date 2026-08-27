@@ -50,10 +50,14 @@ jobs:
           assert data['budget']['paidModelCalls'] == 'EXPLICIT_APPROVAL_ONLY'
           assert data['budget']['automaticPaidRetries'] is False
           assert data['ledger']['commonAcrossTaskTypes'] is True
-          assert data['codingWorkerContract']['status'] == 'CONTRACT_READY_EXECUTION_CONFIG_REQUIRED'
-          assert data['codingWorkerContract']['authorityOverrideForbidden'] is True
-          assert data['codingWorkerContract']['requiresIndependentReview'] is True
-          assert data['codingWorkerContract']['mayCloseContinuity'] is False
+          coding = data['codingWorkerContract']
+          assert coding['status'] == 'CONTRACT_READY_EXECUTION_CONFIG_REQUIRED'
+          assert coding['authorityOverrideForbidden'] is True
+          assert coding['executionReceipt']['failedExecutionMayCloseWithoutCommit'] is True
+          assert coding['executionReceipt']['failedExecutionVerificationRequired'] is False
+          assert coding['executionReceipt']['appliedExecutionCommitRequired'] is True
+          assert coding['requiresIndependentReview'] is True
+          assert coding['mayCloseContinuity'] is False
           assert data['executionPlaneContract']['status'] == 'CONTRACT_READY'
           assert data['executionPlaneContract']['paidRouteRequiresManualApproval'] is True
           assert data['executionPlaneContract']['retryFailClosed'] is True
