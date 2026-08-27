@@ -1,0 +1,169 @@
+name: AWS Semantic Review Intake
+
+on:
+  workflow_dispatch:
+    inputs:
+      payload_b64:
+        description: Base64-encoded semantic review request JSON
+        required: true
+        type: string
+      dry_run:
+        description: Validate the request contract without invoking Bedrock
+        required: true
+        default: true
+        type: boolean
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      AWS_ACCOUNT_ID: ${{ vars.AWS_ACCOUNT_ID }}
+      AWS_MAX_ATTEMPTS: "1"
+      AWS_RETRY_MODE: standard
+      SEMANTIC_REVIEW_COUNT: "3"
+      SEMANTIC_REVIEW_MODEL_ID: qwen.qwen3-coder-30b-a3b-v1:0
+      SEMANTIC_REVIEW_INPUT: semantic-review-input.json
+      SEMANTIC_REVIEW_OUTPUT: semantic-review-pool-results.json
+      SEMANTIC_REVIEW_INTAKE_OUTPUT: semantic-review-intake-result.json
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Decode and validate bounded review request
+        env:
+          PAYLOAD_B64: ${{ inputs.payload_b64 }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import base64
+          import json
+          import os
+          import re
+          from pathlib import Path
+
+          raw_b64 = os.environ.get('PAYLOAD_B64', '')
+          if not raw_b64 or len(raw_b64) > 90000:
+              raise SystemExit('payload_b64 is missing or too large')
+          try:
+              raw = base64.b64decode(raw_b64, validate=True)
+          except Exception as exc:
+              raise SystemExit(f'payload_b64 is not valid base64: {exc}')
+          if len(raw) > 65536:
+              raise SystemExit('decoded payload exceeds 64 KiB')
+          try:
+              request = json.loads(raw)
+          except Exception as exc:
+              raise SystemExit(f'payload JSON is invalid: {exc}')
+          if not isinstance(request, dict):
+              raise SystemExit('payload must decode to one JSON object')
+
+          allowed_keys = {'task_id', 'language', 'requirements', 'code'}
+          unknown = sorted(set(request) - allowed_keys)
+          if unknown:
+              raise SystemExit(f'unknown payload keys: {unknown}')
+
+          task_id = request.get('task_id')
+          language = request.get('language')
+          requirements = request.get('requirements')
+          code = request.get('code')
+
+          if not isinstance(task_id, str) or not re.fullmatch(r'[A-Za-z0-9._:-]{1,160}', task_id):
+              raise SystemExit('task_id is missing or invalid')
+          if not isinstance(language, str) or not language.strip() or len(language) > 40:
+              raise SystemExit('language is missing or invalid')
+          if not isinstance(requirements, str) or not requirements.strip() or len(requirements.encode()) > 12000:
+              raise SystemExit('requirements is missing or exceeds 12 KiB')
+          if not isinstance(code, str) or not code.strip() or len(code.encode()) > 48000:
+              raise SystemExit('code is missing or exceeds 48 KiB')
+
+          normalized = {
+              'task_id': task_id,
+              'language': language.strip(),
+              'requirements': requirements,
+              'code': code,
+          }
+          Path(os.environ['SEMANTIC_REVIEW_INPUT']).write_text(
+              json.dumps(normalized, ensure_ascii=False, separators=(',', ':'))
+          )
+
+          if os.environ.get('DRY_RUN', '').lower() == 'true':
+              output = {
+                  'schema': 'semantic-review-intake-v0',
+                  'task_id': task_id,
+                  'dry_run': True,
+                  'authority': 'HYPOTHESIS_ONLY',
+                  'production_pass_fail_authority': False,
+                  'automatic_retry': False,
+                  'review_budget': 3,
+                  'next_gate': 'paid_semantic_review_requires_explicit_invocation',
+              }
+              Path(os.environ['SEMANTIC_REVIEW_INTAKE_OUTPUT']).write_text(
+                  json.dumps(output, indent=2, sort_keys=True)
+              )
+          PY
+
+      - name: Mask AWS identifiers
+        if: ${{ inputs.dry_run == false }}
+        shell: bash
+        run: |
+          echo "::add-mask::${AWS_ACCOUNT_ID}"
+          echo "::add-mask::arn:aws:iam::${AWS_ACCOUNT_ID}:role/general-ai-semantic-review"
+
+      - name: Configure semantic review credentials via OIDC
+        if: ${{ inputs.dry_run == false }}
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ format('arn:aws:iam::{0}:role/general-ai-semantic-review', vars.AWS_ACCOUNT_ID) }}
+          aws-region: ${{ vars.AWS_REGION }}
+          role-session-name: opened-arm-semantic-review-intake
+          mask-aws-account-id: true
+          disable-retry: true
+
+      - name: Run bounded semantic review pool
+        if: ${{ inputs.dry_run == false }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 infra/aws/semantic-review/pool.py
+
+      - name: Verify semantic review result contract
+        if: ${{ inputs.dry_run == false }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          data = json.loads(Path('semantic-review-pool-results.json').read_text())
+          assert data['schema'] == 'semantic-review-pool-v0'
+          assert data['authority'] == 'HYPOTHESIS_ONLY'
+          assert data['production_pass_fail_authority'] is False
+          assert data['automatic_retry'] is False
+          assert data['review_budget'] == 3
+          assert data['next_gate'] == 'deterministic_verification_required'
+          print(json.dumps({
+              'task_id': data.get('task_id'),
+              'completed_reviews': data.get('completed_reviews'),
+              'finding_count': data.get('finding_count'),
+              'usage': data.get('usage'),
+          }))
+          PY
+
+      - name: Upload review result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: semantic-review-intake-v0
+          path: |
+            semantic-review-intake-result.json
+            semantic-review-pool-results.json
+          if-no-files-found: error
+          retention-days: 14
