@@ -1,11 +1,16 @@
 {
-  "schema": 1,
+  "schema": 2,
   "status": "CONFIG_REQUIRED",
   "ownerProjectId": "shared-platform",
-  "taskTypes": [
-    "CODING_WORKER",
-    "AI_REVIEW"
-  ],
+  "handoff": {
+    "sourceProjectId": "dashboard-control-center",
+    "messageId": "shared-execution-contract-handoff-v0",
+    "status": "CONSUMED",
+    "result": "DONE",
+    "canonicalOwnership": "opened-arm",
+    "dashboardCompatibilityMirror": "KEEP_UNTIL_EQUIVALENCE_AND_DURABLE_STORE"
+  },
+  "taskTypes": ["CODING_WORKER", "AI_REVIEW"],
   "allocation": {
     "projectLocalQueues": true,
     "globalFifoHeadBlocking": false,
@@ -23,27 +28,35 @@
   },
   "ledger": {
     "commonAcrossTaskTypes": true,
-    "identityFields": [
-      "projectId",
-      "workstreamId",
-      "taskId",
-      "runId",
-      "authorityRef",
-      "candidateRef"
-    ],
-    "candidateRefRequiredFor": [
-      "AI_REVIEW"
-    ],
-    "usageFields": [
-      "inputTokens",
-      "outputTokens",
-      "modelCalls",
-      "estimatedCostUsdMicros",
-      "authoritativeCostUsdMicros",
-      "result",
-      "retryCount"
-    ],
+    "identityFields": ["projectId", "workstreamId", "taskId", "runId", "authorityRef", "candidateRef"],
+    "candidateRefRequiredFor": ["AI_REVIEW"],
+    "usageFields": ["inputTokens", "outputTokens", "modelCalls", "estimatedCostUsdMicros", "authoritativeCostUsdMicros", "result", "retryCount"],
     "estimateIsNotProviderBilling": true
+  },
+  "codingWorkerContract": {
+    "status": "CONTRACT_READY_EXECUTION_CONFIG_REQUIRED",
+    "version": 0,
+    "targetLockedFields": ["repository", "branch", "baseSha"],
+    "pathPolicyFields": ["allowedPaths", "forbiddenPaths", "allowDelete", "maxMutations", "maxFileBytes", "maxTotalBytes"],
+    "contractEvidence": "coding-worker-contract:v0:sha256:<digest>",
+    "authorityOverrideForbidden": true,
+    "receiptIdentityBound": true,
+    "deterministicVerification": ["baseSha", "branchHeadSha", "changedPaths", "evidenceRefs"],
+    "resultAuthority": "CANDIDATE_ONLY",
+    "requiresIndependentReview": true,
+    "mayCloseContinuity": false,
+    "mayMerge": false
+  },
+  "executionPlaneContract": {
+    "status": "CONTRACT_READY",
+    "version": 0,
+    "registry": true,
+    "routeSelection": ["EXACT", "ORDERED"],
+    "preflight": true,
+    "manualApprovalFailClosed": true,
+    "paidRouteRequiresManualApproval": true,
+    "retryFailClosed": true,
+    "delegatedCapabilityRequired": true
   },
   "authority": {
     "providerMutation": false,
@@ -65,13 +78,17 @@
       "authorityBindingRequired": true
     },
     "codingWorker": {
-      "status": "CONFIG_REQUIRED",
-      "sourceProjectId": "dashboard-control-center",
-      "note": "Shared Platform does not assume consumer-repository execution authority."
+      "status": "CONTRACT_READY_EXECUTION_CONFIG_REQUIRED",
+      "contractOwnerProjectId": "shared-platform",
+      "runtimeProvider": "CONFIG_REQUIRED",
+      "note": "The transferred contract is canonical in opened-arm; no consumer-repository authority is implied."
     },
     "durableAllocatorStore": {
       "status": "CONFIG_REQUIRED",
-      "note": "The core is storage-neutral. Cross-run slot enforcement requires an approved durable compare-and-set or lease adapter; no new credential is created by v0."
+      "ownerProjectId": "shared-platform",
+      "requiredAtomicity": ["LEASE_CAS", "SERIALIZABLE"],
+      "backendRef": null,
+      "note": "Cross-run slot/cost state requires an approved Shared Platform-owned atomic backend. Dashboard persistence is not inherited."
     }
   }
 }
