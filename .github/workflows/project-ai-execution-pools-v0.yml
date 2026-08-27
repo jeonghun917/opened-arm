@@ -1,0 +1,50 @@
+name: Project AI Execution Pools v0
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'runner/ai_execution_pool.py'
+      - 'ops/ai-execution-pools-v0.json'
+      - 'docs/project-ai-execution-pools-v0.md'
+      - '.github/workflows/project-ai-execution-pools-v0.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  deterministic-self-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Check out candidate
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Compile pool core
+        run: python3 -m py_compile runner/ai_execution_pool.py
+
+      - name: Verify project-local allocation and common ledger
+        run: python3 runner/ai_execution_pool.py self-test
+
+      - name: Verify registration remains fail-closed
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          data = json.loads(Path('ops/ai-execution-pools-v0.json').read_text())
+          assert data['status'] == 'CONFIG_REQUIRED'
+          assert data['allocation']['globalFifoHeadBlocking'] is False
+          assert data['allocation']['projectPolicies'] == {}
+          assert data['budget']['initialProjectBudgets'] == {}
+          assert data['budget']['paidModelCalls'] == 'EXPLICIT_APPROVAL_ONLY'
+          assert data['budget']['automaticPaidRetries'] is False
+          assert data['ledger']['commonAcrossTaskTypes'] is True
+          assert data['authority']['codingWorkerMayWidenAuthority'] is False
+          assert data['authority']['aiReviewResultAuthority'] == 'HYPOTHESIS_ONLY'
+          assert data['authority']['aiReviewMayMerge'] is False
+          assert data['adapters']['aiReview']['automaticExecution'] is False
+          assert data['adapters']['durableAllocatorStore']['status'] == 'CONFIG_REQUIRED'
+          print('registration contract: PASS')
+          PY
