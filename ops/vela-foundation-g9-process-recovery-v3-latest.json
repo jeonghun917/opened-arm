@@ -1,0 +1,15 @@
+{
+  "claim_boundary": "Local CI subprocess/filesystem crash simulation with a fresh recovery object graph; not distributed storage, kernel/power-loss, multi-writer, or production backend proof.",
+  "full_regression_test_count": 84,
+  "invalid_state_promoted": false,
+  "previous_engine_compensation_exercised": true,
+  "process_boundary_test_count": 7,
+  "process_modules": [
+    "tests.test_process_recovery",
+    "tests.test_lifecycle_process_recovery"
+  ],
+  "scope": "Real child-process crash windows for checkpoint/event-log remnants plus durable lifecycle recovery across source-only, target-committed, and target-commit-before-journal boundaries.",
+  "source_commit": "e3bbee3d5dd5057b52c2d7ea624f943f68f9065b",
+  "source_repository": "jeonghun917/Ars-Mentis",
+  "status": "PASS"
+}
