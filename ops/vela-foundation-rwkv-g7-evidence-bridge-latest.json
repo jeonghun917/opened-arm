@@ -4,7 +4,7 @@
   "eligible_set_match_count": 8,
   "experiment_result_commit": "1bc953fe99a640d8047e5fbc580f1cb796f6ca99",
   "foundation_path": "RWKVTargetFreeAnchorEvidenceProvider -> EvidenceBackedAnchorSelector -> EquivalentCarriedAnchorGuardSelector",
-  "foundation_source_commit": "e3e16abb948f7714b7081a1484132bf643cdb924",
+  "foundation_source_commit": "17cb867d8f29f89a38e354334fcb16d4867ab62e",
   "migration_clean_case_count": 8,
   "native_stable_case_count": 8,
   "oracle_free_case_count": 8,
