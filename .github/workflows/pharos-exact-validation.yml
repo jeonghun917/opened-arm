@@ -13,22 +13,30 @@ on:
       - "ops/pharos-validation-target.txt"
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: pharos-exact-validation
   cancel-in-progress: false
 
 jobs:
-  check:
+  preflight:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    outputs:
+      target_sha: ${{ steps.target.outputs.sha }}
+      target_resolution: ${{ steps.target.outcome }}
+      credential_gate: ${{ steps.credential.outcome }}
+      pending_status: ${{ steps.pending_status.outcome }}
     steps:
       - name: Checkout public runner repository
         uses: actions/checkout@v4
         with:
           path: runner-repo
-          fetch-depth: 0
+          fetch-depth: 1
+          persist-credentials: false
 
       - name: Resolve exact Pharos SHA
         id: target
@@ -47,6 +55,7 @@ jobs:
 
       - name: Check private checkout credential
         id: credential
+        continue-on-error: true
         shell: bash
         env:
           PHAROS_REPO_TOKEN: ${{ secrets.PHAROS_REPO_TOKEN }}
@@ -56,6 +65,7 @@ jobs:
 
       - name: Publish pending Pharos status
         id: pending_status
+        if: steps.credential.outcome == 'success' && steps.target.outputs.sha != ''
         continue-on-error: true
         shell: bash
         env:
@@ -72,12 +82,39 @@ jobs:
             --data "{\"state\":\"pending\",\"context\":\"pharos-public-validation\",\"description\":\"Public exact-SHA validation started\",\"target_url\":\"https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}\"}" \
             >/dev/null
 
+      - name: Require preflight
+        if: always()
+        shell: bash
+        env:
+          TARGET_STATUS: ${{ steps.target.outcome }}
+          CREDENTIAL_STATUS: ${{ steps.credential.outcome }}
+          PENDING_STATUS: ${{ steps.pending_status.outcome }}
+        run: |
+          set -euo pipefail
+          test "$TARGET_STATUS" = success
+          test "$CREDENTIAL_STATUS" = success
+          test "$PENDING_STATUS" = success
+
+  validation:
+    needs: preflight
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    outputs:
+      actual_sha: ${{ steps.identity.outputs.actual_sha }}
+      private_checkout: ${{ steps.checkout.outcome }}
+      identity_check: ${{ steps.identity.outcome }}
+      recipe_contract: ${{ steps.recipe_contract.outcome }}
+      recipe_run: ${{ steps.recipe.outcome }}
+      clean_after: ${{ steps.clean_after.outcome }}
+    steps:
       - name: Checkout exact private Pharos SHA
         id: checkout
         uses: actions/checkout@v4
         with:
           repository: jeonghun917/pharos-orbis
-          ref: ${{ steps.target.outputs.sha }}
+          ref: ${{ needs.preflight.outputs.target_sha }}
           token: ${{ secrets.PHAROS_REPO_TOKEN }}
           path: pharos
           fetch-depth: 1
@@ -88,14 +125,14 @@ jobs:
         shell: bash
         working-directory: pharos
         env:
-          TARGET_SHA: ${{ steps.target.outputs.sha }}
+          TARGET_SHA: ${{ needs.preflight.outputs.target_sha }}
         run: |
           set -euo pipefail
-          actual="$(git rev-parse HEAD)"
+          actual="$(/usr/bin/git rev-parse HEAD)"
           echo "actual_sha=$actual" >> "$GITHUB_OUTPUT"
           test "$actual" = "$TARGET_SHA"
-          test -z "$(git status --porcelain)"
-          if git config --local --get-regexp '^http\..*\.extraheader$' >/dev/null 2>&1; then
+          test -z "$(/usr/bin/git status --porcelain)"
+          if /usr/bin/git config --local --get-regexp '^http\..*\.extraheader$' >/dev/null 2>&1; then
             echo "Checkout credential unexpectedly persisted"
             exit 1
           fi
@@ -119,33 +156,51 @@ jobs:
 
       - name: Verify validation left checkout clean
         id: clean_after
-        shell: bash
+        shell: /bin/bash --noprofile --norc -euo pipefail {0}
         working-directory: pharos
         run: |
-          set -euo pipefail
-          test -z "$(git status --porcelain)"
+          test -z "$(/usr/bin/git status --porcelain)"
+
+  finalize:
+    if: always()
+    needs: [preflight, validation]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout public runner repository without credentials
+        uses: actions/checkout@v4
+        with:
+          path: runner-repo
+          fetch-depth: 0
+          persist-credentials: false
 
       - name: Publish final Pharos status
         id: final_status
-        if: always() && steps.target.outputs.sha != ''
+        if: needs.preflight.outputs.target_sha != ''
         continue-on-error: true
         shell: bash
         env:
           PHAROS_REPO_TOKEN: ${{ secrets.PHAROS_REPO_TOKEN }}
-          TARGET_SHA: ${{ steps.target.outputs.sha }}
-          TARGET_STATUS: ${{ steps.target.outcome }}
-          CREDENTIAL_STATUS: ${{ steps.credential.outcome }}
-          CHECKOUT_STATUS: ${{ steps.checkout.outcome }}
-          IDENTITY_STATUS: ${{ steps.identity.outcome }}
-          RECIPE_CONTRACT_STATUS: ${{ steps.recipe_contract.outcome }}
-          RECIPE_STATUS: ${{ steps.recipe.outcome }}
-          CLEAN_AFTER_STATUS: ${{ steps.clean_after.outcome }}
+          TARGET_SHA: ${{ needs.preflight.outputs.target_sha }}
+          TARGET_STATUS: ${{ needs.preflight.outputs.target_resolution }}
+          CREDENTIAL_STATUS: ${{ needs.preflight.outputs.credential_gate }}
+          PENDING_STATUS: ${{ needs.preflight.outputs.pending_status }}
+          VALIDATION_RESULT: ${{ needs.validation.result }}
+          CHECKOUT_STATUS: ${{ needs.validation.outputs.private_checkout }}
+          IDENTITY_STATUS: ${{ needs.validation.outputs.identity_check }}
+          RECIPE_CONTRACT_STATUS: ${{ needs.validation.outputs.recipe_contract }}
+          RECIPE_STATUS: ${{ needs.validation.outputs.recipe_run }}
+          CLEAN_AFTER_STATUS: ${{ needs.validation.outputs.clean_after }}
         run: |
           set -euo pipefail
           state=failure
           description="Public exact-SHA validation failed"
           if [ "$TARGET_STATUS" = success ] && \
              [ "$CREDENTIAL_STATUS" = success ] && \
+             [ "$PENDING_STATUS" = success ] && \
+             [ "$VALIDATION_RESULT" = success ] && \
              [ "$CHECKOUT_STATUS" = success ] && \
              [ "$IDENTITY_STATUS" = success ] && \
              [ "$RECIPE_CONTRACT_STATUS" = success ] && \
@@ -164,29 +219,34 @@ jobs:
             >/dev/null
 
       - name: Persist Pharos validation evidence
+        id: evidence
         if: always()
-        shell: bash
+        shell: /bin/bash --noprofile --norc -euo pipefail {0}
         working-directory: runner-repo
         env:
-          TARGET_SHA: ${{ steps.target.outputs.sha }}
-          ACTUAL_SHA: ${{ steps.identity.outputs.actual_sha }}
-          TARGET_STATUS: ${{ steps.target.outcome }}
-          CREDENTIAL_STATUS: ${{ steps.credential.outcome }}
-          PENDING_STATUS: ${{ steps.pending_status.outcome }}
-          CHECKOUT_STATUS: ${{ steps.checkout.outcome }}
-          IDENTITY_STATUS: ${{ steps.identity.outcome }}
-          RECIPE_CONTRACT_STATUS: ${{ steps.recipe_contract.outcome }}
-          RECIPE_STATUS: ${{ steps.recipe.outcome }}
-          CLEAN_AFTER_STATUS: ${{ steps.clean_after.outcome }}
+          OPENED_ARM_TOKEN: ${{ github.token }}
+          TARGET_SHA: ${{ needs.preflight.outputs.target_sha }}
+          ACTUAL_SHA: ${{ needs.validation.outputs.actual_sha }}
+          TARGET_STATUS: ${{ needs.preflight.outputs.target_resolution }}
+          CREDENTIAL_STATUS: ${{ needs.preflight.outputs.credential_gate }}
+          PENDING_STATUS: ${{ needs.preflight.outputs.pending_status }}
+          CHECKOUT_STATUS: ${{ needs.validation.outputs.private_checkout }}
+          IDENTITY_STATUS: ${{ needs.validation.outputs.identity_check }}
+          RECIPE_CONTRACT_STATUS: ${{ needs.validation.outputs.recipe_contract }}
+          RECIPE_STATUS: ${{ needs.validation.outputs.recipe_run }}
+          CLEAN_AFTER_STATUS: ${{ needs.validation.outputs.clean_after }}
           FINAL_STATUS: ${{ steps.final_status.outcome }}
         run: |
-          set -euo pipefail
-          git config user.name github-actions[bot]
-          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git pull --rebase origin main
+          auth="$(printf 'x-access-token:%s' "$OPENED_ARM_TOKEN" | base64 | tr -d '\n')"
+          git_auth=(/usr/bin/git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth")
+          /usr/bin/git config user.name github-actions[bot]
+          /usr/bin/git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          "${git_auth[@]}" pull --rebase origin main
           mkdir -p ops
-          python - <<'PY'
+          /usr/bin/python3 - <<'PY'
           import json, os
+          def outcome(name):
+              return os.environ.get(name, "") or "skipped"
           payload = {
               "schema": 1,
               "targetRepository": "jeonghun917/pharos-orbis",
@@ -194,15 +254,15 @@ jobs:
               "actualSha": os.environ.get("ACTUAL_SHA", ""),
               "recipeVersion": "v0",
               "recipePath": "ops/validation/recipe-v0.sh",
-              "targetResolution": os.environ.get("TARGET_STATUS", ""),
-              "credentialGate": os.environ.get("CREDENTIAL_STATUS", ""),
-              "pendingStatusPublish": os.environ.get("PENDING_STATUS", ""),
-              "privateCheckout": os.environ.get("CHECKOUT_STATUS", ""),
-              "identityCheck": os.environ.get("IDENTITY_STATUS", ""),
-              "recipeContract": os.environ.get("RECIPE_CONTRACT_STATUS", ""),
-              "recipeRun": os.environ.get("RECIPE_STATUS", ""),
-              "cleanAfter": os.environ.get("CLEAN_AFTER_STATUS", ""),
-              "finalStatusPublish": os.environ.get("FINAL_STATUS", ""),
+              "targetResolution": outcome("TARGET_STATUS"),
+              "credentialGate": outcome("CREDENTIAL_STATUS"),
+              "pendingStatusPublish": outcome("PENDING_STATUS"),
+              "privateCheckout": outcome("CHECKOUT_STATUS"),
+              "identityCheck": outcome("IDENTITY_STATUS"),
+              "recipeContract": outcome("RECIPE_CONTRACT_STATUS"),
+              "recipeRun": outcome("RECIPE_STATUS"),
+              "cleanAfter": outcome("CLEAN_AFTER_STATUS"),
+              "finalStatusPublish": outcome("FINAL_STATUS"),
               "statusContext": "pharos-public-validation",
               "runId": os.environ.get("GITHUB_RUN_ID", ""),
               "runAttempt": os.environ.get("GITHUB_RUN_ATTEMPT", ""),
@@ -211,19 +271,21 @@ jobs:
               json.dump(payload, f, ensure_ascii=False, indent=2)
               f.write("\n")
           PY
-          git add ops/pharos-exact-validation.json
-          if ! git diff --cached --quiet; then
-            git commit -m "Record Pharos exact validation result"
-            git push origin HEAD:main
+          /usr/bin/git add ops/pharos-exact-validation.json
+          if ! /usr/bin/git diff --cached --quiet; then
+            /usr/bin/git commit -m "Record Pharos exact validation result"
+            "${git_auth[@]}" push origin HEAD:main
           fi
 
-      - name: Require status publication
+      - name: Require finalization
         if: always()
         shell: bash
         env:
-          PENDING_STATUS: ${{ steps.pending_status.outcome }}
+          PENDING_STATUS: ${{ needs.preflight.outputs.pending_status }}
           FINAL_STATUS: ${{ steps.final_status.outcome }}
+          EVIDENCE_STATUS: ${{ steps.evidence.outcome }}
         run: |
           set -euo pipefail
           test "$PENDING_STATUS" = success
           test "$FINAL_STATUS" = success
+          test "$EVIDENCE_STATUS" = success
