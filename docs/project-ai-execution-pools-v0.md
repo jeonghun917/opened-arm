@@ -78,7 +78,7 @@ Dashboard의 현행 Coding Worker v0 계약을 공유 실행 풀의 상위 권�
 
 모델은 제안자일 뿐이다. 실행 결과도 `CANDIDATE_ONLY`이며 병합·배포·Continuity 완료 권한을 얻지 않는다.
 
-Dashboard 소유 계약의 exact 현재 인터페이스는 `shared-platform-ai-pool-interface-request-v0` 작업요청으로 반환받는다. Shared Platform은 Dashboard 저장소를 직접 수정하지 않는다.
+Dashboard 소유 Coding Worker 계약은 참고 경계일 뿐이며 Shared Platform은 Dashboard 저장소를 직접 수정하지 않는다.
 
 ## AI 검수 권한과 토큰 긴축
 
@@ -110,7 +110,7 @@ v0는 달러 예산이나 슬롯 수를 임의로 정하지 않는다. 프로젝
 
 ### 2. Coding Worker 모델 실행 어댑터
 
-Coding Worker의 권한 계약은 Dashboard에 있고, 실제 모델 실행 기반은 Shared Platform에서 아직 승인·고정되지 않았다. Dashboard의 인터페이스 반환을 받은 뒤 권한을 복제하지 않는 어댑터만 연결한다.
+Coding Worker의 권한 계약은 Dashboard에 있고, 실제 모델 실행 기반은 Shared Platform에서 아직 승인·고정되지 않았다. 승인된 실행 계약이 확보되기 전에는 `CONFIG_REQUIRED`로 유지한다.
 
 ### 3. 실시간 다중 실행용 영속 슬롯 저장소
 
