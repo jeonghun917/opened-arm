@@ -43,6 +43,14 @@ def _p(value: Any, field: str, none: bool = False) -> int | None:
     return parsed
 
 
+def _b(value: Any, field: str, default: bool = False) -> bool:
+    if value is None:
+        return default
+    if not isinstance(value, bool):
+        raise PoolError(f'{field} must be boolean')
+    return value
+
+
 def _iso(value: Any, field: str) -> str:
     if not isinstance(value, str) or not value.strip():
         raise PoolError(f'{field} must be a timestamp')
@@ -87,9 +95,11 @@ def task(raw: Any) -> dict[str, Any]:
         raise PoolError('taskType is invalid')
     if task_state not in TASK_STATES:
         raise PoolError('task state is invalid')
-    if bool(raw.get('automaticRetry', False)):
+    automatic_retry = _b(raw.get('automaticRetry'), 'automaticRetry')
+    if automatic_retry:
         raise PoolError('automaticRetry must remain false')
-    paid = bool(raw.get('paid', False))
+    paid = _b(raw.get('paid'), 'paid')
+    explicit_approval = _b(raw.get('explicitApproval'), 'explicitApproval')
     estimate = _n(raw.get('estimatedCostUsdMicros'), 'estimatedCostUsdMicros', True)
     if not paid and estimate not in (None, 0):
         raise PoolError('free task cannot reserve paid-model cost')
@@ -108,7 +118,7 @@ def task(raw: Any) -> dict[str, Any]:
         'state': task_state,
         'createdAt': _iso(raw.get('createdAt'), 'createdAt'),
         'paid': paid,
-        'explicitApproval': bool(raw.get('explicitApproval', False)),
+        'explicitApproval': explicit_approval,
         'automaticRetry': False,
         'estimatedCostUsdMicros': estimate,
         'candidateRef': candidate_ref,
@@ -388,6 +398,16 @@ def self_test() -> dict[str, Any]:
     assert next(item for item in allocated['tasks'] if item['taskId'] == 'u-1')['state'] == 'BLOCKED'
     assert next(item for item in allocated['tasks'] if item['taskId'] == 'a-2')['state'] == 'QUEUED'
 
+    for field in ('paid', 'explicitApproval', 'automaticRetry'):
+        invalid_boolean = _task('strict-bool', 'a', 'ws-a', 'run-strict', 'CODING_WORKER', zero)
+        invalid_boolean[field] = 'false'
+        try:
+            task(invalid_boolean)
+        except PoolError:
+            pass
+        else:
+            raise AssertionError(f'{field} string boolean must fail closed')
+
     allocated = record_receipt(allocated, {
         'receiptId': 'ra', 'taskId': 'a-1', 'projectId': 'a', 'workstreamId': 'ws-a', 'runId': 'run-a1',
         'taskType': 'CODING_WORKER', 'candidateRef': None, 'authorityRef': 'authority:test', 'provider': 'LOCAL_TEST',
@@ -464,6 +484,7 @@ def self_test() -> dict[str, Any]:
             'candidateRefBound': True,
             'reservationCannotBeLoweredByReceipt': True,
             'automaticRetryForbidden': True,
+            'strictBooleanInputs': True,
         },
     }
 
