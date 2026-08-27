@@ -65,9 +65,9 @@
       "authorityBindingRequired": true
     },
     "codingWorker": {
-      "status": "INTERFACE_PENDING",
+      "status": "CONFIG_REQUIRED",
       "sourceProjectId": "dashboard-control-center",
-      "interfaceRequest": "continuity-project-dispatch:v0:dashboard-control-center:primary:shared-platform-ai-pool-interface-request-v0"
+      "note": "Shared Platform does not assume consumer-repository execution authority."
     },
     "durableAllocatorStore": {
       "status": "CONFIG_REQUIRED",
