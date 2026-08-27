@@ -2,149 +2,102 @@
 
 ## 목적
 
-공유 플랫폼이 `CODING_WORKER`와 `AI_REVIEW`를 서로 다른 스케줄러·비용 원장으로 운영하지 않고, 하나의 프로젝트별 자원 배분기와 하나의 실행 영수증 원장으로 관리한다.
+Shared Platform이 `CODING_WORKER`와 `AI_REVIEW`를 하나의 프로젝트별 자원 배분기와 공통 실행 영수증 장부로 관리한다. 이 계층은 실행 자원을 배정할 뿐, 작업 권한을 새로 만들거나 넓히지 않는다.
 
-이 계층은 **실행 자원 배분**만 담당한다. 저장소·브랜치·기준 커밋·파일 범위·병합 권한 같은 작업 권한을 새로 만들거나 넓히지 않는다.
+## Dashboard 이관 결과 반영
 
-## v0 경계
+`shared-execution-contract-handoff-v0` 결과는 `DONE`으로 반환됐고, 공유 실행 정본의 경계가 확정됐다. 따라서 다음 계약은 `jeonghun917/opened-arm`의 Shared Platform 정본으로 유지한다.
 
-- 소유 프로젝트: `shared-platform`
-- 구현 저장소: `jeonghun917/opened-arm`
-- 작업 유형: `CODING_WORKER`, `AI_REVIEW`
-- 프로젝트별 대기열과 프로젝트별 동시 실행 슬롯을 사용한다.
-- 하나의 전역 FIFO 선두 작업이 다른 프로젝트를 막는 구조를 사용하지 않는다.
-- 프로젝트별 예산과 슬롯 수는 **설정값**이며 v0가 임의 기본값을 만들지 않는다.
-- 유료 실행에서 예산이 없으면 `CONFIG_REQUIRED`로 닫힌다.
-- 유료 모델 호출은 명시 승인 없이는 시작하지 않는다.
-- 자동 유료 재시도는 금지한다.
-- 새 비밀키·provider 권한·외부 서비스 연결을 만들지 않는다.
+- Coding Worker의 호출자 고정 `repository` / `branch` / `baseSha`
+- 허용·금지 경로, 삭제 허용, 변경 개수·파일 크기·총 크기 제한
+- 정규화된 계약의 SHA-256 증거 결합
+- 추론기나 변경 제안이 대상·경로 권한을 덮어쓰지 못하는 규칙
+- 실행 영수증의 대상 신원 결합과 exact base / branch HEAD / changed-path 독립 검증
+- 결과 권위 `CANDIDATE_ONLY`, 독립 검토 필요, Continuity 자기완료·병합 권한 없음
+- 범용 실행면 registry / route / preflight와 수동 승인·비용·재시도 실패닫힘 규칙
 
-## 공통 실행 식별자
+Dashboard 전용 기본 실행면 구성과 GitHub Console 도구는 이 정본에 포함하지 않는다. Dashboard의 기존 저장·실행 코드는 Shared Platform 동등성 및 영구 저장이 확인되기 전까지 호환 거울로 남는다.
 
-모든 실행은 다음 다섯 값을 고정한다.
+## 공통 실행 식별자와 비용 장부
 
-- `projectId`
-- `workstreamId`
-- `taskId`
-- `runId`
-- `authorityRef`
+모든 실행은 `projectId`, `workstreamId`, `taskId`, `runId`, `authorityRef`에 묶인다. `AI_REVIEW`는 exact `candidateRef`도 필수다. 작업과 영수증의 값이 하나라도 다르면 실패한다.
 
-`AI_REVIEW`는 여기에 exact `candidateRef`를 추가로 고정한다. 공통 영수증도 같은 `authorityRef`를 반드시 싣고, AI 검수 영수증은 같은 `candidateRef`를 싣는다. task와 receipt 사이 값이 하나라도 다르면 실패한다.
+프로젝트마다 `mode`, `slotCount`, `budgetUsdMicros`를 독립 설정한다. 임의 기본 슬롯·예산은 만들지 않는다. 유료 실행은 명시 승인, 프로젝트 예산, 실행 전 비용 추정, 예산 여유를 모두 만족해야 한다. 자동 유료 재시도는 금지한다.
 
-모델 호출 영수증은 이 식별자와 함께 입력 토큰, 출력 토큰, 모델 호출 수, 추정 비용, 실측/provider 비용이 있으면 그 값, 결과, 재시도 횟수, 증거 참조를 기록한다.
+완료 비용의 admission charge는 `max(사전 예약, provider 실측)`을 사용한다. provider 실측 비용은 별도 필드에 보존하므로 청구액과 보수적 admission 회계를 섞지 않는다.
 
-## 프로젝트별 자원 배분
+## Coding Worker 정본 계약
 
-각 프로젝트는 독립적으로 다음 설정을 가진다.
+`runner/ai_execution_pool.py`는 Dashboard에서 이관된 Coding Worker 불변조건을 저장소 중립 계약으로 구현한다.
 
-- `mode`: `ENFORCED` 또는 `OBSERVE_ONLY`
-- `slotCount`
-- `budgetUsdMicros`
+- `repository`, `branch`, `baseSha`는 호출자가 고정한다.
+- `allowedPaths`, `forbiddenPaths`, `allowDelete`와 변경량 상한은 계약에 고정한다.
+- 계약은 `coding-worker-contract:v0:sha256:<digest>` 증거로 결합한다.
+- 제안은 대상·경로 정책을 덮어쓸 수 없다.
+- 성공 영수증은 exact 대상, base SHA, 새 commit SHA, changed paths, 계약 digest를 다시 결합한다.
+- 결정론 검증은 observed base, branch HEAD, changed paths, evidence를 독립 확인한다.
+- 성공해도 `CANDIDATE_ONLY`이며 독립 검토가 필요하고 병합·Continuity 완료 권한은 없다.
 
-`slotCount`가 없으면 실행하지 않는다. `OBSERVE_ONLY`도 새 실행을 시작하지 않는다.
+실제 코딩 모형 실행 공급자는 아직 승인·고정되지 않았으므로 `CONTRACT_READY_EXECUTION_CONFIG_REQUIRED` 상태다. 계약 이관 완료와 실제 유료/공급자 실행 승인은 별개다.
 
-유료 작업은 추가로 다음 조건을 모두 만족해야 한다.
+## 범용 실행면 정본 계약
 
-1. 명시 승인
-2. 프로젝트 예산 설정
-3. 실행 전 비용 추정값
-4. 현재 완료 비용 + 실행 중 예약 비용 + 새 예약 비용이 예산 이내
+같은 코어는 Dashboard 제품 설정을 제외한 범용 실행면 의미를 제공한다.
 
-프로젝트 A의 슬롯이 모두 차 있어도 프로젝트 B의 슬롯이 비어 있으면 B의 작업은 시작할 수 있다. 같은 후보에 대한 여러 `AI_REVIEW`도 해당 프로젝트 슬롯이 허용하는 범위에서 병렬 실행할 수 있다.
+- registry의 plane과 capability route를 정규화한다.
+- 경로 선택은 `EXACT` 또는 `ORDERED`다.
+- 위임되지 않은 capability, 잘못된 plane, 비활성 plane은 실패 닫힘한다.
+- `PAID`, `MANUAL_ONLY`, `MANUAL_REQUIRED`는 명시 수동 승인 없이는 실행하지 않는다.
+- 자동 재시도는 route·plane·task policy 모두 허용해야 하며 기본 상한은 0이다.
 
-## 공통 비용 원장
+Dashboard 전용 plane ID나 소비자별 경로 상수는 Shared Platform 공용 정본에 넣지 않는다.
 
-`runner/ai_execution_pool.py`의 영수증 경로는 코딩 작업자와 AI 검수자가 공유한다. 별도 AI 검수 전용 비용 원장을 만들지 않는다.
+## 기존 AWS 의미 검수기
 
-비용은 권위 수준을 섞지 않는다.
-
-- provider가 실제 비용을 반환하면 `authoritativeCostUsdMicros`에 기록한다.
-- 토큰 단가로 계산한 값은 `estimatedCostUsdMicros`이며 provider 청구액이라고 부르지 않는다.
-- 실제 비용과 사전 예약은 따로 보존한다.
-- **예산 admission에는 완료 후에도 `max(사전 예약, provider 실측)`을 사용한다.** 영수증이 사전 예약보다 낮은 값을 제시해 다음 유료 실행 여유를 인위적으로 만드는 우회를 허용하지 않는다.
-
-이 보수적 예산 차감은 provider 청구액을 왜곡하는 것이 아니다. 원장에는 `authoritativeCostUsdMicros`를 별도로 유지하고, admission 한도만 사전 예약보다 낮아지지 않게 한다.
-
-## Coding Worker 권한 보존
-
-Dashboard의 현행 Coding Worker v0 계약을 공유 실행 풀의 상위 권한으로 취급한다. 자원 배분기가 아래 값을 선택하거나 변경할 수 없다.
-
-- 저장소
-- 브랜치
-- exact base SHA
-- 허용/금지 파일 경로
-- 삭제 허용 여부
-- 변경량 제한
-
-모델은 제안자일 뿐이다. 실행 결과도 `CANDIDATE_ONLY`이며 병합·배포·Continuity 완료 권한을 얻지 않는다.
-
-Dashboard 소유 Coding Worker 계약은 참고 경계일 뿐이며 Shared Platform은 Dashboard 저장소를 직접 수정하지 않는다.
-
-## AI 검수 권한과 토큰 긴축
-
-기존 AWS Bedrock semantic-review 풀은 `infra/aws/semantic-review/pool.py`에 있으며, 현재 선택 모델은 `qwen.qwen3-coder-30b-a3b-v1:0`이다. 기존 풀은 reviewer를 병렬 실행하고 provider가 반환한 입력/출력 토큰을 집계한다.
-
-AI 검수는 `HYPOTHESIS_ONLY`다. 검수자 수가 많거나 여러 검수자가 동의해도 자동 PASS/FAIL 또는 병합 권한이 생기지 않는다.
-
-또한 **AI 검수는 기본 필수 게이트가 아니다.** 실행 풀은 여러 검수를 병렬로 돌릴 능력을 제공할 뿐, 모든 후보마다 고급 모델 검수를 자동 호출하지 않는다. 명시 승인 또는 프로젝트가 정한 위험 조건이 있을 때만 유료 `AI_REVIEW` 작업을 큐에 넣는 것이 v0 기본 정책이다.
-
-따라서 일반 경로는 결정론적 검증과 Primary 판단을 유지하고, 추가 AI 검수는 필요한 경우에만 자원을 배정한다.
-
-## 기존 AWS 실행 기반
-
-새 AWS 연결을 만들지 않는다. 현재 opened-arm의 기존 OIDC 기반 semantic-review 역할/워크플로를 재사용 후보로 둔다.
+실제 의미 검수 실행 정본은 계속 다음 경로다.
 
 - `infra/aws/semantic-review/pool.py`
+- `runner/semantic_review_pool_adapter.py`
 - `infra/aws/semantic-review/model-selection.json`
-- `.github/workflows/aws-semantic-review-pool-smoke.yml`
 
-기존 실행기는 `automatic_retry=false`를 유지한다. v0 자원 배분기는 실제 유료 호출 전에 프로젝트 예산/승인을 추가로 확인하는 상위 계층이다.
+adapter는 exact project/workstream/task/run/candidate/authority 신원을 공통 장부에 결합한다. `AI_REVIEW`는 `HYPOTHESIS_ONLY`, 병합 권한 없음, 자동 재시도 없음 경계를 유지한다. 이 작업은 새 AWS 권한이나 비밀정보를 만들지 않는다.
 
-공통 원장으로 가져올 때는 semantic-review 입력의 `candidate_ref`와 `authority_ref`를 결과에 그대로 echo하고, adapter가 실행 task의 exact `candidateRef`/`authorityRef`와 일치하는지 결정론적으로 확인한다. 기존 semantic-review 단독 실행은 이 필드가 없어도 동작하지만, 공통 원장 adapter는 두 값이 없거나 다르면 실패한다.
+## 남은 CONFIG_REQUIRED
 
-## 아직 CONFIG_REQUIRED인 부분
+### Shared Platform 영구 슬롯·비용 저장
 
-### 1. 프로젝트 초기 설정
+여러 실행 사이 슬롯과 비용 상태를 원자적으로 보존할 Shared Platform 소유 영구 저장이 아직 없다. 코어는 다음 조건을 만족하지 않으면 영구 저장을 `CONFIG_REQUIRED` 또는 `DENY_STORE`로 닫는다.
 
-v0는 달러 예산이나 슬롯 수를 임의로 정하지 않는다. 프로젝트가 명시적으로 설정하기 전 유료 실행은 닫혀 있다.
+- 소유 프로젝트가 `shared-platform`
+- 원자성 계약이 `LEASE_CAS` 또는 `SERIALIZABLE`
+- 실제 `backendRef`가 명시됨
 
-### 2. Coding Worker 모델 실행 어댑터
+Dashboard Neon/Vercel OIDC 저장을 자동 상속하지 않는다. 기존 semantic-review AWS 역할에도 영구 저장 권한을 추가하지 않는다. 파일 잠금·process-local lock·artifact·전역 FIFO로 원자 저장을 가장하지 않는다.
 
-Coding Worker의 권한 계약은 Dashboard에 있고, 실제 모델 실행 기반은 Shared Platform에서 아직 승인·고정되지 않았다. 승인된 실행 계약이 확보되기 전에는 `CONFIG_REQUIRED`로 유지한다.
+### 프로젝트별 실제 실행 설정
 
-### 3. 실시간 다중 실행용 영속 슬롯 저장소
+초기 슬롯·예산·유료 실행 승인은 각 프로젝트가 명시해야 한다. Coding Worker의 실제 실행 공급자도 별도 승인 계약이 필요하다.
 
-`runner/ai_execution_pool.py`는 저장소 중립적인 결정론적 코어다. 여러 GitHub runner가 동시에 슬롯을 점유하려면 compare-and-set 또는 lease 성격의 승인된 영속 저장 어댑터가 필요하다.
-
-현재 opened-arm의 승인된 semantic-review AWS 역할은 선택 Bedrock 모델 호출만 허용하며 durable store 권한은 없다. Dashboard의 Neon/Vercel OIDC 저장 계층도 Dashboard 소유이므로 Shared Platform이 권한을 가정해 가져오지 않는다. 따라서 새 비밀키·provider 권한 없이 재사용 가능한 원자적 저장 계층이 반환되기 전에는 이 항목을 `CONFIG_REQUIRED`로 유지한다.
-
-v0는 이 문제를 파일 락, process-local lock, GitHub artifact 또는 단일 전역 FIFO로 가장하지 않는다.
-
-## 자체 검증
-
-다음 명령은 provider 호출 없이 코어 규칙을 검증한다.
+## 결정론 검증
 
 ```bash
 python3 runner/ai_execution_pool.py self-test
+python3 runner/semantic_review_pool_adapter.py self-test
 ```
 
-검증 항목:
+자체검증은 기존 프로젝트별 배정·예산·공통 장부 회귀시험과 함께 다음을 확인한다.
 
-- 프로젝트 A가 막혀 있어도 B가 실행되는가
-- 예산 없는 유료 실행이 닫히는가
-- 같은 후보의 AI 검수 2개가 슬롯 2개에서 병렬 배정되는가
-- Coding Worker와 AI Review가 같은 영수증 원장을 쓰는가
-- AI Review에 병합 권한이 생기지 않는가
-- 실행 영수증의 프로젝트/작업분기/실행/authority identity 불일치가 거부되는가
-- AI Review의 exact candidate 불일치가 거부되는가
-- 낮은 사후 영수증 비용으로 사전 예약 예산을 해제할 수 없는가
-- 자동 재시도가 거부되는가
+- Coding Worker exact target / path policy / 계약 digest 고정
+- 대상·경로 권한 덮어쓰기 거부
+- exact base / branch HEAD / changed-path 결정론 검증
+- `CANDIDATE_ONLY`, 독립 검토, no-merge / no-self-close
+- 실행면 위임 capability, wrong-plane, paid approval, retry 실패닫힘
+- Shared Platform 소유가 아닌 영구 저장 거부
 
 ## 비범위
 
-- 프로젝트 권한 정책 자체의 재설계
-- consumer 저장소 직접 수정
-- provider 권한·비밀키 생성
-- 자동 병합/배포
-- 자동 유료 검수
-- 중앙 단일 FIFO 구축
+- Dashboard 저장소 수정·삭제
+- 소비자 저장소 권한 확대
+- 새 공급자 권한·비밀정보 생성
+- 자동 유료 검수·자동 유료 재시도
+- 자동 병합·배포·Continuity 완료
