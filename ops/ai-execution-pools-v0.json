@@ -40,8 +40,15 @@
     "pathPolicyFields": ["allowedPaths", "forbiddenPaths", "allowDelete", "maxMutations", "maxFileBytes", "maxTotalBytes"],
     "contractEvidence": "coding-worker-contract:v0:sha256:<digest>",
     "authorityOverrideForbidden": true,
-    "receiptIdentityBound": true,
-    "deterministicVerification": ["baseSha", "branchHeadSha", "changedPaths", "evidenceRefs"],
+    "executionReceipt": {
+      "targetIdentityBound": true,
+      "contractEvidenceBound": true,
+      "failedExecutionMayCloseWithoutCommit": true,
+      "failedExecutionVerificationRequired": false,
+      "appliedExecutionCommitRequired": true,
+      "appliedExecutionChangedPathsMustMatchPlan": true
+    },
+    "deterministicVerification": ["targetCommitSha", "baseSha", "branchHeadSha", "changedPaths", "evidenceRefs"],
     "resultAuthority": "CANDIDATE_ONLY",
     "requiresIndependentReview": true,
     "mayCloseContinuity": false,
