@@ -1,0 +1,117 @@
+name: VELA Foundation G9 process recovery v3
+
+on:
+  push:
+    branches: [vela-foundation-ci]
+    paths:
+      - 'ops/vela-foundation-g9-process-recovery-v3-trigger.txt'
+      - '.github/workflows/vela-foundation-g9-process-recovery-v3.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: vela-foundation-g9-process-recovery-v3
+  cancel-in-progress: false
+
+env:
+  EXPECTED_ARS_COMMIT: e3bbee3d5dd5057b52c2d7ea624f943f68f9065b
+
+jobs:
+  process-recovery:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: vela-foundation-ci
+          path: runner-control
+          persist-credentials: true
+
+      - uses: actions/checkout@v4
+        with:
+          repository: jeonghun917/Ars-Mentis
+          ref: ${{ env.EXPECTED_ARS_COMMIT }}
+          token: ${{ secrets.ARS_MENTIS_READ_TOKEN }}
+          path: ars-mentis
+          persist-credentials: false
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Verify exact source commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git -C ars-mentis rev-parse HEAD)" = "$EXPECTED_ARS_COMMIT"
+
+      - name: Run full regression and process-boundary recovery suite
+        shell: bash
+        run: |
+          set +e
+          (cd ars-mentis && PYTHONPATH=src python -m unittest discover -s tests -v) > /tmp/full.log 2>&1
+          full_status=$?
+          (cd ars-mentis && PYTHONPATH=src python -m unittest -v tests.test_process_recovery tests.test_lifecycle_process_recovery) > /tmp/process.log 2>&1
+          process_status=$?
+          set -e
+
+          full_count=$(grep -c '^test_' /tmp/full.log || true)
+          process_count=$(grep -c '^test_' /tmp/process.log || true)
+          source_commit=$(git -C ars-mentis rev-parse HEAD)
+          mkdir -p runner-control/ops
+          SOURCE_COMMIT="$source_commit" FULL_STATUS="$full_status" PROCESS_STATUS="$process_status" FULL_COUNT="$full_count" PROCESS_COUNT="$process_count" python - <<'PY'
+          import json, os
+          passed = os.environ['FULL_STATUS'] == '0' and os.environ['PROCESS_STATUS'] == '0'
+          payload = {
+              'status': 'PASS' if passed else 'FAIL',
+              'source_repository': 'jeonghun917/Ars-Mentis',
+              'source_commit': os.environ['SOURCE_COMMIT'],
+              'full_regression_test_count': int(os.environ['FULL_COUNT']),
+              'process_boundary_test_count': int(os.environ['PROCESS_COUNT']),
+              'process_modules': [
+                  'tests.test_process_recovery',
+                  'tests.test_lifecycle_process_recovery',
+              ],
+              'scope': (
+                  'Real child-process crash windows for checkpoint/event-log remnants plus '
+                  'durable lifecycle recovery across source-only, target-committed, and '
+                  'target-commit-before-journal boundaries.'
+              ),
+              'invalid_state_promoted': False if passed else None,
+              'previous_engine_compensation_exercised': True if passed else None,
+              'claim_boundary': (
+                  'Local CI subprocess/filesystem crash simulation with a fresh recovery object graph; '
+                  'not distributed storage, kernel/power-loss, multi-writer, or production backend proof.'
+              ),
+          }
+          with open('runner-control/ops/vela-foundation-g9-process-recovery-v3-latest.json', 'w', encoding='utf-8') as f:
+              json.dump(payload, f, indent=2, sort_keys=True)
+              f.write('\n')
+          print(json.dumps(payload, indent=2, sort_keys=True))
+          PY
+
+          cat /tmp/process.log
+          if [[ "$full_status" -ne 0 || "$process_status" -ne 0 ]]; then
+            echo '::error::G9 v3 validation failed; inspect test output above.'
+            exit 1
+          fi
+
+      - name: Commit public result snapshot
+        if: always()
+        working-directory: runner-control
+        shell: bash
+        run: |
+          if [[ ! -f ops/vela-foundation-g9-process-recovery-v3-latest.json ]]; then
+            mkdir -p ops
+            printf '{"status":"FAIL_BEFORE_RESULT","source_commit":"%s"}\n' "$EXPECTED_ARS_COMMIT" > ops/vela-foundation-g9-process-recovery-v3-latest.json
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add ops/vela-foundation-g9-process-recovery-v3-latest.json
+          git diff --cached --quiet || git commit -m 'Record VELA foundation G9 process recovery v3 [skip ci]'
+          for n in 1 2 3 4 5; do
+            git pull --rebase origin vela-foundation-ci && git push origin HEAD:vela-foundation-ci && break
+            sleep $((n*3))
+          done
