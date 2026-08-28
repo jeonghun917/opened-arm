@@ -164,6 +164,7 @@ For PROPOSE, return the smallest sufficient whole-file mutation set.
 Return exactly one JSON object, no markdown:
 {"decision":"PROPOSE|ESCALATE","summary":"...","mutations":[{"mutation_id":"...","path":"...","operation":"create_file|update_file|delete_file","content":"whole file or null for delete","rationale":"..."}],"assumptions":[],"unresolved":[]}
 Never output repository, branch, base_sha, path_policy, permission, merge, deploy, or completion fields.
+If a valid whole-file mutation would not fit in the response budget, return ESCALATE with zero mutations instead of truncating JSON.
 
 Bounded request:
 """ + json.dumps(request, ensure_ascii=False, separators=(",", ":"))
@@ -216,7 +217,8 @@ def validate_proposal(raw, request):
         p = path(item.get("path"), f"mutation_{i}_path")
         if mutation_id in ids or p in paths or not authorized(p, policy["allowed_paths"], policy["forbidden_paths"]):
             fail("mutation_not_authorized")
-        ids.add(mutation_id); paths.add(p)
+        ids.add(mutation_id)
+        paths.add(p)
         operation = item.get("operation")
         if operation not in {"create_file", "update_file", "delete_file"}:
             fail("operation_invalid")
@@ -238,13 +240,47 @@ def validate_proposal(raw, request):
             **({} if content is None else {"content": content}),
             "rationale": text(item.get("rationale"), f"mutation_{i}_rationale", 800),
         })
-    return {"taskId": request["task_id"], "decision": decision, "summary": summary, "mutations": mutations, "assumptions": assumptions, "unresolved": unresolved}
+    return {
+        "taskId": request["task_id"],
+        "decision": decision,
+        "summary": summary,
+        "mutations": mutations,
+        "assumptions": assumptions,
+        "unresolved": unresolved,
+    }
+
+
+def model_output_or_escalate(model_text, request, stop_reason=None):
+    if stop_reason == "max_tokens":
+        reason = "model_output_truncated_by_token_limit"
+    elif not model_text:
+        reason = "model_response_empty"
+    else:
+        try:
+            return validate_proposal(extract_json(model_text), request)
+        except (ValueError, json.JSONDecodeError) as exc:
+            detail = str(exc).strip() or exc.__class__.__name__
+            reason = f"model_output_invalid:{detail[:300]}"
+    return {
+        "taskId": request["task_id"],
+        "decision": "ESCALATE",
+        "summary": "Model output could not be accepted by deterministic proposal validation; no mutation proposal was admitted.",
+        "mutations": [],
+        "assumptions": [],
+        "unresolved": [reason],
+    }
 
 
 def invoke(request):
     messages = [{"role": "user", "content": [{"text": prompt_for(request)}]}]
     inference = {"maxTokens": 1800, "temperature": 0.1, "topP": 0.9}
-    cmd = ["aws", "--cli-connect-timeout", "5", "--cli-read-timeout", "75", "bedrock-runtime", "converse", "--model-id", MODEL_ID, "--messages", json.dumps(messages, separators=(",", ":")), "--inference-config", json.dumps(inference, separators=(",", ":")), "--output", "json", "--no-cli-pager"]
+    cmd = [
+        "aws", "--cli-connect-timeout", "5", "--cli-read-timeout", "75",
+        "bedrock-runtime", "converse", "--model-id", MODEL_ID,
+        "--messages", json.dumps(messages, separators=(",", ":")),
+        "--inference-config", json.dumps(inference, separators=(",", ":")),
+        "--output", "json", "--no-cli-pager",
+    ]
     started = time.monotonic()
     proc = subprocess.run(cmd, text=True, capture_output=True, timeout=85)
     latency_ms = round((time.monotonic() - started) * 1000)
@@ -252,24 +288,81 @@ def invoke(request):
         raise RuntimeError(proc.stderr.strip() or proc.stdout.strip() or f"aws_cli_exit_{proc.returncode}")
     response = json.loads(proc.stdout)
     parts = response.get("output", {}).get("message", {}).get("content", [])
-    model_text = "\n".join(p.get("text", "") for p in parts if isinstance(p, dict) and isinstance(p.get("text"), str)).strip()
-    if not model_text:
-        fail("model_response_empty")
+    model_text = "\n".join(
+        p.get("text", "")
+        for p in parts
+        if isinstance(p, dict) and isinstance(p.get("text"), str)
+    ).strip()
+    stop_reason = response.get("stopReason")
     usage = response.get("usage", {})
-    return validate_proposal(extract_json(model_text), request), {"input_tokens": int(usage.get("inputTokens", 0) or 0), "output_tokens": int(usage.get("outputTokens", 0) or 0)}, latency_ms
+    proposal = model_output_or_escalate(model_text, request, stop_reason)
+    return proposal, {
+        "input_tokens": int(usage.get("inputTokens", 0) or 0),
+        "output_tokens": int(usage.get("outputTokens", 0) or 0),
+    }, latency_ms
 
 
 def self_test():
-    request = validate_request({"task_id":"self-test","goal":"Update one file","acceptance_criteria":["Only src/a.ts changes"],"stop_and_escalate":["Escalate outside scope"],"requested_change":"Change 1 to 2","target":{"repository":"example/repo","branch":"feat/test","base_sha":"a"*40},"path_policy":{"allowed_paths":["src/**"],"forbidden_paths":["src/secret.ts"],"allow_delete":False,"max_mutations":2,"max_file_bytes":1024,"max_total_bytes":2048},"files":[{"path":"src/a.ts","content":"export const a = 1;\n"}]})
-    good = validate_proposal({"decision":"PROPOSE","summary":"bounded","mutations":[{"mutation_id":"update-a","path":"src/a.ts","operation":"update_file","content":"export const a = 2;\n","rationale":"requested"}],"assumptions":[],"unresolved":[]}, request)
+    request = validate_request({
+        "task_id": "self-test",
+        "goal": "Update one file",
+        "acceptance_criteria": ["Only src/a.ts changes"],
+        "stop_and_escalate": ["Escalate outside scope"],
+        "requested_change": "Change 1 to 2",
+        "target": {"repository": "example/repo", "branch": "feat/test", "base_sha": "a" * 40},
+        "path_policy": {
+            "allowed_paths": ["src/**"],
+            "forbidden_paths": ["src/secret.ts"],
+            "allow_delete": False,
+            "max_mutations": 2,
+            "max_file_bytes": 1024,
+            "max_total_bytes": 2048,
+        },
+        "files": [{"path": "src/a.ts", "content": "export const a = 1;\n"}],
+    })
+    good = validate_proposal({
+        "decision": "PROPOSE",
+        "summary": "bounded",
+        "mutations": [{
+            "mutation_id": "update-a",
+            "path": "src/a.ts",
+            "operation": "update_file",
+            "content": "export const a = 2;\n",
+            "rationale": "requested",
+        }],
+        "assumptions": [],
+        "unresolved": [],
+    }, request)
     assert good["mutations"][0]["path"] == "src/a.ts"
     try:
-        validate_proposal({"decision":"PROPOSE","summary":"bad","mutations":[{"mutation_id":"bad","path":"README.md","operation":"update_file","content":"bad\n","rationale":"bad"}],"assumptions":[],"unresolved":[]}, request)
+        validate_proposal({
+            "decision": "PROPOSE",
+            "summary": "bad",
+            "mutations": [{
+                "mutation_id": "bad",
+                "path": "README.md",
+                "operation": "update_file",
+                "content": "bad\n",
+                "rationale": "bad",
+            }],
+            "assumptions": [],
+            "unresolved": [],
+        }, request)
     except ValueError:
         pass
     else:
         raise AssertionError("out-of-scope mutation accepted")
-    assert validate_proposal({"decision":"ESCALATE","summary":"scope exceeded","mutations":[],"assumptions":[],"unresolved":["needs another path"]}, request)["decision"] == "ESCALATE"
+    assert validate_proposal({
+        "decision": "ESCALATE",
+        "summary": "scope exceeded",
+        "mutations": [],
+        "assumptions": [],
+        "unresolved": ["needs another path"],
+    }, request)["decision"] == "ESCALATE"
+    malformed = model_output_or_escalate('{"decision":"PROPOSE","summary":"unterminated', request, "end_turn")
+    assert malformed["decision"] == "ESCALATE" and malformed["mutations"] == []
+    truncated = model_output_or_escalate('{"decision":"PROPOSE"', request, "max_tokens")
+    assert truncated["decision"] == "ESCALATE" and truncated["unresolved"] == ["model_output_truncated_by_token_limit"]
     print("Qwen Coding Worker reasoner self-test: PASS")
 
 
@@ -279,18 +372,53 @@ def main():
     parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
     if args.self_test:
-        self_test(); return 0
+        self_test()
+        return 0
     raw = INPUT.read_bytes()
     if len(raw) > 131072:
         raise SystemExit("request_too_large")
     request = validate_request(json.loads(raw))
-    INTAKE.write_text(json.dumps({"schema":"qwen-coding-reasoner-intake-v0","task_id":request["task_id"],"dry_run":args.validate_request,"model_id":MODEL_ID,"authority":"PROPOSAL_ONLY","mutation_authority":False,"automatic_retry":False,"next_gate":"paid_qwen_reasoning_required" if args.validate_request else "reasoning_in_progress"}, indent=2, sort_keys=True))
+    INTAKE.write_text(json.dumps({
+        "schema": "qwen-coding-reasoner-intake-v0",
+        "task_id": request["task_id"],
+        "dry_run": args.validate_request,
+        "model_id": MODEL_ID,
+        "authority": "PROPOSAL_ONLY",
+        "mutation_authority": False,
+        "automatic_retry": False,
+        "next_gate": "paid_qwen_reasoning_required" if args.validate_request else "reasoning_in_progress",
+    }, indent=2, sort_keys=True))
     if args.validate_request:
-        print(json.dumps({"schema":"qwen-coding-reasoner-intake-v0","task_id":request["task_id"],"dry_run":True,"authority":"PROPOSAL_ONLY","automatic_retry":False}, separators=(",", ":"))); return 0
+        print(json.dumps({
+            "schema": "qwen-coding-reasoner-intake-v0",
+            "task_id": request["task_id"],
+            "dry_run": True,
+            "authority": "PROPOSAL_ONLY",
+            "automatic_retry": False,
+        }, separators=(",", ":")))
+        return 0
     proposal, usage, latency = invoke(request)
-    result = {"schema":"qwen-coding-reasoner-v0","model_id":MODEL_ID,"authority":"PROPOSAL_ONLY","mutation_authority":False,"production_pass_fail_authority":False,"automatic_retry":False,"proposal":proposal,"usage":usage,"latency_ms":latency,"next_gate":"coding_worker_scope_guard_executor_and_deterministic_verifier"}
+    result = {
+        "schema": "qwen-coding-reasoner-v0",
+        "model_id": MODEL_ID,
+        "authority": "PROPOSAL_ONLY",
+        "mutation_authority": False,
+        "production_pass_fail_authority": False,
+        "automatic_retry": False,
+        "proposal": proposal,
+        "usage": usage,
+        "latency_ms": latency,
+        "next_gate": "coding_worker_scope_guard_executor_and_deterministic_verifier",
+    }
     OUTPUT.write_text(json.dumps(result, indent=2, sort_keys=True))
-    print(json.dumps({"schema":result["schema"],"task_id":proposal["taskId"],"decision":proposal["decision"],"mutation_count":len(proposal["mutations"]),"usage":usage,"latency_ms":latency}, separators=(",", ":")))
+    print(json.dumps({
+        "schema": result["schema"],
+        "task_id": proposal["taskId"],
+        "decision": proposal["decision"],
+        "mutation_count": len(proposal["mutations"]),
+        "usage": usage,
+        "latency_ms": latency,
+    }, separators=(",", ":")))
     return 0
 
 
