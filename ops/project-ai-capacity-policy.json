@@ -17,6 +17,7 @@
     "differentTargets": "PARALLEL"
   },
   "execution": {
+    "bundleWorkflow": ".github/workflows/aws-project-ai-bundle.yml",
     "semanticReviewWorkflow": ".github/workflows/aws-semantic-review-intake.yml",
     "codingReasonerWorkflow": ".github/workflows/aws-qwen-coding-reasoner.yml",
     "automaticPaidRetry": false,
@@ -28,7 +29,18 @@
     "concurrentThreeReviewersPlusOneCodingRun": 33131897494,
     "concurrentBundleResult": "PASS",
     "observedCodingLatencyMs": 4219,
-    "observedSemanticReviewWallLatencyMs": 1465
+    "observedSemanticReviewWallLatencyMs": 1465,
+    "durableBundleIntakePullRequest": 13,
+    "durableBundleIntakeMergeSha": "f40c127e610bdbe31b4398fa6d54502d67989aa6",
+    "durableBundleDefinitionValidationRun": 33135010591,
+    "crossProjectRepository": "jeonghun917/pharos-orbis",
+    "crossProjectBaseSha": "653de2fc24137f7d43160e71c7e556e9d3549d06",
+    "crossProjectResultCommitSha": "2003f7ba80b110a570ed5c4d33d53fc8632ed5a0",
+    "crossProjectChangedPaths": [
+      "ops/coding-worker-cross-project-probe.txt"
+    ],
+    "crossProjectDeterministicVerification": "PASS",
+    "crossProjectProbeBranchRestoredToBase": true
   },
   "guaranteeBoundary": "META_ADMISSION_LAYER",
   "externalLimits": [
