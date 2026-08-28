@@ -1,0 +1,106 @@
+name: AWS AI Bundle Live Once
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/aws-ai-bundle-live-once.yml'
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  coding:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      AWS_ACCOUNT_ID: ${{ vars.AWS_ACCOUNT_ID }}
+      AWS_MAX_ATTEMPTS: '1'
+      AWS_RETRY_MODE: standard
+      CODING_REASONER_MODEL_ID: qwen.qwen3-coder-30b-a3b-v1:0
+      CODING_REASONER_INPUT: coding-reasoner-input.json
+      CODING_REASONER_OUTPUT: coding-reasoner-result.json
+    steps:
+      - uses: actions/checkout@v4
+      - name: Write bounded coding request
+        run: |
+          cat > coding-reasoner-input.json <<'JSON'
+          {
+            "task_id": "bundle-capacity-coding-v0",
+            "goal": "Make one bounded TypeScript change.",
+            "acceptance_criteria": ["Only probe/allowed.ts may change.", "The exported value becomes 2."],
+            "stop_and_escalate": ["Escalate if another path is required."],
+            "requested_change": "Change the exported value from 1 to 2.",
+            "target": {"repository": "jeonghun917/opened-arm", "branch": "main", "base_sha": "d7b073714d7786f0d354778ba6f5a73c4a952e97"},
+            "path_policy": {"allowed_paths": ["probe/allowed.ts"], "forbidden_paths": [], "allow_delete": false, "max_mutations": 1, "max_file_bytes": 1024, "max_total_bytes": 1024},
+            "files": [{"path": "probe/allowed.ts", "content": "export const value = 1;\n"}]
+          }
+          JSON
+          python3 infra/aws/coding-worker/reasoner.py --validate-request
+      - name: Configure AWS via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ format('arn:aws:iam::{0}:role/general-ai-semantic-review', vars.AWS_ACCOUNT_ID) }}
+          aws-region: ${{ vars.AWS_REGION }}
+          role-session-name: opened-arm-bundle-coding
+          mask-aws-account-id: true
+          disable-retry: true
+      - name: Invoke coding reasoner once
+        run: python3 infra/aws/coding-worker/reasoner.py
+      - name: Verify coding result
+        run: |
+          python3 - <<'PY'
+          import json
+          d=json.load(open('coding-reasoner-result.json'))
+          p=d['proposal']
+          assert d['automatic_retry'] is False
+          assert p['decision']=='PROPOSE'
+          assert len(p['mutations'])==1
+          assert p['mutations'][0]['path']=='probe/allowed.ts'
+          print(json.dumps({'coding':'PASS','usage':d['usage'],'latency_ms':d['latency_ms']}))
+          PY
+
+  semantic_review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      AWS_ACCOUNT_ID: ${{ vars.AWS_ACCOUNT_ID }}
+      AWS_MAX_ATTEMPTS: '1'
+      AWS_RETRY_MODE: standard
+      SEMANTIC_REVIEW_COUNT: '3'
+      SEMANTIC_REVIEW_MODEL_ID: qwen.qwen3-coder-30b-a3b-v1:0
+      SEMANTIC_REVIEW_INPUT: semantic-review-input.json
+      SEMANTIC_REVIEW_OUTPUT: semantic-review-pool-results.json
+    steps:
+      - uses: actions/checkout@v4
+      - name: Write bounded semantic review request
+        run: |
+          cat > semantic-review-input.json <<'JSON'
+          {
+            "task_id": "bundle-capacity-review-v0",
+            "language": "TypeScript",
+            "requirements": "The function must return x + 1 for every finite number and must not mutate external state.",
+            "code": "export function next(x: number) { return x + 1; }\n"
+          }
+          JSON
+      - name: Configure AWS via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ format('arn:aws:iam::{0}:role/general-ai-semantic-review', vars.AWS_ACCOUNT_ID) }}
+          aws-region: ${{ vars.AWS_REGION }}
+          role-session-name: opened-arm-bundle-review
+          mask-aws-account-id: true
+          disable-retry: true
+      - name: Invoke three semantic reviewers in parallel
+        run: python3 infra/aws/semantic-review/pool.py
+      - name: Verify review bundle
+        run: |
+          python3 - <<'PY'
+          import json
+          d=json.load(open('semantic-review-pool-results.json'))
+          assert d['automatic_retry'] is False
+          assert d['review_budget']==3
+          assert d['completed_reviews']==3
+          print(json.dumps({'semantic_review':'PASS','completed_reviews':3,'usage':d['usage'],'wall_latency_ms':d['wall_latency_ms']}))
+          PY
