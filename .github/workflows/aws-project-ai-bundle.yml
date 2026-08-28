@@ -1,0 +1,186 @@
+name: AWS Project AI Bundle
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/aws-project-ai-bundle.yml'
+      - 'infra/aws/coding-worker/reasoner.py'
+      - 'infra/aws/semantic-review/pool.py'
+      - 'ops/project-ai-capacity-policy.json'
+  workflow_dispatch:
+    inputs:
+      project_id:
+        description: Registered product project id
+        required: true
+        type: string
+      coding_payload_b64:
+        description: Base64-encoded bounded Coding Worker request JSON
+        required: true
+        type: string
+      review_payload_b64:
+        description: Base64-encoded bounded semantic review request JSON
+        required: true
+        type: string
+      dry_run:
+        description: Validate contracts without invoking Bedrock
+        required: true
+        default: true
+        type: boolean
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  validate_definition:
+    if: ${{ github.event_name == 'pull_request' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          python3 -m py_compile infra/aws/coding-worker/reasoner.py infra/aws/semantic-review/pool.py
+          python3 infra/aws/coding-worker/reasoner.py --self-test
+          python3 - <<'PY'
+          import json
+          p=json.load(open('ops/project-ai-capacity-policy.json'))
+          g=p['minimumAdmissionGuaranteePerProject']
+          assert g == {'semanticReviewBundles':1,'semanticReviewersPerBundle':3,'codingReasoners':1}
+          assert p['allocation']['projectHardCap'] is False
+          assert p['allocation']['sharedSpareCapacity']=='BORROWABLE'
+          assert p['execution']['automaticPaidRetry'] is False
+          print('project AI 3+1 capacity contract: PASS')
+          PY
+
+  coding:
+    if: ${{ github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      AWS_ACCOUNT_ID: ${{ vars.AWS_ACCOUNT_ID }}
+      AWS_MAX_ATTEMPTS: '1'
+      AWS_RETRY_MODE: standard
+      CODING_REASONER_MODEL_ID: qwen.qwen3-coder-30b-a3b-v1:0
+      CODING_REASONER_INPUT: coding-reasoner-input.json
+      CODING_REASONER_OUTPUT: coding-reasoner-result.json
+      CODING_REASONER_INTAKE_OUTPUT: coding-reasoner-intake-result.json
+    steps:
+      - uses: actions/checkout@v4
+      - name: Decode and validate bounded coding request
+        env:
+          PROJECT_ID: ${{ inputs.project_id }}
+          PAYLOAD_B64: ${{ inputs.coding_payload_b64 }}
+        run: |
+          python3 - <<'PY'
+          import base64,os,re
+          from pathlib import Path
+          if not re.fullmatch(r'[a-z0-9][a-z0-9._-]{0,119}',os.environ.get('PROJECT_ID','')): raise SystemExit('project_id_invalid')
+          raw=os.environ.get('PAYLOAD_B64','')
+          if not raw or len(raw)>180000: raise SystemExit('coding_payload_invalid')
+          data=base64.b64decode(raw,validate=True)
+          if len(data)>131072: raise SystemExit('coding_payload_too_large')
+          Path('coding-reasoner-input.json').write_bytes(data)
+          PY
+          python3 infra/aws/coding-worker/reasoner.py --validate-request
+      - name: Configure AWS via OIDC
+        if: ${{ inputs.dry_run == false }}
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ format('arn:aws:iam::{0}:role/general-ai-semantic-review', vars.AWS_ACCOUNT_ID) }}
+          aws-region: ${{ vars.AWS_REGION }}
+          role-session-name: opened-arm-project-ai-coding
+          mask-aws-account-id: true
+          disable-retry: true
+      - name: Invoke proposal-only Qwen Coding Worker once
+        if: ${{ inputs.dry_run == false }}
+        run: python3 infra/aws/coding-worker/reasoner.py
+      - name: Verify coding contract
+        if: ${{ inputs.dry_run == false }}
+        run: |
+          python3 - <<'PY'
+          import json
+          d=json.load(open('coding-reasoner-result.json'))
+          assert d['model_id']=='qwen.qwen3-coder-30b-a3b-v1:0'
+          assert d['authority']=='PROPOSAL_ONLY' and d['mutation_authority'] is False and d['automatic_retry'] is False
+          assert d['proposal']['decision'] in ('PROPOSE','ESCALATE')
+          print(json.dumps({'task_id':d['proposal']['taskId'],'decision':d['proposal']['decision'],'usage':d['usage']}))
+          PY
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() && github.event_name == 'workflow_dispatch' }}
+        with:
+          name: project-ai-coding-${{ inputs.project_id }}
+          path: |
+            coding-reasoner-intake-result.json
+            coding-reasoner-result.json
+          if-no-files-found: warn
+          retention-days: 14
+
+  semantic_review:
+    if: ${{ github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      AWS_ACCOUNT_ID: ${{ vars.AWS_ACCOUNT_ID }}
+      AWS_MAX_ATTEMPTS: '1'
+      AWS_RETRY_MODE: standard
+      SEMANTIC_REVIEW_COUNT: '3'
+      SEMANTIC_REVIEW_MODEL_ID: qwen.qwen3-coder-30b-a3b-v1:0
+      SEMANTIC_REVIEW_INPUT: semantic-review-input.json
+      SEMANTIC_REVIEW_OUTPUT: semantic-review-pool-results.json
+      SEMANTIC_REVIEW_INTAKE_OUTPUT: semantic-review-intake-result.json
+    steps:
+      - uses: actions/checkout@v4
+      - name: Decode and validate bounded review request
+        env:
+          PROJECT_ID: ${{ inputs.project_id }}
+          PAYLOAD_B64: ${{ inputs.review_payload_b64 }}
+        run: |
+          python3 - <<'PY'
+          import base64,json,os,re
+          from pathlib import Path
+          if not re.fullmatch(r'[a-z0-9][a-z0-9._-]{0,119}',os.environ.get('PROJECT_ID','')): raise SystemExit('project_id_invalid')
+          raw=os.environ.get('PAYLOAD_B64','')
+          if not raw or len(raw)>90000: raise SystemExit('review_payload_invalid')
+          data=base64.b64decode(raw,validate=True)
+          if len(data)>65536: raise SystemExit('review_payload_too_large')
+          r=json.loads(data)
+          if not isinstance(r,dict) or set(r)-{'task_id','language','requirements','code'}: raise SystemExit('review_shape_invalid')
+          if not isinstance(r.get('task_id'),str) or not re.fullmatch(r'[A-Za-z0-9._:-]{1,160}',r['task_id']): raise SystemExit('review_task_id_invalid')
+          if not isinstance(r.get('language'),str) or not r['language'].strip() or len(r['language'])>40: raise SystemExit('review_language_invalid')
+          if not isinstance(r.get('requirements'),str) or not r['requirements'].strip() or len(r['requirements'].encode())>12000: raise SystemExit('review_requirements_invalid')
+          if not isinstance(r.get('code'),str) or not r['code'].strip() or len(r['code'].encode())>48000: raise SystemExit('review_code_invalid')
+          Path('semantic-review-input.json').write_text(json.dumps(r,ensure_ascii=False,separators=(',',':')))
+          Path('semantic-review-intake-result.json').write_text(json.dumps({'schema':'semantic-review-intake-v0','task_id':r['task_id'],'dry_run':True,'authority':'HYPOTHESIS_ONLY','production_pass_fail_authority':False,'automatic_retry':False,'review_budget':3}))
+          PY
+      - name: Configure AWS via OIDC
+        if: ${{ inputs.dry_run == false }}
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ format('arn:aws:iam::{0}:role/general-ai-semantic-review', vars.AWS_ACCOUNT_ID) }}
+          aws-region: ${{ vars.AWS_REGION }}
+          role-session-name: opened-arm-project-ai-review
+          mask-aws-account-id: true
+          disable-retry: true
+      - name: Invoke three Qwen semantic reviewers in parallel
+        if: ${{ inputs.dry_run == false }}
+        run: python3 infra/aws/semantic-review/pool.py
+      - name: Verify semantic review contract
+        if: ${{ inputs.dry_run == false }}
+        run: |
+          python3 - <<'PY'
+          import json
+          d=json.load(open('semantic-review-pool-results.json'))
+          assert d['model_id']=='qwen.qwen3-coder-30b-a3b-v1:0'
+          assert d['authority']=='HYPOTHESIS_ONLY' and d['production_pass_fail_authority'] is False and d['automatic_retry'] is False
+          assert d['review_budget']==3 and d['completed_reviews']==3
+          print(json.dumps({'task_id':d['task_id'],'completed_reviews':3,'finding_count':d['finding_count'],'usage':d['usage']}))
+          PY
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() && github.event_name == 'workflow_dispatch' }}
+        with:
+          name: project-ai-review-${{ inputs.project_id }}
+          path: |
+            semantic-review-intake-result.json
+            semantic-review-pool-results.json
+          if-no-files-found: warn
+          retention-days: 14
