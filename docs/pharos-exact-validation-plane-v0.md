@@ -7,6 +7,8 @@ This execution plane validates one exact commit from the fixed private repositor
 ## Fixed route
 
 - Capability: `pharos.exactValidation`
+- Owner: Meta
+- Registration: `ENABLED`
 - Workflow: `.github/workflows/pharos-exact-validation.yml`
 - Target repository: `jeonghun917/pharos-orbis`
 - Input: one exact 40-character lowercase hexadecimal commit SHA
@@ -14,6 +16,7 @@ This execution plane validates one exact commit from the fixed private repositor
 - Selection: EXACT
 - Fallback: none
 - Automatic retry: disabled
+- Live validation evidence: GitHub run `33038085631`
 
 The workflow must never accept a repository name as an input.
 
@@ -32,7 +35,7 @@ The public validator:
 7. requires exit code 0 and a clean working tree afterward;
 8. uses a separate fresh finalize runner to publish final status and write bounded evidence to `ops/pharos-exact-validation.json`.
 
-A recipe change is a material Pharos validation-policy change and requires Pharos Primary review. The Platform execution plane executes the recipe but does not define product PASS semantics itself.
+A recipe change is a material Pharos validation-policy change and requires Pharos Primary review. The Meta-owned execution plane executes the recipe but does not define product PASS semantics itself.
 
 ## Credential boundary
 
@@ -40,7 +43,7 @@ The required secret is `PHAROS_REPO_TOKEN`. It must be explicitly bound for priv
 
 Both public and private checkout use `persist-credentials: false`. The recipe executes in a dedicated read-only validation job and receives no publication credential environment variable. Final Pharos status publication and opened-arm evidence persistence happen only on a separate fresh runner after the validation job ends, so candidate recipe code cannot prepare runner-local hooks, environment files, PATH changes, or sibling-repository state that later executes with write-capable publication credentials.
 
-Until the credential exists and a concrete recipe is present in the target Pharos commit, the route is `CONFIG_REQUIRED` and must fail closed.
+The route has been live-verified as enabled. If the credential later becomes unavailable or the exact target commit lacks the required recipe, the workflow must fail closed; registration status does not bypass those runtime checks.
 
 ## Evidence
 
