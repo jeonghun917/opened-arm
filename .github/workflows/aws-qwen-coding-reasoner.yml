@@ -1,0 +1,119 @@
+name: AWS Qwen Coding Worker Reasoner
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/aws-qwen-coding-reasoner.yml'
+      - 'infra/aws/coding-worker/reasoner.py'
+  workflow_dispatch:
+    inputs:
+      payload_b64:
+        description: Base64-encoded bounded Coding Worker reasoner request
+        required: true
+        type: string
+      dry_run:
+        description: Validate the request without invoking Bedrock
+        required: true
+        default: true
+        type: boolean
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  validate:
+    if: ${{ github.event_name == 'pull_request' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile bounded reasoner
+        run: python3 -m py_compile infra/aws/coding-worker/reasoner.py
+      - name: Run deterministic reasoner self-test
+        run: python3 infra/aws/coding-worker/reasoner.py --self-test
+
+  reason:
+    if: ${{ github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      AWS_ACCOUNT_ID: ${{ vars.AWS_ACCOUNT_ID }}
+      AWS_MAX_ATTEMPTS: '1'
+      AWS_RETRY_MODE: standard
+      CODING_REASONER_MODEL_ID: qwen.qwen3-coder-30b-a3b-v1:0
+      CODING_REASONER_INPUT: coding-reasoner-input.json
+      CODING_REASONER_OUTPUT: coding-reasoner-result.json
+      CODING_REASONER_INTAKE_OUTPUT: coding-reasoner-intake-result.json
+    steps:
+      - uses: actions/checkout@v4
+      - name: Decode bounded request
+        env:
+          PAYLOAD_B64: ${{ inputs.payload_b64 }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import base64, os
+          from pathlib import Path
+          raw = os.environ.get('PAYLOAD_B64', '')
+          if not raw or len(raw) > 180000:
+              raise SystemExit('payload_b64_missing_or_too_large')
+          try:
+              decoded = base64.b64decode(raw, validate=True)
+          except Exception as exc:
+              raise SystemExit(f'payload_b64_invalid:{exc}')
+          if len(decoded) > 131072:
+              raise SystemExit('decoded_payload_too_large')
+          Path('coding-reasoner-input.json').write_bytes(decoded)
+          PY
+      - name: Validate request contract without model call
+        if: ${{ inputs.dry_run == true }}
+        run: python3 infra/aws/coding-worker/reasoner.py --validate-request
+      - name: Mask AWS identifiers
+        if: ${{ inputs.dry_run == false }}
+        shell: bash
+        run: |
+          echo "::add-mask::${AWS_ACCOUNT_ID}"
+          echo "::add-mask::arn:aws:iam::${AWS_ACCOUNT_ID}:role/general-ai-semantic-review"
+      - name: Configure Bedrock credentials via OIDC
+        if: ${{ inputs.dry_run == false }}
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ format('arn:aws:iam::{0}:role/general-ai-semantic-review', vars.AWS_ACCOUNT_ID) }}
+          aws-region: ${{ vars.AWS_REGION }}
+          role-session-name: opened-arm-qwen-coding-reasoner
+          mask-aws-account-id: true
+          disable-retry: true
+      - name: Invoke proposal-only Qwen reasoner once
+        if: ${{ inputs.dry_run == false }}
+        run: python3 infra/aws/coding-worker/reasoner.py
+      - name: Verify result contract
+        if: ${{ inputs.dry_run == false }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          data = json.loads(Path('coding-reasoner-result.json').read_text())
+          assert data['schema'] == 'qwen-coding-reasoner-v0'
+          assert data['model_id'] == 'qwen.qwen3-coder-30b-a3b-v1:0'
+          assert data['authority'] == 'PROPOSAL_ONLY'
+          assert data['mutation_authority'] is False
+          assert data['production_pass_fail_authority'] is False
+          assert data['automatic_retry'] is False
+          assert data['next_gate'] == 'coding_worker_scope_guard_executor_and_deterministic_verifier'
+          assert data['proposal']['decision'] in ('PROPOSE', 'ESCALATE')
+          print(json.dumps({'task_id': data['proposal']['taskId'], 'decision': data['proposal']['decision'], 'mutation_count': len(data['proposal']['mutations']), 'usage': data['usage']}))
+          PY
+      - name: Upload reasoner result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qwen-coding-reasoner-v0
+          path: |
+            coding-reasoner-intake-result.json
+            coding-reasoner-result.json
+          if-no-files-found: error
+          retention-days: 14
