@@ -3,7 +3,7 @@
   "repository": "jeonghun917/dashboard-control-center",
   "baseSha": "57dba0f8814f78931354cf428eee7ef13ac70219",
   "targetSha": "9ffcf8e092de89d4c3b348f71bd500f50dee1fc3",
-  "approvedBy": "user-directive:2026-08-28:dashboard-code-first-5plus0",
+  "approvedBy": "user-directive:2026-08-28:dashboard-5plus0-rerun-after-harness-fix-v0",
   "reviewPlan": {
     "semanticReviewersPerChunk": 5,
     "codingReasonersPerChunk": 0,
