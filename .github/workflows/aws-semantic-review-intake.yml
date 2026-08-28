@@ -36,7 +36,11 @@ jobs:
     timeout-minutes: 3
     steps:
       - uses: actions/checkout@v4
-      - run: python3 -m py_compile infra/aws/semantic-review/pool.py
+      - name: Validate parser definition and malformed-escape boundary
+        run: |
+          set -euo pipefail
+          python3 -m py_compile infra/aws/semantic-review/pool.py
+          python3 infra/aws/semantic-review/pool.py --parser-self-test
 
   review:
     if: ${{ github.event_name == 'workflow_dispatch' }}

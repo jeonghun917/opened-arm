@@ -38,6 +38,8 @@ TITLE_TOKEN_MAP = {
     "unauthorized": "authorization", "unauthorised": "authorization",
     "authorisation": "authorization",
 }
+VALID_JSON_SIMPLE_ESCAPES = set('"\\/bfnrt')
+HEX_DIGITS = set("0123456789abcdefABCDEF")
 
 
 def numbered(code: str) -> str:
@@ -72,6 +74,7 @@ Rules:
 - line is the first materially relevant line, or 0 only when no single line applies.
 - Maximum 5 findings.
 - Pick the closest category from the fixed category list; do not invent category names.
+- Output valid JSON. Backslashes inside JSON strings must be escaped as JSON backslashes.
 
 Task ID: {request.get('task_id', 'unknown')}
 Language: {request.get('language', 'unknown')}
@@ -83,21 +86,123 @@ Code:
 """
 
 
+def repair_invalid_json_string_escapes(value: str) -> str:
+    r"""Escape only invalid backslash sequences that occur inside JSON strings.
+
+    This deliberately does not repair missing quotes/braces, infer fields, or complete
+    truncated JSON. It only turns a model-emitted literal such as \s into \\s so the
+    intended backslash remains literal text in the decoded JSON string.
+    """
+    output: list[str] = []
+    in_string = False
+    i = 0
+    while i < len(value):
+        ch = value[i]
+        if not in_string:
+            output.append(ch)
+            if ch == '"':
+                in_string = True
+            i += 1
+            continue
+
+        if ch == '"':
+            output.append(ch)
+            in_string = False
+            i += 1
+            continue
+
+        if ch != "\\":
+            output.append(ch)
+            i += 1
+            continue
+
+        if i + 1 >= len(value):
+            output.append(ch)
+            i += 1
+            continue
+
+        nxt = value[i + 1]
+        if nxt in VALID_JSON_SIMPLE_ESCAPES:
+            output.extend((ch, nxt))
+            i += 2
+            continue
+
+        if nxt == "u" and i + 5 < len(value) and all(c in HEX_DIGITS for c in value[i + 2:i + 6]):
+            output.append(value[i:i + 6])
+            i += 6
+            continue
+
+        output.append("\\\\")
+        i += 1
+
+    return "".join(output)
+
+
+def json_candidates(cleaned: str) -> list[str]:
+    candidates = [cleaned]
+    match = re.search(r"\{.*\}", cleaned, re.S)
+    if match and match.group(0) != cleaned:
+        candidates.append(match.group(0))
+    return candidates
+
+
 def extract_json(text: str) -> dict:
     cleaned = text.strip()
     if cleaned.startswith("```"):
         cleaned = re.sub(r"^```(?:json)?\s*", "", cleaned)
         cleaned = re.sub(r"\s*```$", "", cleaned)
-    try:
-        obj = json.loads(cleaned)
-    except json.JSONDecodeError:
-        match = re.search(r"\{.*\}", cleaned, re.S)
-        if not match:
-            raise
-        obj = json.loads(match.group(0))
-    if not isinstance(obj, dict) or not isinstance(obj.get("findings"), list):
-        raise ValueError("response must contain findings array")
-    return obj
+
+    last_error: Exception | None = None
+    for candidate in json_candidates(cleaned):
+        try:
+            obj = json.loads(candidate)
+        except json.JSONDecodeError as error:
+            last_error = error
+            repaired = repair_invalid_json_string_escapes(candidate)
+            if repaired == candidate:
+                continue
+            try:
+                obj = json.loads(repaired)
+            except json.JSONDecodeError as repaired_error:
+                last_error = repaired_error
+                continue
+
+        if not isinstance(obj, dict) or not isinstance(obj.get("findings"), list):
+            raise ValueError("response must contain findings array")
+        return obj
+
+    if last_error is not None:
+        raise last_error
+    raise ValueError("response must contain one JSON object")
+
+
+def parser_self_test() -> None:
+    valid = '{"reviewer_id":"A","findings":[{"rationale":"line\\nnext and \\\\d and \\u1234"}]}'
+    valid_obj = extract_json(valid)
+    assert valid_obj["reviewer_id"] == "A"
+    assert valid_obj["findings"][0]["rationale"] == "line\nnext and \\d and ሴ"
+
+    malformed = r'{"reviewer_id":"A","findings":[{"rationale":"regex \s and \d"}]}'
+    recovered = extract_json(malformed)
+    assert recovered["findings"][0]["rationale"] == r"regex \s and \d"
+
+    fenced = '```json\n' + malformed + '\n```'
+    assert extract_json(fenced) == recovered
+
+    structurally_invalid = [
+        r'{"reviewer_id":"A","findings":[{"rationale":"truncated \s"}',
+        '{"reviewer_id":"A"}',
+        'not json at all',
+    ]
+    for sample in structurally_invalid:
+        try:
+            extract_json(sample)
+        except (json.JSONDecodeError, ValueError):
+            pass
+        else:
+            raise AssertionError(f"structurally invalid model output was admitted: {sample!r}")
+
+    print("Semantic review JSON parser self-test: PASS")
 
 
 def canonicalize_category(raw_category: str, title: str, rationale: str) -> str:
@@ -302,4 +407,7 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    if len(sys.argv) == 2 and sys.argv[1] == "--parser-self-test":
+        parser_self_test()
+        raise SystemExit(0)
     raise SystemExit(main())
