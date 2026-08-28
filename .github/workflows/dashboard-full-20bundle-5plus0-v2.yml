@@ -1,0 +1,239 @@
+name: Dashboard Full 20-Bundle 5+0 Audit v2
+
+on:
+  pull_request:
+    paths:
+      - 'ops/dashboard-full-20bundle-5plus0-target.json'
+  push:
+    branches:
+      - main
+    paths:
+      - 'ops/dashboard-full-20bundle-5plus0-target.json'
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: dashboard-full-20bundle-5plus0-v2
+  cancel-in-progress: false
+
+jobs:
+  preflight:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout opened-arm
+        uses: actions/checkout@v4
+
+      - name: Validate target and planner syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m py_compile ops/dashboard-full-20bundle-audit.py ops/semantic-review-pool-de.py infra/aws/semantic-review/pool.py
+          python3 - <<'PY'
+          import json,re
+          from pathlib import Path
+          p=json.loads(Path('ops/dashboard-full-20bundle-5plus0-target.json').read_text())
+          expected={
+              'bundleCount':20,
+              'semanticReviewersPerChunk':5,
+              'reviewerIds':['A','B','C','D','E'],
+              'codingReasoners':0,
+              'automaticRetry':False,
+              'maxTotalChunks':120,
+          }
+          assert p['schema']=='dashboard-full-20bundle-5plus0-target-v0'
+          assert p['repository']=='jeonghun917/dashboard-control-center'
+          assert re.fullmatch(r'[0-9a-f]{40}',p['targetSha'])
+          assert isinstance(p.get('approvedBy'),str) and p['approvedBy'].startswith('user-directive:')
+          assert p['reviewPlan']==expected
+          print('target contract: PASS')
+          PY
+
+      - name: Require private Dashboard read credential
+        env:
+          DASHBOARD_REPO_TOKEN: ${{ secrets.DASHBOARD_REPO_TOKEN }}
+        run: test -n "${DASHBOARD_REPO_TOKEN:-}"
+
+      - name: Resolve target SHA
+        id: target
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json,os
+          p=json.load(open('ops/dashboard-full-20bundle-5plus0-target.json'))
+          with open(os.environ['GITHUB_OUTPUT'],'a') as f:
+              f.write('sha='+p['targetSha']+'\n')
+          PY
+
+      - name: Checkout exact private Dashboard SHA
+        uses: actions/checkout@v4
+        with:
+          repository: jeonghun917/dashboard-control-center
+          ref: ${{ steps.target.outputs.sha }}
+          token: ${{ secrets.DASHBOARD_REPO_TOKEN }}
+          path: dashboard
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Build and validate free 20-bundle plan
+        shell: bash
+        env:
+          TARGET_SHA: ${{ steps.target.outputs.sha }}
+        run: |
+          set -euo pipefail
+          test "$(git -C dashboard rev-parse HEAD)" = "$TARGET_SHA"
+          test -z "$(git -C dashboard status --porcelain)"
+          python3 ops/dashboard-full-20bundle-audit.py plan --dashboard-root dashboard --target-sha "$TARGET_SHA" --out-dir audit-plan
+          python3 - <<'PY'
+          import json
+          m=json.load(open('audit-plan/manifest.json'))
+          assert m['bundleCount']==20
+          assert len(m['bundles'])==20
+          assert sum(x['fileCount'] for x in m['bundles'])==m['codeFileCount']
+          assert all(x['fileCount']>0 and x['chunkCount']>0 for x in m['bundles'])
+          assert m['expectedSemanticReviewerCalls']==m['totalChunks']*5
+          assert m['codingReasoners']==0
+          assert m['automaticRetry'] is False
+          print(json.dumps({
+              'codeFileCount':m['codeFileCount'],
+              'totalChunks':m['totalChunks'],
+              'expectedSemanticReviewerCalls':m['expectedSemanticReviewerCalls'],
+              'bundleFileCounts':{f"{x['id']:02d}":x['fileCount'] for x in m['bundles']},
+              'bundleChunkCounts':{f"{x['id']:02d}":x['chunkCount'] for x in m['bundles']},
+          },separators=(',',':')))
+          PY
+
+      - name: Upload free plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: dashboard-full-20bundle-plan-${{ steps.target.outputs.sha }}
+          path: audit-plan/manifest.json
+          retention-days: 14
+
+  audit:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      AWS_ACCOUNT_ID: ${{ vars.AWS_ACCOUNT_ID }}
+      AWS_MAX_ATTEMPTS: '1'
+      AWS_RETRY_MODE: standard
+      SEMANTIC_REVIEW_MODEL_ID: qwen.qwen3-coder-30b-a3b-v1:0
+    steps:
+      - name: Checkout opened-arm runner
+        uses: actions/checkout@v4
+        with:
+          path: runner-repo
+          fetch-depth: 1
+
+      - name: Resolve approved target
+        id: target
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json,os,re
+          from pathlib import Path
+          p=json.loads(Path('runner-repo/ops/dashboard-full-20bundle-5plus0-target.json').read_text())
+          expected={
+              'bundleCount':20,
+              'semanticReviewersPerChunk':5,
+              'reviewerIds':['A','B','C','D','E'],
+              'codingReasoners':0,
+              'automaticRetry':False,
+              'maxTotalChunks':120,
+          }
+          sha=p.get('targetSha','')
+          if p.get('schema')!='dashboard-full-20bundle-5plus0-target-v0': raise SystemExit('target_schema_invalid')
+          if p.get('repository')!='jeonghun917/dashboard-control-center': raise SystemExit('target_repository_invalid')
+          if not re.fullmatch(r'[0-9a-f]{40}',sha): raise SystemExit('target_sha_invalid')
+          if not isinstance(p.get('approvedBy'),str) or not p['approvedBy'].startswith('user-directive:'): raise SystemExit('human_approval_missing')
+          if p.get('reviewPlan')!=expected: raise SystemExit('review_plan_invalid')
+          with open(os.environ['GITHUB_OUTPUT'],'a') as f:
+              f.write('sha='+sha+'\n')
+              f.write('short='+sha[:12]+'\n')
+          PY
+
+      - name: Require private Dashboard read credential
+        env:
+          DASHBOARD_REPO_TOKEN: ${{ secrets.DASHBOARD_REPO_TOKEN }}
+        run: test -n "${DASHBOARD_REPO_TOKEN:-}"
+
+      - name: Checkout exact private Dashboard SHA
+        uses: actions/checkout@v4
+        with:
+          repository: jeonghun917/dashboard-control-center
+          ref: ${{ steps.target.outputs.sha }}
+          token: ${{ secrets.DASHBOARD_REPO_TOKEN }}
+          path: dashboard
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Build exact 20-bundle plan
+        shell: bash
+        env:
+          TARGET_SHA: ${{ steps.target.outputs.sha }}
+        run: |
+          set -euo pipefail
+          test "$(git -C dashboard rev-parse HEAD)" = "$TARGET_SHA"
+          test -z "$(git -C dashboard status --porcelain)"
+          python3 runner-repo/ops/dashboard-full-20bundle-audit.py plan --dashboard-root dashboard --target-sha "$TARGET_SHA" --out-dir audit-plan
+
+      - name: Configure semantic review credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ format('arn:aws:iam::{0}:role/general-ai-semantic-review', vars.AWS_ACCOUNT_ID) }}
+          aws-region: ${{ vars.AWS_REGION }}
+          role-session-name: opened-arm-dashboard-full-20bundle-5plus0
+          mask-aws-account-id: true
+          disable-retry: true
+
+      - name: Run A-E 5+0 review on every bundle chunk
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p audit-results
+          while IFS= read -r input; do
+            bundle="$(basename "$(dirname "$input")")"
+            chunk="$(basename "$input" .json)"
+            stem="${bundle}-${chunk}"
+            abc="audit-results/${stem}-abc.json"
+            de="audit-results/${stem}-de.json"
+            SEMANTIC_REVIEW_COUNT=3 SEMANTIC_REVIEW_INPUT="$input" SEMANTIC_REVIEW_OUTPUT="$abc" python3 runner-repo/infra/aws/semantic-review/pool.py
+            SEMANTIC_REVIEW_COUNT=2 SEMANTIC_REVIEW_INPUT="$input" SEMANTIC_REVIEW_OUTPUT="$de" python3 runner-repo/ops/semantic-review-pool-de.py
+            python3 - "$abc" "$de" <<'PY'
+          import json,sys
+          abc=json.load(open(sys.argv[1]))
+          de=json.load(open(sys.argv[2]))
+          assert abc['authority']=='HYPOTHESIS_ONLY' and de['authority']=='HYPOTHESIS_ONLY'
+          assert abc['automatic_retry'] is False and de['automatic_retry'] is False
+          assert abc['review_budget']==3 and abc['completed_reviews']==3
+          assert de['review_budget']==2 and de['completed_reviews']==2
+          assert [r['reviewer_id'] for r in abc['reviews']]==['A','B','C']
+          assert [r['reviewer_id'] for r in de['reviews']]==['D','E']
+          print(json.dumps({'task':abc['task_id'],'completed':5}))
+          PY
+          done < <(find audit-plan -type f -name 'chunk-*.json' | sort)
+
+      - name: Build deterministic summary
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 runner-repo/ops/dashboard-full-20bundle-audit.py summarize --plan-dir audit-plan --result-dir audit-results --output dashboard-full-20bundle-5plus0-summary.json
+
+      - name: Upload audit evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dashboard-full-20bundle-5plus0-${{ steps.target.outputs.short }}
+          path: |
+            audit-plan/manifest.json
+            audit-results/
+            dashboard-full-20bundle-5plus0-summary.json
+            runner-repo/ops/dashboard-full-20bundle-5plus0-target.json
+          if-no-files-found: warn
+          retention-days: 14
