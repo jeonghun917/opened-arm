@@ -1,0 +1,177 @@
+name: Cori Kaggle E290 Monitor Once
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/cori-kaggle-e290-monitor-once.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  monitor-and-archive:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'feat/kaggle-p100-port'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 270
+    env:
+      KAGGLE_API_TOKEN: ${{ secrets.KAGGLE_API_TOKEN }}
+      LIGHTNING_USER_ID: ${{ secrets.LIGHTNING_USER_ID }}
+      LIGHTNING_API_KEY: ${{ secrets.LIGHTNING_API_KEY }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install provider clients
+        run: python -m pip install --quiet --upgrade kaggle lightning-sdk
+
+      - name: Resolve authenticated Kaggle owner
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, os, urllib.parse, urllib.request
+          token=os.environ['KAGGLE_API_TOKEN']
+          req=urllib.request.Request(
+              'https://www.kaggle.com/api/v1/oauth2/introspect',
+              data=urllib.parse.urlencode({'token':token}).encode(),
+              headers={'Content-Type':'application/x-www-form-urlencoded'},
+              method='POST',
+          )
+          with urllib.request.urlopen(req, timeout=30) as r:
+              data=json.load(r)
+          owner=(data.get('username') or '').strip()
+          if not data.get('active') or not owner:
+              raise SystemExit('cannot resolve authenticated Kaggle owner')
+          kernel=f'{owner}/c3-cori-e280-e290-t4-benchmark'
+          with open(os.environ['GITHUB_ENV'],'a',encoding='utf-8') as f:
+              f.write('KAGGLE_KERNEL_ID='+kernel+'\n')
+          print('C3_KAGGLE_MONITOR_OWNER='+owner)
+          PY
+
+      - name: Poll E280 to E290 benchmark until terminal
+        shell: bash
+        run: |
+          set -euo pipefail
+          for i in $(seq 1 240); do
+            OUT=$(kaggle kernels status "$KAGGLE_KERNEL_ID" 2>&1 || true)
+            echo "C3_KAGGLE_E290_STATUS attempt=$i ${OUT##*status }"
+            if printf '%s' "$OUT" | grep -q 'KernelWorkerStatus.COMPLETE'; then
+              echo C3_KAGGLE_E290_TERMINAL=COMPLETE
+              exit 0
+            fi
+            if printf '%s' "$OUT" | grep -Eq 'KernelWorkerStatus\.(ERROR|CANCELLED|CANCELED|FAILED)'; then
+              echo "C3_KAGGLE_E290_TERMINAL_FAILURE=$OUT"
+              exit 4
+            fi
+            sleep 60
+          done
+          echo 'C3_KAGGLE_E290_MONITOR_TIMEOUT'
+          exit 5
+
+      - name: Download only benchmark checkpoint and result metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf kaggle_e290_output
+          mkdir -p kaggle_e290_output
+          kaggle kernels output "$KAGGLE_KERNEL_ID" -p kaggle_e290_output -o \
+            --file-pattern '.*(cori_matcha_e290\.ckpt|SEGMENT_E290_RESULT\.json|C3_KAGGLE_T4_BENCHMARK_WRAPPER_RESULT\.json)$'
+          find kaggle_e290_output -type f -printf '%P\n' | sort
+
+      - name: Verify scientific result and SHA
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib, json, os
+          from pathlib import Path
+          root=Path('kaggle_e290_output')
+          ckpts=list(root.rglob('cori_matcha_e290.ckpt'))
+          results=list(root.rglob('SEGMENT_E290_RESULT.json'))
+          wrappers=list(root.rglob('C3_KAGGLE_T4_BENCHMARK_WRAPPER_RESULT.json'))
+          if len(ckpts)!=1 or len(results)!=1 or len(wrappers)!=1:
+              raise SystemExit(f'unexpected output cardinality ckpt={len(ckpts)} result={len(results)} wrapper={len(wrappers)}')
+          ckpt=ckpts[0]
+          result=json.loads(results[0].read_text(encoding='utf-8'))
+          wrapper=json.loads(wrappers[0].read_text(encoding='utf-8'))
+          h=hashlib.sha256()
+          with ckpt.open('rb') as f:
+              for b in iter(lambda:f.read(1024*1024), b''): h.update(b)
+          sha=h.hexdigest()
+          expected_resume='081cf4012a4087f437b8bf2fa0a115da931c5aff26fe22a67acb4f25707cb7a9'
+          assert result.get('ok') is True
+          assert int(result.get('resume_semantic_epoch_total',-1)) == 280
+          assert int(result.get('resume_global_step',-1)) == 140560
+          assert result.get('resume_checkpoint_sha256') == expected_resume
+          assert int(result.get('segment_target_total_epochs',-1)) == 290
+          assert int(result.get('milestone_semantic_epoch',-1)) == 290
+          assert int(result.get('milestone_global_step',-1)) > 140560
+          assert int(result.get('batch_size',-1)) == 16
+          assert result.get('milestone_checkpoint_sha256') == sha
+          assert wrapper.get('ok') is True and int(wrapper.get('target_epoch',-1)) == 290
+          env=wrapper.get('environment') or {}
+          assert int(env.get('gpu_count',-1)) == 1
+          assert 'T4' in str(env.get('gpu','')).upper()
+          report={
+              'schema':'c3-cori-kaggle-e290-verified-v1',
+              'ok':True,
+              'resume_epoch':280,
+              'resume_global_step':140560,
+              'resume_sha256':expected_resume,
+              'milestone_epoch':290,
+              'milestone_global_step':int(result['milestone_global_step']),
+              'milestone_sha256':sha,
+              'batch_size':16,
+              'gpu':env.get('gpu'),
+              'gpu_count':env.get('gpu_count'),
+              'gpu_memory_gib':env.get('gpu_memory_gib'),
+              'torch':env.get('torch'),
+              'cuda':env.get('torch_cuda'),
+              'wall_seconds_including_environment_setup':wrapper.get('wall_seconds_including_environment_setup'),
+              'checkpoint_bytes':ckpt.stat().st_size,
+          }
+          Path('kaggle_e290_verified.json').write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8')
+          Path('e290-checkpoint-path.txt').write_text(str(ckpt)+'\n',encoding='utf-8')
+          print('C3_KAGGLE_E290_VERIFY_PASS')
+          print(json.dumps(report,indent=2))
+          PY
+
+      - name: Mirror verified E290 checkpoint to private Lightning staging
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib, json
+          from pathlib import Path
+          from lightning_sdk import Studio
+          report=json.loads(Path('kaggle_e290_verified.json').read_text())
+          ckpt=Path(Path('e290-checkpoint-path.txt').read_text().strip())
+          sha=report['milestone_sha256']
+          root='C3_KAGGLE_STAGING/results/E290'
+          remote=f'{root}/cori_matcha_e290__sha256_{sha}.ckpt'
+          remote_meta=f'{root}/verified_result.json'
+          studio=Studio(name='c3-asset-vault', teamspace='default-project', org='jeonghun917-org', create_ok=False)
+          studio.upload_file(str(ckpt), remote, progress_bar=False)
+          studio.upload_file('kaggle_e290_verified.json', remote_meta, progress_bar=False)
+          verify=Path('e290-verify-download.ckpt')
+          studio.download_file(remote, file_path=str(verify))
+          h=hashlib.sha256()
+          with verify.open('rb') as f:
+              for b in iter(lambda:f.read(1024*1024), b''): h.update(b)
+          if h.hexdigest()!=sha:
+              raise SystemExit('post-mirror E290 SHA mismatch')
+          print('C3_KAGGLE_E290_LIGHTNING_MIRROR_PASS')
+          print('C3_KAGGLE_E290_SHA256='+sha)
+          print('C3_KAGGLE_E290_GLOBAL_STEP='+str(report['milestone_global_step']))
+          PY
+
+      - name: Remove checkpoint bytes from runner
+        if: always()
+        shell: bash
+        run: |
+          rm -rf kaggle_e290_output
+          rm -f e290-verify-download.ckpt e290-checkpoint-path.txt
+          rm -f kaggle_e290_verified.json

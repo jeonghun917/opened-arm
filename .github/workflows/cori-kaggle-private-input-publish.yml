@@ -1,0 +1,76 @@
+name: Cori Kaggle Private Input Publish
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/cori-kaggle-private-input-publish.yml'
+      - 'runner/publish_cori_kaggle_private_input.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-code:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m py_compile runner/publish_cori_kaggle_private_input.py
+
+  publish-private-input:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    env:
+      LIGHTNING_USER_ID: ${{ secrets.LIGHTNING_USER_ID }}
+      LIGHTNING_API_KEY: ${{ secrets.LIGHTNING_API_KEY }}
+      KAGGLE_API_TOKEN: ${{ secrets.KAGGLE_API_TOKEN }}
+      KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
+      KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
+      KAGGLE_DATASET_ID: ${{ secrets.KAGGLE_DATASET_ID }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Validate required secret presence without printing values
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${LIGHTNING_USER_ID:-}" || { echo 'missing LIGHTNING_USER_ID'; exit 2; }
+          test -n "${LIGHTNING_API_KEY:-}" || { echo 'missing LIGHTNING_API_KEY'; exit 2; }
+          test -n "${KAGGLE_DATASET_ID:-}" || { echo 'missing KAGGLE_DATASET_ID'; exit 2; }
+          if [ -z "${KAGGLE_API_TOKEN:-}" ] && { [ -z "${KAGGLE_USERNAME:-}" ] || [ -z "${KAGGLE_KEY:-}" ]; }; then
+            echo 'missing Kaggle auth: add KAGGLE_API_TOKEN or KAGGLE_USERNAME + KAGGLE_KEY'
+            exit 2
+          fi
+          echo C3_KAGGLE_PRIVATE_PUBLISH_SECRET_GATE_PASS
+
+      - name: Install provider clients
+        run: python -m pip install --quiet --upgrade lightning-sdk kaggle
+
+      - name: Publish frozen assets as a private Kaggle Dataset
+        run: python runner/publish_cori_kaggle_private_input.py
+
+      - name: Upload metadata-only publish report
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cori-kaggle-private-publish-report
+          path: cori-kaggle-private-publish-report.json
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Remove local sensitive staging
+        if: always()
+        shell: bash
+        run: |
+          rm -rf cori_kaggle_private_stage
+          find . -maxdepth 2 -type f \( -name '*.ckpt' -o -name '*.wav' -o -name '*.flac' -o -name 'c3-cori-base.zip' -o -name 'c3-cori-e280.zip' \) -delete

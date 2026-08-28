@@ -1,0 +1,15 @@
+name: Cori Kaggle Launch After Create Once
+
+# Manual-only after the explicitly authorized v7 retry. PR synchronization must
+# not consume additional Kaggle GPU quota.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  disabled-until-next-explicit-retry:
+    runs-on: ubuntu-24.04
+    steps:
+      - run: echo C3_KAGGLE_AUTO_RELAUNCH_DISABLED
