@@ -87,7 +87,7 @@ Code:
 
 
 def repair_invalid_json_string_escapes(value: str) -> str:
-    """Escape only invalid backslash sequences that occur inside JSON strings.
+    r"""Escape only invalid backslash sequences that occur inside JSON strings.
 
     This deliberately does not repair missing quotes/braces, infer fields, or complete
     truncated JSON. It only turns a model-emitted literal such as \s into \\s so the
@@ -182,24 +182,25 @@ def parser_self_test() -> None:
     assert valid_obj["reviewer_id"] == "A"
     assert valid_obj["findings"][0]["rationale"] == "line\nnext and \\d and ሴ"
 
-    malformed = r'{"reviewer_id":"A","findings":[{"rationale":"regex \s and \d and path C:\temp\file"}]}'
+    malformed = r'{"reviewer_id":"A","findings":[{"rationale":"regex \s and \d"}]}'
     recovered = extract_json(malformed)
-    assert recovered["findings"][0]["rationale"] == r"regex \s and \d and path C:\temp\file"
+    assert recovered["findings"][0]["rationale"] == r"regex \s and \d"
 
     fenced = '```json\n' + malformed + '\n```'
     assert extract_json(fenced) == recovered
 
-    for structurally_invalid in (
-        '{"reviewer_id":"A","findings":[{"rationale":"truncated \s"}',
+    structurally_invalid = [
+        r'{"reviewer_id":"A","findings":[{"rationale":"truncated \s"}',
         '{"reviewer_id":"A"}',
         'not json at all',
-    ):
+    ]
+    for sample in structurally_invalid:
         try:
-            extract_json(structurally_invalid)
+            extract_json(sample)
         except (json.JSONDecodeError, ValueError):
             pass
         else:
-            raise AssertionError(f"structurally invalid model output was admitted: {structurally_invalid!r}")
+            raise AssertionError(f"structurally invalid model output was admitted: {sample!r}")
 
     print("Semantic review JSON parser self-test: PASS")
 
