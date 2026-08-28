@@ -23,6 +23,13 @@
     "semanticReviewAuthority": "HYPOTHESIS_ONLY",
     "codingReasonerAuthority": "PROPOSAL_ONLY"
   },
+  "liveEvidence": {
+    "singleCodingReasonerRun": 33131645545,
+    "concurrentThreeReviewersPlusOneCodingRun": 33131897494,
+    "concurrentBundleResult": "PASS",
+    "observedCodingLatencyMs": 4219,
+    "observedSemanticReviewWallLatencyMs": 1465
+  },
   "guaranteeBoundary": "META_ADMISSION_LAYER",
   "externalLimits": [
     "AWS_BEDROCK_SERVICE_QUOTA_OR_OUTAGE",
