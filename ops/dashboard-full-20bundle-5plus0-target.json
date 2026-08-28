@@ -1,8 +1,8 @@
 {
   "schema": "dashboard-full-20bundle-5plus0-target-v0",
   "repository": "jeonghun917/dashboard-control-center",
-  "targetSha": "350bc0dae2e86e761243dc0fadafcdff7d7c8a7f",
-  "approvedBy": "user-directive:2026-08-28:source-verified-fix-full-20bundle-5plus0-rerun-after-parser-fix",
+  "targetSha": "255497e5e604610fffa06247a0ca6ca1758cbc48",
+  "approvedBy": "user-directive:2026-08-29:source-hardening-v2-full-20bundle-5plus0",
   "reviewPlan": {
     "bundleCount": 20,
     "semanticReviewersPerChunk": 5,
