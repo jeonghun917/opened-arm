@@ -43,10 +43,15 @@ def _cleaned_candidates(text: str) -> list[str]:
 
 
 def _extract_json_with_one_missing_comma(text: str) -> dict:
+    original_error: json.JSONDecodeError | None = None
     try:
-        return _BASE_EXTRACT_JSON(text)
-    except json.JSONDecodeError as original_error:
-        if original_error.msg != "Expecting ',' delimiter":
+        parsed = _BASE_EXTRACT_JSON(text)
+        if not _strict_repaired_shape(parsed):
+            raise ValueError('D/E response must match the exact reviewer/findings schema')
+        return parsed
+    except json.JSONDecodeError as error:
+        original_error = error
+        if error.msg != "Expecting ',' delimiter":
             raise
 
     for candidate in _cleaned_candidates(text):
@@ -63,7 +68,10 @@ def _extract_json_with_one_missing_comma(text: str) -> dict:
                 continue
             if _strict_repaired_shape(parsed):
                 return parsed
-    raise original_error
+
+    if original_error is not None:
+        raise original_error
+    raise ValueError('D/E response could not be repaired safely')
 
 
 module.extract_json = _extract_json_with_one_missing_comma
