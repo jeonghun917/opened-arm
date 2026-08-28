@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - '.github/workflows/dashboard-5plus0-audit.yml'
+      - 'infra/aws/semantic-review/dashboard_five_audit.py'
       - 'ops/dashboard-5plus0-target.json'
   push:
     branches: [main]
@@ -37,8 +38,7 @@ jobs:
           assert re.fullmatch(r'[0-9a-f]{40}',p['baseSha'])
           assert re.fullmatch(r'[0-9a-f]{40}',p['targetSha'])
           assert p['baseSha']!=p['targetSha']
-          plan=p['reviewPlan']
-          assert plan=={
+          assert p['reviewPlan']=={
             'semanticReviewersPerChunk':5,
             'codingReasonersPerChunk':0,
             'automaticRetry':False,
@@ -46,8 +46,10 @@ jobs:
           }
           print('dashboard 5+0 target contract: PASS')
           PY
-      - name: Compile semantic review pool
-        run: python3 -m py_compile infra/aws/semantic-review/pool.py
+      - name: Compile and self-test deterministic audit builder
+        run: |
+          python3 -m py_compile infra/aws/semantic-review/dashboard_five_audit.py infra/aws/semantic-review/pool.py
+          python3 infra/aws/semantic-review/dashboard_five_audit.py --self-test
 
   audit:
     if: ${{ github.event_name == 'push' }}
@@ -79,9 +81,8 @@ jobs:
           base=p.get('baseSha',''); target=p.get('targetSha','')
           if not re.fullmatch(r'[0-9a-f]{40}',base) or not re.fullmatch(r'[0-9a-f]{40}',target) or base==target:
               raise SystemExit('audit_sha_invalid')
-          plan=p.get('reviewPlan')
-          expected={'semanticReviewersPerChunk':5,'codingReasonersPerChunk':0,'automaticRetry':False,'maxChunks':4}
-          if plan!=expected: raise SystemExit('audit_review_plan_invalid')
+          if p.get('reviewPlan')!={'semanticReviewersPerChunk':5,'codingReasonersPerChunk':0,'automaticRetry':False,'maxChunks':4}:
+              raise SystemExit('audit_review_plan_invalid')
           if not isinstance(p.get('approvedBy'),str) or not p['approvedBy'].startswith('user-directive:'):
               raise SystemExit('audit_human_approval_missing')
           with open(os.environ['GITHUB_OUTPUT'],'a',encoding='utf-8') as f:
@@ -89,16 +90,12 @@ jobs:
               f.write(f'base_sha={base}\n')
               f.write(f'target_sha={target}\n')
               f.write(f'target_short={target[:12]}\n')
-          print(json.dumps({'repository':p['repository'],'baseSha':base,'targetSha':target,'reviewPlan':plan}))
           PY
 
       - name: Require bounded private Dashboard checkout credential
-        shell: bash
         env:
           DASHBOARD_REPO_TOKEN: ${{ secrets.DASHBOARD_REPO_TOKEN }}
-        run: |
-          set -euo pipefail
-          test -n "${DASHBOARD_REPO_TOKEN:-}"
+        run: test -n "${DASHBOARD_REPO_TOKEN:-}"
 
       - name: Check out exact private Dashboard target
         uses: actions/checkout@v4
@@ -111,7 +108,6 @@ jobs:
           persist-credentials: false
 
       - name: Verify exact Dashboard identity and ancestry
-        shell: bash
         working-directory: dashboard
         env:
           BASE_SHA: ${{ steps.target.outputs.base_sha }}
@@ -128,104 +124,10 @@ jobs:
           fi
 
       - name: Build bounded audit chunks from exact diff
-        shell: bash
         env:
           BASE_SHA: ${{ steps.target.outputs.base_sha }}
           TARGET_SHA: ${{ steps.target.outputs.target_sha }}
-        run: |
-          set -euo pipefail
-          python3 - <<'PY'
-          import json,os,subprocess
-          from pathlib import Path
-
-          repo=Path('dashboard')
-          base=os.environ['BASE_SHA']; target=os.environ['TARGET_SHA']
-          max_code=36000
-          max_part=30000
-          max_chunks=4
-
-          def git(*args):
-              return subprocess.check_output(['git','-C',str(repo),*args],text=True)
-
-          files=[x for x in git('diff','--name-only',base,target,'--').splitlines() if x.strip()]
-          if not files or len(files)>30:
-              raise SystemExit(f'changed_file_count_invalid:{len(files)}')
-
-          blocks=[]
-          for path in files:
-              patch=git('diff','--no-ext-diff','--unified=25',base,target,'--',path)
-              if not patch.strip():
-                  raise SystemExit(f'empty_patch:{path}')
-              if 'Binary files ' in patch or 'GIT binary patch' in patch:
-                  raise SystemExit(f'binary_patch_forbidden:{path}')
-              header=f'=== {path} ===\n'
-              raw=(header+patch).encode()
-              if len(raw)<=max_part:
-                  blocks.append((path,header+patch))
-                  continue
-              lines=patch.splitlines(True)
-              parts=[]; current=[]; size=len(header.encode())+80
-              for line in lines:
-                  b=len(line.encode())
-                  if b>max_part-500:
-                      raise SystemExit(f'single_line_too_large:{path}')
-                  if current and size+b>max_part:
-                      parts.append(''.join(current)); current=[]; size=len(header.encode())+80
-                  current.append(line); size+=b
-              if current: parts.append(''.join(current))
-              for idx,part in enumerate(parts,1):
-                  blocks.append((path,f'=== {path} [part {idx}/{len(parts)}] ===\n{part}'))
-
-          chunks=[]; texts=[]; paths=[]; size=0
-          def flush():
-              nonlocal texts,paths,size
-              if not texts: return
-              chunks.append({'code':'\n\n'.join(texts),'paths':list(dict.fromkeys(paths)),'bytes':size})
-              texts=[]; paths=[]; size=0
-          for path,text in blocks:
-              b=len(text.encode())+(2 if texts else 0)
-              if b>max_code: raise SystemExit(f'block_too_large:{path}')
-              if texts and size+b>max_code: flush()
-              texts.append(text); paths.append(path); size+=b
-          flush()
-          if not chunks or len(chunks)>max_chunks:
-              raise SystemExit(f'chunk_count_invalid:{len(chunks)}')
-
-          requirements='\n'.join([
-              'Audit mode: Dashboard Project AI dispatch-control implementation. Findings are HYPOTHESIS_ONLY until source-verified.',
-              f'Exact source range: jeonghun917/dashboard-control-center@{base}...{target}',
-              f'Full changed paths: {", ".join(files)}',
-              'Review concrete correctness/security boundaries, not style:',
-              '- Dashboard authentication and same-origin write markers must remain mandatory.',
-              '- Project/Workstream/TaskContract identity and exact candidate SHA must fail closed.',
-              '- Target-repository read credentials must not gain runner/workflow write authority.',
-              '- Runner workflow credentials must not be reused as generic target-repository credentials.',
-              '- Paid AI must require explicit human approval; fallback and automatic paid retry remain disabled.',
-              '- GitHub workflow_dispatch transport/input bounds must be enforced before provider invocation.',
-              '- Request persistence/readback must not equate dispatch acceptance with completed review.',
-              '- Semantic results are hypothesis-only and coding results proposal-only; no auto-apply/merge/deploy/completion.',
-              '- projectAi.bundle must match the typed Continuity capability and exact execution-plane route.',
-              '- Failure handling must preserve evidence without silently widening authority or repeating paid work.',
-              '- UI must not expose arbitrary repository/workflow/ref/model/provider dispatch fields.',
-              '- Regression tests must cover denial paths, approval, exact route, no fallback/retry, and capability registration.',
-              '- During this implementation an accidental create/delete temporary-file pair reached Dashboard main; only report a code defect if the supplied implementation enables or relies on unsafe direct-main mutation.',
-              'Do not report speculative missing context or style preferences. Report only concrete defects supported by the supplied diff.',
-          ])
-          if len(requirements.encode())>12000: raise SystemExit('requirements_too_large')
-
-          out=Path('audit-inputs'); out.mkdir(exist_ok=True)
-          manifest={'schema':'dashboard-5plus0-audit-manifest-v0','baseSha':base,'targetSha':target,'changedPaths':files,'chunks':[],'semanticReviewersPerChunk':5,'codingReasonersPerChunk':0,'automaticRetry':False}
-          for i,chunk in enumerate(chunks,1):
-              task_id=f'dashboard-5plus0:{target[:12]}:chunk-{i:02d}'
-              payload={'task_id':task_id,'language':'ko','requirements':requirements+f'\nThis chunk paths: {", ".join(chunk["paths"])}','code':chunk['code']}
-              raw=json.dumps(payload,ensure_ascii=False,separators=(',',':')).encode()
-              if len(payload['code'].encode())>48000 or len(payload['requirements'].encode())>12000 or len(raw)>65536:
-                  raise SystemExit(f'chunk_payload_too_large:{i}')
-              path=out/f'chunk-{i:02d}.json'; path.write_bytes(raw)
-              manifest['chunks'].append({'index':i,'input':str(path),'paths':chunk['paths'],'codeBytes':len(payload['code'].encode()),'payloadBytes':len(raw)})
-          Path('audit-manifest.json').write_text(json.dumps(manifest,indent=2,sort_keys=True))
-          print(json.dumps({'changedFiles':len(files),'chunks':len(chunks),'expectedSemanticCalls':len(chunks)*5,'codingCalls':0}))
-          PY
+        run: python3 runner-repo/infra/aws/semantic-review/dashboard_five_audit.py --build --repo dashboard
 
       - name: Configure semantic review credentials via OIDC
         uses: aws-actions/configure-aws-credentials@v4
@@ -268,48 +170,7 @@ jobs:
 
       - name: Build deterministic 5+0 summary
         if: always()
-        shell: bash
-        run: |
-          set -euo pipefail
-          python3 - <<'PY'
-          import glob,json,os
-          from pathlib import Path
-          manifest=json.loads(Path('audit-manifest.json').read_text()) if Path('audit-manifest.json').exists() else {}
-          results=[]; completed=0
-          for path in sorted(glob.glob('audit-results/*.json')):
-              data=json.loads(Path(path).read_text())
-              completed+=int(data.get('completed_reviews',0))
-              results.append({
-                  'file':path,
-                  'reviewBudget':data.get('review_budget'),
-                  'completedReviews':data.get('completed_reviews'),
-                  'findingCount':data.get('finding_count'),
-                  'resultState':data.get('result_state'),
-                  'aggregatedFindings':data.get('aggregated_findings',[]),
-                  'usage':data.get('usage',{}),
-              })
-          chunks=len(manifest.get('chunks',[]))
-          expected=chunks*5
-          summary={
-              'schema':'dashboard-5plus0-audit-summary-v0',
-              'authority':'HYPOTHESIS_ONLY',
-              'productionPassFailAuthority':False,
-              'baseSha':manifest.get('baseSha'),
-              'targetSha':manifest.get('targetSha'),
-              'changedPaths':manifest.get('changedPaths',[]),
-              'chunkCount':chunks,
-              'semanticReviewerCallsExpected':expected,
-              'semanticReviewerCallsCompleted':completed,
-              'codingReasonerCalls':0,
-              'automaticRetry':False,
-              'results':results,
-              'nextGate':'deterministic_source_verification_required',
-          }
-          Path('dashboard-5plus0-audit-summary.json').write_text(json.dumps(summary,indent=2,sort_keys=True))
-          print(json.dumps({'chunks':chunks,'expectedSemanticCalls':expected,'completedSemanticCalls':completed,'codingCalls':0}))
-          if chunks and completed!=expected:
-              raise SystemExit('five_plus_zero_incomplete')
-          PY
+        run: python3 runner-repo/infra/aws/semantic-review/dashboard_five_audit.py --summarize
 
       - name: Upload 5+0 audit evidence
         if: always()
