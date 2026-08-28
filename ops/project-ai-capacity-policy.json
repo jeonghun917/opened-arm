@@ -1,0 +1,31 @@
+{
+  "schema": "project-ai-capacity-policy-v0",
+  "owner": "meta",
+  "scope": "ALL_REGISTERED_PRODUCT_PROJECTS",
+  "model": "qwen.qwen3-coder-30b-a3b-v1:0",
+  "minimumAdmissionGuaranteePerProject": {
+    "semanticReviewBundles": 1,
+    "semanticReviewersPerBundle": 3,
+    "codingReasoners": 1
+  },
+  "allocation": {
+    "mode": "MINIMUM_GUARANTEE_NOT_HARD_PARTITION",
+    "sharedSpareCapacity": "BORROWABLE",
+    "dedicatedIdleReservation": false,
+    "projectHardCap": false,
+    "sameTargetMutationWrites": "SERIALIZED",
+    "differentTargets": "PARALLEL"
+  },
+  "execution": {
+    "semanticReviewWorkflow": ".github/workflows/aws-semantic-review-intake.yml",
+    "codingReasonerWorkflow": ".github/workflows/aws-qwen-coding-reasoner.yml",
+    "automaticPaidRetry": false,
+    "semanticReviewAuthority": "HYPOTHESIS_ONLY",
+    "codingReasonerAuthority": "PROPOSAL_ONLY"
+  },
+  "guaranteeBoundary": "META_ADMISSION_LAYER",
+  "externalLimits": [
+    "AWS_BEDROCK_SERVICE_QUOTA_OR_OUTAGE",
+    "GITHUB_HOSTED_RUNNER_QUOTA_OR_OUTAGE"
+  ]
+}
