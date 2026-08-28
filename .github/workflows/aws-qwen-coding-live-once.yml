@@ -1,3 +1,4 @@
+# one-shot trigger
 name: AWS Qwen Coding Worker Live Once
 
 on:
