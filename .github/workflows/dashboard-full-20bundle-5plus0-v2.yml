@@ -4,6 +4,8 @@ on:
   pull_request:
     paths:
       - 'ops/dashboard-full-20bundle-5plus0-target.json'
+      - 'ops/dashboard-semantic-review-strict.py'
+      - '.github/workflows/dashboard-full-20bundle-5plus0-v2.yml'
   push:
     branches:
       - main
@@ -31,7 +33,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python3 -m py_compile ops/dashboard-full-20bundle-audit.py ops/semantic-review-pool-de.py infra/aws/semantic-review/pool.py
+          python3 -m py_compile ops/dashboard-full-20bundle-audit.py ops/dashboard-semantic-review-strict.py infra/aws/semantic-review/pool.py
+          SEMANTIC_REVIEW_COUNT=2 AUDIT_REVIEWER_GROUP=DE python3 ops/dashboard-semantic-review-strict.py --self-test
           python3 - <<'PY'
           import json,re
           from pathlib import Path
@@ -202,8 +205,8 @@ jobs:
             stem="${bundle}-${chunk}"
             abc="audit-results/${stem}-abc.json"
             de="audit-results/${stem}-de.json"
-            SEMANTIC_REVIEW_COUNT=3 SEMANTIC_REVIEW_INPUT="$input" SEMANTIC_REVIEW_OUTPUT="$abc" python3 runner-repo/infra/aws/semantic-review/pool.py
-            SEMANTIC_REVIEW_COUNT=2 SEMANTIC_REVIEW_INPUT="$input" SEMANTIC_REVIEW_OUTPUT="$de" python3 runner-repo/ops/semantic-review-pool-de.py
+            SEMANTIC_REVIEW_COUNT=3 AUDIT_REVIEWER_GROUP=ABC SEMANTIC_REVIEW_INPUT="$input" SEMANTIC_REVIEW_OUTPUT="$abc" python3 runner-repo/ops/dashboard-semantic-review-strict.py
+            SEMANTIC_REVIEW_COUNT=2 AUDIT_REVIEWER_GROUP=DE SEMANTIC_REVIEW_INPUT="$input" SEMANTIC_REVIEW_OUTPUT="$de" python3 runner-repo/ops/dashboard-semantic-review-strict.py
             python3 - "$abc" "$de" <<'PY'
           import json,sys
           abc=json.load(open(sys.argv[1]))
