@@ -1,0 +1,95 @@
+name: AWS Qwen Coding Worker Live Probe
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/aws-qwen-coding-live-probe.yml'
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      AWS_ACCOUNT_ID: ${{ vars.AWS_ACCOUNT_ID }}
+      AWS_MAX_ATTEMPTS: '1'
+      AWS_RETRY_MODE: standard
+      CODING_REASONER_MODEL_ID: qwen.qwen3-coder-30b-a3b-v1:0
+      CODING_REASONER_INPUT: coding-reasoner-input.json
+      CODING_REASONER_OUTPUT: coding-reasoner-result.json
+    steps:
+      - uses: actions/checkout@v4
+      - name: Write bounded one-shot request
+        shell: bash
+        run: |
+          cat > coding-reasoner-input.json <<'JSON'
+          {
+            "task_id": "qwen-coding-live-v0",
+            "goal": "Make the exact bounded one-line TypeScript change.",
+            "acceptance_criteria": ["Only probe/allowed.ts may change.", "The exported value becomes 2."],
+            "stop_and_escalate": ["Escalate if any other path is needed."],
+            "requested_change": "Change the exported value from 1 to 2.",
+            "target": {
+              "repository": "jeonghun917/opened-arm",
+              "branch": "main",
+              "base_sha": "5fe15d2f055152207c638066e4e97a491a762436"
+            },
+            "path_policy": {
+              "allowed_paths": ["probe/allowed.ts"],
+              "forbidden_paths": [],
+              "allow_delete": false,
+              "max_mutations": 1,
+              "max_file_bytes": 1024,
+              "max_total_bytes": 1024
+            },
+            "files": [
+              {"path": "probe/allowed.ts", "content": "export const value = 1;\n"}
+            ]
+          }
+          JSON
+          python3 infra/aws/coding-worker/reasoner.py --validate-request
+      - name: Mask AWS identifiers
+        shell: bash
+        run: |
+          echo "::add-mask::${AWS_ACCOUNT_ID}"
+          echo "::add-mask::arn:aws:iam::${AWS_ACCOUNT_ID}:role/general-ai-semantic-review"
+      - name: Configure Bedrock credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ format('arn:aws:iam::{0}:role/general-ai-semantic-review', vars.AWS_ACCOUNT_ID) }}
+          aws-region: ${{ vars.AWS_REGION }}
+          role-session-name: opened-arm-qwen-coding-live-probe
+          mask-aws-account-id: true
+          disable-retry: true
+      - name: Invoke Qwen Coding Worker exactly once
+        run: python3 infra/aws/coding-worker/reasoner.py
+      - name: Verify bounded proposal
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          data = json.loads(Path('coding-reasoner-result.json').read_text())
+          proposal = data['proposal']
+          assert data['model_id'] == 'qwen.qwen3-coder-30b-a3b-v1:0'
+          assert data['automatic_retry'] is False
+          assert data['mutation_authority'] is False
+          assert proposal['decision'] == 'PROPOSE'
+          assert len(proposal['mutations']) == 1
+          mutation = proposal['mutations'][0]
+          assert mutation['path'] == 'probe/allowed.ts'
+          assert mutation['operation'] in ('update_file', 'create_file')
+          assert '2' in mutation.get('content', '')
+          print(json.dumps({'decision': proposal['decision'], 'path': mutation['path'], 'usage': data['usage'], 'latency_ms': data['latency_ms']}))
+          PY
+      - name: Upload one-shot evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qwen-coding-live-v0
+          path: coding-reasoner-result.json
+          if-no-files-found: error
+          retention-days: 7
