@@ -5,6 +5,7 @@ on:
     paths:
       - '.github/workflows/aws-semantic-review-intake.yml'
       - 'infra/aws/semantic-review/pool.py'
+      - 'ops/semantic-review-pool-de.py'
   workflow_dispatch:
     inputs:
       payload_b64:
@@ -36,11 +37,12 @@ jobs:
     timeout-minutes: 3
     steps:
       - uses: actions/checkout@v4
-      - name: Validate parser definition and malformed-escape boundary
+      - name: Validate parser definition and malformed-output boundaries
         run: |
           set -euo pipefail
-          python3 -m py_compile infra/aws/semantic-review/pool.py
+          python3 -m py_compile infra/aws/semantic-review/pool.py ops/semantic-review-pool-de.py
           python3 infra/aws/semantic-review/pool.py --parser-self-test
+          SEMANTIC_REVIEW_COUNT=2 python3 ops/semantic-review-pool-de.py --parser-self-test
 
   review:
     if: ${{ github.event_name == 'workflow_dispatch' }}
