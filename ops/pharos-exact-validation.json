@@ -1,8 +1,8 @@
 {
   "schema": 1,
   "targetRepository": "jeonghun917/pharos-orbis",
-  "targetSha": "3aa06e4c0297751920d6841ac222bfb236c3b229",
-  "actualSha": "3aa06e4c0297751920d6841ac222bfb236c3b229",
+  "targetSha": "ba6f0fcad5c11949ea0bcf70a8d0cebda170a24a",
+  "actualSha": "ba6f0fcad5c11949ea0bcf70a8d0cebda170a24a",
   "recipeVersion": "v0",
   "recipePath": "ops/validation/recipe-v0.sh",
   "targetResolution": "success",
@@ -15,6 +15,6 @@
   "cleanAfter": "success",
   "finalStatusPublish": "success",
   "statusContext": "pharos-public-validation",
-  "runId": "33147727466",
+  "runId": "33148152746",
   "runAttempt": "1"
 }
