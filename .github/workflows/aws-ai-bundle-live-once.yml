@@ -1,3 +1,4 @@
+# one-shot bundle trigger
 name: AWS AI Bundle Live Once
 
 on:
