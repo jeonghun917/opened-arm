@@ -1,12 +1,24 @@
 name: AWS Semantic Review Intake
 
 on:
+  pull_request:
+    paths:
+      - '.github/workflows/aws-semantic-review-intake.yml'
+      - 'infra/aws/semantic-review/pool.py'
   workflow_dispatch:
     inputs:
       payload_b64:
         description: Base64-encoded semantic review request JSON
         required: true
         type: string
+      review_count:
+        description: Exact number of independent semantic reviewers in this batch
+        required: true
+        default: '3'
+        type: choice
+        options:
+          - '2'
+          - '3'
       dry_run:
         description: Validate the request contract without invoking Bedrock
         required: true
@@ -18,14 +30,23 @@ permissions:
   contents: read
 
 jobs:
+  validate_definition:
+    if: ${{ github.event_name == 'pull_request' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 -m py_compile infra/aws/semantic-review/pool.py
+
   review:
+    if: ${{ github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     timeout-minutes: 8
     env:
       AWS_ACCOUNT_ID: ${{ vars.AWS_ACCOUNT_ID }}
-      AWS_MAX_ATTEMPTS: "1"
+      AWS_MAX_ATTEMPTS: '1'
       AWS_RETRY_MODE: standard
-      SEMANTIC_REVIEW_COUNT: "3"
+      SEMANTIC_REVIEW_COUNT: ${{ inputs.review_count }}
       SEMANTIC_REVIEW_MODEL_ID: qwen.qwen3-coder-30b-a3b-v1:0
       SEMANTIC_REVIEW_INPUT: semantic-review-input.json
       SEMANTIC_REVIEW_OUTPUT: semantic-review-pool-results.json
@@ -74,6 +95,9 @@ jobs:
           language = request.get('language')
           requirements = request.get('requirements')
           code = request.get('code')
+          count = int(os.environ.get('SEMANTIC_REVIEW_COUNT', '0'))
+          if count not in (2, 3):
+              raise SystemExit('review_count must be exactly 2 or 3')
 
           if not isinstance(task_id, str) or not re.fullmatch(r'[A-Za-z0-9._:-]{1,160}', task_id):
               raise SystemExit('task_id is missing or invalid')
@@ -93,21 +117,20 @@ jobs:
           Path(os.environ['SEMANTIC_REVIEW_INPUT']).write_text(
               json.dumps(normalized, ensure_ascii=False, separators=(',', ':'))
           )
-
-          if os.environ.get('DRY_RUN', '').lower() == 'true':
-              output = {
-                  'schema': 'semantic-review-intake-v0',
-                  'task_id': task_id,
-                  'dry_run': True,
-                  'authority': 'HYPOTHESIS_ONLY',
-                  'production_pass_fail_authority': False,
-                  'automatic_retry': False,
-                  'review_budget': 3,
-                  'next_gate': 'paid_semantic_review_requires_explicit_invocation',
-              }
-              Path(os.environ['SEMANTIC_REVIEW_INTAKE_OUTPUT']).write_text(
-                  json.dumps(output, indent=2, sort_keys=True)
-              )
+          dry_run = os.environ.get('DRY_RUN', '').lower() == 'true'
+          intake = {
+              'schema': 'semantic-review-intake-v0',
+              'task_id': task_id,
+              'dry_run': dry_run,
+              'authority': 'HYPOTHESIS_ONLY',
+              'production_pass_fail_authority': False,
+              'automatic_retry': False,
+              'review_budget': count,
+              'next_gate': 'paid_semantic_review_requires_explicit_invocation' if dry_run else 'semantic_review_in_progress',
+          }
+          Path(os.environ['SEMANTIC_REVIEW_INTAKE_OUTPUT']).write_text(
+              json.dumps(intake, indent=2, sort_keys=True)
+          )
           PY
 
       - name: Mask AWS identifiers
@@ -141,13 +164,16 @@ jobs:
           set -euo pipefail
           python3 - <<'PY'
           import json
+          import os
           from pathlib import Path
+          expected = int(os.environ['SEMANTIC_REVIEW_COUNT'])
           data = json.loads(Path('semantic-review-pool-results.json').read_text())
           assert data['schema'] == 'semantic-review-pool-v0'
           assert data['authority'] == 'HYPOTHESIS_ONLY'
           assert data['production_pass_fail_authority'] is False
           assert data['automatic_retry'] is False
-          assert data['review_budget'] == 3
+          assert data['review_budget'] == expected
+          assert data['completed_reviews'] == expected
           assert data['next_gate'] == 'deterministic_verification_required'
           print(json.dumps({
               'task_id': data.get('task_id'),
@@ -161,7 +187,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: semantic-review-intake-v0
+          name: semantic-review-intake-v0-${{ inputs.review_count }}
           path: |
             semantic-review-intake-result.json
             semantic-review-pool-results.json
