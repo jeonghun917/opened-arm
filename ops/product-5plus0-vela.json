@@ -1,0 +1,164 @@
+{
+  "schema": "product-full-bundle-5plus0-target-v0",
+  "projectId": "vela-development",
+  "repository": "jeonghun917/Ars-Mentis",
+  "targetSha": "fb9a6f008da7e492d1863593f3ab94ec30f335eb",
+  "approvedBy": "user-directive:2026-08-29:pharos-vela-functional-5plus0",
+  "reviewPlan": {
+    "semanticReviewersPerChunk": 5,
+    "reviewerIds": ["A", "B", "C", "D", "E"],
+    "codingReasoners": 0,
+    "automaticRetry": false,
+    "maxTotalChunks": 100
+  },
+  "sourceRoots": ["src/vela_runtime", "tests", "tools"],
+  "codeExtensions": [".py"],
+  "globalRequirements": [
+    "Audit the exact VELA foundation/application source against the promoted engine-neutral technical design and its current G7-G9/application-lifecycle intent; do not treat historical Drive material as execution authority.",
+    "The promoted core is engine-neutral: durable checkpoints/canonical state, durable event log and causal lineage, replay planning, replaceable selector, target-free evidence boundary, prepare-validate-commit/rollback transaction, conservative full-replay fallback, previous-engine safety, audit and compare-and-set protection.",
+    "The core must not import or embed a final optimized inference backend, PyTorch/rwkv.cpp implementation details, model weights, final hardware assumptions, or a frozen final backbone policy.",
+    "RWKV/model-specific logic belongs at the adapter/evidence edge. Target-free current-lineage evidence may influence anchor choice; target/future/W3-native oracle leakage is forbidden and non-target-free evidence must not weaken full-replay safety.",
+    "Synthetic G7 evidence and benchmark results must not be generalized into proof of general identity, production latency, production backend quality, or long-duration real-world robustness.",
+    "The audit is read-only. Model findings have HYPOTHESIS_ONLY authority, coding reasoner count is zero, automatic paid retry is zero, and no finding may auto-mutate/merge/deploy."
+  ],
+  "bundles": [
+    {
+      "id": "core-contracts-audit-trace",
+      "name": "core types, audit records, traces, results and validation contracts",
+      "paths": [
+        "src/vela_runtime/__init__.py",
+        "src/vela_runtime/types.py",
+        "src/vela_runtime/audit.py",
+        "src/vela_runtime/trace.py",
+        "src/vela_runtime/results.py",
+        "src/vela_runtime/validation.py"
+      ],
+      "requirements": [
+        "Core data contracts must preserve engine-neutral semantics and must not smuggle model/backend-specific state into generic identities, traces, or validation outcomes.",
+        "Audit/trace/result structures must represent actual transaction/evidence decisions without silently upgrading hypothesis/benchmark evidence into canonical production truth.",
+        "Validation outcomes must fail conservatively when required evidence is absent or inconsistent rather than manufacturing a successful state."
+      ]
+    },
+    {
+      "id": "checkpoint-canonical-retention",
+      "name": "durable checkpoint repository, canonical state persistence, retention and G8 I/O behavior",
+      "paths": [
+        "src/vela_runtime/checkpoints.py",
+        "src/vela_runtime/retention.py",
+        "tools/g8_durable_io_benchmark.py"
+      ],
+      "requirements": [
+        "Checkpoint and canonical-state persistence must preserve durable identity/version semantics and must not expose a partially written state as canonical.",
+        "Retention may remove only data that policy permits; it must not destroy state required to recover the current canonical lineage or silently rewrite identity.",
+        "G8 durable-I/O benchmarking is evidence collection only; it must not freeze checkpoint interval/policy or mutate production policy as a side effect."
+      ]
+    },
+    {
+      "id": "eventlog-lineage-trajectory-recovery",
+      "name": "durable event log, lineage reconstruction, trajectory and process recovery",
+      "paths": [
+        "src/vela_runtime/eventlog.py",
+        "src/vela_runtime/lineage.py",
+        "src/vela_runtime/trajectory.py",
+        "tests/test_eventlog_recovery.py",
+        "tests/test_process_recovery.py"
+      ],
+      "requirements": [
+        "Durable events must reconstruct causal lineage deterministically across a fresh process and must not create impossible parent/child history.",
+        "Recovery may repair/truncate only an incomplete trailing event caused by process death; complete corruption must remain fatal rather than being silently discarded.",
+        "Recovered lineage and trajectory must agree with the persisted canonical/checkpoint state used for subsequent replay planning."
+      ]
+    },
+    {
+      "id": "replay-equivalence-selector-upgrade",
+      "name": "semantic replay scope, equivalence, anchor selection and upgrade planning",
+      "paths": [
+        "src/vela_runtime/replay.py",
+        "src/vela_runtime/equivalence.py",
+        "src/vela_runtime/selector.py",
+        "src/vela_runtime/upgrade.py",
+        "tests/test_equivalence_evidence.py",
+        "tests/test_selector_depth_guard.py",
+        "tests/test_upgrade_scope.py"
+      ],
+      "requirements": [
+        "Replay planning must preserve live-cause/current-lineage scope and use conservative full replay when anchor/equivalence evidence is insufficient.",
+        "Anchor selection must be replaceable and bounded; it must not use future/target oracle information or reinterpret evaluation-only evidence as selection evidence.",
+        "Equivalence must be based on the intended functional/current-lineage contract, not merely structural equality that can hide behavior loss.",
+        "Upgrade scope/selection must not mutate canonical state before validation/commit."
+      ]
+    },
+    {
+      "id": "executor-guarded-transaction-resilience",
+      "name": "guarded replay executor, transaction commit/rollback and resilience",
+      "paths": [
+        "src/vela_runtime/executor.py",
+        "src/vela_runtime/guarded_executor.py",
+        "src/vela_runtime/resilience.py",
+        "tests/test_executor.py",
+        "tests/test_guarded_executor.py"
+      ],
+      "requirements": [
+        "The guarded path must implement prepare -> validate -> canonical commit, with rollback/fallback when validation or target activation cannot safely complete.",
+        "Preflight and execution must share one audited selector/evidence decision instead of evaluating an expensive/model-backed selector twice with potentially divergent results.",
+        "Canonical state must never expose an invalid target as committed. Failure handling must preserve or recover the previous valid engine/state path.",
+        "Transaction/audit identity must remain coherent across anchor selection, prepare, validation, commit, fallback and rollback."
+      ]
+    },
+    {
+      "id": "rwkv-target-free-g7-evidence",
+      "name": "RWKV adapter, target-free evidence provider and audited G7 bridge",
+      "paths": [
+        "src/vela_runtime/rwkv.py",
+        "src/vela_runtime/g7_evidence.py",
+        "src/vela_runtime/g7_integration.py",
+        "tools/verify_rwkv_g7_evidence_bridge.py",
+        "tests/test_g7_evidence_bridge.py",
+        "tests/test_g7_evidence_coverage_semantics.py",
+        "tests/test_rwkv_integration.py",
+        "tests/test_rwkv_upgrade_runtime.py"
+      ],
+      "requirements": [
+        "RWKV backend owns model/token/state details while the foundation core consumes an engine-neutral adapter/evidence contract.",
+        "Evidence provider must receive the real inner-selector baseline and consider only eligible carried-generation checkpoints no later than that baseline.",
+        "Target-free current-lineage signatures are selection evidence; target output, W3-native future oracle, or other non-target-free evidence is forbidden for anchor choice.",
+        "The evidence bridge must reproduce audited selector/provenance decisions without claiming to rerun the model or prove production performance.",
+        "Model-specific evidence may make a conservative selection more informed but must never weaken the full-replay fallback/safety decision."
+      ]
+    },
+    {
+      "id": "lifecycle-application-recovery",
+      "name": "upgrade lifecycle journal, application host, activation/compensation and G9 process recovery",
+      "paths": [
+        "src/vela_runtime/lifecycle.py",
+        "src/vela_runtime/lifecycle_journal.py",
+        "src/vela_runtime/application.py",
+        "tools/g9_failure_matrix.py",
+        "tests/test_application_host_validation.py",
+        "tests/test_application_lifecycle.py",
+        "tests/test_g7_g9_runtime.py",
+        "tests/test_lifecycle_process_recovery.py",
+        "tests/test_lifecycle_recovery.py",
+        "tests/test_rwkv_durable_lifecycle.py"
+      ],
+      "requirements": [
+        "Application lifecycle orchestration must quiesce/flush the current engine, invoke the guarded upgrade, and activate the target only after a valid canonical commit.",
+        "On target activation/lifecycle failure the previous engine/state must remain available for compensation/reactivation; recovery must not double-activate an engine already restored by lifecycle recovery.",
+        "Lifecycle journal state must survive process death and make incomplete transitions recoverable without inventing a successful transition or duplicating canonical commits.",
+        "Host/store identity guards must prevent executing an upgrade through mismatched ownership/state stores.",
+        "G9 failure-matrix tooling is validation evidence only and must not mutate final architecture or production policy."
+      ]
+    },
+    {
+      "id": "cross-layer-foundation-regression",
+      "name": "cross-layer promoted foundation invariants",
+      "paths": [
+        "tests/test_foundation.py"
+      ],
+      "requirements": [
+        "Cross-layer regression must exercise the promoted engine-neutral foundation invariants rather than hide contract drift behind mocks that no longer match production-facing interfaces.",
+        "A passing regression is evidence for the tested scope only; it must not freeze final backbone/schema/selector policy or convert synthetic validation into production certainty."
+      ]
+    }
+  ]
+}
