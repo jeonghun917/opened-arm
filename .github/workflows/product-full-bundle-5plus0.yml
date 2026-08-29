@@ -1,0 +1,304 @@
+name: Product Functional Bundle 5+0 Audit
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/product-full-bundle-5plus0.yml'
+      - 'ops/product-full-bundle-5plus0-audit.py'
+      - 'ops/product-5plus0-pharos.json'
+      - 'ops/product-5plus0-vela.json'
+      - 'ops/dashboard-semantic-review-strict.py'
+      - 'infra/aws/semantic-review/pool.py'
+  push:
+    branches: [main]
+    paths:
+      - 'ops/product-5plus0-pharos.json'
+      - 'ops/product-5plus0-vela.json'
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: product-functional-bundle-5plus0-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  AWS_MAX_ATTEMPTS: '1'
+  AWS_RETRY_MODE: standard
+  SEMANTIC_REVIEW_MODEL_ID: qwen.qwen3-coder-30b-a3b-v1:0
+
+jobs:
+  preflight:
+    if: ${{ github.event_name == 'pull_request' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        config:
+          - ops/product-5plus0-pharos.json
+          - ops/product-5plus0-vela.json
+    steps:
+      - name: Checkout opened-arm runner
+        uses: actions/checkout@v4
+        with:
+          path: runner-repo
+          fetch-depth: 2
+          persist-credentials: false
+
+      - name: Validate runner and target config
+        working-directory: runner-repo
+        env:
+          CONFIG_PATH: ${{ matrix.config }}
+        run: |
+          set -euo pipefail
+          python3 -m py_compile ops/product-full-bundle-5plus0-audit.py ops/dashboard-semantic-review-strict.py infra/aws/semantic-review/pool.py
+          python3 ops/product-full-bundle-5plus0-audit.py self-test
+          python3 ops/dashboard-semantic-review-strict.py --self-test
+          python3 ops/product-full-bundle-5plus0-audit.py validate-config --config "$CONFIG_PATH"
+
+      - name: Resolve exact private target
+        id: target
+        working-directory: runner-repo
+        env:
+          CONFIG_PATH: ${{ matrix.config }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, os
+          d=json.load(open(os.environ['CONFIG_PATH']))
+          print(f"project_id={d['projectId']}")
+          print(f"repository={d['repository']}")
+          print(f"sha={d['targetSha']}")
+          PY
+
+      - name: Require target read credential before any paid call
+        env:
+          TARGET_REPO_TOKEN: ${{ secrets.CODING_WORKER_GITHUB_TOKEN || secrets.PHAROS_REPO_TOKEN }}
+        run: |
+          set -euo pipefail
+          test -n "${TARGET_REPO_TOKEN:-}"
+
+      - name: Checkout exact private target source
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ steps.target.outputs.repository }}
+          ref: ${{ steps.target.outputs.sha }}
+          token: ${{ secrets.CODING_WORKER_GITHUB_TOKEN || secrets.PHAROS_REPO_TOKEN }}
+          path: target-repo
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Verify exact target identity
+        working-directory: target-repo
+        env:
+          TARGET_SHA: ${{ steps.target.outputs.sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$TARGET_SHA"
+          test -z "$(git status --porcelain)"
+          if git config --local --get-regexp '^http\..*\.extraheader$' >/dev/null 2>&1; then
+            echo 'target checkout credential unexpectedly persisted'
+            exit 1
+          fi
+
+      - name: Build free functional-bundle audit plan
+        env:
+          CONFIG_PATH: ${{ matrix.config }}
+        run: |
+          set -euo pipefail
+          python3 runner-repo/ops/product-full-bundle-5plus0-audit.py plan \
+            --config "runner-repo/$CONFIG_PATH" \
+            --repo-root target-repo \
+            --out-dir audit-plan
+          python3 - <<'PY'
+          import json
+          d=json.load(open('audit-plan/manifest.json'))
+          assert d['semanticReviewersPerChunk'] == 5
+          assert d['reviewerIds'] == ['A','B','C','D','E']
+          assert d['codingReasoners'] == 0
+          assert d['automaticRetry'] is False
+          assert d['authority'] == 'HYPOTHESIS_ONLY'
+          assert d['expectedSemanticReviewerCalls'] == d['totalChunks'] * 5
+          print(json.dumps({
+              'projectId': d['projectId'],
+              'codeFileCount': d['codeFileCount'],
+              'bundleCount': d['bundleCount'],
+              'totalChunks': d['totalChunks'],
+              'expectedSemanticReviewerCalls': d['expectedSemanticReviewerCalls'],
+          }, separators=(',',':')))
+          PY
+
+  audit:
+    if: ${{ github.event_name == 'push' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        config:
+          - ops/product-5plus0-pharos.json
+          - ops/product-5plus0-vela.json
+    steps:
+      - name: Checkout opened-arm runner
+        uses: actions/checkout@v4
+        with:
+          path: runner-repo
+          fetch-depth: 2
+          persist-credentials: false
+
+      - name: Check whether this target config changed
+        id: changed
+        working-directory: runner-repo
+        env:
+          CONFIG_PATH: ${{ matrix.config }}
+          BEFORE_SHA: ${{ github.event.before }}
+          AFTER_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          run=false
+          if [ "$BEFORE_SHA" = "0000000000000000000000000000000000000000" ]; then
+            run=true
+          else
+            git fetch --no-tags --depth=1 origin "$BEFORE_SHA" || true
+            if git diff --name-only "$BEFORE_SHA" "$AFTER_SHA" -- "$CONFIG_PATH" | grep -Fxq "$CONFIG_PATH"; then
+              run=true
+            fi
+          fi
+          echo "run=$run" >> "$GITHUB_OUTPUT"
+          echo "target config changed: $run"
+
+      - name: Validate runner and target config
+        if: ${{ steps.changed.outputs.run == 'true' }}
+        working-directory: runner-repo
+        env:
+          CONFIG_PATH: ${{ matrix.config }}
+        run: |
+          set -euo pipefail
+          python3 -m py_compile ops/product-full-bundle-5plus0-audit.py ops/dashboard-semantic-review-strict.py infra/aws/semantic-review/pool.py
+          python3 ops/product-full-bundle-5plus0-audit.py self-test
+          python3 ops/dashboard-semantic-review-strict.py --self-test
+          python3 ops/product-full-bundle-5plus0-audit.py validate-config --config "$CONFIG_PATH"
+
+      - name: Resolve exact private target
+        if: ${{ steps.changed.outputs.run == 'true' }}
+        id: target
+        working-directory: runner-repo
+        env:
+          CONFIG_PATH: ${{ matrix.config }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, os
+          d=json.load(open(os.environ['CONFIG_PATH']))
+          print(f"project_id={d['projectId']}")
+          print(f"repository={d['repository']}")
+          print(f"sha={d['targetSha']}")
+          PY
+
+      - name: Require target read credential before any paid call
+        if: ${{ steps.changed.outputs.run == 'true' }}
+        env:
+          TARGET_REPO_TOKEN: ${{ secrets.CODING_WORKER_GITHUB_TOKEN || secrets.PHAROS_REPO_TOKEN }}
+        run: |
+          set -euo pipefail
+          test -n "${TARGET_REPO_TOKEN:-}"
+
+      - name: Checkout exact private target source
+        if: ${{ steps.changed.outputs.run == 'true' }}
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ steps.target.outputs.repository }}
+          ref: ${{ steps.target.outputs.sha }}
+          token: ${{ secrets.CODING_WORKER_GITHUB_TOKEN || secrets.PHAROS_REPO_TOKEN }}
+          path: target-repo
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Verify exact target identity
+        if: ${{ steps.changed.outputs.run == 'true' }}
+        working-directory: target-repo
+        env:
+          TARGET_SHA: ${{ steps.target.outputs.sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$TARGET_SHA"
+          test -z "$(git status --porcelain)"
+          if git config --local --get-regexp '^http\..*\.extraheader$' >/dev/null 2>&1; then
+            echo 'target checkout credential unexpectedly persisted'
+            exit 1
+          fi
+
+      - name: Build exact functional-bundle audit plan
+        if: ${{ steps.changed.outputs.run == 'true' }}
+        env:
+          CONFIG_PATH: ${{ matrix.config }}
+        run: |
+          set -euo pipefail
+          python3 runner-repo/ops/product-full-bundle-5plus0-audit.py plan \
+            --config "runner-repo/$CONFIG_PATH" \
+            --repo-root target-repo \
+            --out-dir audit-plan
+
+      - name: Configure AWS via OIDC after exact checkout and plan gates
+        if: ${{ steps.changed.outputs.run == 'true' }}
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ format('arn:aws:iam::{0}:role/general-ai-semantic-review', vars.AWS_ACCOUNT_ID) }}
+          aws-region: ${{ vars.AWS_REGION }}
+          role-session-name: opened-arm-product-5plus0
+          mask-aws-account-id: true
+          disable-retry: true
+
+      - name: Run five semantic reviewers per functional chunk, zero coding
+        if: ${{ steps.changed.outputs.run == 'true' }}
+        env:
+          AWS_MAX_ATTEMPTS: '1'
+          AWS_RETRY_MODE: standard
+        run: |
+          set -euo pipefail
+          mkdir -p audit-results
+          python3 - <<'PY' > audit-plan/chunks.tsv
+          import json
+          d=json.load(open('audit-plan/manifest.json'))
+          for b in d['bundles']:
+              for c in b['chunks']:
+                  print(f"{b['index']}\t{b['id']}\t{c['index']}\t{c['input']}")
+          PY
+          while IFS=$'\t' read -r bundle_index bundle_id chunk_index input_path; do
+            stem="bundle-$(printf '%02d' "$bundle_index")-${bundle_id}-chunk-$(printf '%02d' "$chunk_index")"
+            echo "reviewing $stem"
+            SEMANTIC_REVIEW_COUNT=3 \
+            AUDIT_REVIEWER_GROUP=ABC \
+            SEMANTIC_REVIEW_INPUT="$input_path" \
+            SEMANTIC_REVIEW_OUTPUT="audit-results/${stem}-abc.json" \
+              python3 runner-repo/ops/dashboard-semantic-review-strict.py
+            SEMANTIC_REVIEW_COUNT=2 \
+            AUDIT_REVIEWER_GROUP=DE \
+            SEMANTIC_REVIEW_INPUT="$input_path" \
+            SEMANTIC_REVIEW_OUTPUT="audit-results/${stem}-de.json" \
+              python3 runner-repo/ops/dashboard-semantic-review-strict.py
+          done < audit-plan/chunks.tsv
+
+      - name: Summarize complete 5+0 result
+        if: ${{ steps.changed.outputs.run == 'true' }}
+        run: |
+          set -euo pipefail
+          python3 runner-repo/ops/product-full-bundle-5plus0-audit.py summarize \
+            --plan-dir audit-plan \
+            --result-dir audit-results \
+            --output audit-summary.json
+
+      - name: Upload source-free semantic audit outputs
+        if: ${{ always() && steps.changed.outputs.run == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: product-functional-5plus0-${{ steps.target.outputs.project_id }}-${{ steps.target.outputs.sha }}
+          path: |
+            audit-summary.json
+            audit-results/*.json
+          if-no-files-found: warn
+          retention-days: 3
