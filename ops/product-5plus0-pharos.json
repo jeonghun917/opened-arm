@@ -1,0 +1,112 @@
+{
+  "schema": "product-full-bundle-5plus0-target-v0",
+  "projectId": "pharos-orbis",
+  "repository": "jeonghun917/pharos-orbis",
+  "targetSha": "44a8b514830ffbca00fe5267a38b4ed6926deef5",
+  "approvedBy": "user-directive:2026-08-29:pharos-vela-functional-5plus0",
+  "reviewPlan": {
+    "semanticReviewersPerChunk": 5,
+    "reviewerIds": ["A", "B", "C", "D", "E"],
+    "codingReasoners": 0,
+    "automaticRetry": false,
+    "maxTotalChunks": 60
+  },
+  "sourceRoots": ["db/migrations", "db/tests", "ops/validation"],
+  "codeExtensions": [".sql", ".sh"],
+  "globalRequirements": [
+    "Audit the implemented Pharos SQL foundation against the frozen technical intent represented by the repository architecture contracts for schema foundation, Claim/Evidence/Provenance, and Incident Core/Projection at this exact source SHA.",
+    "Canonical factual layers must remain separate: assertion is not truth; source quality is not evidence independence; Claim truth confidence is not Incident identity confidence; there is no Incident-wide truth-confidence scalar.",
+    "Historical/revision data is append-only and exact input revisions/versions are pinned. Corrections, recomputation, duplicate handling, and split handling must append new history rather than rewrite prior factual/provenance history.",
+    "System-knowledge time, source time, and asserted world time must remain distinct. Unqualified world facts must not leak onto roots that are intentionally identity/admin-only.",
+    "Do not report missing Event grouping, Situation lifecycle, ingestion, learned models, public read API, provider credentials, or product database provisioning as defects; those are explicitly outside this implemented scope.",
+    "The audit is read-only. Model findings have no mutation, merge, deploy, or production PASS/FAIL authority."
+  ],
+  "bundles": [
+    {
+      "id": "schema-foundation",
+      "name": "root/revision/current-pointer/time-axis/lineage foundation",
+      "paths": [
+        "db/migrations/0001_schema_foundation.sql",
+        "db/tests/schema_foundation.sql"
+      ],
+      "requirements": [
+        "Root rows may own stable identity, admin state/timestamps, and current pointers only; factual values that belong in versioned structures must not be promoted onto roots.",
+        "Revision/version rows are immutable append-only history and current pointers must not cross root ownership boundaries.",
+        "Supersedes/parent relationships must preserve root ownership invariants where physically enforceable.",
+        "Derived structures must pin exact input revision/version IDs, with policy versions and generic lineage represented explicitly.",
+        "PostgreSQL 18 raw SQL is the canonical schema contract; JSON snapshots must not replace exact provenance or revision foreign keys."
+      ]
+    },
+    {
+      "id": "claim-evidence-provenance-assessment",
+      "name": "Claim, Evidence Unit, Evidence Family, source assessment and frozen assessment policy",
+      "paths": [
+        "db/migrations/0002_claim_evidence_provenance.sql",
+        "db/tests/claim_evidence_provenance.sql"
+      ],
+      "requirements": [
+        "Claim stores what a claimant asserted and Claim Assessment stores system/reviewer inference; these must never collapse into one truth field.",
+        "Evidence Unit must preserve source/raw-item/time/rights provenance. Rights-state changes may only become more restrictive and must not synthesize deleted/unavailable content.",
+        "Evidence Family represents shared evidentiary origin/independence and must not own or infer source quality.",
+        "Scoring-relevant evidence links and assessment contribution snapshots must pin exact Evidence Family revision, Evidence Link, and Source Assessment revision; one Evidence Family contributes at most once per assessment.",
+        "Frozen weight/mass/confidence formulas and state thresholds must be applied exactly; do not invent a direct-primary boost or other hidden confidence mutation."
+      ]
+    },
+    {
+      "id": "claim-correction-history",
+      "name": "Claim correction/retraction/supersession snapshot and historical non-retroactivity",
+      "paths": [
+        "db/migrations/0003_claim_evidence_correction_state.sql",
+        "db/tests/claim_evidence_correction_state.sql"
+      ],
+      "requirements": [
+        "A materially different proposition is a new Claim linked through CORRECTS, RETRACTS, SUPERSEDES, or DUPLICATE_ASSERTION_OF rather than an in-place rewrite of proposition identity.",
+        "Correction/retraction refs in an Assessment are immutable snapshots of the exact relation identity and correcting Claim version used at that revision.",
+        "An attributable correction ref must target the assessed Claim, belong to the correcting Claim, and preserve the required claimant/source attribution relationship.",
+        "Later correction relations must not retroactively change earlier Assessment revisions; a new Assessment revision is required."
+      ]
+    },
+    {
+      "id": "incident-core-membership-candidates-projection",
+      "name": "Incident identity, revisions, Claim membership, property candidates and projection",
+      "paths": [
+        "db/migrations/0004_incident_core_projection.sql",
+        "db/tests/incident_core_projection.sql"
+      ],
+      "requirements": [
+        "Incident root is occurrence identity/admin/current pointers only. Actor, occurrence time, location, action, target/object, cause, quantity, type, and overall truth confidence are forbidden as unqualified root facts.",
+        "Incident revisions are append-only and linear; Claim membership pins exact Claim version and remains an occurrence-linkage judgment rather than Claim truth.",
+        "Occurrence envelopes are bounded resolution/search aids and concrete envelope sections must trace to basis candidate IDs rather than raw unqualified facts.",
+        "Property candidate normalized value/identity/confidence/role/normalizer version is immutable; only the bounded forward administrative normalization-state transitions are allowed.",
+        "RESOLVED/PROVISIONAL projection display values must exactly equal selected immutable candidate normalized values; the projection layer must not synthesize an untracked value."
+      ]
+    },
+    {
+      "id": "incident-trace-staleness-lineage",
+      "name": "projection trace guards, stale detection, candidate/Claim locking, duplicate and split lineage",
+      "paths": [
+        "db/migrations/0005_incident_projection_trace_guard.sql",
+        "db/tests/incident_projection_trace_guard.sql"
+      ],
+      "requirements": [
+        "Projection append must revalidate selected/alternative candidates and current Claim roots under deterministic locking before snapshotting exact Claim version/Assessment refs and advancing the current projection pointer.",
+        "A candidate derived from an older Claim version cannot be presented as current after the Claim advances; projection staleness must expose that fact and recomputation must append rather than rewrite.",
+        "Current projections may use only ACTIVE candidates; retirement/supersession remains historical provenance and cannot be silently reversed.",
+        "Duplicate supersession and split operations are non-destructive and must preserve prior memberships, envelopes, candidates, projections, and immutable lineage.",
+        "Source-quality diagnostics and independent-evidence-family diagnostics must remain separate."
+      ]
+    },
+    {
+      "id": "validation-recipe",
+      "name": "exact-SHA PostgreSQL validation recipe and cross-layer ordering",
+      "paths": [
+        "ops/validation/recipe-v0.sh"
+      ],
+      "requirements": [
+        "The recipe must validate the exact checked-out source using PostgreSQL 18.6, apply migrations in canonical order, run all relevant contract tests, and leave the checkout clean.",
+        "Validation must not require or mutate a product database, Dashboard control database, provider credential, or unrelated repository state.",
+        "A validation recipe is verification only and must not silently repair/mutate the source under test."
+      ]
+    }
+  ]
+}
