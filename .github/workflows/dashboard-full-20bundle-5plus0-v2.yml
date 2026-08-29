@@ -11,6 +11,12 @@ on:
       - main
     paths:
       - 'ops/dashboard-full-20bundle-5plus0-target.json'
+  workflow_dispatch:
+    inputs:
+      target_sha:
+        description: 'Exact dashboard-control-center commit SHA (40 lowercase hex characters)'
+        required: true
+        type: string
 
 permissions:
   id-token: write
@@ -34,6 +40,7 @@ jobs:
         run: |
           set -euo pipefail
           python3 -m py_compile ops/dashboard-full-20bundle-audit.py ops/dashboard-semantic-review-strict.py infra/aws/semantic-review/pool.py
+          SEMANTIC_REVIEW_COUNT=3 AUDIT_REVIEWER_GROUP=ABC python3 ops/dashboard-semantic-review-strict.py --self-test
           SEMANTIC_REVIEW_COUNT=2 AUDIT_REVIEWER_GROUP=DE python3 ops/dashboard-semantic-review-strict.py --self-test
           python3 - <<'PY'
           import json,re
@@ -117,7 +124,7 @@ jobs:
           retention-days: 14
 
   audit:
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 120
     env:
@@ -135,6 +142,8 @@ jobs:
       - name: Resolve approved target
         id: target
         shell: bash
+        env:
+          DISPATCH_TARGET_SHA: ${{ inputs.target_sha }}
         run: |
           set -euo pipefail
           python3 - <<'PY'
@@ -149,15 +158,47 @@ jobs:
               'automaticRetry':False,
               'maxTotalChunks':120,
           }
-          sha=p.get('targetSha','')
           if p.get('schema')!='dashboard-full-20bundle-5plus0-target-v0': raise SystemExit('target_schema_invalid')
           if p.get('repository')!='jeonghun917/dashboard-control-center': raise SystemExit('target_repository_invalid')
-          if not re.fullmatch(r'[0-9a-f]{40}',sha): raise SystemExit('target_sha_invalid')
-          if not isinstance(p.get('approvedBy'),str) or not p['approvedBy'].startswith('user-directive:'): raise SystemExit('human_approval_missing')
           if p.get('reviewPlan')!=expected: raise SystemExit('review_plan_invalid')
+          event=os.environ.get('GITHUB_EVENT_NAME','')
+          if event=='workflow_dispatch':
+              sha=os.environ.get('DISPATCH_TARGET_SHA','')
+              source='workflow_dispatch'
+          elif event=='push':
+              sha=p.get('targetSha','')
+              source='approved_target_config'
+              if not isinstance(p.get('approvedBy'),str) or not p['approvedBy'].startswith('user-directive:'):
+                  raise SystemExit('human_approval_missing')
+          else:
+              raise SystemExit('unsupported_event')
+          if not re.fullmatch(r'[0-9a-f]{40}',sha): raise SystemExit('target_sha_invalid')
           with open(os.environ['GITHUB_OUTPUT'],'a') as f:
               f.write('sha='+sha+'\n')
               f.write('short='+sha[:12]+'\n')
+              f.write('source='+source+'\n')
+          PY
+
+      - name: Validate existing semantic review capacity
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import importlib.util,json
+          from pathlib import Path
+          p=json.loads(Path('runner-repo/ops/dashboard-full-20bundle-5plus0-target.json').read_text())
+          pool_path=Path('runner-repo/infra/aws/semantic-review/pool.py')
+          spec=importlib.util.spec_from_file_location('semantic_review_pool_capacity',pool_path)
+          if spec is None or spec.loader is None: raise SystemExit('semantic_review_pool_import_failed')
+          pool=importlib.util.module_from_spec(spec)
+          spec.loader.exec_module(pool)
+          groups=(3,2)
+          plan=p['reviewPlan']
+          if sum(groups)!=plan['semanticReviewersPerChunk']: raise SystemExit('reviewer_count_mismatch')
+          if any(count < 1 or count > pool.MAX_REVIEW_COUNT for count in groups): raise SystemExit('semantic_review_capacity_exceeded')
+          if plan['codingReasoners']!=0: raise SystemExit('coding_reasoners_must_be_zero')
+          if plan['automaticRetry'] is not False: raise SystemExit('automatic_retry_must_be_false')
+          print(json.dumps({'semanticReviewersPerChunk':sum(groups),'poolMaxParallel':pool.MAX_REVIEW_COUNT,'groups':groups,'codingReasoners':0,'automaticRetry':False},separators=(',',':')))
           PY
 
       - name: Require private Dashboard read credential
