@@ -1,11 +1,17 @@
 name: Dashboard Current Public Validation
 
+run-name: dashboard-current-validation|sha=${{ github.event_name == 'workflow_dispatch' && inputs.sha || 'target-file' }}|correlation=${{ github.event_name == 'workflow_dispatch' && inputs.correlation_id || '-' }}
+
 on:
   workflow_dispatch:
     inputs:
       sha:
         description: Exact dashboard-control-center commit SHA to validate
         required: true
+      correlation_id:
+        description: Optional opaque dispatch correlation identity
+        required: false
+        type: string
   push:
     branches: [main]
     paths:
@@ -35,6 +41,7 @@ jobs:
         shell: bash
         env:
           INPUT_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.sha || '' }}
+          INPUT_CORRELATION_ID: ${{ github.event_name == 'workflow_dispatch' && inputs.correlation_id || '' }}
         run: |
           set -euo pipefail
           if [ -n "${INPUT_SHA:-}" ]; then
@@ -43,7 +50,15 @@ jobs:
             target="$(tr -d '[:space:]' < runner-repo/ops/dashboard-validation-target.txt)"
           fi
           [[ "$target" =~ ^[0-9a-f]{40}$ ]]
+          correlation_id="${INPUT_CORRELATION_ID:-}"
+          python - "$correlation_id" <<'PY'
+          import re, sys
+          value = sys.argv[1]
+          if value and re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._:-]{0,127}", value) is None:
+              raise SystemExit("correlation_id must be 1-128 characters from [A-Za-z0-9._:-] and start with an alphanumeric character")
+          PY
           echo "sha=$target" >> "$GITHUB_OUTPUT"
+          printf 'correlation_id=%s\n' "$correlation_id" >> "$GITHUB_OUTPUT"
 
       - name: Check private checkout credential
         id: credential
@@ -168,6 +183,7 @@ jobs:
           NPM_CI_STATUS: ${{ steps.npm_ci.outcome }}
           NPM_CHECK_STATUS: ${{ steps.npm_check.outcome }}
           FINAL_STATUS: ${{ steps.final_status.outcome }}
+          CORRELATION_ID: ${{ steps.target.outputs.correlation_id }}
         run: |
           set -euo pipefail
           git config user.name github-actions[bot]
@@ -191,16 +207,28 @@ jobs:
               "statusContext": "dashboard-public-validation",
               "runId": os.environ.get("GITHUB_RUN_ID", ""),
               "runAttempt": os.environ.get("GITHUB_RUN_ATTEMPT", ""),
+              "correlationId": os.environ.get("CORRELATION_ID") or None,
           }
+          contents = json.dumps(payload, ensure_ascii=False, indent=2) + "\n"
           with open("ops/dashboard-current-validation.json", "w", encoding="utf-8") as f:
-              json.dump(payload, f, ensure_ascii=False, indent=2)
-              f.write("\n")
+              f.write(contents)
+          with open(os.path.join(os.environ["RUNNER_TEMP"], "dashboard-current-validation.json"), "w", encoding="utf-8") as f:
+              f.write(contents)
           PY
           git add ops/dashboard-current-validation.json
           if ! git diff --cached --quiet; then
             git commit -m "Record current dashboard validation result"
             git push origin HEAD:main
           fi
+
+      - name: Upload validation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dashboard-current-validation-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/dashboard-current-validation.json
+          if-no-files-found: error
+          retention-days: 14
 
       - name: Require status publication
         if: always()
