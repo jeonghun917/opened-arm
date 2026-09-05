@@ -1,7 +1,7 @@
 {
   "schema": 2,
-  "targetSha": "313769fc9fb290efafa1e98bdb5fc20b4fff5559",
-  "actualSha": "313769fc9fb290efafa1e98bdb5fc20b4fff5559",
+  "targetSha": "40e76b77fc2b52ae5454e09f166a802c76ec2ae5",
+  "actualSha": "40e76b77fc2b52ae5454e09f166a802c76ec2ae5",
   "targetResolution": "success",
   "credentialGate": "success",
   "pendingStatusPublish": "success",
@@ -11,7 +11,7 @@
   "npmRunCheck": "success",
   "finalStatusPublish": "success",
   "statusContext": "dashboard-public-validation",
-  "runId": "33759667360",
+  "runId": "33951883603",
   "runAttempt": "1",
-  "correlationId": "control-spine-pr149-smoke-mtljm5yuqyqrt3ey"
+  "correlationId": "pr149-candidate-40e76b77c-20260905-wm1"
 }
