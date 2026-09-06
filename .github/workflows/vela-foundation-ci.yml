@@ -24,6 +24,8 @@ env:
   VELA_RECIPE: VELA_BASIC@v1
   VELA_TARGET_REPOSITORY: jeonghun917/Ars-Mentis
   VELA_G7_EVIDENCE_REVISION: 1bc953fe99a640d8047e5fbc580f1cb796f6ca99
+  VELA_G7_BRIDGE_INTRODUCTION_REVISION: 07712b507e91dcacf8237c1a46249f0cb68f9981
+  VELA_G7_PRE_BRIDGE_REVISION: 884936cb3533aa64ce3f88e5c972a58b4a031fbe
 
 jobs:
   foundation-tests:
@@ -91,7 +93,7 @@ jobs:
           ref: ${{ steps.request.outputs.requested_ref }}
           token: ${{ secrets.ARS_MENTIS_READ_TOKEN }}
           path: ars-mentis
-          fetch-depth: 1
+          fetch-depth: 0
           persist-credentials: false
 
       - name: Bind exact target identity
@@ -195,18 +197,48 @@ jobs:
           rm -f "$dst" "$RUNNER_TEMP/vela-g7-bridge-full.json" "$RUNNER_TEMP/vela-g7-bridge.log"
 
           if [[ ! -f ars-mentis/tools/verify_rwkv_g7_evidence_bridge.py ]]; then
-            /usr/bin/python3 - <<'PY'
+            legacy_skip_eligible=false
+            legacy_proof=BRIDGE_BOUNDARY_UNAVAILABLE
+            if ! /usr/bin/git -C ars-mentis cat-file -e "${VELA_G7_BRIDGE_INTRODUCTION_REVISION}^{commit}" 2>/dev/null; then
+              legacy_proof=BRIDGE_INTRODUCTION_NOT_FETCHED
+            elif ! /usr/bin/git -C ars-mentis cat-file -e "${VELA_G7_PRE_BRIDGE_REVISION}^{commit}" 2>/dev/null; then
+              legacy_proof=PRE_BRIDGE_REVISION_NOT_FETCHED
+            elif ! actual_parent="$(/usr/bin/git -C ars-mentis rev-parse "${VELA_G7_BRIDGE_INTRODUCTION_REVISION}^")"; then
+              legacy_proof=BRIDGE_PARENT_UNRESOLVED
+            elif [[ "$actual_parent" != "$VELA_G7_PRE_BRIDGE_REVISION" ]]; then
+              legacy_proof=BRIDGE_PARENT_MISMATCH
+            elif ! /usr/bin/git -C ars-mentis cat-file -e "${VELA_G7_BRIDGE_INTRODUCTION_REVISION}:tools/verify_rwkv_g7_evidence_bridge.py" 2>/dev/null; then
+              legacy_proof=VALIDATOR_ABSENT_AT_INTRODUCTION
+            elif /usr/bin/git -C ars-mentis cat-file -e "${VELA_G7_PRE_BRIDGE_REVISION}:tools/verify_rwkv_g7_evidence_bridge.py" 2>/dev/null; then
+              legacy_proof=VALIDATOR_PRESENT_BEFORE_INTRODUCTION
+            elif /usr/bin/git -C ars-mentis merge-base --is-ancestor "$SOURCE_COMMIT" "$VELA_G7_PRE_BRIDGE_REVISION"; then
+              legacy_skip_eligible=true
+              legacy_proof=SOURCE_IS_ANCESTOR_OF_PRE_BRIDGE_REVISION
+            else
+              legacy_proof=SOURCE_NOT_PROVEN_PRE_BRIDGE
+            fi
+
+            LEGACY_SKIP_ELIGIBLE="$legacy_skip_eligible" LEGACY_PROOF="$legacy_proof" /usr/bin/python3 - <<'PY'
           import json
           import os
           from pathlib import Path
 
+          eligible = os.environ["LEGACY_SKIP_ELIGIBLE"] == "true"
           Path("validation-evidence/vela-foundation-g7-evidence-bridge.json").write_text(
               json.dumps(
                   {
-                      "status": "SKIPPED_SOURCE_PREDATES_BRIDGE",
+                      "status": "SKIPPED_SOURCE_PREDATES_BRIDGE" if eligible else "FAIL_MISSING_G7_VALIDATOR",
                       "foundation_source_commit": os.environ["SOURCE_COMMIT"],
                       "experiment_result_commit": os.environ["EXPERIMENT_COMMIT"],
-                      "claim_boundary": "The selected historical foundation ref predates the RWKV real-evidence bridge verifier.",
+                      "bridge_introduction_revision": os.environ["VELA_G7_BRIDGE_INTRODUCTION_REVISION"],
+                      "pre_bridge_revision": os.environ["VELA_G7_PRE_BRIDGE_REVISION"],
+                      "legacy_skip_eligible": eligible,
+                      "legacy_proof": os.environ["LEGACY_PROOF"],
+                      "claim_boundary": (
+                          "The exact source is proven to be an ancestor of the last pre-bridge revision."
+                          if eligible
+                          else "Validator absence is not accepted without exact pre-bridge ancestry proof."
+                      ),
                   },
                   indent=2,
                   sort_keys=True,
@@ -215,7 +247,11 @@ jobs:
               encoding="utf-8",
           )
           PY
-            bridge_status=0
+            if [[ "$legacy_skip_eligible" == true ]]; then
+              bridge_status=0
+            else
+              bridge_status=1
+            fi
           else
             set +e
             PYTHONPATH=ars-mentis/src python ars-mentis/tools/verify_rwkv_g7_evidence_bridge.py \
@@ -237,6 +273,9 @@ jobs:
                   "status": full["status"],
                   "foundation_source_commit": os.environ["SOURCE_COMMIT"],
                   "experiment_result_commit": os.environ["EXPERIMENT_COMMIT"],
+                  "bridge_introduction_revision": os.environ["VELA_G7_BRIDGE_INTRODUCTION_REVISION"],
+                  "pre_bridge_revision": os.environ["VELA_G7_PRE_BRIDGE_REVISION"],
+                  "legacy_skip_eligible": False,
                   "source_result_sha256": full["source_result_sha256"],
                   "case_count": full["case_count"],
                   "selected_anchor_match_count": full["selected_anchor_match_count"],
@@ -252,6 +291,9 @@ jobs:
                   "status": "FAIL_BEFORE_RESULT",
                   "foundation_source_commit": os.environ["SOURCE_COMMIT"],
                   "experiment_result_commit": os.environ["EXPERIMENT_COMMIT"],
+                  "bridge_introduction_revision": os.environ["VELA_G7_BRIDGE_INTRODUCTION_REVISION"],
+                  "pre_bridge_revision": os.environ["VELA_G7_PRE_BRIDGE_REVISION"],
+                  "legacy_skip_eligible": False,
                   "claim_boundary": "Bridge verifier failed before a public-safe summary could be produced.",
               }
           Path("validation-evidence/vela-foundation-g7-evidence-bridge.json").write_text(
@@ -268,9 +310,11 @@ jobs:
           payload = json.load(open(sys.argv[1], encoding="utf-8"))
           status = payload.get("status", "UNKNOWN")
           count = payload.get("case_count", "")
+          legacy_skip_eligible = payload.get("legacy_skip_eligible") is True
           with open(sys.argv[2], "a", encoding="utf-8") as output:
               output.write(f"status={status}\n")
               output.write(f"case_count={count}\n")
+              output.write(f"legacy_skip_eligible={'true' if legacy_skip_eligible else 'false'}\n")
           PY
 
           if [[ "$bridge_status" -ne 0 ]]; then
@@ -300,6 +344,7 @@ jobs:
           G7_OUTCOME: ${{ steps.g7.outcome }}
           G7_STATUS: ${{ steps.g7.outputs.status }}
           G7_CASE_COUNT: ${{ steps.g7.outputs.case_count }}
+          G7_LEGACY_SKIP_ELIGIBLE: ${{ steps.g7.outputs.legacy_skip_eligible }}
         run: |
           mkdir -p validation-evidence
           /usr/bin/python3 - <<'PY'
@@ -323,10 +368,16 @@ jobs:
           }
           resolved_sha = value("RESOLVED_SHA")
           runner_revision = value("RUNNER_REVISION", value("GITHUB_WORKFLOW_SHA", value("GITHUB_SHA")))
+          g7_status = value("G7_STATUS", "NOT_RUN")
+          g7_legacy_skip_eligible = value("G7_LEGACY_SKIP_ELIGIBLE", "false") == "true"
+          g7_accepted = g7_status == "PASS" or (
+              g7_status == "SKIPPED_SOURCE_PREDATES_BRIDGE" and g7_legacy_skip_eligible
+          )
           validation_result = "PASS" if (
               all(outcome == "success" for outcome in gates.values())
               and len(resolved_sha) == 40
               and len(runner_revision) == 40
+              and g7_accepted
           ) else "FAIL"
           artifact_name = f"vela-foundation-validation-{os.environ['GITHUB_RUN_ID']}-{os.environ['GITHUB_RUN_ATTEMPT']}"
           run_url = f"{os.environ['GITHUB_SERVER_URL']}/{os.environ['GITHUB_REPOSITORY']}/actions/runs/{os.environ['GITHUB_RUN_ID']}"
@@ -370,9 +421,13 @@ jobs:
                       "testCount": int(count_text) if count_text.isdigit() else None,
                   },
                   "g7": {
-                      "status": value("G7_STATUS", "NOT_RUN"),
+                      "status": g7_status,
+                      "accepted": g7_accepted,
+                      "legacySkipEligible": g7_legacy_skip_eligible,
                       "caseCount": int(g7_count_text) if g7_count_text.isdigit() else None,
                       "evidenceRevision": value("VELA_G7_EVIDENCE_REVISION"),
+                      "bridgeIntroductionRevision": value("VELA_G7_BRIDGE_INTRODUCTION_REVISION"),
+                      "preBridgeRevision": value("VELA_G7_PRE_BRIDGE_REVISION"),
                   },
               },
               "evidence": {
@@ -408,6 +463,7 @@ jobs:
               f"| Recipe | `{payload['recipe']['identity']}` |",
               f"| Unittest count | `{payload['result']['unittest']['testCount']}` |",
               f"| G7 status | `{payload['result']['g7']['status']}` |",
+              f"| G7 accepted | `{payload['result']['g7']['accepted']}` |",
               f"| Result | **{payload['result']['status']}** |",
               "",
               payload["claimBoundary"],
