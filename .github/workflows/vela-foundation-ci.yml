@@ -196,7 +196,8 @@ jobs:
           dst=validation-evidence/vela-foundation-g7-evidence-bridge.json
           rm -f "$dst" "$RUNNER_TEMP/vela-g7-bridge-full.json" "$RUNNER_TEMP/vela-g7-bridge.log"
 
-          if [[ ! -f ars-mentis/tools/verify_rwkv_g7_evidence_bridge.py ]]; then
+          validator_path=tools/verify_rwkv_g7_evidence_bridge.py
+          if ! /usr/bin/git -C ars-mentis cat-file -e "${SOURCE_COMMIT}:${validator_path}" 2>/dev/null; then
             legacy_skip_eligible=false
             legacy_proof=BRIDGE_BOUNDARY_UNAVAILABLE
             if ! /usr/bin/git -C ars-mentis cat-file -e "${VELA_G7_BRIDGE_INTRODUCTION_REVISION}^{commit}" 2>/dev/null; then
@@ -253,8 +254,11 @@ jobs:
               bridge_status=1
             fi
           else
+            validator_blob="$(/usr/bin/git -C ars-mentis rev-parse "${SOURCE_COMMIT}:${validator_path}")"
+            test -f "ars-mentis/${validator_path}"
+            test "$(/usr/bin/git -C ars-mentis hash-object "$validator_path")" = "$validator_blob"
             set +e
-            PYTHONPATH=ars-mentis/src python ars-mentis/tools/verify_rwkv_g7_evidence_bridge.py \
+            PYTHONPATH=ars-mentis/src python "ars-mentis/${validator_path}" \
               experiment/ops/vela-results/g7-rwkv7-2p9b-full-selector-v3-v1-latest.json \
               --output "$RUNNER_TEMP/vela-g7-bridge-full.json" \
               > "$RUNNER_TEMP/vela-g7-bridge.log" 2>&1
