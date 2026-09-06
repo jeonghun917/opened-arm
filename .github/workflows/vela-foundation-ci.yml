@@ -1,0 +1,442 @@
+name: VELA Foundation CI
+
+run-name: vela.foundationValidation | run=${{ github.run_id }}.${{ github.run_attempt }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      ars_ref:
+        description: Exact Ars-Mentis commit SHA or bounded Git ref to validate
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: opened-arm-vela-foundation-validation
+  cancel-in-progress: false
+
+env:
+  VELA_CAPABILITY: vela.foundationValidation
+  VELA_EXECUTION_PLANE: opened-arm.vela-foundation-validation
+  VELA_AUTHORITY_CLASS: VALIDATION_ONLY
+  VELA_RECIPE: VELA_BASIC@v1
+  VELA_TARGET_REPOSITORY: jeonghun917/Ars-Mentis
+  VELA_G7_EVIDENCE_REVISION: 1bc953fe99a640d8047e5fbc580f1cb796f6ca99
+
+jobs:
+  foundation-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Validate canonical dispatch and target input
+        id: request
+        shell: /bin/bash --noprofile --norc -euo pipefail {0}
+        env:
+          ARS_REF: ${{ inputs.ars_ref }}
+        run: |
+          test "$GITHUB_REF" = "refs/heads/main"
+          test "$GITHUB_WORKFLOW_REF" = "$GITHUB_REPOSITORY/.github/workflows/vela-foundation-ci.yml@refs/heads/main"
+
+          /usr/bin/python3 - "$ARS_REF" <<'PY'
+          import re
+          import sys
+
+          value = sys.argv[1]
+          if not value or value != value.strip() or len(value) > 255:
+              raise SystemExit("ars_ref must be a non-empty, trimmed ref of at most 255 characters")
+
+          if re.fullmatch(r"[0-9a-f]{40}", value):
+              raise SystemExit(0)
+
+          if re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._/-]{0,254}", value) is None:
+              raise SystemExit("ars_ref is neither a lowercase 40-character SHA nor a bounded Git ref")
+          if value in {"HEAD", "@"}:
+              raise SystemExit("ars_ref may not name a symbolic checkout target")
+          if value.startswith("refs/") and not value.startswith(("refs/heads/", "refs/tags/")):
+              raise SystemExit("full ars_ref values are limited to refs/heads/* or refs/tags/*")
+          if value.startswith(("/", ".")) or value.endswith(("/", ".")):
+              raise SystemExit("ars_ref has an invalid boundary")
+          if any(token in value for token in ("..", "//", "@{")):
+              raise SystemExit("ars_ref contains a forbidden Git ref sequence")
+          if any(part.startswith(".") or part.endswith(".lock") for part in value.split("/")):
+              raise SystemExit("ars_ref contains a forbidden Git ref component")
+          PY
+
+          runner_revision="${GITHUB_WORKFLOW_SHA:-$GITHUB_SHA}"
+          [[ "$runner_revision" =~ ^[0-9a-f]{40}$ ]]
+          if [[ "$ARS_REF" =~ ^[0-9a-f]{40}$ ]]; then
+            input_kind=sha
+          else
+            input_kind=ref
+          fi
+          printf 'requested_ref=%s\n' "$ARS_REF" >> "$GITHUB_OUTPUT"
+          printf 'input_kind=%s\n' "$input_kind" >> "$GITHUB_OUTPUT"
+          printf 'runner_revision=%s\n' "$runner_revision" >> "$GITHUB_OUTPUT"
+
+      - name: Check private read credential
+        id: credential
+        shell: /bin/bash --noprofile --norc -euo pipefail {0}
+        env:
+          ARS_MENTIS_READ_TOKEN: ${{ secrets.ARS_MENTIS_READ_TOKEN }}
+        run: |
+          test -n "${ARS_MENTIS_READ_TOKEN:-}"
+
+      - name: Checkout exact private Ars-Mentis target
+        id: target_checkout
+        uses: actions/checkout@v4
+        with:
+          repository: jeonghun917/Ars-Mentis
+          ref: ${{ steps.request.outputs.requested_ref }}
+          token: ${{ secrets.ARS_MENTIS_READ_TOKEN }}
+          path: ars-mentis
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Bind exact target identity
+        id: target
+        shell: /bin/bash --noprofile --norc -euo pipefail {0}
+        working-directory: ars-mentis
+        env:
+          REQUESTED_REF: ${{ steps.request.outputs.requested_ref }}
+          INPUT_KIND: ${{ steps.request.outputs.input_kind }}
+        run: |
+          resolved_sha="$(/usr/bin/git rev-parse HEAD)"
+          [[ "$resolved_sha" =~ ^[0-9a-f]{40}$ ]]
+          if [ "$INPUT_KIND" = sha ]; then
+            test "$resolved_sha" = "$REQUESTED_REF"
+          fi
+          test -z "$(/usr/bin/git status --porcelain)"
+          if /usr/bin/git config --local --get-regexp '^http\..*\.extraheader$' >/dev/null 2>&1; then
+            echo "Checkout credential unexpectedly persisted"
+            exit 1
+          fi
+          origin="$(/usr/bin/git remote get-url origin)"
+          case "$origin" in
+            https://github.com/jeonghun917/Ars-Mentis | https://github.com/jeonghun917/Ars-Mentis.git) ;;
+            *) echo "Unexpected target repository origin"; exit 1 ;;
+          esac
+          printf 'resolved_sha=%s\n' "$resolved_sha" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Python 3.11
+        id: python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Run full VELA foundation unittest suite
+        id: unittest
+        shell: /bin/bash --noprofile --norc -euo pipefail {0}
+        run: |
+          set +e
+          (cd ars-mentis && PYTHONPATH=src python -m unittest discover -s tests -v) > "$RUNNER_TEMP/vela-foundation-unittest.log" 2>&1
+          status=$?
+          set -e
+
+          count="$(/usr/bin/python3 - "$RUNNER_TEMP/vela-foundation-unittest.log" <<'PY'
+          import re
+          import sys
+          from pathlib import Path
+
+          text = Path(sys.argv[1]).read_text(encoding="utf-8", errors="replace")
+          totals = re.findall(r"^Ran ([0-9]+) tests? in ", text, flags=re.MULTILINE)
+          if totals:
+              print(totals[-1])
+          else:
+              print(sum(1 for line in text.splitlines() if line.startswith("test_") and " ... " in line))
+          PY
+          )"
+          [[ "$count" =~ ^[0-9]+$ ]]
+          printf 'exit_code=%s\n' "$status" >> "$GITHUB_OUTPUT"
+          printf 'test_count=%s\n' "$count" >> "$GITHUB_OUTPUT"
+
+          if [ "$status" -ne 0 ]; then
+            echo "::error::VELA foundation unittest suite failed (${count} tests observed). Private traceback is suppressed."
+            exit "$status"
+          fi
+          echo "VELA foundation unittest suite: PASS (${count} tests)"
+
+      - name: Checkout exact audited RWKV 2.9B G7 result snapshot
+        id: g7_checkout
+        uses: actions/checkout@v4
+        with:
+          repository: jeonghun917/opened-arm
+          ref: ${{ env.VELA_G7_EVIDENCE_REVISION }}
+          token: ${{ github.token }}
+          path: experiment
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Bind exact G7 evidence identity
+        id: g7_identity
+        shell: /bin/bash --noprofile --norc -euo pipefail {0}
+        working-directory: experiment
+        run: |
+          actual="$(/usr/bin/git rev-parse HEAD)"
+          test "$actual" = "$VELA_G7_EVIDENCE_REVISION"
+          test -f ops/vela-results/g7-rwkv7-2p9b-full-selector-v3-v1-latest.json
+          test -z "$(/usr/bin/git status --porcelain)"
+          if /usr/bin/git config --local --get-regexp '^http\..*\.extraheader$' >/dev/null 2>&1; then
+            echo "Checkout credential unexpectedly persisted"
+            exit 1
+          fi
+          printf 'resolved_sha=%s\n' "$actual" >> "$GITHUB_OUTPUT"
+
+      - name: Verify audited RWKV 2.9B G7 evidence bridge
+        id: g7
+        shell: /bin/bash --noprofile --norc -euo pipefail {0}
+        env:
+          SOURCE_COMMIT: ${{ steps.target.outputs.resolved_sha }}
+          EXPERIMENT_COMMIT: ${{ steps.g7_identity.outputs.resolved_sha }}
+        run: |
+          mkdir -p validation-evidence
+          dst=validation-evidence/vela-foundation-g7-evidence-bridge.json
+          rm -f "$dst" "$RUNNER_TEMP/vela-g7-bridge-full.json" "$RUNNER_TEMP/vela-g7-bridge.log"
+
+          if [[ ! -f ars-mentis/tools/verify_rwkv_g7_evidence_bridge.py ]]; then
+            /usr/bin/python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          Path("validation-evidence/vela-foundation-g7-evidence-bridge.json").write_text(
+              json.dumps(
+                  {
+                      "status": "SKIPPED_SOURCE_PREDATES_BRIDGE",
+                      "foundation_source_commit": os.environ["SOURCE_COMMIT"],
+                      "experiment_result_commit": os.environ["EXPERIMENT_COMMIT"],
+                      "claim_boundary": "The selected historical foundation ref predates the RWKV real-evidence bridge verifier.",
+                  },
+                  indent=2,
+                  sort_keys=True,
+              )
+              + "\n",
+              encoding="utf-8",
+          )
+          PY
+            bridge_status=0
+          else
+            set +e
+            PYTHONPATH=ars-mentis/src python ars-mentis/tools/verify_rwkv_g7_evidence_bridge.py \
+              experiment/ops/vela-results/g7-rwkv7-2p9b-full-selector-v3-v1-latest.json \
+              --output "$RUNNER_TEMP/vela-g7-bridge-full.json" \
+              > "$RUNNER_TEMP/vela-g7-bridge.log" 2>&1
+            bridge_status=$?
+            set -e
+
+            BRIDGE_STATUS="$bridge_status" /usr/bin/python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          src = Path(os.environ["RUNNER_TEMP"]) / "vela-g7-bridge-full.json"
+          if src.exists():
+              full = json.loads(src.read_text(encoding="utf-8"))
+              payload = {
+                  "status": full["status"],
+                  "foundation_source_commit": os.environ["SOURCE_COMMIT"],
+                  "experiment_result_commit": os.environ["EXPERIMENT_COMMIT"],
+                  "source_result_sha256": full["source_result_sha256"],
+                  "case_count": full["case_count"],
+                  "selected_anchor_match_count": full["selected_anchor_match_count"],
+                  "eligible_set_match_count": full["eligible_set_match_count"],
+                  "oracle_free_case_count": full["oracle_free_case_count"],
+                  "native_stable_case_count": full["native_stable_case_count"],
+                  "migration_clean_case_count": full["migration_clean_case_count"],
+                  "foundation_path": full["foundation_path"],
+                  "claim_boundary": full["claim_boundary"],
+              }
+          else:
+              payload = {
+                  "status": "FAIL_BEFORE_RESULT",
+                  "foundation_source_commit": os.environ["SOURCE_COMMIT"],
+                  "experiment_result_commit": os.environ["EXPERIMENT_COMMIT"],
+                  "claim_boundary": "Bridge verifier failed before a public-safe summary could be produced.",
+              }
+          Path("validation-evidence/vela-foundation-g7-evidence-bridge.json").write_text(
+              json.dumps(payload, indent=2, sort_keys=True) + "\n",
+              encoding="utf-8",
+          )
+          PY
+          fi
+
+          /usr/bin/python3 - "$dst" "$GITHUB_OUTPUT" <<'PY'
+          import json
+          import sys
+
+          payload = json.load(open(sys.argv[1], encoding="utf-8"))
+          status = payload.get("status", "UNKNOWN")
+          count = payload.get("case_count", "")
+          with open(sys.argv[2], "a", encoding="utf-8") as output:
+              output.write(f"status={status}\n")
+              output.write(f"case_count={count}\n")
+          PY
+
+          if [[ "$bridge_status" -ne 0 ]]; then
+            echo "::error::RWKV real-evidence bridge failed. Detailed verifier output is suppressed."
+            exit "$bridge_status"
+          fi
+          echo "RWKV real-evidence bridge: PASS or compatible historical skip"
+
+      - name: Write exact validation evidence
+        id: evidence
+        if: always()
+        shell: /bin/bash --noprofile --norc -euo pipefail {0}
+        env:
+          REQUESTED_REF: ${{ steps.request.outputs.requested_ref }}
+          RESOLVED_SHA: ${{ steps.target.outputs.resolved_sha }}
+          RUNNER_REVISION: ${{ steps.request.outputs.runner_revision }}
+          REQUEST_OUTCOME: ${{ steps.request.outcome }}
+          CREDENTIAL_OUTCOME: ${{ steps.credential.outcome }}
+          TARGET_CHECKOUT_OUTCOME: ${{ steps.target_checkout.outcome }}
+          TARGET_IDENTITY_OUTCOME: ${{ steps.target.outcome }}
+          PYTHON_OUTCOME: ${{ steps.python.outcome }}
+          UNITTEST_OUTCOME: ${{ steps.unittest.outcome }}
+          UNITTEST_EXIT_CODE: ${{ steps.unittest.outputs.exit_code }}
+          UNITTEST_COUNT: ${{ steps.unittest.outputs.test_count }}
+          G7_CHECKOUT_OUTCOME: ${{ steps.g7_checkout.outcome }}
+          G7_IDENTITY_OUTCOME: ${{ steps.g7_identity.outcome }}
+          G7_OUTCOME: ${{ steps.g7.outcome }}
+          G7_STATUS: ${{ steps.g7.outputs.status }}
+          G7_CASE_COUNT: ${{ steps.g7.outputs.case_count }}
+        run: |
+          mkdir -p validation-evidence
+          /usr/bin/python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          def value(name, fallback=""):
+              return os.environ.get(name, "") or fallback
+
+          gates = {
+              "canonicalRequest": value("REQUEST_OUTCOME", "skipped"),
+              "credentialGate": value("CREDENTIAL_OUTCOME", "skipped"),
+              "targetCheckout": value("TARGET_CHECKOUT_OUTCOME", "skipped"),
+              "targetIdentity": value("TARGET_IDENTITY_OUTCOME", "skipped"),
+              "pythonSetup": value("PYTHON_OUTCOME", "skipped"),
+              "unittest": value("UNITTEST_OUTCOME", "skipped"),
+              "g7EvidenceCheckout": value("G7_CHECKOUT_OUTCOME", "skipped"),
+              "g7EvidenceIdentity": value("G7_IDENTITY_OUTCOME", "skipped"),
+              "g7Bridge": value("G7_OUTCOME", "skipped"),
+          }
+          resolved_sha = value("RESOLVED_SHA")
+          runner_revision = value("RUNNER_REVISION", value("GITHUB_WORKFLOW_SHA", value("GITHUB_SHA")))
+          validation_result = "PASS" if (
+              all(outcome == "success" for outcome in gates.values())
+              and len(resolved_sha) == 40
+              and len(runner_revision) == 40
+          ) else "FAIL"
+          artifact_name = f"vela-foundation-validation-{os.environ['GITHUB_RUN_ID']}-{os.environ['GITHUB_RUN_ATTEMPT']}"
+          run_url = f"{os.environ['GITHUB_SERVER_URL']}/{os.environ['GITHUB_REPOSITORY']}/actions/runs/{os.environ['GITHUB_RUN_ID']}"
+          count_text = value("UNITTEST_COUNT")
+          g7_count_text = value("G7_CASE_COUNT")
+          payload = {
+              "schema": 1,
+              "capability": value("VELA_CAPABILITY"),
+              "execution": {
+                  "plane": value("VELA_EXECUTION_PLANE"),
+                  "authorityClass": value("VELA_AUTHORITY_CLASS"),
+                  "workflowName": value("GITHUB_WORKFLOW"),
+                  "workflowPath": ".github/workflows/vela-foundation-ci.yml",
+                  "workflowRef": value("GITHUB_WORKFLOW_REF"),
+                  "runnerRevision": runner_revision,
+                  "runId": value("GITHUB_RUN_ID"),
+                  "attempt": value("GITHUB_RUN_ATTEMPT"),
+                  "job": value("GITHUB_JOB"),
+                  "runUrl": run_url,
+              },
+              "target": {
+                  "repository": value("VELA_TARGET_REPOSITORY"),
+                  "requestedRef": value("REQUESTED_REF"),
+                  "resolvedSha": resolved_sha,
+              },
+              "recipe": {
+                  "id": "VELA_BASIC",
+                  "version": "v1",
+                  "identity": value("VELA_RECIPE"),
+                  "meaning": [
+                      "PYTHONPATH=src python -m unittest discover -s tests -v",
+                      "G7 evidence bridge against opened-arm@1bc953fe99a640d8047e5fbc580f1cb796f6ca99",
+                  ],
+              },
+              "result": {
+                  "status": validation_result,
+                  "gates": gates,
+                  "unittest": {
+                      "command": "PYTHONPATH=src python -m unittest discover -s tests -v",
+                      "exitCode": int(value("UNITTEST_EXIT_CODE", "-1")),
+                      "testCount": int(count_text) if count_text.isdigit() else None,
+                  },
+                  "g7": {
+                      "status": value("G7_STATUS", "NOT_RUN"),
+                      "caseCount": int(g7_count_text) if g7_count_text.isdigit() else None,
+                      "evidenceRevision": value("VELA_G7_EVIDENCE_REVISION"),
+                  },
+              },
+              "evidence": {
+                  "artifactName": artifact_name,
+                  "runUrl": run_url,
+                  "reference": f"{run_url}#artifacts",
+              },
+              "security": {
+                  "targetRepositoryFixed": True,
+                  "credentialPurpose": "read-only private Ars-Mentis checkout",
+                  "checkoutCredentialPersisted": False,
+                  "providerMutation": False,
+                  "targetRepositoryMutation": False,
+              },
+              "claimBoundary": "Validation evidence only; PASS is not merge approval, task completion, or architecture approval.",
+          }
+          path = Path("validation-evidence/vela-foundation-validation.json")
+          path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+          summary = [
+              "# VELA Foundation validation",
+              "",
+              "| Field | Exact value |",
+              "|---|---|",
+              f"| Capability | `{payload['capability']}` |",
+              f"| Execution plane | `{payload['execution']['plane']}` |",
+              f"| Authority | `{payload['execution']['authorityClass']}` |",
+              f"| Target repository | `{payload['target']['repository']}` |",
+              f"| Requested ref | `{payload['target']['requestedRef']}` |",
+              f"| Resolved SHA | `{payload['target']['resolvedSha'] or 'UNRESOLVED'}` |",
+              f"| Runner revision | `{payload['execution']['runnerRevision']}` |",
+              f"| Run / attempt | `{payload['execution']['runId']}` / `{payload['execution']['attempt']}` |",
+              f"| Recipe | `{payload['recipe']['identity']}` |",
+              f"| Unittest count | `{payload['result']['unittest']['testCount']}` |",
+              f"| G7 status | `{payload['result']['g7']['status']}` |",
+              f"| Result | **{payload['result']['status']}** |",
+              "",
+              payload["claimBoundary"],
+          ]
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as output:
+              output.write("\n".join(summary) + "\n")
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+              output.write(f"validation_result={validation_result}\n")
+              output.write(f"artifact_name={artifact_name}\n")
+          PY
+
+      - name: Upload public-safe validation evidence
+        id: artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.evidence.outputs.artifact_name || format('vela-foundation-validation-{0}-{1}', github.run_id, github.run_attempt) }}
+          path: validation-evidence/
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Require complete validation evidence
+        if: always()
+        shell: /bin/bash --noprofile --norc -euo pipefail {0}
+        env:
+          VALIDATION_RESULT: ${{ steps.evidence.outputs.validation_result }}
+          EVIDENCE_OUTCOME: ${{ steps.evidence.outcome }}
+          ARTIFACT_OUTCOME: ${{ steps.artifact.outcome }}
+        run: |
+          test "$EVIDENCE_OUTCOME" = success
+          test "$ARTIFACT_OUTCOME" = success
+          test "$VALIDATION_RESULT" = PASS
