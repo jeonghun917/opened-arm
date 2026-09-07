@@ -265,6 +265,7 @@ jobs:
 
       - name: Verify audited RWKV 2.9B G7 evidence bridge
         id: g7
+        timeout-minutes: 10
         shell: /bin/bash --noprofile --norc -euo pipefail {0}
         env:
           SOURCE_COMMIT: ${{ steps.g7_target.outputs.resolved_sha }}
@@ -367,14 +368,45 @@ jobs:
             python_bin="$(command -v python)"
             python_bin="$(/usr/bin/readlink -f "$python_bin")"
             test -x "$python_bin"
-            test "$("$python_bin" -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')" = 3.11
+            test "$("$python_bin" -I -S -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')" = 3.11
             test -z "$("${canonical_git[@]}" status --porcelain)"
             set +e
-            PYTHONDONTWRITEBYTECODE=1 PYTHONNOUSERSITE=1 PYTHONPATH="$GITHUB_WORKSPACE/ars-mentis/src" \
-              "$python_bin" "$validator_file" \
+            /usr/bin/timeout --signal=TERM --kill-after=10s 8m \
+              "$python_bin" -I -S -B - \
+              "$validator_file" \
+              "$GITHUB_WORKSPACE/ars-mentis/src" \
+              "$validator_sha256" \
               experiment/ops/vela-results/g7-rwkv7-2p9b-full-selector-v3-v1-latest.json \
               --output "$RUNNER_TEMP/vela-g7-bridge-full.json" \
-              > "$RUNNER_TEMP/vela-g7-bridge.log" 2>&1
+              > "$RUNNER_TEMP/vela-g7-bridge.log" 2>&1 <<'PY'
+          import hashlib
+          import sys
+          from pathlib import Path
+
+          validator_path = Path(sys.argv[1])
+          target_source = Path(sys.argv[2]).resolve(strict=True)
+          expected_sha256 = sys.argv[3]
+          validator_args = sys.argv[4:]
+
+          if not target_source.is_dir():
+              raise SystemExit("exact target source directory is unavailable")
+
+          validator_bytes = validator_path.read_bytes()
+          executed_sha256 = hashlib.sha256(validator_bytes).hexdigest()
+          if executed_sha256 != expected_sha256:
+              raise SystemExit("materialized validator changed before execution")
+
+          validator_code = compile(validator_bytes, str(validator_path), "exec")
+          sys.path.append(str(target_source))
+          sys.argv = [str(validator_path), *validator_args]
+          namespace = {
+              "__name__": "__main__",
+              "__file__": str(validator_path),
+              "__package__": None,
+              "__cached__": None,
+          }
+          exec(validator_code, namespace, namespace)
+          PY
             bridge_status=$?
             set -e
 
@@ -385,7 +417,20 @@ jobs:
           from pathlib import Path
 
           src = Path(os.environ["RUNNER_TEMP"]) / "vela-g7-bridge-full.json"
-          if src.exists():
+          bridge_status = int(os.environ["BRIDGE_STATUS"])
+          if bridge_status in (124, 137):
+              payload = {
+                  "status": "FAIL_TIMEOUT",
+                  "foundation_source_commit": os.environ["SOURCE_COMMIT"],
+                  "experiment_result_commit": os.environ["EXPERIMENT_COMMIT"],
+                  "bridge_introduction_revision": os.environ["VELA_G7_BRIDGE_INTRODUCTION_REVISION"],
+                  "pre_bridge_revision": os.environ["VELA_G7_PRE_BRIDGE_REVISION"],
+                  "legacy_skip_eligible": False,
+                  "validator_blob": os.environ["VALIDATOR_BLOB"],
+                  "validator_sha256": os.environ["VALIDATOR_SHA256"],
+                  "claim_boundary": "Bridge verifier timed out or required forced termination and was not retried.",
+              }
+          elif src.exists():
               full = json.loads(src.read_text(encoding="utf-8"))
               payload = {
                   "status": full["status"],
