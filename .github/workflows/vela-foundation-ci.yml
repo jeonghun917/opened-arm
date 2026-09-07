@@ -29,6 +29,18 @@ env:
 
 jobs:
   foundation-tests:
+    outputs:
+      requested_ref: ${{ steps.request.outputs.requested_ref }}
+      resolved_sha: ${{ steps.target.outputs.resolved_sha }}
+      runner_revision: ${{ steps.request.outputs.runner_revision }}
+      request_outcome: ${{ steps.request.outcome }}
+      credential_outcome: ${{ steps.credential.outcome }}
+      target_checkout_outcome: ${{ steps.target_checkout.outcome }}
+      target_identity_outcome: ${{ steps.target.outcome }}
+      python_outcome: ${{ steps.python.outcome }}
+      unittest_outcome: ${{ steps.unittest.outcome }}
+      unittest_exit_code: ${{ steps.unittest.outputs.exit_code }}
+      unittest_count: ${{ steps.unittest.outputs.test_count }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -159,6 +171,72 @@ jobs:
           fi
           echo "VELA foundation unittest suite: PASS (${count} tests)"
 
+  g7-validation:
+    needs: foundation-tests
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Require successful unittest job
+        id: foundation_gate
+        shell: /bin/bash --noprofile --norc -euo pipefail {0}
+        env:
+          FOUNDATION_JOB_RESULT: ${{ needs['foundation-tests'].result }}
+          SOURCE_COMMIT: ${{ needs['foundation-tests'].outputs.resolved_sha }}
+        run: |
+          test "$FOUNDATION_JOB_RESULT" = success
+          [[ "$SOURCE_COMMIT" =~ ^[0-9a-f]{40}$ ]]
+
+      - name: Check private read credential for G7 checkout
+        id: g7_credential
+        shell: /bin/bash --noprofile --norc -euo pipefail {0}
+        env:
+          ARS_MENTIS_READ_TOKEN: ${{ secrets.ARS_MENTIS_READ_TOKEN }}
+        run: |
+          test -n "${ARS_MENTIS_READ_TOKEN:-}"
+
+      - name: Checkout fresh exact private Ars-Mentis target for G7
+        id: g7_target_checkout
+        uses: actions/checkout@v4
+        with:
+          repository: jeonghun917/Ars-Mentis
+          ref: ${{ needs['foundation-tests'].outputs.resolved_sha }}
+          token: ${{ secrets.ARS_MENTIS_READ_TOKEN }}
+          path: ars-mentis
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Bind fresh exact G7 target identity
+        id: g7_target
+        shell: /bin/bash --noprofile --norc -euo pipefail {0}
+        working-directory: ars-mentis
+        env:
+          SOURCE_COMMIT: ${{ needs['foundation-tests'].outputs.resolved_sha }}
+        run: |
+          actual="$(/usr/bin/git --no-replace-objects rev-parse HEAD)"
+          test "$actual" = "$SOURCE_COMMIT"
+          test -z "$(/usr/bin/git --no-replace-objects status --porcelain)"
+          test "$(/usr/bin/git --no-replace-objects rev-parse --is-shallow-repository)" = false
+          git_dir="$(/usr/bin/git --no-replace-objects rev-parse --absolute-git-dir)"
+          test ! -e "$git_dir/info/grafts"
+          test -z "$(/usr/bin/git --no-replace-objects for-each-ref --format='%(refname)' refs/replace/)"
+          if /usr/bin/git config --local --get-regexp '^http\..*\.extraheader$' >/dev/null 2>&1; then
+            echo "Checkout credential unexpectedly persisted"
+            exit 1
+          fi
+          origin="$(/usr/bin/git remote get-url origin)"
+          case "$origin" in
+            https://github.com/jeonghun917/Ars-Mentis | https://github.com/jeonghun917/Ars-Mentis.git) ;;
+            *) echo "Unexpected target repository origin"; exit 1 ;;
+          esac
+          printf 'resolved_sha=%s\n' "$actual" >> "$GITHUB_OUTPUT"
+
+      - name: Set up trusted Python 3.11 for G7
+        id: g7_python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
       - name: Checkout exact audited RWKV 2.9B G7 result snapshot
         id: g7_checkout
         uses: actions/checkout@v4
@@ -189,34 +267,55 @@ jobs:
         id: g7
         shell: /bin/bash --noprofile --norc -euo pipefail {0}
         env:
-          SOURCE_COMMIT: ${{ steps.target.outputs.resolved_sha }}
+          SOURCE_COMMIT: ${{ steps.g7_target.outputs.resolved_sha }}
           EXPERIMENT_COMMIT: ${{ steps.g7_identity.outputs.resolved_sha }}
         run: |
           mkdir -p validation-evidence
           dst=validation-evidence/vela-foundation-g7-evidence-bridge.json
-          rm -f "$dst" "$RUNNER_TEMP/vela-g7-bridge-full.json" "$RUNNER_TEMP/vela-g7-bridge.log"
+          validator_file="$RUNNER_TEMP/vela-g7-validator-${SOURCE_COMMIT}.py"
+          rm -f "$dst" "$validator_file" "$RUNNER_TEMP/vela-g7-bridge-full.json" "$RUNNER_TEMP/vela-g7-bridge.log"
 
           validator_path=tools/verify_rwkv_g7_evidence_bridge.py
-          if ! /usr/bin/git -C ars-mentis cat-file -e "${SOURCE_COMMIT}:${validator_path}" 2>/dev/null; then
+          canonical_git=(/usr/bin/git --no-replace-objects -C ars-mentis)
+          git_dir="$("${canonical_git[@]}" rev-parse --absolute-git-dir)"
+          test ! -e "$git_dir/info/grafts"
+          test -z "$("${canonical_git[@]}" for-each-ref --format='%(refname)' refs/replace/)"
+          test "$("${canonical_git[@]}" rev-parse --is-shallow-repository)" = false
+
+          validator_blob=""
+          if validator_blob="$("${canonical_git[@]}" rev-parse --verify "${SOURCE_COMMIT}:${validator_path}" 2>/dev/null)" \
+            && [[ "$("${canonical_git[@]}" cat-file -t "$validator_blob")" == blob ]]; then
+            validator_present=true
+          else
+            validator_present=false
+            validator_blob=""
+          fi
+
+          if [[ "$validator_present" == false ]]; then
             legacy_skip_eligible=false
             legacy_proof=BRIDGE_BOUNDARY_UNAVAILABLE
-            if ! /usr/bin/git -C ars-mentis cat-file -e "${VELA_G7_BRIDGE_INTRODUCTION_REVISION}^{commit}" 2>/dev/null; then
+            if ! "${canonical_git[@]}" cat-file -e "${VELA_G7_BRIDGE_INTRODUCTION_REVISION}^{commit}" 2>/dev/null; then
               legacy_proof=BRIDGE_INTRODUCTION_NOT_FETCHED
-            elif ! /usr/bin/git -C ars-mentis cat-file -e "${VELA_G7_PRE_BRIDGE_REVISION}^{commit}" 2>/dev/null; then
+            elif ! "${canonical_git[@]}" cat-file -e "${VELA_G7_PRE_BRIDGE_REVISION}^{commit}" 2>/dev/null; then
               legacy_proof=PRE_BRIDGE_REVISION_NOT_FETCHED
-            elif ! actual_parent="$(/usr/bin/git -C ars-mentis rev-parse "${VELA_G7_BRIDGE_INTRODUCTION_REVISION}^")"; then
+            elif ! parent_line="$("${canonical_git[@]}" rev-list --parents -n 1 "$VELA_G7_BRIDGE_INTRODUCTION_REVISION")"; then
               legacy_proof=BRIDGE_PARENT_UNRESOLVED
-            elif [[ "$actual_parent" != "$VELA_G7_PRE_BRIDGE_REVISION" ]]; then
-              legacy_proof=BRIDGE_PARENT_MISMATCH
-            elif ! /usr/bin/git -C ars-mentis cat-file -e "${VELA_G7_BRIDGE_INTRODUCTION_REVISION}:tools/verify_rwkv_g7_evidence_bridge.py" 2>/dev/null; then
-              legacy_proof=VALIDATOR_ABSENT_AT_INTRODUCTION
-            elif /usr/bin/git -C ars-mentis cat-file -e "${VELA_G7_PRE_BRIDGE_REVISION}:tools/verify_rwkv_g7_evidence_bridge.py" 2>/dev/null; then
-              legacy_proof=VALIDATOR_PRESENT_BEFORE_INTRODUCTION
-            elif /usr/bin/git -C ars-mentis merge-base --is-ancestor "$SOURCE_COMMIT" "$VELA_G7_PRE_BRIDGE_REVISION"; then
-              legacy_skip_eligible=true
-              legacy_proof=SOURCE_IS_ANCESTOR_OF_PRE_BRIDGE_REVISION
             else
-              legacy_proof=SOURCE_NOT_PROVEN_PRE_BRIDGE
+              read -r -a parent_fields <<< "$parent_line"
+              if [[ "${#parent_fields[@]}" -ne 2 || "${parent_fields[0]}" != "$VELA_G7_BRIDGE_INTRODUCTION_REVISION" ]]; then
+                legacy_proof=BRIDGE_PARENT_CARDINALITY_MISMATCH
+              elif [[ "${parent_fields[1]}" != "$VELA_G7_PRE_BRIDGE_REVISION" ]]; then
+                legacy_proof=BRIDGE_PARENT_MISMATCH
+              elif ! "${canonical_git[@]}" cat-file -e "${VELA_G7_BRIDGE_INTRODUCTION_REVISION}:${validator_path}" 2>/dev/null; then
+                legacy_proof=VALIDATOR_ABSENT_AT_INTRODUCTION
+              elif "${canonical_git[@]}" cat-file -e "${VELA_G7_PRE_BRIDGE_REVISION}:${validator_path}" 2>/dev/null; then
+                legacy_proof=VALIDATOR_PRESENT_BEFORE_INTRODUCTION
+              elif "${canonical_git[@]}" merge-base --is-ancestor "$SOURCE_COMMIT" "$VELA_G7_PRE_BRIDGE_REVISION"; then
+                legacy_skip_eligible=true
+                legacy_proof=SOURCE_IS_ANCESTOR_OF_PRE_BRIDGE_REVISION
+              else
+                legacy_proof=SOURCE_NOT_PROVEN_PRE_BRIDGE
+              fi
             fi
 
             LEGACY_SKIP_ELIGIBLE="$legacy_skip_eligible" LEGACY_PROOF="$legacy_proof" /usr/bin/python3 - <<'PY'
@@ -235,6 +334,8 @@ jobs:
                       "pre_bridge_revision": os.environ["VELA_G7_PRE_BRIDGE_REVISION"],
                       "legacy_skip_eligible": eligible,
                       "legacy_proof": os.environ["LEGACY_PROOF"],
+                      "validator_blob": None,
+                      "validator_sha256": None,
                       "claim_boundary": (
                           "The exact source is proven to be an ancestor of the last pre-bridge revision."
                           if eligible
@@ -254,18 +355,31 @@ jobs:
               bridge_status=1
             fi
           else
-            validator_blob="$(/usr/bin/git -C ars-mentis rev-parse "${SOURCE_COMMIT}:${validator_path}")"
-            test -f "ars-mentis/${validator_path}"
-            test "$(/usr/bin/git -C ars-mentis hash-object "$validator_path")" = "$validator_blob"
+            [[ "$validator_blob" =~ ^[0-9a-f]{40}$ ]]
+            umask 077
+            "${canonical_git[@]}" cat-file blob "$validator_blob" > "$validator_file"
+            chmod 0400 "$validator_file"
+            materialized_blob="$(/usr/bin/git hash-object --no-filters "$validator_file")"
+            test "$materialized_blob" = "$validator_blob"
+            validator_sha256="$(/usr/bin/sha256sum "$validator_file")"
+            validator_sha256="${validator_sha256%% *}"
+            [[ "$validator_sha256" =~ ^[0-9a-f]{64}$ ]]
+            python_bin="$(command -v python)"
+            python_bin="$(/usr/bin/readlink -f "$python_bin")"
+            test -x "$python_bin"
+            test "$("$python_bin" -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')" = 3.11
+            test -z "$("${canonical_git[@]}" status --porcelain)"
             set +e
-            PYTHONPATH=ars-mentis/src python "ars-mentis/${validator_path}" \
+            PYTHONDONTWRITEBYTECODE=1 PYTHONNOUSERSITE=1 PYTHONPATH="$GITHUB_WORKSPACE/ars-mentis/src" \
+              "$python_bin" "$validator_file" \
               experiment/ops/vela-results/g7-rwkv7-2p9b-full-selector-v3-v1-latest.json \
               --output "$RUNNER_TEMP/vela-g7-bridge-full.json" \
               > "$RUNNER_TEMP/vela-g7-bridge.log" 2>&1
             bridge_status=$?
             set -e
 
-            BRIDGE_STATUS="$bridge_status" /usr/bin/python3 - <<'PY'
+            BRIDGE_STATUS="$bridge_status" VALIDATOR_BLOB="$validator_blob" VALIDATOR_SHA256="$validator_sha256" \
+              /usr/bin/python3 - <<'PY'
           import json
           import os
           from pathlib import Path
@@ -280,6 +394,8 @@ jobs:
                   "bridge_introduction_revision": os.environ["VELA_G7_BRIDGE_INTRODUCTION_REVISION"],
                   "pre_bridge_revision": os.environ["VELA_G7_PRE_BRIDGE_REVISION"],
                   "legacy_skip_eligible": False,
+                  "validator_blob": os.environ["VALIDATOR_BLOB"],
+                  "validator_sha256": os.environ["VALIDATOR_SHA256"],
                   "source_result_sha256": full["source_result_sha256"],
                   "case_count": full["case_count"],
                   "selected_anchor_match_count": full["selected_anchor_match_count"],
@@ -298,6 +414,8 @@ jobs:
                   "bridge_introduction_revision": os.environ["VELA_G7_BRIDGE_INTRODUCTION_REVISION"],
                   "pre_bridge_revision": os.environ["VELA_G7_PRE_BRIDGE_REVISION"],
                   "legacy_skip_eligible": False,
+                  "validator_blob": os.environ["VALIDATOR_BLOB"],
+                  "validator_sha256": os.environ["VALIDATOR_SHA256"],
                   "claim_boundary": "Bridge verifier failed before a public-safe summary could be produced.",
               }
           Path("validation-evidence/vela-foundation-g7-evidence-bridge.json").write_text(
@@ -315,10 +433,14 @@ jobs:
           status = payload.get("status", "UNKNOWN")
           count = payload.get("case_count", "")
           legacy_skip_eligible = payload.get("legacy_skip_eligible") is True
+          validator_blob = payload.get("validator_blob") or ""
+          validator_sha256 = payload.get("validator_sha256") or ""
           with open(sys.argv[2], "a", encoding="utf-8") as output:
               output.write(f"status={status}\n")
               output.write(f"case_count={count}\n")
               output.write(f"legacy_skip_eligible={'true' if legacy_skip_eligible else 'false'}\n")
+              output.write(f"validator_blob={validator_blob}\n")
+              output.write(f"validator_sha256={validator_sha256}\n")
           PY
 
           if [[ "$bridge_status" -ne 0 ]]; then
@@ -332,23 +454,32 @@ jobs:
         if: always()
         shell: /bin/bash --noprofile --norc -euo pipefail {0}
         env:
-          REQUESTED_REF: ${{ steps.request.outputs.requested_ref }}
-          RESOLVED_SHA: ${{ steps.target.outputs.resolved_sha }}
-          RUNNER_REVISION: ${{ steps.request.outputs.runner_revision }}
-          REQUEST_OUTCOME: ${{ steps.request.outcome }}
-          CREDENTIAL_OUTCOME: ${{ steps.credential.outcome }}
-          TARGET_CHECKOUT_OUTCOME: ${{ steps.target_checkout.outcome }}
-          TARGET_IDENTITY_OUTCOME: ${{ steps.target.outcome }}
-          PYTHON_OUTCOME: ${{ steps.python.outcome }}
-          UNITTEST_OUTCOME: ${{ steps.unittest.outcome }}
-          UNITTEST_EXIT_CODE: ${{ steps.unittest.outputs.exit_code }}
-          UNITTEST_COUNT: ${{ steps.unittest.outputs.test_count }}
+          FOUNDATION_JOB_RESULT: ${{ needs['foundation-tests'].result }}
+          REQUESTED_REF: ${{ needs['foundation-tests'].outputs.requested_ref }}
+          RESOLVED_SHA: ${{ needs['foundation-tests'].outputs.resolved_sha }}
+          RUNNER_REVISION: ${{ needs['foundation-tests'].outputs.runner_revision }}
+          REQUEST_OUTCOME: ${{ needs['foundation-tests'].outputs.request_outcome }}
+          CREDENTIAL_OUTCOME: ${{ needs['foundation-tests'].outputs.credential_outcome }}
+          TARGET_CHECKOUT_OUTCOME: ${{ needs['foundation-tests'].outputs.target_checkout_outcome }}
+          TARGET_IDENTITY_OUTCOME: ${{ needs['foundation-tests'].outputs.target_identity_outcome }}
+          PYTHON_OUTCOME: ${{ needs['foundation-tests'].outputs.python_outcome }}
+          UNITTEST_OUTCOME: ${{ needs['foundation-tests'].outputs.unittest_outcome }}
+          UNITTEST_EXIT_CODE: ${{ needs['foundation-tests'].outputs.unittest_exit_code }}
+          UNITTEST_COUNT: ${{ needs['foundation-tests'].outputs.unittest_count }}
+          G7_FOUNDATION_GATE_OUTCOME: ${{ steps.foundation_gate.outcome }}
+          G7_CREDENTIAL_OUTCOME: ${{ steps.g7_credential.outcome }}
+          G7_TARGET_CHECKOUT_OUTCOME: ${{ steps.g7_target_checkout.outcome }}
+          G7_TARGET_IDENTITY_OUTCOME: ${{ steps.g7_target.outcome }}
+          G7_RESOLVED_SHA: ${{ steps.g7_target.outputs.resolved_sha }}
+          G7_PYTHON_OUTCOME: ${{ steps.g7_python.outcome }}
           G7_CHECKOUT_OUTCOME: ${{ steps.g7_checkout.outcome }}
           G7_IDENTITY_OUTCOME: ${{ steps.g7_identity.outcome }}
           G7_OUTCOME: ${{ steps.g7.outcome }}
           G7_STATUS: ${{ steps.g7.outputs.status }}
           G7_CASE_COUNT: ${{ steps.g7.outputs.case_count }}
           G7_LEGACY_SKIP_ELIGIBLE: ${{ steps.g7.outputs.legacy_skip_eligible }}
+          G7_VALIDATOR_BLOB: ${{ steps.g7.outputs.validator_blob }}
+          G7_VALIDATOR_SHA256: ${{ steps.g7.outputs.validator_sha256 }}
         run: |
           mkdir -p validation-evidence
           /usr/bin/python3 - <<'PY'
@@ -360,26 +491,41 @@ jobs:
               return os.environ.get(name, "") or fallback
 
           gates = {
+              "foundationJob": value("FOUNDATION_JOB_RESULT", "skipped"),
               "canonicalRequest": value("REQUEST_OUTCOME", "skipped"),
               "credentialGate": value("CREDENTIAL_OUTCOME", "skipped"),
               "targetCheckout": value("TARGET_CHECKOUT_OUTCOME", "skipped"),
               "targetIdentity": value("TARGET_IDENTITY_OUTCOME", "skipped"),
               "pythonSetup": value("PYTHON_OUTCOME", "skipped"),
               "unittest": value("UNITTEST_OUTCOME", "skipped"),
+              "g7FoundationGate": value("G7_FOUNDATION_GATE_OUTCOME", "skipped"),
+              "g7CredentialGate": value("G7_CREDENTIAL_OUTCOME", "skipped"),
+              "g7TargetCheckout": value("G7_TARGET_CHECKOUT_OUTCOME", "skipped"),
+              "g7TargetIdentity": value("G7_TARGET_IDENTITY_OUTCOME", "skipped"),
+              "g7PythonSetup": value("G7_PYTHON_OUTCOME", "skipped"),
               "g7EvidenceCheckout": value("G7_CHECKOUT_OUTCOME", "skipped"),
               "g7EvidenceIdentity": value("G7_IDENTITY_OUTCOME", "skipped"),
               "g7Bridge": value("G7_OUTCOME", "skipped"),
           }
           resolved_sha = value("RESOLVED_SHA")
+          g7_resolved_sha = value("G7_RESOLVED_SHA")
           runner_revision = value("RUNNER_REVISION", value("GITHUB_WORKFLOW_SHA", value("GITHUB_SHA")))
           g7_status = value("G7_STATUS", "NOT_RUN")
           g7_legacy_skip_eligible = value("G7_LEGACY_SKIP_ELIGIBLE", "false") == "true"
-          g7_accepted = g7_status == "PASS" or (
+          g7_validator_blob = value("G7_VALIDATOR_BLOB")
+          g7_validator_sha256 = value("G7_VALIDATOR_SHA256")
+          g7_current_pass = (
+              g7_status == "PASS"
+              and len(g7_validator_blob) == 40
+              and len(g7_validator_sha256) == 64
+          )
+          g7_accepted = g7_current_pass or (
               g7_status == "SKIPPED_SOURCE_PREDATES_BRIDGE" and g7_legacy_skip_eligible
           )
           validation_result = "PASS" if (
               all(outcome == "success" for outcome in gates.values())
               and len(resolved_sha) == 40
+              and g7_resolved_sha == resolved_sha
               and len(runner_revision) == 40
               and g7_accepted
           ) else "FAIL"
@@ -406,6 +552,7 @@ jobs:
                   "repository": value("VELA_TARGET_REPOSITORY"),
                   "requestedRef": value("REQUESTED_REF"),
                   "resolvedSha": resolved_sha,
+                  "g7ResolvedSha": g7_resolved_sha,
               },
               "recipe": {
                   "id": "VELA_BASIC",
@@ -428,6 +575,8 @@ jobs:
                       "status": g7_status,
                       "accepted": g7_accepted,
                       "legacySkipEligible": g7_legacy_skip_eligible,
+                      "validatorBlob": g7_validator_blob or None,
+                      "validatorSha256": g7_validator_sha256 or None,
                       "caseCount": int(g7_count_text) if g7_count_text.isdigit() else None,
                       "evidenceRevision": value("VELA_G7_EVIDENCE_REVISION"),
                       "bridgeIntroductionRevision": value("VELA_G7_BRIDGE_INTRODUCTION_REVISION"),
@@ -462,12 +611,15 @@ jobs:
               f"| Target repository | `{payload['target']['repository']}` |",
               f"| Requested ref | `{payload['target']['requestedRef']}` |",
               f"| Resolved SHA | `{payload['target']['resolvedSha'] or 'UNRESOLVED'}` |",
+              f"| G7 resolved SHA | `{payload['target']['g7ResolvedSha'] or 'UNRESOLVED'}` |",
               f"| Runner revision | `{payload['execution']['runnerRevision']}` |",
               f"| Run / attempt | `{payload['execution']['runId']}` / `{payload['execution']['attempt']}` |",
               f"| Recipe | `{payload['recipe']['identity']}` |",
               f"| Unittest count | `{payload['result']['unittest']['testCount']}` |",
               f"| G7 status | `{payload['result']['g7']['status']}` |",
               f"| G7 accepted | `{payload['result']['g7']['accepted']}` |",
+              f"| G7 validator blob | `{payload['result']['g7']['validatorBlob'] or 'NONE'}` |",
+              f"| G7 validator SHA-256 | `{payload['result']['g7']['validatorSha256'] or 'NONE'}` |",
               f"| Result | **{payload['result']['status']}** |",
               "",
               payload["claimBoundary"],
