@@ -175,10 +175,14 @@ jobs:
     needs: foundation-tests
     if: ${{ always() }}
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    # Sequential step caps total 34m; 40m > 34m + the explicit 5m finalization reserve.
+    timeout-minutes: 40
+    env:
+      VELA_G7_FINALIZATION_RESERVE_MINUTES: '5'
     steps:
       - name: Require successful unittest job
         id: foundation_gate
+        timeout-minutes: 1
         shell: /bin/bash --noprofile --norc -euo pipefail {0}
         env:
           FOUNDATION_JOB_RESULT: ${{ needs['foundation-tests'].result }}
@@ -189,6 +193,7 @@ jobs:
 
       - name: Check private read credential for G7 checkout
         id: g7_credential
+        timeout-minutes: 1
         shell: /bin/bash --noprofile --norc -euo pipefail {0}
         env:
           ARS_MENTIS_READ_TOKEN: ${{ secrets.ARS_MENTIS_READ_TOKEN }}
@@ -197,6 +202,7 @@ jobs:
 
       - name: Checkout fresh exact private Ars-Mentis target for G7
         id: g7_target_checkout
+        timeout-minutes: 5
         uses: actions/checkout@v4
         with:
           repository: jeonghun917/Ars-Mentis
@@ -208,6 +214,7 @@ jobs:
 
       - name: Bind fresh exact G7 target identity
         id: g7_target
+        timeout-minutes: 2
         shell: /bin/bash --noprofile --norc -euo pipefail {0}
         working-directory: ars-mentis
         env:
@@ -233,12 +240,14 @@ jobs:
 
       - name: Set up trusted Python 3.11 for G7
         id: g7_python
+        timeout-minutes: 5
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
       - name: Checkout exact audited RWKV 2.9B G7 result snapshot
         id: g7_checkout
+        timeout-minutes: 3
         uses: actions/checkout@v4
         with:
           repository: jeonghun917/opened-arm
@@ -250,6 +259,7 @@ jobs:
 
       - name: Bind exact G7 evidence identity
         id: g7_identity
+        timeout-minutes: 1
         shell: /bin/bash --noprofile --norc -euo pipefail {0}
         working-directory: experiment
         run: |
@@ -497,6 +507,7 @@ jobs:
       - name: Write exact validation evidence
         id: evidence
         if: always()
+        timeout-minutes: 2
         shell: /bin/bash --noprofile --norc -euo pipefail {0}
         env:
           FOUNDATION_JOB_RESULT: ${{ needs['foundation-tests'].result }}
@@ -679,6 +690,7 @@ jobs:
       - name: Upload public-safe validation evidence
         id: artifact
         if: always()
+        timeout-minutes: 3
         uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.evidence.outputs.artifact_name || format('vela-foundation-validation-{0}-{1}', github.run_id, github.run_attempt) }}
@@ -688,6 +700,7 @@ jobs:
 
       - name: Require complete validation evidence
         if: always()
+        timeout-minutes: 1
         shell: /bin/bash --noprofile --norc -euo pipefail {0}
         env:
           VALIDATION_RESULT: ${{ steps.evidence.outputs.validation_result }}
