@@ -40,7 +40,6 @@ MUTATION_KEYS = {"mutation_id", "path", "operation", "content", "rationale"}
 CODING_WORKER_ID = "opened-arm.qwen-coding-reasoner"
 CODING_WORKFLOW_PATHS = frozenset({
     ".github/workflows/aws-qwen-coding-reasoner.yml",
-    ".github/workflows/aws-project-ai-bundle.yml",
 })
 CODING_OUTPUT_PROFILES = (
     {
@@ -344,6 +343,7 @@ def escalation_proposal(request, reason):
 def normalize_model_output(model_text, request, stop_reason=None, *, strict=False):
     issues = []
     truncated = stop_reason == "max_tokens"
+    overflow = False
     if truncated:
         issues.append("model_output_truncated_by_token_limit")
     elif not model_text:
@@ -360,6 +360,7 @@ def normalize_model_output(model_text, request, stop_reason=None, *, strict=Fals
             proposal = validate_proposal(raw, request)
         except (ValueError, json.JSONDecodeError) as exc:
             detail = str(exc).strip() or exc.__class__.__name__
+            overflow = detail in {"mutation_count_exceeded", "mutation_bytes_exceeded"}
             issues.append(f"model_output_invalid:{detail[:300]}")
 
     if proposal is None:
@@ -368,6 +369,7 @@ def normalize_model_output(model_text, request, stop_reason=None, *, strict=Fals
         "proposal": proposal,
         "complete": not issues,
         "truncated": truncated,
+        "overflow": overflow,
         "issues": issues,
     }
 
@@ -458,6 +460,7 @@ def invoke(request):
         "proposal": normalized["proposal"],
         "normalization_complete": normalized["complete"],
         "truncated": normalized["truncated"],
+        "overflow": normalized["overflow"],
         "issues": normalized["issues"] + content_issues,
         "raw_content": parts,
         "raw_text": model_text,
@@ -479,6 +482,7 @@ def build_result_document(request, input_bytes, invocation=None, provider_error=
             "proposal": escalation_proposal(request, issue),
             "normalization_complete": False,
             "truncated": False,
+            "overflow": False,
             "issues": [issue],
             "raw_content": [],
             "raw_text": "",
@@ -565,7 +569,7 @@ def build_result_document(request, input_bytes, invocation=None, provider_error=
             raw_output_complete=invocation["raw_content_complete"],
             normalized_output_complete=invocation["normalization_complete"],
             truncated=invocation["truncated"],
-            overflow=False,
+            overflow=invocation.get("overflow", False),
             provider_failed=provider_failed,
             issues=issues,
         )

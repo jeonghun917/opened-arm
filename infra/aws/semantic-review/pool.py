@@ -33,7 +33,6 @@ OUTPUT_PATH = Path(os.environ.get("SEMANTIC_REVIEW_OUTPUT", "semantic-review-poo
 SEMANTIC_POOL_ID = "opened-arm.semantic-review-pool"
 SEMANTIC_WORKFLOW_PATHS = frozenset({
     ".github/workflows/aws-semantic-review-intake.yml",
-    ".github/workflows/aws-project-ai-bundle.yml",
 })
 MAX_FINDINGS_PER_REVIEWER = 5
 SEMANTIC_OUTPUT_PROFILE = {

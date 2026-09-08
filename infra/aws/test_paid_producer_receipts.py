@@ -41,7 +41,7 @@ BASE_SHA = "a" * 40
 TARGET_SHA = "b" * 40
 PRODUCER_SHA = "c" * 40
 TASK_REF = "continuity-task:v0:meta:deterministic-execution-loop-v0"
-TASK_REVISION = "deterministic-execution-loop-v0-q2-complete-semantic-route-active-r46"
+TASK_REVISION = "deterministic-execution-loop-v0-p04-cleanup-review-retirement-next-r51"
 
 
 def receipt_context(target_sha: str, operation_id: str = "operation-p04") -> dict:
@@ -113,6 +113,7 @@ def coding_invocation(request: dict, *, stop_reason: str = "end_turn") -> dict:
         "proposal": normalized["proposal"],
         "normalization_complete": normalized["complete"],
         "truncated": normalized["truncated"],
+        "overflow": normalized["overflow"],
         "issues": normalized["issues"],
         "raw_content": content,
         "raw_text": raw_text,
@@ -218,17 +219,15 @@ class ReceiptIdentityTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "receipt_target_sha_mismatch"):
             reasoner.validate_request(raw_coding_request(context=bad))
 
-    def test_project_ai_bundle_keeps_legacy_inputs_artifacts_and_accepts_v1(self):
-        workflow = (ROOT / ".github" / "workflows" / "aws-project-ai-bundle.yml").read_text()
-        for expected in (
-            "coding_payload_b64:",
-            "review_payload_b64:",
-            "project-ai-coding-${{ inputs.project_id }}",
-            "project-ai-review-${{ inputs.project_id }}",
-            "coding-reasoner-result.json",
-            "semantic-review-pool-results.json",
-        ):
-            self.assertIn(expected, workflow)
+    def test_only_standalone_producer_workflows_can_issue_new_receipts(self):
+        self.assertEqual(
+            reasoner.CODING_WORKFLOW_PATHS,
+            {".github/workflows/aws-qwen-coding-reasoner.yml"},
+        )
+        self.assertEqual(
+            pool.SEMANTIC_WORKFLOW_PATHS,
+            {".github/workflows/aws-semantic-review-intake.yml"},
+        )
 
         coding_request = reasoner.validate_request(raw_coding_request(context=receipt_context(BASE_SHA)))
         coding_result = reasoner.build_result_document(
@@ -237,7 +236,7 @@ class ReceiptIdentityTests(unittest.TestCase):
             coding_invocation(coding_request),
             environ=github_env(".github/workflows/aws-project-ai-bundle.yml", "coding"),
         )
-        review_request = semantic_request(context=receipt_context(TARGET_SHA, "operation-bundle-review"))
+        review_request = semantic_request(context=receipt_context(TARGET_SHA, "operation-retired-review"))
         review_result = pool.build_pool_result(
             review_request,
             canonical_json_bytes(review_request),
@@ -245,8 +244,25 @@ class ReceiptIdentityTests(unittest.TestCase):
             10,
             environ=github_env(".github/workflows/aws-project-ai-bundle.yml", "semantic_review"),
         )
-        self.assertTrue(coding_result["producer_receipt"]["completeness"]["complete"])
-        self.assertTrue(review_result["producer_receipt"]["completeness"]["complete"])
+        for result in (coding_result, review_result):
+            receipt = result["producer_receipt"]
+            self.assertFalse(receipt["completeness"]["complete"])
+            self.assertIn("workflow_path_not_admitted", receipt["completeness"]["issues"])
+
+    def test_project_ai_bundle_dispatch_is_absent(self):
+        workflow_dir = ROOT / ".github" / "workflows"
+        self.assertFalse((workflow_dir / "aws-project-ai-bundle.yml").exists())
+        coding_workflow = (workflow_dir / "aws-qwen-coding-reasoner.yml").read_text()
+        semantic_workflow = (workflow_dir / "aws-semantic-review-intake.yml").read_text()
+        self.assertNotIn("infra/aws/semantic-review/pool.py", coding_workflow)
+        self.assertNotIn("infra/aws/coding-worker/reasoner.py", semantic_workflow)
+        self.assertNotIn("aws-project-ai-bundle", coding_workflow + semantic_workflow)
+        policy = json.loads((ROOT / "ops" / "project-ai-capacity-policy.json").read_text())
+        self.assertNotIn("bundleWorkflow", policy["execution"])
+        self.assertEqual(policy["execution"]["semanticReviewCount"], 3)
+        self.assertEqual(policy["execution"]["semanticReviewCodingCalls"], 0)
+        self.assertEqual(policy["execution"]["codingReasonerSemanticCalls"], 0)
+        self.assertEqual(policy["execution"]["adjudication"], "SEPARATE_SOURCE_GROUNDED")
 
 
 class CodingCompletenessTests(unittest.TestCase):
@@ -295,7 +311,7 @@ class CodingCompletenessTests(unittest.TestCase):
             request,
             canonical_json_bytes(request),
             coding_invocation(request),
-            environ=github_env(".github/workflows/aws-project-ai-bundle.yml", "coding"),
+            environ=github_env(".github/workflows/aws-qwen-coding-reasoner.yml", "reason"),
         )
         output = result["producer_receipt"]["output"]
         self.assertEqual(output["finish_reason"], "end_turn")
@@ -319,6 +335,54 @@ class CodingCompletenessTests(unittest.TestCase):
         self.assertEqual(receipt["final"], {"state": "FAILED", "success": False})
         self.assertIn("provider_cli_failed", receipt["completeness"]["issues"])
         self.assertFalse(result["automatic_retry"])
+        self.assertEqual(result["next_gate"], "producer_receipt_incomplete_stop")
+
+    def test_coding_output_overflow_is_explicit_and_incomplete(self):
+        request = reasoner.validate_request(raw_coding_request(
+            context=receipt_context(BASE_SHA), max_mutations=2,
+        ))
+        raw_value = {
+            "decision": "PROPOSE",
+            "summary": "too many mutations",
+            "mutations": [
+                {
+                    "mutation_id": f"update-{index}",
+                    "path": f"src/{index}.ts",
+                    "operation": "update_file",
+                    "content": f"export const value = {index};\n",
+                    "rationale": "requested",
+                }
+                for index in range(3)
+            ],
+            "assumptions": [],
+            "unresolved": [],
+        }
+        raw_text = json.dumps(raw_value, separators=(",", ":"))
+        normalized = reasoner.normalize_model_output(raw_text, request, "end_turn", strict=True)
+        invocation = {
+            "proposal": normalized["proposal"],
+            "normalization_complete": normalized["complete"],
+            "truncated": normalized["truncated"],
+            "overflow": normalized["overflow"],
+            "issues": normalized["issues"],
+            "raw_content": [{"text": raw_text}],
+            "raw_text": raw_text,
+            "raw_content_complete": True,
+            "finish_reason": "end_turn",
+            "usage": reasoner.usage_evidence({"inputTokens": 40, "outputTokens": 20}),
+            "latency_ms": 123,
+            "output_profile": reasoner.output_profile_for(request),
+        }
+        result = reasoner.build_result_document(
+            request,
+            canonical_json_bytes(request),
+            invocation,
+            environ=github_env(".github/workflows/aws-qwen-coding-reasoner.yml", "reason"),
+        )
+        receipt = result["producer_receipt"]
+        self.assertTrue(receipt["completeness"]["overflow"])
+        self.assertFalse(receipt["completeness"]["complete"])
+        self.assertEqual(receipt["final"], {"state": "INCOMPLETE", "success": False})
         self.assertEqual(result["next_gate"], "producer_receipt_incomplete_stop")
 
     def test_ambiguous_provider_state_is_incomplete_and_not_success(self):
@@ -439,7 +503,7 @@ class SemanticCompletenessTests(unittest.TestCase):
         ]
         result = pool.build_pool_result(
             request, canonical_json_bytes(request), reviews, 10,
-            environ=github_env(".github/workflows/aws-project-ai-bundle.yml", "semantic_review"),
+            environ=github_env(".github/workflows/aws-semantic-review-intake.yml", "review"),
         )
         receipt = result["producer_receipt"]
         self.assertEqual(receipt["final"], {"state": "FAILED", "success": False})
@@ -471,6 +535,19 @@ class SemanticCompletenessTests(unittest.TestCase):
         self.assertEqual(result["schema"], "semantic-review-pool-v0")
         self.assertEqual(result["completed_reviews"], 3)
         self.assertNotIn("producer_receipt", result)
+
+    def test_semantic_caller_cannot_override_model_temperature_or_token_limit(self):
+        for key, value in (("model_id", "other"), ("temperature", 1), ("max_tokens", 99999)):
+            raw = {
+                "task_id": "p04-semantic",
+                "language": "python",
+                "requirements": "Review exact candidate without mutation.",
+                "code": "value = 1\n",
+                "receipt_context": receipt_context(TARGET_SHA),
+                key: value,
+            }
+            with self.subTest(key=key), self.assertRaisesRegex(ValueError, "review_request_shape_invalid"):
+                pool.validate_request(raw)
 
     def test_legacy_two_reviewer_mode_remains_available_but_cannot_issue_v1(self):
         previous = os.environ.get("SEMANTIC_REVIEW_COUNT")
