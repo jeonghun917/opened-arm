@@ -8,7 +8,22 @@ import sys
 import time
 from pathlib import Path
 
-MODEL_ID = os.environ.get("CODING_REASONER_MODEL_ID", "qwen.qwen3-coder-30b-a3b-v1:0")
+AWS_INFRA_DIR = Path(__file__).resolve().parents[1]
+if str(AWS_INFRA_DIR) not in sys.path:
+    sys.path.insert(0, str(AWS_INFRA_DIR))
+
+from producer_receipt import (  # noqa: E402
+    ProducerInvocationError,
+    RECEIPT_SCHEMA,
+    canonical_json_bytes,
+    finalize_receipt,
+    new_receipt,
+    producer_error_evidence,
+    sha256_json,
+    validate_receipt_context,
+)
+
+MODEL_ID = "qwen.qwen3-coder-30b-a3b-v1:0"
 INPUT = Path(os.environ.get("CODING_REASONER_INPUT", "coding-reasoner-input.json"))
 OUTPUT = Path(os.environ.get("CODING_REASONER_OUTPUT", "coding-reasoner-result.json"))
 INTAKE = Path(os.environ.get("CODING_REASONER_INTAKE_OUTPUT", "coding-reasoner-intake-result.json"))
@@ -16,9 +31,37 @@ TASK_RE = re.compile(r"^[A-Za-z0-9._:-]{1,160}$")
 REPO_RE = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
 SHA_RE = re.compile(r"^[0-9a-fA-F]{40}$")
 PATH_RE = re.compile(r"^(?!/)(?!.*(?:^|/)\.\.(?:/|$))(?!.*//)[A-Za-z0-9._@+(), /-]{1,500}$")
-ROOT_KEYS = {"task_id", "goal", "acceptance_criteria", "stop_and_escalate", "requested_change", "target", "path_policy", "files"}
+ROOT_KEYS = {
+    "task_id", "goal", "acceptance_criteria", "stop_and_escalate",
+    "requested_change", "target", "path_policy", "files", "receipt_context",
+}
 PROPOSAL_KEYS = {"decision", "summary", "mutations", "assumptions", "unresolved"}
 MUTATION_KEYS = {"mutation_id", "path", "operation", "content", "rationale"}
+CODING_WORKER_ID = "opened-arm.qwen-coding-reasoner"
+CODING_WORKFLOW_PATHS = frozenset({
+    ".github/workflows/aws-qwen-coding-reasoner.yml",
+    ".github/workflows/aws-project-ai-bundle.yml",
+})
+CODING_OUTPUT_PROFILES = (
+    {
+        "profile_id": "qwen-coding-proposal-compact-v1",
+        "max_mutations": 4,
+        "max_total_bytes": 65536,
+        "max_output_tokens": 1800,
+    },
+    {
+        "profile_id": "qwen-coding-proposal-standard-v1",
+        "max_mutations": 20,
+        "max_total_bytes": 524288,
+        "max_output_tokens": 4096,
+    },
+    {
+        "profile_id": "qwen-coding-proposal-extended-v1",
+        "max_mutations": 50,
+        "max_total_bytes": 1048576,
+        "max_output_tokens": 8192,
+    },
+)
 
 
 def fail(code):
@@ -142,6 +185,15 @@ def validate_request(raw):
             fail("context_too_large")
         normalized_files.append({"path": p, "content": item["content"]})
 
+    receipt_context = validate_receipt_context(
+        raw.get("receipt_context"),
+        expected_repository=repository,
+        expected_base_sha=base_sha,
+        # The reasoner reads and proposes from the exact base. A later executor,
+        # not this paid producer, is responsible for creating a candidate SHA.
+        expected_target_sha=base_sha,
+    )
+
     return {
         "task_id": task_id,
         "goal": goal,
@@ -151,10 +203,38 @@ def validate_request(raw):
         "target": {"repository": repository, "branch": branch, "base_sha": base_sha},
         "path_policy": normalized_policy,
         "files": normalized_files,
+        "receipt_context": receipt_context,
     }
 
 
+def output_profile_for(request):
+    policy = request["path_policy"]
+    for candidate in CODING_OUTPUT_PROFILES:
+        if (
+            policy["max_mutations"] <= candidate["max_mutations"]
+            and policy["max_total_bytes"] <= candidate["max_total_bytes"]
+        ):
+            return {
+                "schema": "qwen-coding-output-profile-v1",
+                "version": 1,
+                "profile_id": candidate["profile_id"],
+                "model_id": MODEL_ID,
+                "temperature": 0.1,
+                "top_p": 0.9,
+                "max_output_tokens": candidate["max_output_tokens"],
+                "operation_budget": {
+                    "max_mutations": policy["max_mutations"],
+                    "max_file_bytes": policy["max_file_bytes"],
+                    "max_total_bytes": policy["max_total_bytes"],
+                },
+                "arbitrary_multi_file_fit_guaranteed": False,
+                "overflow_policy": "INCOMPLETE_FAIL_CLOSED",
+            }
+    fail("coding_output_profile_unavailable")
+
+
 def prompt_for(request):
+    model_request = {key: value for key, value in request.items() if key != "receipt_context"}
     return """You are the proposal-only coding reasoner for a bounded Coding Worker.
 The supplied repository, branch, exact base SHA, path policy, and mutation limits are immutable authority.
 You have no repository write, merge, deploy, provider-mutation, or completion authority.
@@ -167,7 +247,7 @@ Never output repository, branch, base_sha, path_policy, permission, merge, deplo
 If a valid whole-file mutation would not fit in the response budget, return ESCALATE with zero mutations instead of truncating JSON.
 
 Bounded request:
-""" + json.dumps(request, ensure_ascii=False, separators=(",", ":"))
+""" + json.dumps(model_request, ensure_ascii=False, separators=(",", ":"))
 
 
 def extract_json(raw):
@@ -250,17 +330,7 @@ def validate_proposal(raw, request):
     }
 
 
-def model_output_or_escalate(model_text, request, stop_reason=None):
-    if stop_reason == "max_tokens":
-        reason = "model_output_truncated_by_token_limit"
-    elif not model_text:
-        reason = "model_response_empty"
-    else:
-        try:
-            return validate_proposal(extract_json(model_text), request)
-        except (ValueError, json.JSONDecodeError) as exc:
-            detail = str(exc).strip() or exc.__class__.__name__
-            reason = f"model_output_invalid:{detail[:300]}"
+def escalation_proposal(request, reason):
     return {
         "taskId": request["task_id"],
         "decision": "ESCALATE",
@@ -271,9 +341,70 @@ def model_output_or_escalate(model_text, request, stop_reason=None):
     }
 
 
+def normalize_model_output(model_text, request, stop_reason=None, *, strict=False):
+    issues = []
+    truncated = stop_reason == "max_tokens"
+    if truncated:
+        issues.append("model_output_truncated_by_token_limit")
+    elif not model_text:
+        issues.append("model_response_empty")
+    if strict and stop_reason != "end_turn":
+        issues.append("model_finish_reason_not_complete")
+
+    proposal = None
+    if not issues:
+        try:
+            raw = json.loads(model_text.strip()) if strict else extract_json(model_text)
+            if not isinstance(raw, dict):
+                fail("proposal_invalid")
+            proposal = validate_proposal(raw, request)
+        except (ValueError, json.JSONDecodeError) as exc:
+            detail = str(exc).strip() or exc.__class__.__name__
+            issues.append(f"model_output_invalid:{detail[:300]}")
+
+    if proposal is None:
+        proposal = escalation_proposal(request, issues[0])
+    return {
+        "proposal": proposal,
+        "complete": not issues,
+        "truncated": truncated,
+        "issues": issues,
+    }
+
+
+def model_output_or_escalate(model_text, request, stop_reason=None):
+    """Legacy v0 compatibility projection used by existing callers and tests."""
+    return normalize_model_output(model_text, request, stop_reason)["proposal"]
+
+
+def usage_evidence(raw):
+    raw_usage = raw if isinstance(raw, dict) else {}
+
+    def token(field):
+        value = raw_usage.get(field)
+        return value if isinstance(value, int) and not isinstance(value, bool) and value >= 0 else None
+
+    input_tokens = token("inputTokens")
+    output_tokens = token("outputTokens")
+    total_tokens = token("totalTokens")
+    available = input_tokens is not None and output_tokens is not None
+    return {
+        "available": available,
+        "input_tokens": input_tokens,
+        "output_tokens": output_tokens,
+        "total_tokens": total_tokens,
+        "raw": raw_usage,
+    }
+
+
 def invoke(request):
+    profile = output_profile_for(request)
     messages = [{"role": "user", "content": [{"text": prompt_for(request)}]}]
-    inference = {"maxTokens": 1800, "temperature": 0.1, "topP": 0.9}
+    inference = {
+        "maxTokens": profile["max_output_tokens"],
+        "temperature": profile["temperature"],
+        "topP": profile["top_p"],
+    }
     cmd = [
         "aws", "--cli-connect-timeout", "5", "--cli-read-timeout", "75",
         "bedrock-runtime", "converse", "--model-id", MODEL_ID,
@@ -282,24 +413,167 @@ def invoke(request):
         "--output", "json", "--no-cli-pager",
     ]
     started = time.monotonic()
-    proc = subprocess.run(cmd, text=True, capture_output=True, timeout=85)
+    try:
+        proc = subprocess.run(cmd, text=True, capture_output=True, timeout=85)
+    except subprocess.TimeoutExpired as exc:
+        raise ProducerInvocationError(
+            "AMBIGUOUS", "provider_response_timeout", "No terminal provider response was observed within 85 seconds."
+        ) from exc
     latency_ms = round((time.monotonic() - started) * 1000)
     if proc.returncode != 0:
-        raise RuntimeError(proc.stderr.strip() or proc.stdout.strip() or f"aws_cli_exit_{proc.returncode}")
-    response = json.loads(proc.stdout)
+        raise ProducerInvocationError(
+            "FAILED",
+            "provider_cli_failed",
+            proc.stderr.strip() or proc.stdout.strip() or f"aws_cli_exit_{proc.returncode}",
+        )
+    try:
+        response = json.loads(proc.stdout)
+    except json.JSONDecodeError as exc:
+        raise ProducerInvocationError(
+            "INCOMPLETE", "provider_response_invalid_json", proc.stdout[:1000]
+        ) from exc
     parts = response.get("output", {}).get("message", {}).get("content", [])
+    if not isinstance(parts, list):
+        parts = []
     model_text = "\n".join(
         p.get("text", "")
         for p in parts
         if isinstance(p, dict) and isinstance(p.get("text"), str)
     ).strip()
     stop_reason = response.get("stopReason")
-    usage = response.get("usage", {})
-    proposal = model_output_or_escalate(model_text, request, stop_reason)
-    return proposal, {
-        "input_tokens": int(usage.get("inputTokens", 0) or 0),
-        "output_tokens": int(usage.get("outputTokens", 0) or 0),
-    }, latency_ms
+    normalized = normalize_model_output(
+        model_text,
+        request,
+        stop_reason,
+        strict=request.get("receipt_context") is not None,
+    )
+    content_complete = bool(parts) and all(
+        isinstance(part, dict)
+        and isinstance(part.get("text"), str)
+        and set(part) == {"text"}
+        for part in parts
+    )
+    content_issues = [] if content_complete else ["raw_model_content_missing_or_unsupported"]
+    return {
+        "proposal": normalized["proposal"],
+        "normalization_complete": normalized["complete"],
+        "truncated": normalized["truncated"],
+        "issues": normalized["issues"] + content_issues,
+        "raw_content": parts,
+        "raw_text": model_text,
+        "raw_content_complete": content_complete and bool(model_text),
+        "finish_reason": stop_reason if isinstance(stop_reason, str) else None,
+        "usage": usage_evidence(response.get("usage")),
+        "latency_ms": latency_ms,
+        "output_profile": profile,
+    }
+
+
+def build_result_document(request, input_bytes, invocation=None, provider_error=None, *, environ=None):
+    error_evidence = producer_error_evidence(provider_error) if provider_error is not None else None
+    provider_failed = error_evidence is not None and error_evidence["state"] == "FAILED"
+    if invocation is None:
+        profile = output_profile_for(request)
+        issue = error_evidence["code"] if error_evidence is not None else "producer_result_missing"
+        invocation = {
+            "proposal": escalation_proposal(request, issue),
+            "normalization_complete": False,
+            "truncated": False,
+            "issues": [issue],
+            "raw_content": [],
+            "raw_text": "",
+            "raw_content_complete": False,
+            "finish_reason": None,
+            "usage": {
+                "available": False,
+                "input_tokens": None,
+                "output_tokens": None,
+                "total_tokens": None,
+                "raw": {},
+            },
+            "latency_ms": 0,
+            "output_profile": profile,
+            "provider_error": error_evidence,
+            "provider_state": error_evidence["state"] if error_evidence is not None else "INCOMPLETE",
+        }
+
+    usage = invocation["usage"]
+    compatibility_usage = {
+        "input_tokens": usage["input_tokens"] if usage["input_tokens"] is not None else 0,
+        "output_tokens": usage["output_tokens"] if usage["output_tokens"] is not None else 0,
+    }
+    result = {
+        "schema": "qwen-coding-reasoner-v0",
+        "model_id": MODEL_ID,
+        "authority": "PROPOSAL_ONLY",
+        "mutation_authority": False,
+        "production_pass_fail_authority": False,
+        "automatic_retry": False,
+        "proposal": invocation["proposal"],
+        "usage": compatibility_usage,
+        "latency_ms": invocation["latency_ms"],
+        "next_gate": "coding_worker_scope_guard_executor_and_deterministic_verifier",
+    }
+    if error_evidence is not None:
+        result["provider_error"] = invocation["provider_error"]
+
+    receipt, identity_issues = new_receipt(
+        context=request.get("receipt_context"),
+        input_bytes=input_bytes,
+        producer_kind="CODING_REASONER",
+        producer_id=CODING_WORKER_ID,
+        authority="PROPOSAL_ONLY",
+        model_id=MODEL_ID,
+        expected_workflow_paths=CODING_WORKFLOW_PATHS,
+        environ=environ,
+    )
+    if receipt is not None:
+        raw_output_digest = sha256_json(invocation["raw_content"])
+        output_core = {
+            "raw_model_output": {
+                "content": invocation["raw_content"],
+                "text": invocation["raw_text"],
+                "digest_algorithm": "sha256",
+                "digest": raw_output_digest,
+                "byte_count": len(canonical_json_bytes(invocation["raw_content"])),
+            },
+            "normalized_output": {
+                "value": invocation["proposal"],
+                "derived_from_raw_digest": raw_output_digest,
+                "digest_algorithm": "sha256",
+                "digest": sha256_json(invocation["proposal"]),
+            },
+            "usage": usage,
+            "finish_reason": invocation["finish_reason"],
+            "latency_ms": invocation["latency_ms"],
+            "output_profile": invocation["output_profile"],
+            "provider_state": invocation.get("provider_state", "RETURNED"),
+            **({"provider_error": invocation["provider_error"]} if error_evidence is not None else {}),
+        }
+        output = {
+            **output_core,
+            "digest_algorithm": "sha256",
+            "digest": sha256_json(output_core),
+        }
+        issues = list(invocation["issues"])
+        if not usage["available"]:
+            issues.append("usage_evidence_missing")
+        receipt = finalize_receipt(
+            receipt,
+            identity_issues=identity_issues,
+            output=output,
+            raw_output_complete=invocation["raw_content_complete"],
+            normalized_output_complete=invocation["normalization_complete"],
+            truncated=invocation["truncated"],
+            overflow=False,
+            provider_failed=provider_failed,
+            issues=issues,
+        )
+        result["producer_receipt"] = receipt
+        result["result_state"] = receipt["final"]["state"]
+        if not receipt["completeness"]["complete"]:
+            result["next_gate"] = "producer_receipt_incomplete_stop"
+    return result
 
 
 def self_test():
@@ -374,11 +648,11 @@ def main():
     if args.self_test:
         self_test()
         return 0
-    raw = INPUT.read_bytes()
-    if len(raw) > 131072:
+    input_bytes = INPUT.read_bytes()
+    if len(input_bytes) > 131072:
         raise SystemExit("request_too_large")
-    request = validate_request(json.loads(raw))
-    INTAKE.write_text(json.dumps({
+    request = validate_request(json.loads(input_bytes))
+    intake = {
         "schema": "qwen-coding-reasoner-intake-v0",
         "task_id": request["task_id"],
         "dry_run": args.validate_request,
@@ -387,39 +661,45 @@ def main():
         "mutation_authority": False,
         "automatic_retry": False,
         "next_gate": "paid_qwen_reasoning_required" if args.validate_request else "reasoning_in_progress",
-    }, indent=2, sort_keys=True))
+    }
+    if request.get("receipt_context") is not None:
+        intake["producer_receipt_schema"] = RECEIPT_SCHEMA
+        intake["receipt_context_present"] = True
+    INTAKE.write_text(json.dumps(intake, indent=2, sort_keys=True))
     if args.validate_request:
-        print(json.dumps({
+        summary = {
             "schema": "qwen-coding-reasoner-intake-v0",
             "task_id": request["task_id"],
             "dry_run": True,
             "authority": "PROPOSAL_ONLY",
             "automatic_retry": False,
-        }, separators=(",", ":")))
+        }
+        if request.get("receipt_context") is not None:
+            summary["producer_receipt_schema"] = RECEIPT_SCHEMA
+        print(json.dumps(summary, separators=(",", ":")))
         return 0
-    proposal, usage, latency = invoke(request)
-    result = {
-        "schema": "qwen-coding-reasoner-v0",
-        "model_id": MODEL_ID,
-        "authority": "PROPOSAL_ONLY",
-        "mutation_authority": False,
-        "production_pass_fail_authority": False,
-        "automatic_retry": False,
-        "proposal": proposal,
-        "usage": usage,
-        "latency_ms": latency,
-        "next_gate": "coding_worker_scope_guard_executor_and_deterministic_verifier",
-    }
+    provider_error = None
+    invocation = None
+    try:
+        invocation = invoke(request)
+    except Exception as exc:  # Preserve one bounded terminal receipt; never retry here.
+        provider_error = exc
+    result = build_result_document(request, input_bytes, invocation, provider_error)
     OUTPUT.write_text(json.dumps(result, indent=2, sort_keys=True))
+    proposal = result["proposal"]
     print(json.dumps({
         "schema": result["schema"],
         "task_id": proposal["taskId"],
         "decision": proposal["decision"],
         "mutation_count": len(proposal["mutations"]),
-        "usage": usage,
-        "latency_ms": latency,
+        "usage": result["usage"],
+        "latency_ms": result["latency_ms"],
+        **({"result_state": result["result_state"]} if "result_state" in result else {}),
     }, separators=(",", ":")))
-    return 0
+    if provider_error is not None:
+        return 2
+    receipt = result.get("producer_receipt")
+    return 0 if receipt is None or receipt["completeness"]["complete"] else 2
 
 
 if __name__ == "__main__":

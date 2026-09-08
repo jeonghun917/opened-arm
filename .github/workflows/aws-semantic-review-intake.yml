@@ -5,6 +5,8 @@ on:
     paths:
       - '.github/workflows/aws-semantic-review-intake.yml'
       - 'infra/aws/semantic-review/pool.py'
+      - 'infra/aws/producer_receipt.py'
+      - 'infra/aws/test_paid_producer_receipts.py'
       - 'ops/semantic-review-pool-de.py'
   workflow_dispatch:
     inputs:
@@ -18,7 +20,6 @@ on:
         default: '3'
         type: choice
         options:
-          - '2'
           - '3'
       dry_run:
         description: Validate the request contract without invoking Bedrock
@@ -40,9 +41,10 @@ jobs:
       - name: Validate parser definition and malformed-output boundaries
         run: |
           set -euo pipefail
-          python3 -m py_compile infra/aws/semantic-review/pool.py ops/semantic-review-pool-de.py
+          python3 -m py_compile infra/aws/semantic-review/pool.py infra/aws/producer_receipt.py infra/aws/test_paid_producer_receipts.py ops/semantic-review-pool-de.py
           python3 infra/aws/semantic-review/pool.py --parser-self-test
           SEMANTIC_REVIEW_COUNT=2 python3 ops/semantic-review-pool-de.py --parser-self-test
+          python3 infra/aws/test_paid_producer_receipts.py
 
   review:
     if: ${{ github.event_name == 'workflow_dispatch' }}
@@ -53,7 +55,6 @@ jobs:
       AWS_MAX_ATTEMPTS: '1'
       AWS_RETRY_MODE: standard
       SEMANTIC_REVIEW_COUNT: ${{ inputs.review_count }}
-      SEMANTIC_REVIEW_MODEL_ID: qwen.qwen3-coder-30b-a3b-v1:0
       SEMANTIC_REVIEW_INPUT: semantic-review-input.json
       SEMANTIC_REVIEW_OUTPUT: semantic-review-pool-results.json
       SEMANTIC_REVIEW_INTAKE_OUTPUT: semantic-review-intake-result.json
@@ -74,7 +75,11 @@ jobs:
           import json
           import os
           import re
+          import sys
           from pathlib import Path
+
+          sys.path.insert(0, 'infra/aws')
+          from producer_receipt import RECEIPT_SCHEMA, validate_receipt_context
 
           raw_b64 = os.environ.get('PAYLOAD_B64', '')
           if not raw_b64 or len(raw_b64) > 90000:
@@ -92,7 +97,7 @@ jobs:
           if not isinstance(request, dict):
               raise SystemExit('payload must decode to one JSON object')
 
-          allowed_keys = {'task_id', 'language', 'requirements', 'code'}
+          allowed_keys = {'task_id', 'language', 'requirements', 'code', 'receipt_context'}
           unknown = sorted(set(request) - allowed_keys)
           if unknown:
               raise SystemExit(f'unknown payload keys: {unknown}')
@@ -102,8 +107,8 @@ jobs:
           requirements = request.get('requirements')
           code = request.get('code')
           count = int(os.environ.get('SEMANTIC_REVIEW_COUNT', '0'))
-          if count not in (2, 3):
-              raise SystemExit('review_count must be exactly 2 or 3')
+          if count != 3:
+              raise SystemExit('review_count must be exactly 3')
 
           if not isinstance(task_id, str) or not re.fullmatch(r'[A-Za-z0-9._:-]{1,160}', task_id):
               raise SystemExit('task_id is missing or invalid')
@@ -120,6 +125,9 @@ jobs:
               'requirements': requirements,
               'code': code,
           }
+          receipt_context = validate_receipt_context(request.get('receipt_context'))
+          if receipt_context is not None:
+              normalized['receipt_context'] = receipt_context
           Path(os.environ['SEMANTIC_REVIEW_INPUT']).write_text(
               json.dumps(normalized, ensure_ascii=False, separators=(',', ':'))
           )
@@ -134,6 +142,9 @@ jobs:
               'review_budget': count,
               'next_gate': 'paid_semantic_review_requires_explicit_invocation' if dry_run else 'semantic_review_in_progress',
           }
+          if receipt_context is not None:
+              intake['producer_receipt_schema'] = RECEIPT_SCHEMA
+              intake['receipt_context_present'] = True
           Path(os.environ['SEMANTIC_REVIEW_INTAKE_OUTPUT']).write_text(
               json.dumps(intake, indent=2, sort_keys=True)
           )
@@ -164,7 +175,7 @@ jobs:
           python3 infra/aws/semantic-review/pool.py
 
       - name: Verify semantic review result contract
-        if: ${{ inputs.dry_run == false }}
+        if: ${{ inputs.dry_run == false && always() }}
         shell: bash
         run: |
           set -euo pipefail
@@ -181,6 +192,22 @@ jobs:
           assert data['review_budget'] == expected
           assert data['completed_reviews'] == expected
           assert data['next_gate'] == 'deterministic_verification_required'
+          assert data['coding_calls'] == 0
+          assert data['paid_adjudicator_calls'] == 0
+          receipt = data.get('producer_receipt')
+          if receipt is not None:
+              assert receipt['schema'] == 'opened-arm-paid-producer-receipt-v1'
+              assert receipt['version'] == 1
+              assert receipt['producer_kind'] == 'SEMANTIC_REVIEW_POOL'
+              assert receipt['authority'] == 'HYPOTHESIS_ONLY'
+              assert receipt['automatic_retry'] is False
+              assert receipt['completeness']['complete'] is True
+              assert receipt['workflow']['run_id'] == int('${{ github.run_id }}')
+              assert receipt['workflow']['run_attempt'] == int('${{ github.run_attempt }}')
+              assert receipt['producer']['source_sha'] == '${{ github.sha }}'
+              assert [item['reviewer_id'] for item in receipt['output']['reviewers']] == ['A', 'B', 'C']
+              assert receipt['output']['majority_vote_is_truth'] is False
+              assert receipt['output']['adjudication'] == 'SEPARATE_SOURCE_GROUNDED_REQUIRED'
           print(json.dumps({
               'task_id': data.get('task_id'),
               'completed_reviews': data.get('completed_reviews'),
