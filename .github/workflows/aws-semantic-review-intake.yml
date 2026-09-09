@@ -7,6 +7,7 @@ on:
       - 'infra/aws/semantic-review/pool.py'
       - 'infra/aws/producer_receipt.py'
       - 'infra/aws/test_paid_producer_receipts.py'
+      - 'infra/aws/test_semantic_review_intake.py'
       - 'ops/semantic-review-pool-de.py'
   workflow_dispatch:
     inputs:
@@ -41,8 +42,9 @@ jobs:
       - name: Validate parser definition and malformed-output boundaries
         run: |
           set -euo pipefail
-          python3 -m py_compile infra/aws/semantic-review/pool.py infra/aws/producer_receipt.py infra/aws/test_paid_producer_receipts.py ops/semantic-review-pool-de.py
+          python3 -m py_compile infra/aws/semantic-review/pool.py infra/aws/producer_receipt.py infra/aws/test_paid_producer_receipts.py infra/aws/test_semantic_review_intake.py ops/semantic-review-pool-de.py
           python3 infra/aws/semantic-review/pool.py --parser-self-test
+          python3 -m unittest infra/aws/test_semantic_review_intake.py
           SEMANTIC_REVIEW_COUNT=2 python3 ops/semantic-review-pool-de.py --parser-self-test
           python3 infra/aws/test_paid_producer_receipts.py
 
@@ -55,6 +57,7 @@ jobs:
       AWS_MAX_ATTEMPTS: '1'
       AWS_RETRY_MODE: standard
       SEMANTIC_REVIEW_COUNT: ${{ inputs.review_count }}
+      SEMANTIC_REVIEW_MODEL_ID: qwen.qwen3-coder-30b-a3b-v1:0
       SEMANTIC_REVIEW_INPUT: semantic-review-input.json
       SEMANTIC_REVIEW_OUTPUT: semantic-review-pool-results.json
       SEMANTIC_REVIEW_INTAKE_OUTPUT: semantic-review-intake-result.json
@@ -63,92 +66,14 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Decode and validate bounded review request
+      - name: Decode and validate complete model-budgeted review request
         env:
           PAYLOAD_B64: ${{ inputs.payload_b64 }}
           DRY_RUN: ${{ inputs.dry_run }}
         shell: bash
         run: |
           set -euo pipefail
-          python3 - <<'PY'
-          import base64
-          import json
-          import os
-          import re
-          import sys
-          from pathlib import Path
-
-          sys.path.insert(0, 'infra/aws')
-          from producer_receipt import RECEIPT_SCHEMA, validate_receipt_context
-
-          raw_b64 = os.environ.get('PAYLOAD_B64', '')
-          if not raw_b64 or len(raw_b64) > 90000:
-              raise SystemExit('payload_b64 is missing or too large')
-          try:
-              raw = base64.b64decode(raw_b64, validate=True)
-          except Exception as exc:
-              raise SystemExit(f'payload_b64 is not valid base64: {exc}')
-          if len(raw) > 65536:
-              raise SystemExit('decoded payload exceeds 64 KiB')
-          try:
-              request = json.loads(raw)
-          except Exception as exc:
-              raise SystemExit(f'payload JSON is invalid: {exc}')
-          if not isinstance(request, dict):
-              raise SystemExit('payload must decode to one JSON object')
-
-          allowed_keys = {'task_id', 'language', 'requirements', 'code', 'receipt_context'}
-          unknown = sorted(set(request) - allowed_keys)
-          if unknown:
-              raise SystemExit(f'unknown payload keys: {unknown}')
-
-          task_id = request.get('task_id')
-          language = request.get('language')
-          requirements = request.get('requirements')
-          code = request.get('code')
-          count = int(os.environ.get('SEMANTIC_REVIEW_COUNT', '0'))
-          if count != 3:
-              raise SystemExit('review_count must be exactly 3')
-
-          if not isinstance(task_id, str) or not re.fullmatch(r'[A-Za-z0-9._:-]{1,160}', task_id):
-              raise SystemExit('task_id is missing or invalid')
-          if not isinstance(language, str) or not language.strip() or len(language) > 40:
-              raise SystemExit('language is missing or invalid')
-          if not isinstance(requirements, str) or not requirements.strip() or len(requirements.encode()) > 12000:
-              raise SystemExit('requirements is missing or exceeds 12 KiB')
-          if not isinstance(code, str) or not code.strip() or len(code.encode()) > 48000:
-              raise SystemExit('code is missing or exceeds 48 KiB')
-
-          normalized = {
-              'task_id': task_id,
-              'language': language.strip(),
-              'requirements': requirements,
-              'code': code,
-          }
-          receipt_context = validate_receipt_context(request.get('receipt_context'))
-          if receipt_context is not None:
-              normalized['receipt_context'] = receipt_context
-          Path(os.environ['SEMANTIC_REVIEW_INPUT']).write_text(
-              json.dumps(normalized, ensure_ascii=False, separators=(',', ':'))
-          )
-          dry_run = os.environ.get('DRY_RUN', '').lower() == 'true'
-          intake = {
-              'schema': 'semantic-review-intake-v0',
-              'task_id': task_id,
-              'dry_run': dry_run,
-              'authority': 'HYPOTHESIS_ONLY',
-              'production_pass_fail_authority': False,
-              'automatic_retry': False,
-              'review_budget': count,
-              'next_gate': 'paid_semantic_review_requires_explicit_invocation' if dry_run else 'semantic_review_in_progress',
-          }
-          if receipt_context is not None:
-              intake['producer_receipt_schema'] = RECEIPT_SCHEMA
-              intake['receipt_context_present'] = True
-          Path(os.environ['SEMANTIC_REVIEW_INTAKE_OUTPUT']).write_text(
-              json.dumps(intake, indent=2, sort_keys=True)
-          )
-          PY
+          python3 infra/aws/semantic-review/pool.py --validate-intake
 
       - name: Mask AWS identifiers
         if: ${{ inputs.dry_run == false }}
@@ -185,14 +110,25 @@ jobs:
           from pathlib import Path
           expected = int(os.environ['SEMANTIC_REVIEW_COUNT'])
           data = json.loads(Path('semantic-review-pool-results.json').read_text())
+          intake = json.loads(Path('semantic-review-intake-result.json').read_text())
+          assert intake['schema'] == 'semantic-review-intake-v1'
+          assert intake['completeness'] is True
+          assert intake['provider_invocation_allowed'] is True
+          assert intake['automatic_retry'] is False
+          assert intake['review_budget'] == 3
+          assert intake['coding_calls'] == 0
           assert data['schema'] == 'semantic-review-pool-v0'
           assert data['authority'] == 'HYPOTHESIS_ONLY'
           assert data['production_pass_fail_authority'] is False
           assert data['automatic_retry'] is False
           assert data['review_budget'] == expected
-          assert data['completed_reviews'] == expected
-          assert data['next_gate'] == 'deterministic_verification_required'
           assert data['coding_calls'] == 0
+          assert data['completed_reviews'] == expected
+          assert data['context_budget'] == intake['budget']
+          assert data['context_budget']['completeness'] is True
+          assert data['context_budget']['omitted_files'] == []
+          assert data['context_budget']['omitted_sections'] == []
+          assert data['next_gate'] == 'deterministic_verification_required'
           assert data['paid_adjudicator_calls'] == 0
           receipt = data.get('producer_receipt')
           if receipt is not None:
