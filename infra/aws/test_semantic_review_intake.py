@@ -116,6 +116,29 @@ class SemanticReviewIntakeTests(unittest.TestCase):
             prompt = pool.prompt_for(normalized, reviewer_id, focus)
             self.assertIn(pool.numbered(normalized["code"]), prompt)
 
+    def test_large_provider_prompt_uses_private_file_not_process_argv(self):
+        payload = versioned_payload(116_158)
+        normalized, _, _ = pool.validate_and_normalize_request(encoded(payload, compressed=True), 3)
+        observed = {}
+
+        def timeout_after_inspection(cmd, **kwargs):
+            messages_index = cmd.index("--messages") + 1
+            messages_ref = cmd[messages_index]
+            self.assertTrue(messages_ref.startswith("file:///"))
+            messages_path = Path(messages_ref.removeprefix("file://"))
+            self.assertTrue(messages_path.is_file())
+            self.assertEqual(messages_path.stat().st_mode & 0o777, 0o600)
+            messages = json.loads(messages_path.read_text())
+            self.assertIn(pool.numbered(normalized["code"]), messages[0]["content"][0]["text"])
+            self.assertLess(max(len(argument.encode("utf-8")) for argument in cmd), 4_096)
+            observed["messages_path"] = messages_path
+            raise pool.subprocess.TimeoutExpired(cmd, kwargs["timeout"])
+
+        with mock.patch.object(pool.subprocess, "run", side_effect=timeout_after_inspection):
+            with self.assertRaises(pool.ProducerInvocationError):
+                pool.invoke_one(normalized, "A", pool.REVIEWERS[0][1])
+        self.assertFalse(observed["messages_path"].exists())
+
     def test_review_count_is_exactly_three(self):
         payload = versioned_payload(1_000)
         for count in (0, 1, 2, 4):
