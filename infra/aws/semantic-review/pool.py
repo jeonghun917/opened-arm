@@ -7,6 +7,7 @@ import os
 import re
 import subprocess
 import sys
+import tempfile
 import time
 import zlib
 from collections import Counter
@@ -803,20 +804,33 @@ def invoke_one(request: dict, reviewer_id: str, focus: str) -> dict:
         "temperature": SEMANTIC_OUTPUT_PROFILE["temperature"],
         "topP": SEMANTIC_OUTPUT_PROFILE["top_p"],
     }
-    cmd = [
-        "aws", "--cli-connect-timeout", "5", "--cli-read-timeout", "60",
-        "bedrock-runtime", "converse", "--model-id", MODEL_ID,
-        "--messages", json.dumps(messages, separators=(",", ":")),
-        "--inference-config", json.dumps(inference, separators=(",", ":")),
-        "--output", "json", "--no-cli-pager",
-    ]
-    started = time.monotonic()
-    try:
-        proc = subprocess.run(cmd, text=True, capture_output=True, timeout=70)
-    except subprocess.TimeoutExpired as exc:
-        raise ProducerInvocationError(
-            "AMBIGUOUS", "provider_response_timeout", "No terminal provider response was observed within 70 seconds."
-        ) from exc
+    # Linux limits each argv entry to MAX_ARG_STRLEN (normally 128 KiB), which
+    # is smaller than the admitted model-context budget. Let AWS CLI load the
+    # structured messages from a private temporary file so a complete large
+    # prompt never becomes one process argument. Each reviewer gets a distinct
+    # file and the context manager removes it after the provider process exits.
+    with tempfile.NamedTemporaryFile(
+        mode="w",
+        encoding="utf-8",
+        prefix=f"semantic-review-{reviewer_id.lower()}-",
+        suffix="-messages.json",
+    ) as messages_file:
+        json.dump(messages, messages_file, ensure_ascii=False, separators=(",", ":"))
+        messages_file.flush()
+        cmd = [
+            "aws", "--cli-connect-timeout", "5", "--cli-read-timeout", "60",
+            "bedrock-runtime", "converse", "--model-id", MODEL_ID,
+            "--messages", f"file://{messages_file.name}",
+            "--inference-config", json.dumps(inference, separators=(",", ":")),
+            "--output", "json", "--no-cli-pager",
+        ]
+        started = time.monotonic()
+        try:
+            proc = subprocess.run(cmd, text=True, capture_output=True, timeout=70)
+        except subprocess.TimeoutExpired as exc:
+            raise ProducerInvocationError(
+                "AMBIGUOUS", "provider_response_timeout", "No terminal provider response was observed within 70 seconds."
+            ) from exc
     latency_ms = round((time.monotonic() - started) * 1000)
     if proc.returncode != 0:
         raise ProducerInvocationError(
