@@ -4,8 +4,8 @@
   "scope": "ALL_REGISTERED_PRODUCT_PROJECTS",
   "model": "qwen.qwen3-coder-30b-a3b-v1:0",
   "minimumAdmissionGuaranteePerProject": {
-    "semanticReviewBundles": 1,
-    "semanticReviewersPerBundle": 3,
+    "semanticReviewRuns": 1,
+    "semanticReviewersPerRun": 3,
     "codingReasoners": 1
   },
   "allocation": {
@@ -17,14 +17,17 @@
     "differentTargets": "PARALLEL"
   },
   "execution": {
-    "bundleWorkflow": ".github/workflows/aws-project-ai-bundle.yml",
     "semanticReviewWorkflow": ".github/workflows/aws-semantic-review-intake.yml",
+    "semanticReviewCount": 3,
+    "semanticReviewCodingCalls": 0,
     "codingReasonerWorkflow": ".github/workflows/aws-qwen-coding-reasoner.yml",
+    "codingReasonerSemanticCalls": 0,
+    "adjudication": "SEPARATE_SOURCE_GROUNDED",
     "automaticPaidRetry": false,
     "semanticReviewAuthority": "HYPOTHESIS_ONLY",
     "codingReasonerAuthority": "PROPOSAL_ONLY"
   },
-  "liveEvidence": {
+  "historicalEvidence": {
     "singleCodingReasonerRun": 33131645545,
     "concurrentThreeReviewersPlusOneCodingRun": 33131897494,
     "concurrentBundleResult": "PASS",

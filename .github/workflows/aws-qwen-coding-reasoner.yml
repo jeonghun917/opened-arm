@@ -5,6 +5,8 @@ on:
     paths:
       - '.github/workflows/aws-qwen-coding-reasoner.yml'
       - 'infra/aws/coding-worker/reasoner.py'
+      - 'infra/aws/producer_receipt.py'
+      - 'infra/aws/test_paid_producer_receipts.py'
   workflow_dispatch:
     inputs:
       payload_b64:
@@ -29,9 +31,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Compile bounded reasoner
-        run: python3 -m py_compile infra/aws/coding-worker/reasoner.py
+        run: python3 -m py_compile infra/aws/coding-worker/reasoner.py infra/aws/producer_receipt.py infra/aws/test_paid_producer_receipts.py
       - name: Run deterministic reasoner self-test
-        run: python3 infra/aws/coding-worker/reasoner.py --self-test
+        run: |
+          python3 infra/aws/coding-worker/reasoner.py --self-test
+          python3 infra/aws/test_paid_producer_receipts.py
 
   reason:
     if: ${{ github.event_name == 'workflow_dispatch' }}
@@ -41,7 +45,6 @@ jobs:
       AWS_ACCOUNT_ID: ${{ vars.AWS_ACCOUNT_ID }}
       AWS_MAX_ATTEMPTS: '1'
       AWS_RETRY_MODE: standard
-      CODING_REASONER_MODEL_ID: qwen.qwen3-coder-30b-a3b-v1:0
       CODING_REASONER_INPUT: coding-reasoner-input.json
       CODING_REASONER_OUTPUT: coding-reasoner-result.json
       CODING_REASONER_INTAKE_OUTPUT: coding-reasoner-intake-result.json
@@ -89,7 +92,7 @@ jobs:
         if: ${{ inputs.dry_run == false }}
         run: python3 infra/aws/coding-worker/reasoner.py
       - name: Verify result contract
-        if: ${{ inputs.dry_run == false }}
+        if: ${{ inputs.dry_run == false && always() }}
         shell: bash
         run: |
           set -euo pipefail
@@ -103,8 +106,23 @@ jobs:
           assert data['mutation_authority'] is False
           assert data['production_pass_fail_authority'] is False
           assert data['automatic_retry'] is False
-          assert data['next_gate'] == 'coding_worker_scope_guard_executor_and_deterministic_verifier'
           assert data['proposal']['decision'] in ('PROPOSE', 'ESCALATE')
+          receipt = data.get('producer_receipt')
+          assert data['next_gate'] == (
+              'producer_receipt_incomplete_stop'
+              if receipt is not None and receipt['completeness']['complete'] is False
+              else 'coding_worker_scope_guard_executor_and_deterministic_verifier'
+          )
+          if receipt is not None:
+              assert receipt['schema'] == 'opened-arm-paid-producer-receipt-v1'
+              assert receipt['version'] == 1
+              assert receipt['producer_kind'] == 'CODING_REASONER'
+              assert receipt['authority'] == 'PROPOSAL_ONLY'
+              assert receipt['automatic_retry'] is False
+              assert receipt['workflow']['run_id'] == int('${{ github.run_id }}')
+              assert receipt['workflow']['run_attempt'] == int('${{ github.run_attempt }}')
+              assert receipt['producer']['source_sha'] == '${{ github.sha }}'
+              assert receipt['output']['finish_reason'] is not None or receipt['final']['state'] == 'FAILED'
           print(json.dumps({'task_id': data['proposal']['taskId'], 'decision': data['proposal']['decision'], 'mutation_count': len(data['proposal']['mutations']), 'usage': data['usage']}))
           PY
       - name: Upload reasoner result

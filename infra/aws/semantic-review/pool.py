@@ -12,13 +12,35 @@ import zlib
 from collections import Counter
 from pathlib import Path
 
+AWS_INFRA_DIR = Path(__file__).resolve().parents[1]
+if str(AWS_INFRA_DIR) not in sys.path:
+    sys.path.insert(0, str(AWS_INFRA_DIR))
+
+from producer_receipt import (  # noqa: E402
+    ProducerInvocationError,
+    RECEIPT_SCHEMA,
+    canonical_json_bytes,
+    finalize_receipt,
+    new_receipt,
+    producer_error_evidence,
+    sha256_json,
+    validate_receipt_context,
+)
+
 ACTIVE_MODEL_ID = "qwen.qwen3-coder-30b-a3b-v1:0"
 MODEL_ID = os.environ.get("SEMANTIC_REVIEW_MODEL_ID", ACTIVE_MODEL_ID)
-REVIEW_COUNT = int(os.environ.get("SEMANTIC_REVIEW_COUNT", "3"))
 MAX_REVIEW_COUNT = 3
+REVIEW_COUNT = int(os.environ.get("SEMANTIC_REVIEW_COUNT", "3"))
+if REVIEW_COUNT not in {2, 3}:
+    raise SystemExit("SEMANTIC_REVIEW_COUNT must be exactly 2 or 3 for legacy compatibility")
 INPUT_PATH = Path(os.environ.get("SEMANTIC_REVIEW_INPUT", sys.argv[1] if len(sys.argv) > 1 else "semantic-review-input.json"))
 OUTPUT_PATH = Path(os.environ.get("SEMANTIC_REVIEW_OUTPUT", "semantic-review-pool-results.json"))
 INTAKE_OUTPUT_PATH = Path(os.environ.get("SEMANTIC_REVIEW_INTAKE_OUTPUT", "semantic-review-intake-result.json"))
+SEMANTIC_POOL_ID = "opened-arm.semantic-review-pool"
+SEMANTIC_WORKFLOW_PATHS = frozenset({
+    ".github/workflows/aws-semantic-review-intake.yml",
+})
+MAX_FINDINGS_PER_REVIEWER = 5
 
 # Amazon Bedrock's active Qwen3-Coder-30B-A3B contract is 256K input/output
 # context with at most 16K output tokens. The production profile fixes output at
@@ -45,8 +67,17 @@ REQUEST_V1_SCHEMA = "semantic-review-request-v1"
 CONTEXT_V1_SCHEMA = "semantic-review-context-v1"
 INTAKE_V1_SCHEMA = "semantic-review-intake-v1"
 
-if REVIEW_COUNT < 1 or REVIEW_COUNT > MAX_REVIEW_COUNT:
-    raise SystemExit(f"SEMANTIC_REVIEW_COUNT must be between 1 and {MAX_REVIEW_COUNT}")
+SEMANTIC_OUTPUT_PROFILE = {
+    "schema": "qwen-semantic-review-output-profile-v1",
+    "version": 1,
+    "profile_id": "qwen-semantic-review-bounded-v1",
+    "model_id": ACTIVE_MODEL_ID,
+    "temperature": 0.25,
+    "top_p": 0.9,
+    "max_output_tokens": SERVER_OUTPUT_TOKENS,
+    "normalized_finding_cap": MAX_FINDINGS_PER_REVIEWER,
+    "overflow_policy": "INCOMPLETE_FAIL_CLOSED_RAW_PRESERVED",
+}
 
 REVIEWER_PROFILES = [
     ("A", "Prioritize correctness, state transitions, data flow, and hidden edge cases."),
@@ -71,6 +102,56 @@ TITLE_TOKEN_MAP = {
 }
 VALID_JSON_SIMPLE_ESCAPES = set('"\\/bfnrt')
 HEX_DIGITS = set("0123456789abcdefABCDEF")
+FINDING_KEYS = {"category", "severity", "line", "title", "rationale", "confidence"}
+TASK_RE = re.compile(r"^[A-Za-z0-9._:-]{1,160}$")
+
+
+def validate_request(raw: object) -> dict:
+    if not isinstance(raw, dict) or set(raw) - {
+        "task_id", "language", "requirements", "code", "receipt_context", "_intake",
+    }:
+        raise ValueError("review_request_shape_invalid")
+    task_id = raw.get("task_id")
+    language = raw.get("language")
+    requirements = raw.get("requirements")
+    code = raw.get("code")
+    if not isinstance(task_id, str) or not TASK_RE.fullmatch(task_id):
+        raise ValueError("review_task_id_invalid")
+    if not isinstance(language, str) or not language.strip() or len(language) > 40:
+        raise ValueError("review_language_invalid")
+    if not isinstance(requirements, str) or not requirements.strip() or len(requirements.encode()) > 12000:
+        raise ValueError("review_requirements_invalid")
+    intake = raw.get("_intake")
+    if not isinstance(code, str) or not code.strip() or (intake is None and len(code.encode()) > 48000):
+        raise ValueError("review_code_invalid")
+    receipt_context = validate_receipt_context(raw.get("receipt_context"))
+    if receipt_context is not None and REVIEW_COUNT != 3:
+        raise ValueError("receipt_v1_requires_exactly_three_reviewers")
+    normalized = {
+        "task_id": task_id,
+        "language": language.strip(),
+        "requirements": requirements,
+        "code": code,
+        "receipt_context": receipt_context,
+    }
+    if intake is not None:
+        if not isinstance(intake, dict) or set(intake) != {"transport", "context", "budget"}:
+            raise ValueError("review_intake_evidence_invalid")
+        context = intake.get("context")
+        budget = intake.get("budget")
+        transport = intake.get("transport")
+        if not isinstance(context, dict) or not isinstance(budget, dict) or not isinstance(transport, dict):
+            raise ValueError("review_intake_evidence_invalid")
+        versioned = context.get("schema") == CONTEXT_V1_SCHEMA
+        try:
+            expected_context = exact_context_metadata(context if versioned else None, code, versioned)
+            expected_budget = semantic_budget_evidence(normalized, expected_context)
+        except IntakeError as exc:
+            raise ValueError("review_intake_evidence_incomplete") from exc
+        if context != expected_context or budget != expected_budget:
+            raise ValueError("review_intake_evidence_incomplete")
+        normalized["_intake"] = intake
+    return normalized
 
 
 def numbered(code: str) -> str:
@@ -291,7 +372,7 @@ def validate_and_normalize_request(raw_b64: str, review_count: int) -> tuple[dic
         raise IntakeError("semantic_review_payload_invalid", "payload must decode to one JSON object")
 
     versioned = "schema" in request
-    allowed = {"task_id", "language", "requirements", "code"}
+    allowed = {"task_id", "language", "requirements", "code", "receipt_context"}
     if versioned:
         allowed |= {"schema", "context"}
     unknown = sorted(set(request) - allowed)
@@ -317,6 +398,16 @@ def validate_and_normalize_request(raw_b64: str, review_count: int) -> tuple[dic
     if not isinstance(code, str) or not code.strip():
         raise IntakeError("semantic_review_code_invalid", "code is missing or empty")
 
+    try:
+        receipt_context = validate_receipt_context(request.get("receipt_context"))
+    except ValueError as exc:
+        raise IntakeError("semantic_review_receipt_context_invalid", str(exc)) from exc
+    if receipt_context is not None and review_count != MAX_REVIEW_COUNT:
+        raise IntakeError(
+            "semantic_review_receipt_reviewer_count_invalid",
+            "versioned producer receipts require exactly three reviewers",
+        )
+
     context = exact_context_metadata(request.get("context"), code, versioned)
     normalized = {
         "task_id": task_id,
@@ -324,6 +415,8 @@ def validate_and_normalize_request(raw_b64: str, review_count: int) -> tuple[dic
         "requirements": requirements,
         "code": code,
     }
+    if receipt_context is not None:
+        normalized["receipt_context"] = receipt_context
     budget = semantic_budget_evidence(normalized, context)
     normalized["_intake"] = {"transport": transport, "context": context, "budget": budget}
     return normalized, transport, budget
@@ -370,6 +463,9 @@ def validate_intake_from_env() -> int:
         "budget": budget,
         "next_gate": "paid_semantic_review_requires_explicit_invocation" if dry_run else "semantic_review_in_progress",
     })
+    if normalized.get("receipt_context") is not None:
+        receipt["producer_receipt_schema"] = RECEIPT_SCHEMA
+        receipt["receipt_context_present"] = True
     INTAKE_OUTPUT_PATH.write_text(json.dumps(receipt, indent=2, sort_keys=True))
     print(json.dumps({
         "schema": receipt["schema"],
@@ -549,9 +645,164 @@ def normalize_finding(raw: dict) -> dict:
     }
 
 
+def validate_strict_finding(raw: object, index: int) -> dict:
+    if not isinstance(raw, dict) or set(raw) != FINDING_KEYS:
+        raise ValueError(f"finding_{index}_shape_invalid")
+    category = raw.get("category")
+    severity = raw.get("severity")
+    line = raw.get("line")
+    title = raw.get("title")
+    rationale = raw.get("rationale")
+    confidence = raw.get("confidence")
+    if category not in CANONICAL_CATEGORIES:
+        raise ValueError(f"finding_{index}_category_invalid")
+    if severity not in {"high", "medium", "low"}:
+        raise ValueError(f"finding_{index}_severity_invalid")
+    if not isinstance(line, int) or isinstance(line, bool) or line < 0:
+        raise ValueError(f"finding_{index}_line_invalid")
+    if not isinstance(title, str) or not title.strip() or len(title.strip()) > 200:
+        raise ValueError(f"finding_{index}_title_invalid")
+    if not isinstance(rationale, str) or not rationale.strip() or len(rationale.strip()) > 1200:
+        raise ValueError(f"finding_{index}_rationale_invalid")
+    if (
+        not isinstance(confidence, (int, float))
+        or isinstance(confidence, bool)
+        or confidence < 0
+        or confidence > 1
+    ):
+        raise ValueError(f"finding_{index}_confidence_invalid")
+    return {
+        "category": category,
+        "severity": severity,
+        "line": line,
+        "title": title.strip(),
+        "rationale": rationale.strip(),
+        "confidence": float(confidence),
+    }
+
+
+def usage_evidence(raw: object) -> dict:
+    raw_usage = raw if isinstance(raw, dict) else {}
+
+    def token(field: str) -> int | None:
+        value = raw_usage.get(field)
+        return value if isinstance(value, int) and not isinstance(value, bool) and value >= 0 else None
+
+    input_tokens = token("inputTokens")
+    output_tokens = token("outputTokens")
+    total_tokens = token("totalTokens")
+    return {
+        "available": input_tokens is not None and output_tokens is not None,
+        "input_tokens": input_tokens,
+        "output_tokens": output_tokens,
+        "total_tokens": total_tokens,
+        "raw": raw_usage,
+    }
+
+
+def normalize_reviewer_response(
+    reviewer_id: str,
+    raw_content: object,
+    stop_reason: object,
+    raw_usage: object,
+    *,
+    strict: bool,
+) -> dict:
+    content = raw_content if isinstance(raw_content, list) else []
+    text_parts = [
+        part["text"]
+        for part in content
+        if isinstance(part, dict) and isinstance(part.get("text"), str)
+    ]
+    model_text = "\n".join(text_parts).strip()
+    content_complete = bool(content) and len(text_parts) == len(content) and all(
+        isinstance(part, dict) and set(part) == {"text"} for part in content
+    )
+    finish_reason = stop_reason if isinstance(stop_reason, str) else None
+    usage = usage_evidence(raw_usage)
+    issues: list[str] = []
+    truncated = finish_reason == "max_tokens"
+    overflow = False
+    raw_finding_count = None
+    findings: list[dict] = []
+
+    if not content_complete or not model_text:
+        issues.append("raw_model_output_missing_or_unsupported")
+    if strict and finish_reason != "end_turn":
+        issues.append("model_finish_reason_not_complete")
+    elif not strict and truncated:
+        issues.append("model_output_truncated_by_token_limit")
+    if not usage["available"]:
+        issues.append("usage_evidence_missing")
+
+    if model_text and not truncated:
+        try:
+            obj = json.loads(model_text) if strict else extract_json(model_text)
+            if not isinstance(obj, dict):
+                raise ValueError("reviewer_response_shape_invalid")
+            if strict and set(obj) != {"reviewer_id", "findings"}:
+                raise ValueError("reviewer_response_shape_invalid")
+            if strict and obj.get("reviewer_id") != reviewer_id:
+                raise ValueError("reviewer_identity_mismatch")
+            raw_findings = obj.get("findings")
+            if not isinstance(raw_findings, list):
+                raise ValueError("response_must_contain_findings_array")
+            raw_finding_count = len(raw_findings)
+            overflow = raw_finding_count > MAX_FINDINGS_PER_REVIEWER
+            if overflow:
+                issues.append("normalized_finding_overflow")
+            if strict:
+                validated = [validate_strict_finding(item, i) for i, item in enumerate(raw_findings)]
+            else:
+                validated = [normalize_finding(item) for item in raw_findings if isinstance(item, dict)]
+            findings = validated[:MAX_FINDINGS_PER_REVIEWER]
+        except (ValueError, json.JSONDecodeError) as exc:
+            detail = str(exc).strip() or exc.__class__.__name__
+            issues.append(f"model_output_invalid:{detail[:300]}")
+
+    raw_digest = sha256_json(content)
+    normalized = {"reviewer_id": reviewer_id, "findings": findings}
+    complete = not issues and not truncated and not overflow
+    return {
+        "reviewer_id": reviewer_id,
+        "status": "completed" if complete else "incomplete",
+        "provider_state": "RETURNED",
+        "usage": usage,
+        "findings": findings,
+        "raw_model_output": {
+            "content": content,
+            "text": model_text,
+            "digest_algorithm": "sha256",
+            "digest": raw_digest,
+            "byte_count": len(canonical_json_bytes(content)),
+        },
+        "normalized_output": {
+            "value": normalized,
+            "derived_from_raw_digest": raw_digest,
+            "digest_algorithm": "sha256",
+            "digest": sha256_json(normalized),
+        },
+        "finish_reason": finish_reason,
+        "normalization": {
+            "complete": complete,
+            "raw_finding_count": raw_finding_count,
+            "normalized_finding_count": len(findings),
+            "finding_cap": MAX_FINDINGS_PER_REVIEWER,
+            "omitted_finding_count": max(0, (raw_finding_count or 0) - len(findings)),
+            "truncated": truncated,
+            "overflow": overflow,
+            "issues": list(dict.fromkeys(issues)),
+        },
+    }
+
+
 def invoke_one(request: dict, reviewer_id: str, focus: str) -> dict:
     messages = [{"role": "user", "content": [{"text": prompt_for(request, reviewer_id, focus)}]}]
-    inference = {"maxTokens": SERVER_OUTPUT_TOKENS, "temperature": 0.25, "topP": 0.9}
+    inference = {
+        "maxTokens": SEMANTIC_OUTPUT_PROFILE["max_output_tokens"],
+        "temperature": SEMANTIC_OUTPUT_PROFILE["temperature"],
+        "topP": SEMANTIC_OUTPUT_PROFILE["top_p"],
+    }
     cmd = [
         "aws", "--cli-connect-timeout", "5", "--cli-read-timeout", "60",
         "bedrock-runtime", "converse", "--model-id", MODEL_ID,
@@ -560,25 +811,80 @@ def invoke_one(request: dict, reviewer_id: str, focus: str) -> dict:
         "--output", "json", "--no-cli-pager",
     ]
     started = time.monotonic()
-    proc = subprocess.run(cmd, text=True, capture_output=True, timeout=70)
+    try:
+        proc = subprocess.run(cmd, text=True, capture_output=True, timeout=70)
+    except subprocess.TimeoutExpired as exc:
+        raise ProducerInvocationError(
+            "AMBIGUOUS", "provider_response_timeout", "No terminal provider response was observed within 70 seconds."
+        ) from exc
     latency_ms = round((time.monotonic() - started) * 1000)
     if proc.returncode != 0:
-        raise RuntimeError(proc.stderr.strip() or proc.stdout.strip() or f"aws cli exit {proc.returncode}")
-    response = json.loads(proc.stdout)
-    content = response.get("output", {}).get("message", {}).get("content", [])
-    text = "\n".join(part.get("text", "") for part in content if isinstance(part, dict) and "text" in part).strip()
-    obj = extract_json(text)
-    findings = [normalize_finding(x) for x in obj.get("findings", [])[:5] if isinstance(x, dict)]
-    usage = response.get("usage", {})
+        raise ProducerInvocationError(
+            "FAILED",
+            "provider_cli_failed",
+            proc.stderr.strip() or proc.stdout.strip() or f"aws_cli_exit_{proc.returncode}",
+        )
+    try:
+        response = json.loads(proc.stdout)
+    except json.JSONDecodeError as exc:
+        raise ProducerInvocationError(
+            "INCOMPLETE", "provider_response_invalid_json", proc.stdout[:1000]
+        ) from exc
+    review = normalize_reviewer_response(
+        reviewer_id,
+        response.get("output", {}).get("message", {}).get("content", []),
+        response.get("stopReason"),
+        response.get("usage"),
+        strict=request.get("receipt_context") is not None,
+    )
+    review["latency_ms"] = latency_ms
+    review["output_profile"] = dict(SEMANTIC_OUTPUT_PROFILE)
+    return review
+
+
+def failed_review(reviewer_id: str, error: object) -> dict:
+    evidence = producer_error_evidence(error)
+    normalized = {"reviewer_id": reviewer_id, "findings": []}
+    raw_digest = sha256_json([])
     return {
         "reviewer_id": reviewer_id,
-        "status": "completed",
-        "latency_ms": latency_ms,
+        "status": "error" if evidence["state"] == "FAILED" else "incomplete",
+        "error": evidence,
+        "provider_state": evidence["state"],
+        "latency_ms": 0,
         "usage": {
-            "input_tokens": int(usage.get("inputTokens", 0) or 0),
-            "output_tokens": int(usage.get("outputTokens", 0) or 0),
+            "available": False,
+            "input_tokens": None,
+            "output_tokens": None,
+            "total_tokens": None,
+            "raw": {},
         },
-        "findings": findings,
+        "findings": [],
+        "raw_model_output": {
+            "content": [],
+            "text": "",
+            "digest_algorithm": "sha256",
+            "digest": raw_digest,
+            "byte_count": len(canonical_json_bytes([])),
+        },
+        "normalized_output": {
+            "value": normalized,
+            "derived_from_raw_digest": raw_digest,
+            "digest_algorithm": "sha256",
+            "digest": sha256_json(normalized),
+        },
+        "finish_reason": None,
+        "normalization": {
+            "complete": False,
+            "raw_finding_count": None,
+            "normalized_finding_count": 0,
+            "finding_cap": MAX_FINDINGS_PER_REVIEWER,
+            "omitted_finding_count": 0,
+            "truncated": False,
+            "overflow": False,
+            "issues": [evidence["code"]],
+        },
+        "output_profile": dict(SEMANTIC_OUTPUT_PROFILE),
     }
 
 
@@ -643,10 +949,118 @@ def aggregate(reviews: list[dict]) -> list[dict]:
     return clusters
 
 
+def build_pool_result(request: dict, input_bytes: bytes, reviews: list[dict], wall_latency_ms: int, *, environ=None) -> dict:
+    reviews = sorted(reviews, key=lambda item: item["reviewer_id"])
+    aggregated = aggregate(reviews)
+    completed = sum(review.get("status") == "completed" for review in reviews)
+
+    def token_total(field: str) -> int:
+        return sum(
+            value
+            for value in (review.get("usage", {}).get(field) for review in reviews)
+            if isinstance(value, int) and not isinstance(value, bool) and value >= 0
+        )
+
+    total_usage = {
+        "input_tokens": token_total("input_tokens"),
+        "output_tokens": token_total("output_tokens"),
+    }
+    output = {
+        "schema": "semantic-review-pool-v0",
+        "task_id": request.get("task_id", "unknown"),
+        "model_id": MODEL_ID,
+        "authority": "HYPOTHESIS_ONLY",
+        "production_pass_fail_authority": False,
+        "automatic_retry": False,
+        "review_budget": REVIEW_COUNT,
+        "completed_reviews": completed,
+        "coding_calls": 0,
+        "paid_adjudicator_calls": 0,
+        "wall_latency_ms": wall_latency_ms,
+        "usage": total_usage,
+        "reviews": reviews,
+        "aggregated_findings": aggregated,
+        "finding_count": len(aggregated),
+        "result_state": "FINDINGS_OBSERVED" if aggregated else "NO_FINDINGS_OBSERVED",
+        "next_gate": "deterministic_verification_required",
+    }
+    intake = request.get("_intake")
+    if isinstance(intake, dict):
+        output["context_budget"] = intake.get("budget")
+
+    receipt, identity_issues = new_receipt(
+        context=request.get("receipt_context"),
+        input_bytes=input_bytes,
+        producer_kind="SEMANTIC_REVIEW_POOL",
+        producer_id=SEMANTIC_POOL_ID,
+        authority="HYPOTHESIS_ONLY",
+        model_id=MODEL_ID,
+        expected_workflow_paths=SEMANTIC_WORKFLOW_PATHS,
+        environ=environ,
+    )
+    if receipt is not None:
+        provider_failed = any(review.get("provider_state") == "FAILED" for review in reviews)
+        truncated = any(review.get("normalization", {}).get("truncated") is True for review in reviews)
+        overflow = any(review.get("normalization", {}).get("overflow") is True for review in reviews)
+        raw_complete = all(
+            bool(review.get("raw_model_output", {}).get("content"))
+            and bool(review.get("raw_model_output", {}).get("text"))
+            and "raw_model_output_missing_or_unsupported" not in review.get("normalization", {}).get("issues", [])
+            for review in reviews
+        ) and len(reviews) == REVIEW_COUNT
+        normalized_complete = all(
+            review.get("normalization", {}).get("complete") is True for review in reviews
+        ) and len(reviews) == REVIEW_COUNT
+        issues = []
+        for review in reviews:
+            reviewer_id = review.get("reviewer_id", "unknown")
+            for issue in review.get("normalization", {}).get("issues", []):
+                issues.append(f"reviewer_{reviewer_id}:{issue}")
+            if review.get("provider_state") in {"FAILED", "AMBIGUOUS", "INCOMPLETE"}:
+                issues.append(f"reviewer_{reviewer_id}:provider_state_{review['provider_state'].lower()}")
+        if [review.get("reviewer_id") for review in reviews] != ["A", "B", "C"]:
+            issues.append("reviewer_set_incomplete")
+
+        output_core = {
+            "reviewers": reviews,
+            "normalized_pool_output": {
+                "aggregated_findings": aggregated,
+                "finding_count": len(aggregated),
+                "digest_algorithm": "sha256",
+                "digest": sha256_json(aggregated),
+            },
+            "usage": total_usage,
+            "output_profile": dict(SEMANTIC_OUTPUT_PROFILE),
+            "raw_authority": "HYPOTHESIS_ONLY",
+            "adjudication": "SEPARATE_SOURCE_GROUNDED_REQUIRED",
+            "majority_vote_is_truth": False,
+        }
+        receipt_output = {
+            **output_core,
+            "digest_algorithm": "sha256",
+            "digest": sha256_json(output_core),
+        }
+        receipt = finalize_receipt(
+            receipt,
+            identity_issues=identity_issues,
+            output=receipt_output,
+            raw_output_complete=raw_complete,
+            normalized_output_complete=normalized_complete,
+            truncated=truncated,
+            overflow=overflow,
+            provider_failed=provider_failed,
+            issues=issues,
+        )
+        output["producer_receipt"] = receipt
+        if not receipt["completeness"]["complete"]:
+            output["result_state"] = "INCOMPLETE"
+            output["next_gate"] = "producer_receipt_incomplete_stop"
+    return output
+
+
 def main() -> int:
-    request = json.loads(INPUT_PATH.read_text())
-    if not isinstance(request, dict) or not request.get("code"):
-        raise SystemExit("input must be an object with non-empty code")
+    input_bytes = INPUT_PATH.read_bytes()
+    request = validate_request(json.loads(input_bytes))
 
     started = time.monotonic()
     reviews = []
@@ -660,50 +1074,28 @@ def main() -> int:
             try:
                 reviews.append(future.result())
             except Exception as exc:
-                reviews.append({
-                    "reviewer_id": reviewer_id,
-                    "status": "error",
-                    "error": str(exc)[:2000],
-                    "findings": [],
-                })
+                reviews.append(failed_review(reviewer_id, exc))
 
-    reviews.sort(key=lambda x: x["reviewer_id"])
-    aggregated = aggregate(reviews)
-    completed = sum(r.get("status") == "completed" for r in reviews)
-    total_input = sum(r.get("usage", {}).get("input_tokens", 0) for r in reviews)
-    total_output = sum(r.get("usage", {}).get("output_tokens", 0) for r in reviews)
-
-    output = {
-        "schema": "semantic-review-pool-v0",
-        "task_id": request.get("task_id", "unknown"),
-        "model_id": MODEL_ID,
-        "authority": "HYPOTHESIS_ONLY",
-        "production_pass_fail_authority": False,
-        "automatic_retry": False,
-        "review_budget": REVIEW_COUNT,
-        "coding_calls": 0,
-        "completed_reviews": completed,
-        "wall_latency_ms": round((time.monotonic() - started) * 1000),
-        "usage": {"input_tokens": total_input, "output_tokens": total_output},
-        "reviews": reviews,
-        "aggregated_findings": aggregated,
-        "finding_count": len(aggregated),
-        "result_state": "FINDINGS_OBSERVED" if aggregated else "NO_FINDINGS_OBSERVED",
-        "next_gate": "deterministic_verification_required",
-    }
-    intake = request.get("_intake")
-    if isinstance(intake, dict):
-        output["context_budget"] = intake.get("budget")
+    output = build_pool_result(
+        request,
+        input_bytes,
+        reviews,
+        round((time.monotonic() - started) * 1000),
+    )
     OUTPUT_PATH.write_text(json.dumps(output, indent=2, sort_keys=True))
     print(json.dumps({
         "schema": output["schema"],
         "authority": output["authority"],
-        "completed_reviews": completed,
-        "finding_count": len(aggregated),
+        "completed_reviews": output["completed_reviews"],
+        "finding_count": output["finding_count"],
         "wall_latency_ms": output["wall_latency_ms"],
         "usage": output["usage"],
+        "result_state": output["result_state"],
     }, separators=(",", ":")))
-    return 0 if completed > 0 else 2
+    receipt = output.get("producer_receipt")
+    if receipt is not None:
+        return 0 if receipt["completeness"]["complete"] else 2
+    return 0 if output["completed_reviews"] > 0 else 2
 
 
 if __name__ == "__main__":
