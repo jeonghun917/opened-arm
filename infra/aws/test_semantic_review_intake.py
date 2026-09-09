@@ -202,6 +202,21 @@ class SemanticReviewIntakeTests(unittest.TestCase):
         self.assertNotIn("fallback", workflow.lower())
         self.assertEqual(workflow.count("          - '3'"), 1)
 
+    def test_role_trust_survives_immutable_runner_rotation_without_broad_repo_access(self):
+        role = (Path(__file__).parent / "semantic-review" / "role.yml").read_text()
+        repository_identity = "repo:jeonghun917@109071398/opened-arm@1339350352"
+        self.assertIn("GitHubOidcSubjects:", role)
+        self.assertIn("Type: CommaDelimitedList", role)
+        self.assertIn("StringLike:", role)
+        self.assertIn(f"{repository_identity}:ref:refs/heads/main", role)
+        self.assertIn(
+            f"{repository_identity}:ref:refs/tags/semantic-review-runner-*",
+            role,
+        )
+        self.assertNotIn(f"{repository_identity}:ref:refs/heads/*", role)
+        self.assertNotIn(f"{repository_identity}:ref:refs/tags/*", role)
+        self.assertNotIn("repo:jeonghun917@109071398/*", role)
+
 
 if __name__ == "__main__":
     unittest.main()
