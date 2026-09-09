@@ -2,10 +2,10 @@ AWSTemplateFormatVersion: '2010-09-09'
 Description: General AI semantic review Bedrock invocation role
 
 Parameters:
-  GitHubOidcSubject:
-    Type: String
-    Default: repo:jeonghun917@109071398/opened-arm@1339350352:ref:refs/heads/main
-    Description: Exact GitHub OIDC sub allowed to assume this role
+  GitHubOidcSubjects:
+    Type: CommaDelimitedList
+    Default: repo:jeonghun917@109071398/opened-arm@1339350352:ref:refs/heads/main,repo:jeonghun917@109071398/opened-arm@1339350352:ref:refs/tags/semantic-review-runner-*
+    Description: Exact GitHub OIDC subjects allowed for main smoke checks and immutable semantic runner releases
 
 Resources:
   GeneralAiSemanticReviewRole:
@@ -22,7 +22,8 @@ Resources:
             Condition:
               StringEquals:
                 token.actions.githubusercontent.com:aud: sts.amazonaws.com
-                token.actions.githubusercontent.com:sub: !Ref GitHubOidcSubject
+              StringLike:
+                token.actions.githubusercontent.com:sub: !Ref GitHubOidcSubjects
       Policies:
         - PolicyName: GeneralAiSemanticReviewQwen30B
           PolicyDocument:
