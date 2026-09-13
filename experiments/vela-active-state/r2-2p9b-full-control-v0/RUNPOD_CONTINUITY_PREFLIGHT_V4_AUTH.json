@@ -1,7 +1,7 @@
 {
   "schema": "vela-runpod-continuity-preflight-auth:v4",
   "task": "vela-r2-2p9b-full-control-scale-replication-v0",
-  "status": "CANCELLED_NO_ALLOCATION_A40_CAPACITY_RECOVERED",
+  "status": "CONSUMED",
   "authorityRef": "user-directive:2026-09-13:runpod-continuity-preflight-v4-go",
   "canonicalAuthorityRef": "user-directive:2026-09-14:runpod-continuity-preflight-v4-go",
   "authorityRefSemantics": "LEGACY_WORKFLOW_GUARD_ALIAS_ONLY",
@@ -13,7 +13,7 @@
   "scientificExecutionAuthorized": false,
   "consumedByRunId": 34782278663,
   "consumedByCandidate": "2d67570227a916bd61c94da82befc0d27f34e08f",
-  "statusResult": "STOCK_BLOCKED_BEFORE_POD_ALLOCATION",
+  "statusResult": "STOCK_BLOCKED_NO_ALLOCATION",
   "podCreated": false,
   "gpuComputeStarted": false,
   "estimatedGpuSpendUsd": 0.0,
