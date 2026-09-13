@@ -102,7 +102,7 @@ jobs:
           assert 'max-parallel: 1' in wf
           assert 'runpod_science_condition_launch_v3.sh' in wf
           assert 'runpod_select_a40_capacity_v1.py' in wf
-          assert 'runpod-science-gate:' not in wf
+          assert '\n  runpod-science-auth-gate:\n' in wf
           spec=importlib.util.spec_from_file_location('cap',p/'runpod_select_a40_capacity_v1.py')
           mod=importlib.util.module_from_spec(spec); spec.loader.exec_module(mod)
           rows=[{'gpuId':'NVIDIA A40','displayName':'A40','memoryInGb':48,'secureCloud':True,'available':True,'securePricePerHr':0.49,
