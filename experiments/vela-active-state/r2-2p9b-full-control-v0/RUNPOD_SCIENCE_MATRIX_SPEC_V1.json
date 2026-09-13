@@ -1,0 +1,85 @@
+{
+  "schema": "vela-runpod-science-matrix-spec:v1",
+  "task": "vela-r2-2p9b-full-control-scale-replication-v0",
+  "provider": "RUNPOD",
+  "mode": "FIVE_INDEPENDENT_PODS",
+  "phase": "SCIENTIFIC_MATRIX_PREP_ONLY",
+  "scientificExecutionAuthorized": false,
+  "automaticRetry": false,
+  "fallbackProviders": [],
+  "conditions": ["B", "C", "G", "M", "X"],
+  "sourceScience": {
+    "conditionRunnerGitBlobSha1": "70b696bcfdb3ba7fc7f4010a1143aac1063c452b",
+    "scienceCommonGitBlobSha1": "77cee99a8ff131b31165521fa8c9cfb76a7ce174",
+    "aggregateGitBlobSha1": "ac86908be386b0159f52bcf45d4dd0e0786daae4",
+    "protocolGitBlobSha1": "3dbf20fd96082221c90e348d15d943d5213ec8d1",
+    "stimuliIndexGitBlobSha1": "95b2371ac7bb9416ad5b9a7d33f2df4de40d4d4c",
+    "evaluatorGitBlobSha1": "55d28e6564396408f293f67ebabfc258e41ae9ef",
+    "externalTraceGitBlobSha1": "fb056e547feaedfead6b2bb67f87e31449d21466"
+  },
+  "runpodAdapter": {
+    "file": "runpod_condition_adapter_v1.py",
+    "declaredTransformations": [
+      "replace frozen P100 sm_60 provider guard with exact A40 sm_86 provider guard",
+      "invoke neutral disposable runtime warm-up immediately before each frozen run_scale call"
+    ],
+    "scientificFilesMutatedOnDisk": false,
+    "warmupUsesScientificStimuli": false,
+    "warmupOutputUsedAsScientificState": false
+  },
+  "target": {
+    "gpuId": "NVIDIA A40",
+    "memoryInGb": 48,
+    "cloud": "SECURE",
+    "maxSecurePricePerHrUsd": 0.49,
+    "containerImageTag": "python:3.12.13-slim-bookworm",
+    "containerDiskInGb": 20,
+    "ssh": false,
+    "minCudaVersion": "12.6"
+  },
+  "budgetProposal": {
+    "maxPodCount": 5,
+    "maxRuntimeSecondsPerPod": 1800,
+    "workloadTimeoutSecondsPerPod": 1500,
+    "theoreticalGpuUpperBoundUsd": 1.225,
+    "proposedCanonicalMaxTotalUsd": 1.25
+  },
+  "runtime": {
+    "pythonExpected": "3.12.13",
+    "torchExpected": "2.7.1+cu126",
+    "rwkvExpected": "0.8.32",
+    "numpyExpected": "2.4.6",
+    "tokenizersExpected": "0.21.4",
+    "strategy": "cuda fp16",
+    "rwkvCudaKernel": false
+  },
+  "transport": {
+    "fullConditionResult": "base64 chunks in pod logs",
+    "maxChunkChars": 7000,
+    "metadataMarker": "VELA_CONDITION_RESULT_META",
+    "chunkMarker": "VELA_CONDITION_RESULT_CHUNK",
+    "postResultHoldSeconds": 900
+  },
+  "aggregation": {
+    "runner": "exact frozen aggregate.py on GitHub CPU after all five shards",
+    "requiresExactlyOneShardPerCondition": true,
+    "requiresSameSourceCommitAcrossShards": true,
+    "requiresSameRuntimeAcrossShards": true
+  },
+  "continuityGate": {
+    "candidate": "3f48ee18384bb5afa51fbd641a0d0e2ae18ac41c",
+    "workflowRunId": 34749156324,
+    "artifactId": 10315232230,
+    "artifactDigest": "sha256:578f414e7003d2ae4b59f6521c5b0cba0570afe00ddfa8186bfe90ac160d5bc9",
+    "classification": "POST_WARMUP_ORDER_CONTROL_EXACT",
+    "maxAbs": 0.0
+  },
+  "scientificGate": {
+    "enabled": false,
+    "enableRequires": [
+      "explicit user scientific-matrix authorization",
+      "canonical maxPodCount=5 and maxTotalUsd budget",
+      "prep contract PASS at exact source commit"
+    ]
+  }
+}
