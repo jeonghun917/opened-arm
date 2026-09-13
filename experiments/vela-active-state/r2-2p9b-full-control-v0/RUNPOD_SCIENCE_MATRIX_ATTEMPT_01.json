@@ -1,0 +1,89 @@
+{
+  "schema": "vela-runpod-science-matrix-attempt:v1",
+  "task": "vela-r2-2p9b-full-control-scale-replication-v0",
+  "candidate": "5e7c26e0580adc812596dc4664363299f016acee",
+  "workflowRunId": 34749656683,
+  "status": "INFRASTRUCTURE_INCOMPLETE_NO_AGGREGATE",
+  "scientificResultExists": false,
+  "aggregateStatus": "SKIPPED_INCOMPLETE_SHARDS",
+  "automaticRetry": false,
+  "fallbackProviders": [],
+  "conditions": {
+    "B": {
+      "status": "PROVIDER_POD_CREATE_FAILURE",
+      "podCreated": false,
+      "scientificEvidence": false,
+      "artifactId": 10314664305,
+      "artifactDigest": "sha256:68db31538855c50c6b5ab38de9f554a791740159f01535652a9b8b4e7aa8c86c",
+      "error": "runpodctl pod create graphql_error: Something went wrong. Please try again later or contact support."
+    },
+    "C": {
+      "status": "PASS",
+      "podId": "w8h4ek60drpzht",
+      "podCreated": true,
+      "podDeleted": true,
+      "scientificEvidence": true,
+      "artifactId": 10314868776,
+      "artifactDigest": "sha256:a84524f63e98bfee74162bcc65b52ab8477a5964afbccf1fc55d66e24b34b14f",
+      "elapsedSeconds": 143,
+      "estimatedGpuCostUpperBoundUsd": 0.019464
+    },
+    "G": {
+      "status": "PROVIDER_POD_CREATE_FAILURE",
+      "podCreated": false,
+      "scientificEvidence": false,
+      "artifactId": 10315143191,
+      "artifactDigest": "sha256:334c67d3b3271134d7f2ec9d79189f1ef78416b4d82907fe957205a150563a09",
+      "error": "runpodctl pod create graphql_error: Something went wrong. Please try again later or contact support."
+    },
+    "M": {
+      "status": "PASS",
+      "podId": "u8m51ptaqtdejd",
+      "podCreated": true,
+      "podDeleted": true,
+      "scientificEvidence": true,
+      "artifactId": 10315630636,
+      "artifactDigest": "sha256:1b1361a28523562829eb4320cd3928516376f34e3b9e9fa3b168d1ab43d12aec",
+      "elapsedSeconds": 144,
+      "estimatedGpuCostUpperBoundUsd": 0.0196
+    },
+    "X": {
+      "status": "PASS",
+      "podId": "f6zg17vhtj4f9p",
+      "podCreated": true,
+      "podDeleted": true,
+      "scientificEvidence": true,
+      "artifactId": 10315113386,
+      "artifactDigest": "sha256:7cdeda8a042e48252769575cb771ccbbe3bddd4fd98456f1d115356ad2779c2c",
+      "elapsedSeconds": 150,
+      "estimatedGpuCostUpperBoundUsd": 0.020417
+    }
+  },
+  "providerCapacityEvidence": {
+    "gpuId": "NVIDIA A40",
+    "cloud": "SECURE",
+    "observedStockStatus": "Low",
+    "successfulPodLocations": ["CA", "CA", "CA"],
+    "interpretation": "B and G failed at pod creation while C/M/X obtained A40 pods within the same parallel allocation window. This supports a provider allocation/capacity failure pattern; it is not scientific evidence and does not identify a more specific RunPod internal cause."
+  },
+  "successfulPodEstimatedGpuCostUpperBoundUsdTotal": 0.059481,
+  "nonFinalPartialContrast": {
+    "warning": "NOT A FINAL P-R2-02 CLASSIFICATION. B and G are absent, five-shard completeness is false, aggregate.py did not run.",
+    "matchedGpu0p4B": {
+      "M_correct": 2,
+      "X_correct": 2,
+      "M_minus_X_correct": 0,
+      "M_minus_X_marginSum": 4.96728496463038,
+      "episode5_M_minus_X_margin": 2.5058594385627657,
+      "episode6_M_minus_X_margin": 2.4614255260676146
+    },
+    "primary2p9B": {
+      "M_correct": 2,
+      "X_correct": 2,
+      "M_minus_X_correct": 0,
+      "M_minus_X_marginSum": 0.5201422113459557,
+      "episode5_M_minus_X_margin": 0.21704092272557318,
+      "episode6_M_minus_X_margin": 0.30310128862038255
+    }
+  }
+}
