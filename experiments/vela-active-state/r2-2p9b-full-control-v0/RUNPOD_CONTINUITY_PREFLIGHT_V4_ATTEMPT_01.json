@@ -1,0 +1,31 @@
+{
+  "schema": "vela-runpod-continuity-preflight-attempt:v4",
+  "task": "vela-r2-2p9b-full-control-scale-replication-v0",
+  "status": "STOCK_BLOCKED_BEFORE_POD_ALLOCATION",
+  "scientificEvidence": false,
+  "workflowRunId": 34782278663,
+  "sourceCandidate": "2d67570227a916bd61c94da82befc0d27f34e08f",
+  "artifactId": 10324769813,
+  "artifactDigest": "sha256:5a8c5bf6ab7def71bf0c866212c9700a9e54cdd3146b553ab2d99f05c0b5f5f5",
+  "targetGpuId": "NVIDIA A100-SXM4-80GB",
+  "failure": "GPU_STOCK_NOT_SUFFICIENT: Low",
+  "podCreated": false,
+  "gpuComputeStarted": false,
+  "estimatedGpuSpendUsd": 0.0,
+  "automaticRetryPerformed": false,
+  "readinessArtifact": {
+    "id": 10324773186,
+    "digest": "sha256:f109fc5f1114d16ef49cfbd5fd7956f304fd1decb116316a819791898ea20e22"
+  },
+  "sameReadinessInventory": {
+    "a100StockStatus": "Low",
+    "a40": {
+      "gpuId": "NVIDIA A40",
+      "memoryInGb": 48,
+      "securePricePerHrUsd": 0.49,
+      "stockStatus": "High",
+      "highStockDataCenters": ["EU-SE-1"]
+    }
+  },
+  "decision": "Do not spend on alternate continuity validation while already-validated A40 has recovered to High stock. Return execution planning to A40 science matrix."
+}
