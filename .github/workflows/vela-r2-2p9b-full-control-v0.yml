@@ -94,22 +94,23 @@ jobs:
         run: |
           set -u
           K=$(cat kernel-id.txt)
-          STATUS=UNKNOWN
+          FOUND=0
           for i in $(seq 1 180); do
-            O=$(kaggle kernels status "$K" 2>&1 || true)
-            echo "VELA_KAGGLE_STATUS ${O##*status }"
-            if echo "$O" | grep -q 'KernelWorkerStatus.COMPLETE'; then STATUS=COMPLETE; break; fi
-            if echo "$O" | grep -Eq 'KernelWorkerStatus\.(ERROR|FAILED|CANCELLED|CANCELED)'; then STATUS=ERROR; break; fi
+            rm -rf vela_kaggle_out
+            mkdir vela_kaggle_out
+            O=$(kaggle kernels output "$K" -p vela_kaggle_out --force 2>&1 || true)
+            echo "VELA_KAGGLE_OUTPUT attempt=$i ${O//$'\n'/ }"
+            if [[ -f vela_kaggle_out/gpu_preflight.json ]]; then
+              FOUND=1
+              break
+            fi
             sleep 10
           done
-          rm -rf vela_kaggle_out; mkdir vela_kaggle_out
-          kaggle kernels output "$K" -p vela_kaggle_out --force || true
-          if [[ -f vela_kaggle_out/gpu_preflight.json ]]; then
-            cp vela_kaggle_out/gpu_preflight.json /tmp/vela-r2-2p9b-gpu-preflight.json
-          else
-            printf '{"status":"NO_RESULT","kaggle_status":"%s","scientific_evidence":false}\n' "$STATUS" > /tmp/vela-r2-2p9b-gpu-preflight.json
+          if [[ "$FOUND" != "1" ]]; then
+            printf '{"status":"NO_RESULT","collection":"output_poll_timeout","scientific_evidence":false}\n' > /tmp/vela-r2-2p9b-gpu-preflight.json
             exit 1
           fi
+          cp vela_kaggle_out/gpu_preflight.json /tmp/vela-r2-2p9b-gpu-preflight.json
           cat /tmp/vela-r2-2p9b-gpu-preflight.json
 
       - name: Upload GPU preflight evidence
