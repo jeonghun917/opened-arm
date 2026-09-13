@@ -1,0 +1,72 @@
+{
+  "schema": "vela-runpod-continuity-preflight-spec:v4",
+  "task": "vela-r2-2p9b-full-control-scale-replication-v0",
+  "provider": "RUNPOD",
+  "mode": "POD",
+  "phase": "CONTINUITY_PREFLIGHT_V4_ONLY",
+  "scientificExecutionAuthorized": false,
+  "automaticRetry": false,
+  "fallbackProviders": [],
+  "target": {
+    "gpuId": "NVIDIA A100-SXM4-80GB",
+    "displayName": "A100 SXM",
+    "memoryInGb": 80,
+    "cloud": "SECURE",
+    "maxSecurePricePerHrUsd": 1.59,
+    "minimumAcceptedStock": "Medium",
+    "containerImageTag": "python:3.12.13-slim-bookworm",
+    "containerDiskInGb": 20,
+    "ssh": false,
+    "minCudaVersion": "12.6"
+  },
+  "budget": {
+    "maxTotalUsd": 0.50,
+    "maxPodCount": 1,
+    "maxRuntimeSeconds": 900,
+    "workloadTimeoutSeconds": 600
+  },
+  "model": {
+    "repo": "BlinkDL/rwkv7-g1",
+    "revision": "2448c93da77d9958ea89a9faa4c1b34c5c46ccec",
+    "file": "rwkv7-g1a-2.9b-20250924-ctx4096.pth",
+    "size": 5896274949,
+    "sha256": "df5716263b617e7da83590446fb2a98b6663447cfd52e8e9b49e11ce7f4faa3e"
+  },
+  "runtime": {
+    "pythonExpected": "3.12.13",
+    "torchExpected": "2.7.1+cu126",
+    "rwkvExpected": "0.8.32",
+    "numpyExpected": "2.4.6",
+    "tokenizersExpected": "0.21.4",
+    "strategy": "cuda fp16",
+    "rwkvCudaKernel": false,
+    "exactDeviceCapability": "OBSERVE_AND_FREEZE_ON_PASS"
+  },
+  "measurement": {
+    "script": "runpod_continuity_preflight_v2.py",
+    "neutralRuntimeWarmup": true,
+    "sacrificialOrder": ["original", "restored"],
+    "measuredOrder": ["original_a", "restored_a", "restored_b", "original_b"],
+    "requiredExactComparisons": ["original_repeat", "restored_repeat", "cross_first", "cross_second"]
+  },
+  "passCriteria": {
+    "modelIdentityExact": true,
+    "snapshotSerializationExact": true,
+    "snapshotMetadataEqual": true,
+    "allPostWarmupMeasuredComparisonsBitwiseExact": true,
+    "runtimeLoadsWithoutUnsupportedCudaArchitectureWarning": true,
+    "scientificEvidence": false
+  },
+  "orchestration": {
+    "failEarlyOnBootstrapNonzero": true,
+    "bootstrapExitMarker": "VELA_CONTINUITY_V4_BOOTSTRAP_EXIT",
+    "summaryMarker": "VELA_CONTINUITY_PREFLIGHT_V2_SUMMARY",
+    "successPostResultHoldSeconds": 900
+  },
+  "priorEvidence": {
+    "a40ContinuityRunId": 34749156324,
+    "a40Classification": "POST_WARMUP_ORDER_CONTROL_EXACT",
+    "blackwellContinuityRunId": 34750818822,
+    "blackwellStatus": "RUNTIME_ARCH_INCOMPATIBLE"
+  }
+}
