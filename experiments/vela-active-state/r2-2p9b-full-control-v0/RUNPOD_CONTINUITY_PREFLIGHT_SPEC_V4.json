@@ -40,7 +40,13 @@
     "tokenizersExpected": "0.21.4",
     "strategy": "cuda fp16",
     "rwkvCudaKernel": false,
-    "exactDeviceCapability": "OBSERVE_AND_FREEZE_ON_PASS"
+    "expectedDeviceCapability": [8, 0],
+    "requiredTorchArch": "sm_80",
+    "staticCompatibilityEvidence": {
+      "nvidiaA100ComputeCapability": "8.0",
+      "priorFrozenTorchObservedArchList": ["sm_50", "sm_60", "sm_70", "sm_75", "sm_80", "sm_86", "sm_90"],
+      "basis": "NVIDIA official A100 compute-capability table plus provider-grounded v3 frozen torch runtime arch list"
+    }
   },
   "measurement": {
     "script": "runpod_continuity_preflight_v2.py",
@@ -50,6 +56,9 @@
     "requiredExactComparisons": ["original_repeat", "restored_repeat", "cross_first", "cross_second"]
   },
   "passCriteria": {
+    "runtimeIdentityGateBeforeModelDownload": true,
+    "deviceCapabilityExact": [8, 0],
+    "torchArchContains": "sm_80",
     "modelIdentityExact": true,
     "snapshotSerializationExact": true,
     "snapshotMetadataEqual": true,
@@ -59,6 +68,8 @@
   },
   "orchestration": {
     "failEarlyOnBootstrapNonzero": true,
+    "failEarlyOnRuntimeIdentityMismatch": true,
+    "runtimeIdentityMarker": "VELA_CONTINUITY_V4_RUNTIME_IDENTITY",
     "bootstrapExitMarker": "VELA_CONTINUITY_V4_BOOTSTRAP_EXIT",
     "summaryMarker": "VELA_CONTINUITY_PREFLIGHT_V2_SUMMARY",
     "successPostResultHoldSeconds": 900
