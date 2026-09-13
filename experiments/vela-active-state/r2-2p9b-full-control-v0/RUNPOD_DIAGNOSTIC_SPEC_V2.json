@@ -9,7 +9,8 @@
   "attemptAuthorization": {
     "attempt": 1,
     "kind": "EXPLICIT_USER_ONE_SHOT_DIAGNOSTIC",
-    "authorityRef": "user-directive:2026-09-13:runpod-diagnostic-v2-go"
+    "authorityRef": "user-directive:2026-09-13:runpod-diagnostic-v2-go",
+    "consumedByRunId": 34748007249
   },
   "fallbackProviders": [],
   "target": {
@@ -34,15 +35,23 @@
       "Is continuation non-exactness already present when the same original state is executed twice?",
       "Is restored-state repeatability different from original-state repeatability?",
       "If both repeats are stable, is original-vs-restored continuation specifically divergent?",
+      "Is a first-continuation-only difference consistent with a runtime warm-up/order effect?",
       "What are the max/mean absolute and relative numerical deltas?"
     ],
     "classifications": [
       "SERIALIZATION_DEFECT",
+      "FIRST_CONTINUATION_WARMUP_OR_RUNTIME_ORDER_EFFECT",
       "BASE_RUNTIME_NONDETERMINISM_OR_MODEL_MUTATION",
       "RESTORED_RUNTIME_NONDETERMINISM",
       "NO_DIVERGENCE_REPRODUCED",
       "RESTORE_SPECIFIC_EXECUTION_DIVERGENCE"
     ]
+  },
+  "transport": {
+    "marker": "VELA_STATE_DIAGNOSTIC_V2_SUMMARY",
+    "fullPerTensorReportPrintedToSingleLogLine": false,
+    "postResultHoldSeconds": 900,
+    "purpose": "Keep result marker small enough for RunPod log transport and keep the completed container alive until controller readback/delete, preventing desiredStatus RUNNING restart loops."
   },
   "model": {
     "repo": "BlinkDL/rwkv7-g1",
@@ -60,7 +69,7 @@
     "strategy": "cuda fp16",
     "rwkvCudaKernel": false
   },
-  "resultTransport": "RUNPOD_POD_LOGS_TO_GITHUB_ACTIONS_ARTIFACT",
+  "resultTransport": "RUNPOD_COMPACT_LOG_SUMMARY_TO_GITHUB_ACTIONS_ARTIFACT",
   "scientificGate": {
     "enabled": false
   }
