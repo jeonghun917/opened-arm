@@ -12,7 +12,7 @@
   "cancelledAt": "2026-09-13T21:23:00Z",
   "cancelReason": "USER_EMERGENCY_STOP_LOG_ANOMALY",
   "emergencyStopCommit": "c508fe78231a7f46fbb92dcd9145f155dcb76efd",
-  "forceCleanupRunId": 34783721796,
+  "forceCleanupRunId": 34783749785,
   "maxPodCount": 5,
   "maxTotalUsd": 1.25,
   "maxRuntimeSecondsPerPod": 1800,
@@ -28,5 +28,10 @@
     "pods": ["klon6wtdga8b2q", "8l5h6gbp617ixa", "437paq5odhz7a3", "2bk2l1xb1ria8a"],
     "allDeleted": true,
     "allAbsentReadback": true
+  },
+  "orchestrationRepair": {
+    "version": 2,
+    "status": "PREPARED_UNARMED",
+    "scientificExecutionAuthorized": false
   }
 }
