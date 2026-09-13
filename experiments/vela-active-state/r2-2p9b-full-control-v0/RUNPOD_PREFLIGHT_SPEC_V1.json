@@ -7,6 +7,12 @@
   "preflightAuthorized": true,
   "scientificExecutionAuthorized": false,
   "automaticRetry": false,
+  "attemptAuthorization": {
+    "attempt": 2,
+    "kind": "EXPLICIT_USER_REATTEMPT",
+    "authorityRef": "user-directive:2026-09-13:runpod-funded-10-and-retry",
+    "reportedFundingUsd": 10
+  },
   "fallbackProviders": [],
   "sourceKaggleHead": "a1cb641b17436f5376df682db57243b75320bdeb",
   "frozenGpuPreflight": {
