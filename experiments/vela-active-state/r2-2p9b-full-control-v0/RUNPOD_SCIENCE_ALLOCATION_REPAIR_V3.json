@@ -1,0 +1,49 @@
+{
+  "schema": "vela-runpod-science-allocation-repair:v3",
+  "task": "vela-r2-2p9b-full-control-scale-replication-v0",
+  "status": "PREPARED_UNARMED",
+  "scientificExecutionAuthorized": false,
+  "basis": {
+    "attempt03WorkflowRunId": 34785836696,
+    "attempt03Candidate": "307ff642f9063378017cbe0664603bcb8ec4c62b",
+    "observedProviderFailure": "one of five near-simultaneous A40 pod create calls failed with generic graphql_error while four sibling creates allocated",
+    "scientificResultExists": false,
+    "scientificResultsUsedForRepair": false
+  },
+  "allocation": {
+    "gpuId": "NVIDIA A40",
+    "cloud": "SECURE",
+    "maxSecurePricePerHrUsd": 0.49,
+    "conditions": ["B", "C", "G", "M", "X"],
+    "matrixMaxParallel": 1,
+    "matrixFailFast": true,
+    "freshInventoryBeforeEveryShard": true,
+    "freshInventoryAgainInsideLauncher": true,
+    "dataCenterPolicy": "HIGH_THEN_MEDIUM_DETERMINISTIC_PER_SHARD",
+    "allowDataCenterVariationAcrossConditions": true,
+    "sameGpuClassRequired": true,
+    "sameRuntimeContractRequired": true,
+    "automaticRetry": false,
+    "fallbackProviders": []
+  },
+  "capacitySelector": {
+    "path": "runpod_select_a40_capacity_v1.py",
+    "canonicalDataCenterKey": "dataCenterId",
+    "schemaDrift": "FAIL_CLOSED",
+    "priceCapUsdPerHour": 0.49,
+    "minimumMemoryGb": 48,
+    "allowedStock": ["High", "Medium"]
+  },
+  "costProposal": {
+    "maxPodCount": 5,
+    "maxRuntimeSecondsPerPod": 480,
+    "theoreticalGpuUpperBoundUsd": 0.326667,
+    "proposedCanonicalMaxTotalUsd": 0.40
+  },
+  "scienceContract": {
+    "frozenStimuliRoutesClassifier": true,
+    "independentConditionJobsPreserved": true,
+    "conditionOrderNotScientificInput": true,
+    "aggregateOnlyAfterExactFiveOfFiveSuccess": true
+  }
+}
