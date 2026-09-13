@@ -19,6 +19,10 @@ on:
       - 'experiments/vela-active-state/r2-2p9b-full-control-v0/RUNPOD_DIAGNOSTIC_SPEC_V2.json'
       - 'experiments/vela-active-state/r2-2p9b-full-control-v0/runpod_state_diagnostic_launch_v2.sh'
       - 'experiments/vela-active-state/r2-2p9b-full-control-v0/RUNPOD_DIAGNOSTIC_ATTEMPT_01.json'
+      - 'experiments/vela-active-state/r2-2p9b-full-control-v0/RUNPOD_CONTINUITY_PREFLIGHT_SPEC_V2.json'
+      - 'experiments/vela-active-state/r2-2p9b-full-control-v0/RUNPOD_CONTINUITY_PREFLIGHT_V2_AUTH.json'
+      - 'experiments/vela-active-state/r2-2p9b-full-control-v0/runpod_continuity_preflight_v2.py'
+      - 'experiments/vela-active-state/r2-2p9b-full-control-v0/runpod_continuity_preflight_launch_v2.sh'
   workflow_dispatch:
 
 permissions:
@@ -69,6 +73,10 @@ jobs:
             'experiments/vela-active-state/r2-2p9b-full-control-v0/RUNPOD_DIAGNOSTIC_SPEC_V2.json'
             'experiments/vela-active-state/r2-2p9b-full-control-v0/runpod_state_diagnostic_launch_v2.sh'
             'experiments/vela-active-state/r2-2p9b-full-control-v0/RUNPOD_DIAGNOSTIC_ATTEMPT_01.json'
+            'experiments/vela-active-state/r2-2p9b-full-control-v0/RUNPOD_CONTINUITY_PREFLIGHT_SPEC_V2.json'
+            'experiments/vela-active-state/r2-2p9b-full-control-v0/RUNPOD_CONTINUITY_PREFLIGHT_V2_AUTH.json'
+            'experiments/vela-active-state/r2-2p9b-full-control-v0/runpod_continuity_preflight_v2.py'
+            'experiments/vela-active-state/r2-2p9b-full-control-v0/runpod_continuity_preflight_launch_v2.sh'
           )
           for p in "${changed[@]}"; do
             ok=0
@@ -128,6 +136,40 @@ jobs:
           assert 'VELA_STATE_DIAGNOSTIC_V2_JSON=' not in diag
           for forbidden in ['MODEL_STIMULI_INDEX','EVALUATOR.json','EXTERNAL_TRACE.json','VELA_CONDITION','condition_runner.py','aggregate.py']:
               assert forbidden not in diag, forbidden
+          PY
+      - name: Validate continuity preflight v2 instrumentation
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m py_compile "$EXPERIMENT_DIR/runpod_continuity_preflight_v2.py"
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('experiments/vela-active-state/r2-2p9b-full-control-v0')
+          s=json.loads((p/'RUNPOD_CONTINUITY_PREFLIGHT_SPEC_V2.json').read_text())
+          a=json.loads((p/'RUNPOD_CONTINUITY_PREFLIGHT_V2_AUTH.json').read_text())
+          assert s['schema']=='vela-runpod-continuity-preflight-spec:v2'
+          assert s['phase']=='CONTINUITY_PREFLIGHT_V2_ONLY'
+          assert s['scientificExecutionAuthorized'] is False
+          assert s['automaticRetry'] is False and s['fallbackProviders']==[]
+          assert s['target']['gpuId']=='NVIDIA A40' and s['target']['cloud']=='SECURE'
+          assert s['budget']=={'maxTotalUsd':0.50,'maxPodCount':1,'maxRuntimeSeconds':1200,'workloadTimeoutSeconds':900}
+          assert s['orderControl']['neutralRuntimeWarmup'] is True
+          assert s['orderControl']['sacrificialOrder']==['original','restored']
+          assert s['orderControl']['measuredOrder']==['original_a','restored_a','restored_b','original_b']
+          assert s['transport']['marker']=='VELA_CONTINUITY_PREFLIGHT_V2_SUMMARY'
+          assert s['transport']['compactSingleLineOnly'] is True
+          assert s['transport']['postResultHoldSeconds']==900
+          assert a['status'] in {'PREPARED_UNARMED','AUTHORIZED_ONE_SHOT','CONSUMED'}
+          assert a['authorityRef']=='user-directive:2026-09-13:runpod-continuity-preflight-v2-go'
+          assert a['maxPodCount']==1 and a['maxTotalUsd']==0.50 and a['automaticRetry'] is False
+          script=(p/'runpod_continuity_preflight_v2.py').read_text()
+          launch=(p/'runpod_continuity_preflight_launch_v2.sh').read_text()
+          assert 'VELA_CONTINUITY_PREFLIGHT_V2_SUMMARY=' in script
+          for required in ['VELA_RUNPOD_CONTINUITY_V2_AUTHORIZED','NVIDIA A40','GPU_PRICE_CAP="0.49"','--cloud-type SECURE','--ssh=false','pod delete','WORKLOAD_TIMEOUT_SECONDS=900','POST_RESULT_HOLD_SECONDS=900','VELA_CONTINUITY_PREFLIGHT_V2_SUMMARY']:
+              assert required in launch, required
+          for forbidden in ['MODEL_STIMULI_INDEX','EVALUATOR.json','EXTERNAL_TRACE.json','VELA_CONDITION','condition_runner.py','aggregate.py']:
+              assert forbidden not in script, forbidden
           PY
       - name: Revalidate frozen P-R2-02 contract
         run: python "$EXPERIMENT_DIR/validate_contract.py"
@@ -281,5 +323,70 @@ jobs:
         with:
           name: vela-r2-02-runpod-state-diagnostic-v2
           path: /tmp/runpod-diagnostic-v2-evidence
+          if-no-files-found: error
+          retention-days: 30
+
+  runpod-continuity-preflight-v2:
+    needs: [contract, runpod-readiness]
+    if: ${{ github.event_name == 'push' && contains(github.event.head_commit.message, '[runpod-continuity-v2-authorized]') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      RUNPOD_API_KEY: ${{ secrets.RUNPOD_API_KEY }}
+      VELA_SOURCE_COMMIT: ${{ github.sha }}
+      VELA_RUNPOD_CONTINUITY_V2_AUTHORIZED: 'true'
+      VELA_CONTINUITY_V2_EVIDENCE_DIR: /tmp/runpod-continuity-v2-evidence
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Validate one-shot authorization record
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json, os
+          p=os.path.join(os.environ['EXPERIMENT_DIR'],'RUNPOD_CONTINUITY_PREFLIGHT_V2_AUTH.json')
+          a=json.load(open(p))
+          assert a['status']=='AUTHORIZED_ONE_SHOT'
+          assert a['authorityRef']=='user-directive:2026-09-13:runpod-continuity-preflight-v2-go'
+          assert a['maxPodCount']==1 and a['maxTotalUsd']==0.50
+          assert a['automaticRetry'] is False and a['fallbackProviders']==[]
+          assert a['scientificExecutionAuthorized'] is False
+          PY
+      - name: Install exact current RunPod CLI
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${RUNPOD_API_KEY:-}"
+          curl -fsSL https://cli.runpod.net | sudo bash
+          runpodctl version
+      - name: Execute one A40 continuity preflight v2
+        shell: bash
+        run: bash "$EXPERIMENT_DIR/runpod_continuity_preflight_launch_v2.sh"
+      - name: Validate continuity preflight v2 envelope
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json, os
+          p=os.path.join(os.environ['VELA_CONTINUITY_V2_EVIDENCE_DIR'],'continuity-v2-envelope.json')
+          r=json.load(open(p))
+          assert r['status']=='PASS'
+          assert r['classification']=='POST_WARMUP_ORDER_CONTROL_EXACT'
+          assert r['scientific_evidence'] is False and r['phase']=='CONTINUITY_PREFLIGHT_V2_ONLY'
+          assert r['pod_deleted'] is True and r['estimated_gpu_cost_upper_bound_usd'] <= 0.50
+          assert r['gpu']['gpuId']=='NVIDIA A40'
+          d=r['result']
+          assert d['serialization_exact'] is True and d['metadata_equal'] is True
+          assert d['original_repeat_exact'] is True and d['restored_repeat_exact'] is True
+          assert d['cross_first_exact'] is True and d['cross_second_exact'] is True
+          PY
+      - name: Upload authoritative continuity preflight v2 evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vela-r2-02-runpod-continuity-preflight-v2
+          path: /tmp/runpod-continuity-v2-evidence
           if-no-files-found: error
           retention-days: 30
