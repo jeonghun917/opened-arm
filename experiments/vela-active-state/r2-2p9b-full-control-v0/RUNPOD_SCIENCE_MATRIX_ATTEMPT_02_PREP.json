@@ -1,0 +1,46 @@
+{
+  "schema": "vela-runpod-science-matrix-attempt-prep:v2",
+  "task": "vela-r2-2p9b-full-control-scale-replication-v0",
+  "status": "PREPARED_UNARMED",
+  "selectionBasis": "PROVIDER_READ_ONLY_CAPACITY_PLUS_PRIOR_VALIDATED_RUNTIME",
+  "scientificResultsUsedForSelection": false,
+  "frozenScienceUnchanged": true,
+  "conditions": ["B", "C", "G", "M", "X"],
+  "target": {
+    "gpuId": "NVIDIA A40",
+    "displayName": "A40",
+    "memoryInGb": 48,
+    "cloud": "SECURE",
+    "securePricePerHrUsd": 0.49,
+    "currentStockStatus": "High",
+    "highStockDataCenters": ["EU-SE-1"],
+    "readinessRunId": 34782278663,
+    "readinessArtifactId": 10324773186,
+    "readinessArtifactDigest": "sha256:f109fc5f1114d16ef49cfbd5fd7956f304fd1decb116316a819791898ea20e22"
+  },
+  "continuityEvidence": {
+    "status": "PASS",
+    "workflowRunId": 34749156324,
+    "artifactId": 10315232230,
+    "classification": "POST_WARMUP_ORDER_CONTROL_EXACT",
+    "maxAbs": 0.0
+  },
+  "priorAttempt": {
+    "workflowRunId": 34749656683,
+    "status": "INFRASTRUCTURE_INCOMPLETE_NO_AGGREGATE",
+    "successfulConditions": ["C", "M", "X"],
+    "failedBeforePodAllocation": ["B", "G"],
+    "successfulConditionElapsedSeconds": {"C":143,"M":144,"X":150},
+    "successfulConditionEstimatedGpuCostUpperBoundUsd": {"C":0.019464,"M":0.0196,"X":0.020417},
+    "automaticRetryPerformed": false
+  },
+  "execution": {
+    "parallelIndependentConditionJobs": true,
+    "automaticRetry": false,
+    "fallbackProviders": [],
+    "reuseExistingFrozenLauncher": "runpod_science_condition_launch_v1.sh",
+    "expectedTypicalTotalGpuCostUsdFromPriorThreeShardTiming": "~0.10 for five shards if runtimes remain near 143-150s",
+    "existingHardBudgetCeilingUsd": 1.25
+  },
+  "note": "A100 v4 was not allocated because stock dropped to Low. A40 recovered to High in the same fresh readiness inventory and already has exact continuity PASS, so no additional continuity GPU spend is justified before science attempt 02."
+}
