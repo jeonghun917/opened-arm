@@ -20,7 +20,6 @@ env:
 
 jobs:
   preflight:
-    if: ${{ hashFiles('experiments/vela-active-state/r2-2p9b-full-control-v0/FROZEN_MODEL_IDENTITY.json') == '' }}
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
