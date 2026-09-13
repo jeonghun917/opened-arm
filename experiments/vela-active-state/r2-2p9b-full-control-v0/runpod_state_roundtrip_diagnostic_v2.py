@@ -72,6 +72,10 @@ def compare_state(a, b) -> dict:
     }
 
 
+def compact_state_comparison(x: dict) -> dict:
+    return {k: v for k, v in x.items() if k != "per_tensor"}
+
+
 def main() -> None:
     import torch
     from huggingface_hub import hf_hub_download
@@ -136,55 +140,92 @@ def main() -> None:
             "logits": compare_tensor(original_2_logits, restored_2_logits),
             "state": compare_state(original_2_state, restored_2_state),
         },
+        "original_second_vs_restored_first": {
+            "logits": compare_tensor(original_2_logits, restored_1_logits),
+            "state": compare_state(original_2_state, restored_1_state),
+        },
     }
 
-    original_repeat_exact = comparisons["original_repeat"]["logits"]["exact"] and comparisons["original_repeat"]["state"]["exact"]
-    restored_repeat_exact = comparisons["restored_repeat"]["logits"]["exact"] and comparisons["restored_repeat"]["state"]["exact"]
-    cross_exact = comparisons["original_vs_restored_first"]["logits"]["exact"] and comparisons["original_vs_restored_first"]["state"]["exact"]
+    def exact_pair(name: str) -> bool:
+        c = comparisons[name]
+        return c["logits"]["exact"] and c["state"]["exact"]
+
+    original_repeat_exact = exact_pair("original_repeat")
+    restored_repeat_exact = exact_pair("restored_repeat")
+    cross_first_exact = exact_pair("original_vs_restored_first")
+    cross_second_exact = exact_pair("original_vs_restored_second")
+    post_first_cross_exact = exact_pair("original_second_vs_restored_first")
 
     if serialization.get("exact") is not True:
         classification = "SERIALIZATION_DEFECT"
+    elif (not original_repeat_exact and restored_repeat_exact and cross_second_exact and post_first_cross_exact):
+        classification = "FIRST_CONTINUATION_WARMUP_OR_RUNTIME_ORDER_EFFECT"
     elif not original_repeat_exact:
         classification = "BASE_RUNTIME_NONDETERMINISM_OR_MODEL_MUTATION"
     elif not restored_repeat_exact:
         classification = "RESTORED_RUNTIME_NONDETERMINISM"
-    elif cross_exact:
+    elif cross_first_exact:
         classification = "NO_DIVERGENCE_REPRODUCED"
     else:
         classification = "RESTORE_SPECIFIC_EXECUTION_DIVERGENCE"
 
+    runtime = {
+        "torch": torch.__version__,
+        "cuda": torch.version.cuda,
+        "device": torch.cuda.get_device_name(0),
+        "device_capability": list(torch.cuda.get_device_capability(0)),
+        "strategy": "cuda fp16",
+        "rwkv_cuda_kernel": False,
+        "deterministic_algorithms_enabled": bool(torch.are_deterministic_algorithms_enabled()),
+        "cudnn_deterministic": bool(torch.backends.cudnn.deterministic),
+        "cudnn_benchmark": bool(torch.backends.cudnn.benchmark),
+        "cuda_matmul_allow_tf32": bool(torch.backends.cuda.matmul.allow_tf32),
+    }
+    model_info = {"file": MODEL_FILE, "size": path.stat().st_size, "sha256": actual_sha}
+    snapshot_info = {
+        "bytes": snapshot.stat().st_size,
+        "sha256": sha256_file(snapshot),
+        "serialization": serialization,
+        "metadata_equal": metadata_equal,
+        "original_meta": [tensor_meta(x) for x in state],
+        "restored_meta": [tensor_meta(x) for x in restored],
+    }
     report = {
         "status": "DIAGNOSTIC_COMPLETE",
         "scientific_evidence": False,
         "purpose": "result-blind diagnosis of RunPod recurrent-state continuation non-exactness",
         "source_commit": os.environ.get("VELA_SOURCE_COMMIT"),
         "classification": classification,
-        "runtime": {
-            "torch": torch.__version__,
-            "cuda": torch.version.cuda,
-            "device": torch.cuda.get_device_name(0),
-            "device_capability": list(torch.cuda.get_device_capability(0)),
-            "strategy": "cuda fp16",
-            "rwkv_cuda_kernel": False,
-            "deterministic_algorithms_enabled": bool(torch.are_deterministic_algorithms_enabled()),
-            "cudnn_deterministic": bool(torch.backends.cudnn.deterministic),
-            "cudnn_benchmark": bool(torch.backends.cudnn.benchmark),
-            "cuda_matmul_allow_tf32": bool(torch.backends.cuda.matmul.allow_tf32),
-        },
-        "model": {"file": MODEL_FILE, "size": path.stat().st_size, "sha256": actual_sha},
-        "snapshot": {
-            "bytes": snapshot.stat().st_size,
-            "sha256": sha256_file(snapshot),
-            "serialization": serialization,
-            "metadata_equal": metadata_equal,
-            "original_meta": [tensor_meta(x) for x in state],
-            "restored_meta": [tensor_meta(x) for x in restored],
-        },
+        "runtime": runtime,
+        "model": model_info,
+        "snapshot": snapshot_info,
         "comparisons": comparisons,
     }
     out = out_dir / "runpod-state-roundtrip-diagnostic-v2.json"
     out.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n")
-    print("VELA_STATE_DIAGNOSTIC_V2_JSON=" + json.dumps(report, separators=(",", ":"), sort_keys=True), flush=True)
+
+    summary = {
+        "status": report["status"],
+        "scientific_evidence": False,
+        "source_commit": report["source_commit"],
+        "classification": classification,
+        "runtime": runtime,
+        "model": model_info,
+        "snapshot": {
+            "bytes": snapshot_info["bytes"],
+            "sha256": snapshot_info["sha256"],
+            "metadata_equal": metadata_equal,
+            "serialization": compact_state_comparison(serialization),
+        },
+        "comparisons": {
+            name: {
+                "logits": value["logits"],
+                "state": compact_state_comparison(value["state"]),
+            }
+            for name, value in comparisons.items()
+        },
+    }
+    print("VELA_STATE_DIAGNOSTIC_V2_SUMMARY=" + json.dumps(summary, separators=(",", ":"), sort_keys=True), flush=True)
 
 
 if __name__ == "__main__":
