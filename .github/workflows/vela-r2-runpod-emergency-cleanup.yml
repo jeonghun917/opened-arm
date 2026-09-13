@@ -1,0 +1,38 @@
+name: VELA R2 RunPod emergency cleanup
+on:
+  push:
+    branches: [exp/vela-r2-2p9b-runpod-prep-v0]
+    paths: ['.github/workflows/vela-r2-runpod-emergency-cleanup.yml']
+permissions:
+  contents: read
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      RUNPOD_API_KEY: ${{ secrets.RUNPOD_API_KEY }}
+    steps:
+      - name: Install pinned runpodctl and delete exact cancelled pods
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${RUNPOD_API_KEY:-}"
+          curl -fsSL -o /tmp/runpodctl https://github.com/runpod/runpodctl/releases/download/v2.14.0/runpodctl-linux-amd64
+          echo '2e0fd370a52a0fc7e43a6434a209348a4f6836fcdf1ad2b093b609e938138be9  /tmp/runpodctl' | sha256sum -c -
+          chmod +x /tmp/runpodctl
+          /tmp/runpodctl version
+          for id in klon6wtdga8b2q 8l5h6gbp617ixa 437paq5odhz7a3 2bk2l1xb1ria8a; do
+            /tmp/runpodctl pod delete "$id" || true
+          done
+          sleep 2
+          /tmp/runpodctl pod list --all > /tmp/pods-after.json
+          python - <<'PY'
+          import json
+          ids={'klon6wtdga8b2q','8l5h6gbp617ixa','437paq5odhz7a3','2bk2l1xb1ria8a'}
+          data=json.load(open('/tmp/pods-after.json'))
+          rows=data if isinstance(data,list) else data.get('pods',data.get('items',[]))
+          live={str(x.get('id') or x.get('podId')) for x in rows if isinstance(x,dict)}
+          remain=sorted(ids & live)
+          print('remaining=',remain)
+          if remain: raise SystemExit(1)
+          PY
