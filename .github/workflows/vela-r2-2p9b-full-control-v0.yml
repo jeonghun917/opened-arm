@@ -1,0 +1,86 @@
+name: VELA R2 RWKV7 2.9B full-control v0
+
+on:
+  push:
+    branches: [exp/vela-r2-2p9b-full-control-v0]
+    paths:
+      - 'experiments/vela-active-state/r2-2p9b-full-control-v0/**'
+      - '.github/workflows/vela-r2-2p9b-full-control-v0.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: vela-r2-2p9b-full-control-v0
+  cancel-in-progress: false
+
+env:
+  EXPERIMENT_DIR: experiments/vela-active-state/r2-2p9b-full-control-v0
+
+jobs:
+  preflight:
+    if: ${{ hashFiles('experiments/vela-active-state/r2-2p9b-full-control-v0/FROZEN_MODEL_IDENTITY.json') == '' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout exact triggering commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Verify exact source commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          actual="$(git rev-parse HEAD)"
+          [[ "$actual" == "$GITHUB_SHA" ]] || { echo "::error::checkout drift expected=$GITHUB_SHA actual=$actual"; exit 1; }
+          echo "checked_out_head=$actual"
+
+      - name: Provision 16GiB swap
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo fallocate -l 16G /mnt/vela-r2-swapfile
+          sudo chmod 600 /mnt/vela-r2-swapfile
+          sudo mkswap /mnt/vela-r2-swapfile
+          sudo swapon /mnt/vela-r2-swapfile
+          free -h
+          swapon --show
+          df -h / /mnt || true
+
+      - name: Install exact CPU runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --upgrade pip
+          python -m pip install --index-url https://download.pytorch.org/whl/cpu 'torch==2.7.1+cpu'
+          python -m pip install 'rwkv==0.8.32' 'tokenizers==0.21.4' 'numpy==2.4.6' 'huggingface_hub==0.36.0'
+          python -m pip check
+
+      - name: Run result-blind model preflight
+        shell: bash
+        env:
+          VELA_RESULT_PATH: /tmp/vela-r2-2p9b-preflight.json
+          HF_HUB_DISABLE_TELEMETRY: '1'
+          PYTHONUNBUFFERED: '1'
+          MALLOC_ARENA_MAX: '2'
+          OMP_NUM_THREADS: '4'
+          MKL_NUM_THREADS: '4'
+        run: |
+          set -euo pipefail
+          python "$EXPERIMENT_DIR/preflight.py"
+
+      - name: Upload preflight evidence
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: vela-r2-2p9b-preflight-v0
+          path: /tmp/vela-r2-2p9b-preflight.json
+          if-no-files-found: error
+          retention-days: 7

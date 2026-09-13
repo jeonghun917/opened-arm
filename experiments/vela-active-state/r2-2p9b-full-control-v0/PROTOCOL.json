@@ -1,0 +1,68 @@
+{
+  "protocol": "vela-r2-2p9b-full-control-scale-replication-v0",
+  "version": 0,
+  "status": "PREFLIGHT_REQUIRED",
+  "source_experiment": {
+    "repository": "jeonghun917/vela-workbench",
+    "candidate_sha": "f7516276f5d4bc9b05f3a226334473bdb98869d8",
+    "protocol_blob_sha": "8b0c5b7ddd1d93bdfed89c7ed4377a674186e581",
+    "task": "P-R2-01",
+    "result": "MIXED"
+  },
+  "workload": "six-episode interleaved runtime/security release-readiness toy",
+  "conditions": {
+    "B": "always fresh single-state",
+    "C": "single-state carry after episode 1",
+    "G": "single-state event lifecycle: keep except explicit runtime correction reset",
+    "M": "two-bank semantic routing: runtime=A, security=B; reset only affected runtime bank at correction",
+    "X": "two-bank shuffled cross-domain grouping control with same two-bank storage, active compute, and one reset"
+  },
+  "episodes": [
+    {"episode": 1, "event": "INITIAL_SHARED_SEED", "domain": "shared"},
+    {"episode": 2, "event": "RUNTIME_ADDITION", "domain": "runtime"},
+    {"episode": 3, "event": "SECURITY_ADDITION", "domain": "security"},
+    {"episode": 4, "event": "RUNTIME_CORRECTION", "domain": "runtime"},
+    {"episode": 5, "event": "SECURITY_RESOLUTION", "domain": "security"},
+    {"episode": 6, "event": "RUNTIME_FOLLOWTHROUGH", "domain": "runtime"}
+  ],
+  "routes": {
+    "M": {"1": "SEED_AB", "2": "A_KEEP", "3": "B_KEEP", "4": "A_RESET", "5": "B_KEEP", "6": "A_KEEP"},
+    "X": {"1": "SEED_AB", "2": "A_KEEP", "3": "B_KEEP", "4": "B_RESET", "5": "B_KEEP", "6": "A_KEEP"}
+  },
+  "model": {
+    "repo": "BlinkDL/rwkv7-g1",
+    "revision": "2448c93da77d9958ea89a9faa4c1b34c5c46ccec",
+    "file": "rwkv7-g1a-2.9b-20250924-ctx4096.pth",
+    "expected_sha256": null,
+    "expected_size": null,
+    "strategy": "cpu fp32",
+    "rwkv_version": "0.8.32",
+    "torch_version": "2.7.1+cpu",
+    "tokenizers_version": "0.21.4",
+    "numpy_version": "2.4.6"
+  },
+  "execution": {
+    "preflight_before_science": true,
+    "scientific_conditions": ["B", "C", "G", "M", "X"],
+    "condition_parallelism": "five independent GitHub Actions matrix jobs",
+    "within_condition": "six episodes execute sequentially in one process/state lineage",
+    "aggregation": "deterministic result-only job after all five shards",
+    "scientific_run_count": 1
+  },
+  "classifier": {
+    "SUPPORTED": "M has higher aggregate hard correctness than X, no task-completion regression, no hard regression on either lane-return episode 5 or 6, and is not worse than G in aggregate hard correctness.",
+    "MIXED": "M and X tie on aggregate hard correctness with positive M-X margin sum and positive M-X margins on both episodes 5 and 6, or M has a hard primary gain with a secondary tradeoff.",
+    "NOT_SUPPORTED": "all other protocol-valid outcomes",
+    "PROTOCOL_BLOCKED": "protocol/equality/oracle/bank-binding/return-state-identifiability/model-identity/shard-completeness gate failure"
+  },
+  "frozen_0p4b_reference": {
+    "candidate_sha": "f7516276f5d4bc9b05f3a226334473bdb98869d8",
+    "M_correct": 2,
+    "X_correct": 2,
+    "M_minus_X_hard": 0,
+    "M_minus_X_margin_sum": 5.005261647049338,
+    "episode5_M_minus_X_margin": 2.523124316241592,
+    "episode6_M_minus_X_margin": 2.4821373308077455
+  },
+  "claim_boundary": "Exact scale replication only. A 2.9B result may test whether the P-R2-01 routing signal is scale-stable or converts to hard correctness; it does not establish universal multi-state superiority or a production architecture."
+}
