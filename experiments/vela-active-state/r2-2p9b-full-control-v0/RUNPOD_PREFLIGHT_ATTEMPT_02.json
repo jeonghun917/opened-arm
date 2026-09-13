@@ -1,0 +1,56 @@
+{
+  "schema": "vela-runpod-preflight-attempt:v1",
+  "task": "vela-r2-2p9b-full-control-scale-replication-v0",
+  "attempt": 2,
+  "sourceCandidate": "f7e3acf46f2f64adf349536e43eda13127123cf5",
+  "workflowRunId": 34747364769,
+  "artifactId": 10314227588,
+  "artifactDigest": "sha256:d2bfccba503b911396cbb3dc8c462a9c9464e18f730413e263594d60f0750a37",
+  "provider": "RUNPOD",
+  "phase": "PREFLIGHT_ONLY",
+  "scientificEvidence": false,
+  "gpu": {
+    "gpuId": "NVIDIA A40",
+    "cloud": "SECURE",
+    "memoryInGb": 48,
+    "observedSecurePricePerHrUsd": 0.49,
+    "dataCenterId": "CA-MTL-1"
+  },
+  "pod": {
+    "id": "6b3nehzrfjq038",
+    "created": true,
+    "deleted": true
+  },
+  "runtime": {
+    "python": "3.12.13",
+    "torch": "2.7.1+cu126",
+    "cuda": "12.6",
+    "rwkv": "0.8.32",
+    "numpy": "2.4.6",
+    "tokenizers": "0.21.4",
+    "strategy": "cuda fp16",
+    "rwkvCudaKernel": false
+  },
+  "gpuPreflight": {
+    "status": "PASS",
+    "model0p4bIdentityExact": true,
+    "model2p9bIdentityExact": true,
+    "model2p9bPeakCudaBytes": 6241701888,
+    "model2p9bForwardPass": true
+  },
+  "stateRoundtrip": {
+    "status": "FAIL",
+    "serializeRestoreExact": true,
+    "continuationLogitsExact": false,
+    "continuationStateExact": false,
+    "tensorCount": 96,
+    "stateBytes": 21299200,
+    "snapshotBytes": 25260413,
+    "snapshotSha256": "a5da5010efb0aa540523fb10d5cc95e2ef8f128b21d074fcba0fe770372a706f"
+  },
+  "classification": "PREFLIGHT_FAILED_STATE_CONTINUATION_EXACTNESS",
+  "interpretation": "State serialization/restoration itself is byte-exact. The failure occurs in subsequent identical continuation computation and must be separated into base runtime repeatability versus restore-specific divergence before scientific execution.",
+  "automaticRetry": false,
+  "fallback": false,
+  "scientificMatrixAuthorized": false
+}
