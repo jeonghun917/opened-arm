@@ -1,0 +1,73 @@
+{
+  "schema": "vela-runpod-continuity-preflight-spec:v2",
+  "task": "vela-r2-2p9b-full-control-scale-replication-v0",
+  "provider": "RUNPOD",
+  "mode": "POD",
+  "phase": "CONTINUITY_PREFLIGHT_V2_ONLY",
+  "scientificExecutionAuthorized": false,
+  "automaticRetry": false,
+  "fallbackProviders": [],
+  "target": {
+    "gpuId": "NVIDIA A40",
+    "memoryInGb": 48,
+    "cloud": "SECURE",
+    "maxSecurePricePerHrUsd": 0.49,
+    "containerImageTag": "python:3.12.13-slim-bookworm",
+    "containerDiskInGb": 20,
+    "ssh": false,
+    "minCudaVersion": "12.6"
+  },
+  "budget": {
+    "maxTotalUsd": 0.50,
+    "maxPodCount": 1,
+    "maxRuntimeSeconds": 1200,
+    "workloadTimeoutSeconds": 900
+  },
+  "model": {
+    "repo": "BlinkDL/rwkv7-g1",
+    "revision": "2448c93da77d9958ea89a9faa4c1b34c5c46ccec",
+    "file": "rwkv7-g1a-2.9b-20250924-ctx4096.pth",
+    "size": 5896274949,
+    "sha256": "df5716263b617e7da83590446fb2a98b6663447cfd52e8e9b49e11ce7f4faa3e"
+  },
+  "runtime": {
+    "pythonExpected": "3.12.13",
+    "torchExpected": "2.7.1+cu126",
+    "rwkvExpected": "0.8.32",
+    "numpyExpected": "2.4.6",
+    "tokenizersExpected": "0.21.4",
+    "strategy": "cuda fp16",
+    "rwkvCudaKernel": false
+  },
+  "orderControl": {
+    "neutralRuntimeWarmup": true,
+    "sacrificialOrder": ["original", "restored"],
+    "measuredOrder": ["original_a", "restored_a", "restored_b", "original_b"],
+    "requiredExactComparisons": ["original_repeat", "restored_repeat", "cross_first", "cross_second"]
+  },
+  "passCriteria": {
+    "snapshotSerializationExact": true,
+    "snapshotMetadataEqual": true,
+    "allPostWarmupMeasuredComparisonsBitwiseExact": true,
+    "scientificEvidence": false
+  },
+  "transport": {
+    "marker": "VELA_CONTINUITY_PREFLIGHT_V2_SUMMARY",
+    "compactSingleLineOnly": true,
+    "postResultHoldSeconds": 900
+  },
+  "priorDiagnosticEvidence": {
+    "workflowRunId": 34748007249,
+    "artifactId": 10315555496,
+    "artifactDigest": "sha256:8ce185a242e7f352083a66a7faeb204bd5322dd82ec956da948a7f9a73d0a180",
+    "refinedClassification": "FIRST_CONTINUATION_WARMUP_OR_RUNTIME_ORDER_EFFECT"
+  },
+  "scientificGate": {
+    "enabled": false,
+    "enableOnlyAfter": [
+      "continuity preflight v2 PASS",
+      "exact result and provider identity written to Neon",
+      "separate canonical scientific-matrix budget and enable"
+    ]
+  }
+}
