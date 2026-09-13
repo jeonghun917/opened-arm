@@ -105,7 +105,7 @@ jobs:
           assert s['budgetProposal']['proposedCanonicalMaxTotalUsd']==1.25
           assert s['continuityGate']['classification']=='POST_WARMUP_ORDER_CONTROL_EXACT'
           assert s['continuityGate']['maxAbs']==0.0
-          assert a['status'] in {'PREPARED_UNARMED','AUTHORIZED_MATRIX','CONSUMED'}
+          assert a['status'] in {'PREPARED_UNARMED','AUTHORIZED_MATRIX','CONSUMED','CONSUMED_INCOMPLETE'}
           assert a['maxPodCount']==5 and a['maxTotalUsd']==1.25
           adapter=(p/'runpod_condition_adapter_v1.py').read_text()
           launcher=(p/'runpod_science_condition_launch_v1.sh').read_text()
@@ -115,35 +115,37 @@ jobs:
           for x in ['MAX_RUNTIME_SECONDS=1800','WORKLOAD_TIMEOUT_SECONDS=1500','MAX_CHUNK_CHARS=7000','GPU_PRICE_CAP="0.49"','--cloud-type SECURE','--ssh=false','pod delete','VELA_CONDITION_RESULT_META','VELA_CONDITION_RESULT_CHUNK']:
               assert x in launcher, x
           PY
-      - name: Validate high-stock continuity preflight v3 preparation
+      - name: Validate consumed continuity-v3 and A100 v4 preparation
         shell: bash
         run: |
           set -euo pipefail
-          bash -n "$EXPERIMENT_DIR/runpod_continuity_preflight_launch_v3.sh"
+          bash -n "$EXPERIMENT_DIR/runpod_continuity_preflight_launch_v4.sh"
           python - <<'PY'
           import json
           from pathlib import Path
           p=Path('experiments/vela-active-state/r2-2p9b-full-control-v0')
-          cap=json.loads((p/'RUNPOD_CAPACITY_SELECTION_02.json').read_text())
-          spec=json.loads((p/'RUNPOD_CONTINUITY_PREFLIGHT_SPEC_V3.json').read_text())
-          auth=json.loads((p/'RUNPOD_CONTINUITY_PREFLIGHT_V3_AUTH.json').read_text())
-          attempt=json.loads((p/'RUNPOD_SCIENCE_MATRIX_ATTEMPT_01.json').read_text())
-          assert attempt['status']=='INFRASTRUCTURE_INCOMPLETE_NO_AGGREGATE' and attempt['scientificResultExists'] is False
-          assert cap['basis']=='PROVIDER_CAPACITY_ONLY_RESULT_BLIND' and cap['excludedScientificInputs'] is True
-          assert cap['source']['readinessArtifactId']==10315247947
-          assert cap['selected']['gpuId']=='NVIDIA RTX PRO 4500 Blackwell'
-          assert cap['selected']['stockStatus']=='High' and cap['selected']['memoryInGb']==32
-          assert cap['selected']['securePricePerHrUsd']==0.72
-          assert spec['schema']=='vela-runpod-continuity-preflight-spec:v3'
-          assert spec['scientificExecutionAuthorized'] is False and spec['automaticRetry'] is False
-          assert spec['target']['gpuId']=='NVIDIA RTX PRO 4500 Blackwell'
-          assert spec['target']['requiredStockAtLaunch']==['High','Medium']
-          assert spec['measurement']['script']=='runpod_continuity_preflight_v2.py'
-          assert spec['runtime']['deviceCapability']=='DISCOVER_AND_FREEZE_FROM_PREFLIGHT'
+          v3=json.loads((p/'RUNPOD_CONTINUITY_PREFLIGHT_V3_AUTH.json').read_text())
+          attempt=json.loads((p/'RUNPOD_CONTINUITY_PREFLIGHT_V3_ATTEMPT_01.json').read_text())
+          cap=json.loads((p/'RUNPOD_CAPACITY_SELECTION_03.json').read_text())
+          spec=json.loads((p/'RUNPOD_CONTINUITY_PREFLIGHT_SPEC_V4.json').read_text())
+          auth=json.loads((p/'RUNPOD_CONTINUITY_PREFLIGHT_V4_AUTH.json').read_text())
+          assert v3['status']=='CONSUMED' and v3['statusResult']=='RUNTIME_ARCH_INCOMPATIBLE'
+          assert v3['observedCudaCapability']=='sm_120' and v3['podDeleted'] is True
+          assert attempt['workflowRunId']==34750818822 and attempt['status']=='RUNTIME_ARCH_INCOMPATIBLE'
+          assert attempt['orchestrationDefect']['repairRequiredBeforeNextPaidPreflight'] is True
+          assert cap['selectionBasis']=='PROVIDER_CAPACITY_PLUS_FROZEN_RUNTIME_ARCH_COMPATIBILITY_RESULT_BLIND'
+          assert cap['scientificResultsUsedForSelection'] is False
+          assert cap['selected']['gpuId']=='NVIDIA A100-SXM4-80GB'
+          assert cap['selected']['observedStockStatus']=='Medium' and cap['selected']['memoryInGb']==80
+          assert cap['selected']['observedSecurePricePerHrUsd']==1.59
+          assert spec['schema']=='vela-runpod-continuity-preflight-spec:v4'
+          assert spec['target']['gpuId']=='NVIDIA A100-SXM4-80GB'
+          assert spec['budget']['maxTotalUsd']==0.50 and spec['budget']['maxPodCount']==1
+          assert spec['orchestration']['failEarlyOnBootstrapNonzero'] is True
           assert auth['status'] in {'PREPARED_UNARMED','AUTHORIZED_ONE_SHOT','CONSUMED'}
           assert auth['maxPodCount']==1 and auth['maxTotalUsd']==0.50
-          launch=(p/'runpod_continuity_preflight_launch_v3.sh').read_text()
-          for x in ['NVIDIA RTX PRO 4500 Blackwell','GPU_PRICE_CAP="0.72"','MIN_MEMORY_GB=32','GPU_STOCK_NOT_SUFFICIENT','--cloud-type SECURE','--ssh=false','pod delete','VELA_RUNPOD_CONTINUITY_V3_AUTHORIZED']:
+          launch=(p/'runpod_continuity_preflight_launch_v4.sh').read_text()
+          for x in ['NVIDIA A100-SXM4-80GB','GPU_PRICE_CAP="1.59"','MIN_MEMORY_GB=80','WORKLOAD_TIMEOUT_SECONDS=600','VELA_CONTINUITY_V4_BOOTSTRAP_EXIT','RUNPOD_CONTINUITY_V4_BOOTSTRAP_FAILED','VELA_RUNPOD_CONTINUITY_V4_AUTHORIZED','pod delete']:
               assert x in launch, x
           for forbidden in ['condition_runner.py','aggregate.py','MODEL_STIMULI_INDEX','EVALUATOR.json','EXTERNAL_TRACE.json']:
               assert forbidden not in launch, forbidden
@@ -368,5 +370,80 @@ jobs:
         with:
           name: vela-r2-02-runpod-continuity-preflight-v3
           path: /tmp/runpod-continuity-v3-evidence
+          if-no-files-found: error
+          retention-days: 30
+
+  runpod-continuity-preflight-v4:
+    needs: [contract, runpod-readiness]
+    if: ${{ github.event_name == 'push' && contains(github.event.head_commit.message, '[runpod-continuity-v4-authorized]') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      RUNPOD_API_KEY: ${{ secrets.RUNPOD_API_KEY }}
+      VELA_SOURCE_COMMIT: ${{ github.sha }}
+      VELA_RUNPOD_CONTINUITY_V4_AUTHORIZED: 'true'
+      VELA_CONTINUITY_V4_EVIDENCE_DIR: /tmp/runpod-continuity-v4-evidence
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Validate continuity-v4 one-shot authorization and runtime target
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash -n "$EXPERIMENT_DIR/runpod_continuity_preflight_launch_v4.sh"
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          p=Path(os.environ['EXPERIMENT_DIR'])
+          a=json.loads((p/'RUNPOD_CONTINUITY_PREFLIGHT_V4_AUTH.json').read_text())
+          s=json.loads((p/'RUNPOD_CONTINUITY_PREFLIGHT_SPEC_V4.json').read_text())
+          v3=json.loads((p/'RUNPOD_CONTINUITY_PREFLIGHT_V3_ATTEMPT_01.json').read_text())
+          assert a['status']=='AUTHORIZED_ONE_SHOT'
+          assert a['authorityRef']=='user-directive:2026-09-13:runpod-continuity-preflight-v4-go'
+          assert a['maxPodCount']==1 and a['maxTotalUsd']==0.50
+          assert a['automaticRetry'] is False and a['fallbackProviders']==[]
+          assert a['scientificExecutionAuthorized'] is False
+          assert s['target']['gpuId']=='NVIDIA A100-SXM4-80GB'
+          assert s['target']['maxSecurePricePerHrUsd']==1.59
+          assert s['budget']['workloadTimeoutSeconds']==600
+          assert s['orchestration']['failEarlyOnBootstrapNonzero'] is True
+          assert v3['status']=='RUNTIME_ARCH_INCOMPATIBLE' and v3['pod']['deleted'] is True
+          PY
+      - name: Install exact current RunPod CLI
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${RUNPOD_API_KEY:-}"
+          curl -fsSL https://cli.runpod.net | sudo bash
+          runpodctl version
+      - name: Execute one A100 continuity preflight v4
+        shell: bash
+        run: bash "$EXPERIMENT_DIR/runpod_continuity_preflight_launch_v4.sh"
+      - name: Validate continuity preflight v4 envelope
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json, os
+          p=os.path.join(os.environ['VELA_CONTINUITY_V4_EVIDENCE_DIR'],'continuity-v4-envelope.json')
+          e=json.load(open(p)); r=e['result']
+          assert e['status']=='PASS' and e['classification']=='POST_WARMUP_ORDER_CONTROL_EXACT'
+          assert e['scientific_evidence'] is False and e['phase']=='CONTINUITY_PREFLIGHT_V4_ONLY'
+          assert e['pod_deleted'] is True and e['estimated_gpu_cost_upper_bound_usd'] <= 0.50
+          assert e['gpu']['gpuId']=='NVIDIA A100-SXM4-80GB'
+          assert 'A100' in r['device'] and r['torch']=='2.7.1+cu126'
+          assert r['serialization_exact'] is True and r['metadata_equal'] is True
+          assert r['original_repeat_exact'] is True and r['restored_repeat_exact'] is True
+          assert r['cross_first_exact'] is True and r['cross_second_exact'] is True
+          assert max(float(x) for x in r['max_abs'].values())==0.0
+          PY
+      - name: Upload authoritative continuity preflight v4 evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vela-r2-02-runpod-continuity-preflight-v4
+          path: /tmp/runpod-continuity-v4-evidence
           if-no-files-found: error
           retention-days: 30
