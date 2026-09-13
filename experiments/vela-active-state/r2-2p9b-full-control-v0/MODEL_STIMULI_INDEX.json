@@ -1,51 +1,15 @@
 {
-  "format": "vela-r2-p-r2-01-frozen-model-facing-stimuli-index-v1",
+  "format": "vela-r2-p-r2-01-frozen-model-facing-stimuli-index-v2-git-blob-bound",
   "source_candidate": "f7516276f5d4bc9b05f3a226334473bdb98869d8",
   "source_run": 34722990921,
   "source_artifact": 10306803736,
   "source_artifact_zip_sha256": "7c54fd59aace5648a497b9d5c9bd9d3cebf25e1f8a44bb8c10229c81db666275",
   "episodes": [
-    {
-      "episode": 1,
-      "file": "stimuli/episode_1.json",
-      "sha256": "494753478e3d7b67b0eab45086108a4a46927d924064efd296efdc6d6219ad1a",
-      "prompt_sha256": "0dac2332a7a9b2f0fab6ff94319ffdceb2b334af997813c659e2da490da21567",
-      "options_digest": "c3e75855b3e8eada228fc28589cb86a15112d630ecf0a5defe67477b216c7b66"
-    },
-    {
-      "episode": 2,
-      "file": "stimuli/episode_2.json",
-      "sha256": "0446bbf963ee98edbf60b82c820f32b31804b9109cebd34a5760e527b8279110",
-      "prompt_sha256": "702c4774784497d67d4a6e010421dc864411f24ea27fa8ea94ff607877d97fa4",
-      "options_digest": "68b3dbafa9ed522b3c7fc729d7c3e4ae50aa21c601cf7aad7e16307fb6aa5b45"
-    },
-    {
-      "episode": 3,
-      "file": "stimuli/episode_3.json",
-      "sha256": "716c24a8a48351f10e735a8e399b7c1119391aa9427d556a9386e974da834ffd",
-      "prompt_sha256": "9d29d8eddeb8fed9da83947f347bf9ef4fadf84fc29fd71192d423a834b5c4e6",
-      "options_digest": "497da7a57081c76e25253d6e722ec34b026987ac4080c1399ac2a3ec7de68e1c"
-    },
-    {
-      "episode": 4,
-      "file": "stimuli/episode_4.json",
-      "sha256": "3f9046b4de83df4f98c40d83f9fad684056a978e96e73c74b4890c231be96111",
-      "prompt_sha256": "c842f9cf7141cbeef2096396f2bd45e3b6f3b51b50d7cf62a680238840a53a79",
-      "options_digest": "6532cdacf9832e2887a635264242d0a8f4e0f596e81b09a354539cdfa311e660"
-    },
-    {
-      "episode": 5,
-      "file": "stimuli/episode_5.json",
-      "sha256": "cb3d056945963b9263e4f00e8ef7755defcca9e0509984150ba6428b076cb3d4",
-      "prompt_sha256": "31b1fb7f2d62a1cc64e9817c9b0270dcb125494a6a6b1845efaeef1c57fc8348",
-      "options_digest": "0427e4d28e79340547895ed9aa20007e9d3e3a9727d52f2b69b001268becf9f0"
-    },
-    {
-      "episode": 6,
-      "file": "stimuli/episode_6.json",
-      "sha256": "ba9936e142e1da2eee2fde258d0e20245d3538b4ecaae9bf076ea60dc30d31b3",
-      "prompt_sha256": "3c0e250cd7bda9e5f2aad3794055c04856bdf35d962ffc922a51b6d5e4dc6118",
-      "options_digest": "5f5d9ab05e2e62b06f9b57c4d9ec645243a0bb8cbcc5df81b0e5e3b0678a1c48"
-    }
+    {"episode":1,"file":"stimuli/episode_1.json","git_blob_sha1":"9b91ed85c5a3f0e1495fbcda627b660857743235","prompt_sha256":"0dac2332a7a9b2f0fab6ff94319ffdceb2b334af997813c659e2da490da21567","options_digest":"c3e75855b3e8eada228fc28589cb86a15112d630ecf0a5defe67477b216c7b66"},
+    {"episode":2,"file":"stimuli/episode_2.json","git_blob_sha1":"22e590dd8318ac64cc12bd3d41fc765e6ce7db46","prompt_sha256":"702c4774784497d67d4a6e010421dc864411f24ea27fa8ea94ff607877d97fa4","options_digest":"68b3dbafa9ed522b3c7fc729d7c3e4ae50aa21c601cf7aad7e16307fb6aa5b45"},
+    {"episode":3,"file":"stimuli/episode_3.json","git_blob_sha1":"426055ca45b40476e0baa9917c72a7d1aba0332f","prompt_sha256":"9d29d8eddeb8fed9da83947f347bf9ef4fadf84fc29fd71192d423a834b5c4e6","options_digest":"497da7a57081c76e25253d6e722ec34b026987ac4080c1399ac2a3ec7de68e1c"},
+    {"episode":4,"file":"stimuli/episode_4.json","git_blob_sha1":"fb232b0b6683276d8d323cc306071d7e5cf83f55","prompt_sha256":"c842f9cf7141cbeef2096396f2bd45e3b6f3b51b50d7cf62a680238840a53a79","options_digest":"6532cdacf9832e2887a635264242d0a8f4e0f596e81b09a354539cdfa311e660"},
+    {"episode":5,"file":"stimuli/episode_5.json","git_blob_sha1":"8c00d81963e25f998348aac88ebdf92d45077e95","prompt_sha256":"31b1fb7f2d62a1cc64e9817c9b0270dcb125494a6a6b1845efaeef1c57fc8348","options_digest":"0427e4d28e79340547895ed9aa20007e9d3e3a9727d52f2b69b001268becf9f0"},
+    {"episode":6,"file":"stimuli/episode_6.json","git_blob_sha1":"8091870b4f8ac512ac835d9db48f16a80033ad15","prompt_sha256":"3c0e250cd7bda9e5f2aad3794055c04856bdf35d962ffc922a51b6d5e4dc6118","options_digest":"5f5d9ab05e2e62b06f9b57c4d9ec645243a0bb8cbcc5df81b0e5e3b0678a1c48"}
   ]
 }
