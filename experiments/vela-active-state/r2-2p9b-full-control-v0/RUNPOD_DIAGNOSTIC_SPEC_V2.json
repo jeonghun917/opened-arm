@@ -6,6 +6,11 @@
   "phase": "STATE_DIAGNOSTIC_ONLY",
   "scientificExecutionAuthorized": false,
   "automaticRetry": false,
+  "attemptAuthorization": {
+    "attempt": 1,
+    "kind": "EXPLICIT_USER_ONE_SHOT_DIAGNOSTIC",
+    "authorityRef": "user-directive:2026-09-13:runpod-diagnostic-v2-go"
+  },
   "fallbackProviders": [],
   "target": {
     "gpuId": "NVIDIA A40",
