@@ -1,4 +1,4 @@
-name: VELA R2 RWKV7 2.9B RunPod prep v0
+name: VELA R2 RWKV7 2.9B RunPod orchestration v2
 
 on:
   push:
@@ -18,6 +18,7 @@ concurrency:
 env:
   EXPERIMENT_DIR: experiments/vela-active-state/r2-2p9b-full-control-v0
   SOURCE_KAGGLE_HEAD: a1cb641b17436f5376df682db57243b75320bdeb
+  RUNPODCTL_SHA256: 2e0fd370a52a0fc7e43a6434a209348a4f6836fcdf1ad2b093b609e938138be9
 
 jobs:
   contract:
@@ -32,7 +33,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Verify prep-only mutation scope and frozen science
+      - name: Verify mutation scope and frozen science
         shell: bash
         run: |
           set -euo pipefail
@@ -61,98 +62,74 @@ jobs:
           check_blob "$EXPERIMENT_DIR/stimuli/episode_4.json" fb232b0b6683276d8d323cc306071d7e5cf83f55
           check_blob "$EXPERIMENT_DIR/stimuli/episode_5.json" 8c00d81963e25f998348aac88ebdf92d45077e95
           check_blob "$EXPERIMENT_DIR/stimuli/episode_6.json" 8091870b4f8ac512ac835d9db48f16a80033ad15
-      - name: Validate recovered diagnostic and continuity-v2 evidence
+      - name: Validate orchestration v2 statically
         shell: bash
         run: |
           set -euo pipefail
-          python -m py_compile "$EXPERIMENT_DIR/runpod_state_roundtrip_diagnostic_v2.py" "$EXPERIMENT_DIR/runpod_continuity_preflight_v2.py"
+          bash -n "$EXPERIMENT_DIR/install_runpodctl_pinned_v1.sh"
+          bash -n "$EXPERIMENT_DIR/runpod_science_condition_launch_v2.sh"
+          python -m py_compile "$EXPERIMENT_DIR/runpod_condition_adapter_v1.py" "$EXPERIMENT_DIR/runpod_science_transport_v2.py"
           python - <<'PY'
           import json
           from pathlib import Path
           p=Path('experiments/vela-active-state/r2-2p9b-full-control-v0')
-          d=json.loads((p/'RUNPOD_DIAGNOSTIC_ATTEMPT_01.json').read_text())
-          c=json.loads((p/'RUNPOD_CONTINUITY_PREFLIGHT_V2_AUTH.json').read_text())
-          assert d['workflowRunId']==34748007249 and d['artifactId']==10315555496 and d['pod']['deleted'] is True
-          assert d['recoveredDiagnostic']['serializationExact'] is True and d['recoveredDiagnostic']['metadataEqual'] is True
-          assert d['recoveredDiagnostic']['originalRepeat']['logitsExact'] is False
-          assert d['recoveredDiagnostic']['restoredRepeat']['logitsExact'] is True
-          assert d['recoveredDiagnostic']['originalVsRestoredSecond']['logitsExact'] is True
-          assert c['status']=='CONSUMED' and c['consumedByRunId']==34749156324
-          assert c['statusResult']=='PASS' and c['classification']=='POST_WARMUP_ORDER_CONTROL_EXACT'
-          assert c['artifactId']==10315232230 and c['podDeleted'] is True
-          PY
-      - name: Validate RunPod scientific matrix preparation
-        shell: bash
-        run: |
-          set -euo pipefail
-          python -m py_compile "$EXPERIMENT_DIR/runpod_condition_adapter_v1.py"
-          bash -n "$EXPERIMENT_DIR/runpod_science_condition_launch_v1.sh"
-          python - <<'PY'
-          import json
-          from pathlib import Path
-          p=Path('experiments/vela-active-state/r2-2p9b-full-control-v0')
-          s=json.loads((p/'RUNPOD_SCIENCE_MATRIX_SPEC_V1.json').read_text())
+          r=json.loads((p/'RUNPOD_SCIENCE_ORCHESTRATION_REPAIR_V2.json').read_text())
           a=json.loads((p/'RUNPOD_SCIENCE_MATRIX_AUTH_V1.json').read_text())
-          assert s['schema']=='vela-runpod-science-matrix-spec:v1'
-          assert s['conditions']==['B','C','G','M','X']
-          assert s['scientificExecutionAuthorized'] is False
-          assert s['automaticRetry'] is False and s['fallbackProviders']==[]
-          assert s['sourceScience']['conditionRunnerGitBlobSha1']=='70b696bcfdb3ba7fc7f4010a1143aac1063c452b'
-          assert s['sourceScience']['scienceCommonGitBlobSha1']=='77cee99a8ff131b31165521fa8c9cfb76a7ce174'
-          assert s['sourceScience']['aggregateGitBlobSha1']=='ac86908be386b0159f52bcf45d4dd0e0786daae4'
-          assert s['target']['gpuId']=='NVIDIA A40' and s['target']['cloud']=='SECURE'
-          assert s['budgetProposal']['maxPodCount']==5
-          assert s['budgetProposal']['proposedCanonicalMaxTotalUsd']==1.25
-          assert s['continuityGate']['classification']=='POST_WARMUP_ORDER_CONTROL_EXACT'
-          assert s['continuityGate']['maxAbs']==0.0
-          assert a['status'] in {'PREPARED_UNARMED','AUTHORIZED_MATRIX','CONSUMED','CONSUMED_INCOMPLETE'}
-          assert a['maxPodCount']==5 and a['maxTotalUsd']==1.25
-          adapter=(p/'runpod_condition_adapter_v1.py').read_text()
-          launcher=(p/'runpod_science_condition_launch_v1.sh').read_text()
-          assert 'CONDITION_RUNNER_BLOB = "70b696bcfdb3ba7fc7f4010a1143aac1063c452b"' in adapter
-          assert 'P100_GUARD' in adapter and 'A40_GUARD' in adapter
-          assert 'runpod_neutral_warmup(model,pipe); rep=run_scale' in adapter
-          for x in ['MAX_RUNTIME_SECONDS=1800','WORKLOAD_TIMEOUT_SECONDS=1500','MAX_CHUNK_CHARS=7000','GPU_PRICE_CAP="0.49"','--cloud-type SECURE','--ssh=false','pod delete','VELA_CONDITION_RESULT_META','VELA_CONDITION_RESULT_CHUNK']:
-              assert x in launcher, x
+          assert r['schema']=='vela-runpod-science-orchestration-repair:v2'
+          assert r['status']=='PREPARED_UNARMED' and r['scientificExecutionAuthorized'] is False
+          assert r['runpodctl']['version']=='2.14.0'
+          assert r['runpodctl']['sha256']=='2e0fd370a52a0fc7e43a6434a209348a4f6836fcdf1ad2b093b609e938138be9'
+          assert r['runpodctl']['dynamicLatestInstallerForbidden'] is True
+          assert r['transport']['deletePodBeforeResultValidation'] is True
+          assert r['transport']['appendOnlyPollEvidence'] is True
+          assert r['transport']['postResultHoldSeconds']==45
+          assert r['transport']['maxRuntimeSeconds']==480
+          assert r['workflow']['matrixFailFast'] is True
+          assert r['workflow']['paidRetry'] is False and r['workflow']['providerFallback'] is False
+          assert a['status']=='CONSUMED_INCOMPLETE' and a['scientificResultExists'] is False
+          launch=(p/'runpod_science_condition_launch_v2.sh').read_text()
+          for x in ['MAX_RUNTIME_SECONDS=480','WORKLOAD_TIMEOUT_SECONDS=420','POST_RESULT_HOLD_SECONDS=45',
+                    'MAX_CHUNK_CHARS=3500','VELA_SCIENCE_RESULT_READY','pod-logs-accumulated.jsonl',
+                    'VELA_RUNPOD_DATA_CENTER_ID','cleanup_pod','runpod_science_transport_v2.py']:
+              assert x in launch, x
+          assert 'POST_RESULT_HOLD_SECONDS=1200' not in launch
           PY
-      - name: Validate consumed continuity-v3 and A100 v4 preparation
+      - name: Synthetic transport reconstruction proof
         shell: bash
         run: |
           set -euo pipefail
-          bash -n "$EXPERIMENT_DIR/runpod_continuity_preflight_launch_v4.sh"
-          python - <<'PY'
-          import json
+          tmp="$(mktemp -d)"
+          python - "$tmp" <<'PY'
+          import base64,hashlib,json,sys
           from pathlib import Path
-          p=Path('experiments/vela-active-state/r2-2p9b-full-control-v0')
-          v3=json.loads((p/'RUNPOD_CONTINUITY_PREFLIGHT_V3_AUTH.json').read_text())
-          attempt=json.loads((p/'RUNPOD_CONTINUITY_PREFLIGHT_V3_ATTEMPT_01.json').read_text())
-          cap=json.loads((p/'RUNPOD_CAPACITY_SELECTION_03.json').read_text())
-          spec=json.loads((p/'RUNPOD_CONTINUITY_PREFLIGHT_SPEC_V4.json').read_text())
-          auth=json.loads((p/'RUNPOD_CONTINUITY_PREFLIGHT_V4_AUTH.json').read_text())
-          assert v3['status']=='CONSUMED' and v3['statusResult']=='RUNTIME_ARCH_INCOMPATIBLE'
-          assert v3['observedCudaCapability']=='sm_120' and v3['podDeleted'] is True
-          assert attempt['workflowRunId']==34750818822 and attempt['status']=='RUNTIME_ARCH_INCOMPATIBLE'
-          assert attempt['orchestrationDefect']['repairRequiredBeforeNextPaidPreflight'] is True
-          assert cap['selectionBasis']=='PROVIDER_CAPACITY_PLUS_FROZEN_RUNTIME_ARCH_COMPATIBILITY_RESULT_BLIND'
-          assert cap['scientificResultsUsedForSelection'] is False
-          assert cap['selected']['gpuId']=='NVIDIA A100-SXM4-80GB'
-          assert cap['selected']['observedStockStatus']=='Medium' and cap['selected']['memoryInGb']==80
-          assert cap['selected']['observedSecurePricePerHrUsd']==1.59
-          assert spec['schema']=='vela-runpod-continuity-preflight-spec:v4'
-          assert spec['target']['gpuId']=='NVIDIA A100-SXM4-80GB'
-          assert spec['budget']['maxTotalUsd']==0.50 and spec['budget']['maxPodCount']==1
-          assert spec['orchestration']['failEarlyOnBootstrapNonzero'] is True
-          assert auth['status'] in {'PREPARED_UNARMED','AUTHORIZED_ONE_SHOT','CONSUMED'}
-          assert auth['maxPodCount']==1 and auth['maxTotalUsd']==0.50
-          launch=(p/'runpod_continuity_preflight_launch_v4.sh').read_text()
-          for x in ['NVIDIA A100-SXM4-80GB','GPU_PRICE_CAP="1.59"','MIN_MEMORY_GB=80','WORKLOAD_TIMEOUT_SECONDS=600','VELA_CONTINUITY_V4_BOOTSTRAP_EXIT','RUNPOD_CONTINUITY_V4_BOOTSTRAP_FAILED','VELA_RUNPOD_CONTINUITY_V4_AUTHORIZED','pod delete']:
-              assert x in launch, x
-          for forbidden in ['condition_runner.py','aggregate.py','MODEL_STIMULI_INDEX','EVALUATOR.json','EXTERNAL_TRACE.json']:
-              assert forbidden not in launch, forbidden
+          p=Path(sys.argv[1]); result={
+            'status':'P-R2-02_CONDITION_RESULT','scientific_evidence':True,
+            'condition':'M','source_commit':'deadbeef','scales':{'0.4B':{},'2.9B':{}}
+          }
+          raw=json.dumps(result,separators=(',',':'),sort_keys=True).encode()
+          b64=base64.b64encode(raw).decode(); chunks=[b64[i:i+19] for i in range(0,len(b64),19)]
+          meta={'condition':'M','bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest(),'chunks':len(chunks)}
+          lines=[]
+          for replay in range(2):
+              lines.append(json.dumps({'line':'VELA_CONDITION_RESULT_META='+json.dumps(meta,separators=(',',':'),sort_keys=True)}))
+              for i,c in enumerate(chunks,1):
+                  lines.append(json.dumps({'line':f'VELA_CONDITION_RESULT_CHUNK={i:04d}/{len(chunks):04d}:{c}'}))
+              lines.append(json.dumps({'line':'VELA_SCIENCE_RESULT_READY='+json.dumps({'condition':'M','sha256':meta['sha256'],'chunks':len(chunks)},separators=(',',':'))}))
+          lines.append(json.dumps({'line':'VELA_SCIENCE_BOOTSTRAP_EXIT=0'}))
+          (p/'logs.jsonl').write_text('\n'.join(lines)+'\n')
+          (p/'expected.json').write_bytes(raw)
+          PY
+          python "$EXPERIMENT_DIR/runpod_science_transport_v2.py" "$tmp/logs.jsonl" "$tmp/out.json" M deadbeef > "$tmp/status.json"
+          cmp "$tmp/expected.json" "$tmp/out.json"
+          python - "$tmp/status.json" <<'PY'
+          import json,sys
+          x=json.load(open(sys.argv[1]))
+          assert x['ready_seen'] and x['bootstrap_exit']==0 and x['result_reconstructed']
+          assert x['valid_segments']==2 and not x['validation_errors']
           PY
       - name: Revalidate frozen P-R2-02 contract
         run: python "$EXPERIMENT_DIR/validate_contract.py"
-      - name: Validate RunPod preflight v1 gate
+      - name: Revalidate preflight contract
         run: python "$EXPERIMENT_DIR/validate_runpod_preflight_v1.py"
 
   runpod-readiness:
@@ -167,46 +144,110 @@ jobs:
           ref: ${{ github.sha }}
           fetch-depth: 1
           persist-credentials: false
-      - name: Check RunPod setup without paid mutation
+      - name: Install pinned RunPod CLI and read provider state
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p /tmp/runpod-readiness
-          if [[ -z "${RUNPOD_API_KEY:-}" ]]; then
-            printf '%s\n' '{"status":"SECRET_NOT_CONFIGURED","provider":"RUNPOD","paid_mutation":false}' > /tmp/runpod-readiness/readiness.json
-            cat /tmp/runpod-readiness/readiness.json
-            exit 0
-          fi
-          curl -fsSL https://cli.runpod.net | sudo bash
-          runpodctl version > /tmp/runpod-readiness/runpodctl-version.txt
-          runpodctl user >/dev/null
-          runpodctl gpu list --include-unavailable > /tmp/runpod-readiness/gpu-list.json
+          mkdir -p /tmp/runpod-readiness /tmp/runpod-cli
+          test -n "${RUNPOD_API_KEY:-}"
+          bash "$EXPERIMENT_DIR/install_runpodctl_pinned_v1.sh" /tmp/runpod-cli/runpodctl
+          /tmp/runpod-cli/runpodctl user >/dev/null
+          /tmp/runpod-cli/runpodctl gpu list --include-unavailable > /tmp/runpod-readiness/gpu-list.json
+          /tmp/runpod-cli/runpodctl pod create --help > /tmp/runpod-readiness/pod-create-help.txt
+          grep -q -- '--data-center-ids' /tmp/runpod-readiness/pod-create-help.txt
+          cp /tmp/runpodctl-version.txt /tmp/runpod-readiness/runpodctl-version.txt
           python - <<'PY'
           import json
           from pathlib import Path
           p=Path('/tmp/runpod-readiness')
           g=json.loads((p/'gpu-list.json').read_text())
-          (p/'readiness.json').write_text(json.dumps({'status':'AUTH_AND_INVENTORY_PASS','provider':'RUNPOD','paid_mutation':False,'gpu_inventory_observed':True,'gpu_inventory_type':type(g).__name__},sort_keys=True)+'\n')
+          rows=g if isinstance(g,list) else g.get('gpus',g.get('items',[]))
+          a40=next((x for x in rows if x.get('gpuId')=='NVIDIA A40'),None)
+          if not a40: raise SystemExit('A40_NOT_LISTED')
+          p.joinpath('readiness.json').write_text(json.dumps({
+            'status':'AUTH_AND_INVENTORY_PASS','provider':'RUNPOD','paid_mutation':False,
+            'runpodctl':'2.14.0','runpodctl_sha256':'2e0fd370a52a0fc7e43a6434a209348a4f6836fcdf1ad2b093b609e938138be9',
+            'a40':a40,
+          },sort_keys=True)+'\n')
           PY
-          cat /tmp/runpod-readiness/readiness.json
-      - name: Upload non-scientific RunPod readiness evidence
-        if: always()
+      - name: Upload readiness evidence
         uses: actions/upload-artifact@v4
         with:
           name: vela-r2-02-runpod-readiness
           path: /tmp/runpod-readiness
           if-no-files-found: error
           retention-days: 14
+      - name: Upload exact pinned RunPod CLI
+        uses: actions/upload-artifact@v4
+        with:
+          name: vela-runpodctl-v2.14.0-linux-amd64
+          path: /tmp/runpod-cli/runpodctl
+          if-no-files-found: error
+          retention-days: 1
 
-  runpod-science:
+  runpod-science-gate:
     needs: [contract, runpod-readiness]
     if: ${{ github.event_name == 'push' && contains(github.event.head_commit.message, '[runpod-science-authorized]') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: vela-r2-02-runpod-readiness
+          path: /tmp/readiness
+      - name: Validate auth and choose one live A40 data center
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/science-gate
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('experiments/vela-active-state/r2-2p9b-full-control-v0')
+          a=json.loads((p/'RUNPOD_SCIENCE_MATRIX_AUTH_V1.json').read_text())
+          assert a['status']=='AUTHORIZED_MATRIX'
+          assert a['maxPodCount']==5 and a['maxTotalUsd']==1.25
+          assert a['automaticRetry'] is False and a['fallbackProviders']==[]
+          assert a['conditions']==['B','C','G','M','X']
+          r=json.loads(Path('/tmp/readiness/readiness.json').read_text())
+          g=r['a40']
+          assert g.get('secureCloud') is True and g.get('available') is True
+          assert float(g.get('securePricePerHr')) <= 0.49
+          dcs=g.get('dataCenterAvailability') or []
+          candidates=[x for x in dcs if x.get('stockStatus')=='High']
+          if not candidates:
+              candidates=[x for x in dcs if x.get('stockStatus')=='Medium']
+          if not candidates:
+              raise SystemExit('NO_A40_HIGH_OR_MEDIUM_DATACENTER')
+          dc=candidates[0]
+          Path('/tmp/science-gate/science-gate.json').write_text(json.dumps({
+            'status':'PASS','paid_mutation':False,'gpuId':'NVIDIA A40',
+            'dataCenterId':dc['id'],'stockStatus':dc['stockStatus'],
+            'securePricePerHr':g['securePricePerHr'],
+          },sort_keys=True)+'\n')
+          PY
+          cat /tmp/science-gate/science-gate.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vela-r2-02-runpod-capacity-gate
+          path: /tmp/science-gate
+          if-no-files-found: error
+          retention-days: 7
+
+  runpod-science:
+    needs: [runpod-readiness, runpod-science-gate]
+    if: ${{ github.event_name == 'push' && contains(github.event.head_commit.message, '[runpod-science-authorized]') }}
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         condition: [B, C, G, M, X]
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 12
     env:
       RUNPOD_API_KEY: ${{ secrets.RUNPOD_API_KEY }}
       VELA_SOURCE_COMMIT: ${{ github.sha }}
@@ -219,29 +260,31 @@ jobs:
           ref: ${{ github.sha }}
           fetch-depth: 1
           persist-credentials: false
-      - name: Validate scientific matrix authorization
-        shell: bash
-        run: |
-          python - <<'PY'
-          import json, os
-          p=os.path.join(os.environ['EXPERIMENT_DIR'],'RUNPOD_SCIENCE_MATRIX_AUTH_V1.json')
-          a=json.load(open(p))
-          assert a['status']=='AUTHORIZED_MATRIX'
-          assert isinstance(a['authorityRef'],str) and a['authorityRef']
-          assert a['maxPodCount']==5 and a['maxTotalUsd']==1.25
-          assert a['maxRuntimeSecondsPerPod']==1800 and a['automaticRetry'] is False
-          assert a['fallbackProviders']==[] and a['conditions']==['B','C','G','M','X']
-          PY
-      - name: Install exact current RunPod CLI
+      - uses: actions/download-artifact@v4
+        with:
+          name: vela-runpodctl-v2.14.0-linux-amd64
+          path: /tmp/runpod-cli
+      - uses: actions/download-artifact@v4
+        with:
+          name: vela-r2-02-runpod-capacity-gate
+          path: /tmp/science-gate
+      - name: Install exact pinned CLI and bind capacity gate
         shell: bash
         run: |
           set -euo pipefail
-          test -n "${RUNPOD_API_KEY:-}"
-          curl -fsSL https://cli.runpod.net | sudo bash
+          echo "$RUNPODCTL_SHA256  /tmp/runpod-cli/runpodctl" | sha256sum -c -
+          chmod +x /tmp/runpod-cli/runpodctl
+          sudo install -m 0755 /tmp/runpod-cli/runpodctl /usr/local/bin/runpodctl
           runpodctl version
-      - name: Execute exact scientific condition on one A40 pod
+          python - <<'PY' >> "$GITHUB_ENV"
+          import json
+          x=json.load(open('/tmp/science-gate/science-gate.json'))
+          assert x['status']=='PASS' and x['paid_mutation'] is False
+          print('VELA_RUNPOD_DATA_CENTER_ID='+x['dataCenterId'])
+          PY
+      - name: Execute exact scientific condition
         shell: bash
-        run: bash "$EXPERIMENT_DIR/runpod_science_condition_launch_v1.sh"
+        run: bash "$EXPERIMENT_DIR/runpod_science_condition_launch_v2.sh"
       - name: Validate condition evidence envelope
         shell: bash
         run: |
@@ -251,26 +294,78 @@ jobs:
           e=json.load(open(os.path.join(d,f'condition_envelope_{c}.json')))
           r=json.load(open(os.path.join(d,f'condition_result_{c}.json')))
           assert e['status']=='PASS' and e['scientific_evidence'] is True
-          assert e['phase']=='SCIENTIFIC_CONDITION' and e['pod_deleted'] is True
-          assert e['estimated_gpu_cost_upper_bound_usd'] <= 0.25
+          assert e['pod_deleted'] is True and e['max_runtime_seconds']==480
+          assert e['estimated_gpu_cost_upper_bound_usd'] <= 0.07
           assert e['gpu']['gpuId']=='NVIDIA A40'
+          assert e['transport_terminal_reason']=='RESULT_RECONSTRUCTED_AFTER_PROVIDER_DELETE'
           assert r['status']=='P-R2-02_CONDITION_RESULT' and r['scientific_evidence'] is True
           assert r['condition']==c and r['source_commit']==source
           assert 'A40' in r['runtime']['device'] and r['runtime']['device_capability']==[8,6]
           assert set(r['scales'])=={'0.4B','2.9B'}
           PY
-      - name: Upload exact condition shard and provider evidence
+      - name: Upload exact shard and transport evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: vela-r2-02-runpod-science-${{ matrix.condition }}
           path: /tmp/runpod-science-${{ matrix.condition }}
-          if-no-files-found: error
+          if-no-files-found: warn
           retention-days: 30
 
+  runpod-provider-cleanup:
+    needs: [runpod-readiness, runpod-science]
+    if: ${{ always() && github.event_name == 'push' && contains(github.event.head_commit.message, '[runpod-science-authorized]') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      RUNPOD_API_KEY: ${{ secrets.RUNPOD_API_KEY }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: vela-runpodctl-v2.14.0-linux-amd64
+          path: /tmp/runpod-cli
+      - name: Delete any exact-candidate science pods left behind
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "$RUNPODCTL_SHA256  /tmp/runpod-cli/runpodctl" | sha256sum -c -
+          chmod +x /tmp/runpod-cli/runpodctl
+          prefix="vela-p-r2-02-science-"
+          suffix="-${GITHUB_SHA:0:10}"
+          /tmp/runpod-cli/runpodctl pod list --all > /tmp/pods-before.json
+          python - /tmp/pods-before.json "$prefix" "$suffix" > /tmp/delete-ids.txt <<'PY'
+          import json,sys
+          data=json.load(open(sys.argv[1]))
+          rows=data if isinstance(data,list) else data.get('pods',data.get('items',[]))
+          for x in rows:
+              if not isinstance(x,dict): continue
+              name=str(x.get('name') or '')
+              if name.startswith(sys.argv[2]) and name.endswith(sys.argv[3]):
+                  print(x.get('id') or x.get('podId'))
+          PY
+          while read -r id; do
+            [[ -n "$id" ]] || continue
+            /tmp/runpod-cli/runpodctl pod delete "$id" || true
+          done < /tmp/delete-ids.txt
+          sleep 2
+          /tmp/runpod-cli/runpodctl pod list --all > /tmp/pods-after.json
+          python - /tmp/pods-after.json "$prefix" "$suffix" <<'PY'
+          import json,sys
+          data=json.load(open(sys.argv[1]))
+          rows=data if isinstance(data,list) else data.get('pods',data.get('items',[]))
+          remain=[]
+          for x in rows:
+              if not isinstance(x,dict): continue
+              name=str(x.get('name') or '')
+              if name.startswith(sys.argv[2]) and name.endswith(sys.argv[3]):
+                  remain.append({'id':x.get('id') or x.get('podId'),'name':name})
+          print(json.dumps({'remaining':remain},sort_keys=True))
+          if remain: raise SystemExit(1)
+          PY
+
   runpod-science-aggregate:
-    needs: runpod-science
-    if: ${{ github.event_name == 'push' && contains(github.event.head_commit.message, '[runpod-science-authorized]') && needs.runpod-science.result == 'success' }}
+    needs: [runpod-science, runpod-provider-cleanup]
+    if: ${{ github.event_name == 'push' && contains(github.event.head_commit.message, '[runpod-science-authorized]') && needs.runpod-science.result == 'success' && needs.runpod-provider-cleanup.result == 'success' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -291,159 +386,17 @@ jobs:
           python "$EXPERIMENT_DIR/aggregate.py" /tmp/runpod-science-shards
           mv scientific_result.json /tmp/runpod-science-aggregate/scientific_result.json
           python - <<'PY'
-          import json, os
-          p='/tmp/runpod-science-aggregate/scientific_result.json'; r=json.load(open(p))
+          import json,os
+          r=json.load(open('/tmp/runpod-science-aggregate/scientific_result.json'))
           assert r['status']=='P-R2-02_RESULT' and r['scientific_evidence'] is True
           assert r['source_commit']==os.environ['GITHUB_SHA']
           assert r['shard_conditions']==['B','C','G','M','X']
           assert set(r['scales'])=={'0.4B','2.9B'}
-          assert 'A40' in r['runtime']['device'] and r['runtime']['device_capability']==[8,6]
           assert r['primary_hypothesis_status'] in {'SUPPORTED','MIXED','NOT_SUPPORTED','PROTOCOL_BLOCKED'}
           PY
-      - name: Upload aggregate scientific result
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: vela-r2-02-runpod-scientific-result
           path: /tmp/runpod-science-aggregate
-          if-no-files-found: error
-          retention-days: 30
-
-  runpod-continuity-preflight-v3:
-    needs: [contract, runpod-readiness]
-    if: ${{ github.event_name == 'push' && contains(github.event.head_commit.message, '[runpod-continuity-v3-authorized]') }}
-    runs-on: ubuntu-latest
-    timeout-minutes: 25
-    env:
-      RUNPOD_API_KEY: ${{ secrets.RUNPOD_API_KEY }}
-      VELA_SOURCE_COMMIT: ${{ github.sha }}
-      VELA_RUNPOD_CONTINUITY_V3_AUTHORIZED: 'true'
-      VELA_CONTINUITY_V3_EVIDENCE_DIR: /tmp/runpod-continuity-v3-evidence
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.sha }}
-          fetch-depth: 1
-          persist-credentials: false
-      - name: Validate continuity-v3 one-shot authorization
-        shell: bash
-        run: |
-          python - <<'PY'
-          import json, os
-          p=os.path.join(os.environ['EXPERIMENT_DIR'],'RUNPOD_CONTINUITY_PREFLIGHT_V3_AUTH.json')
-          a=json.load(open(p))
-          assert a['status']=='AUTHORIZED_ONE_SHOT'
-          assert a['authorityRef']=='user-directive:2026-09-13:runpod-continuity-preflight-v3-go'
-          assert a['maxPodCount']==1 and a['maxTotalUsd']==0.50
-          assert a['automaticRetry'] is False and a['fallbackProviders']==[]
-          assert a['scientificExecutionAuthorized'] is False
-          PY
-      - name: Install exact current RunPod CLI
-        shell: bash
-        run: |
-          set -euo pipefail
-          test -n "${RUNPOD_API_KEY:-}"
-          curl -fsSL https://cli.runpod.net | sudo bash
-          runpodctl version
-      - name: Execute one RTX PRO 4500 continuity preflight v3
-        shell: bash
-        run: bash "$EXPERIMENT_DIR/runpod_continuity_preflight_launch_v3.sh"
-      - name: Validate continuity preflight v3 envelope
-        shell: bash
-        run: |
-          python - <<'PY'
-          import json, os
-          p=os.path.join(os.environ['VELA_CONTINUITY_V3_EVIDENCE_DIR'],'continuity-v3-envelope.json')
-          e=json.load(open(p)); r=e['result']
-          assert e['status']=='PASS' and e['classification']=='POST_WARMUP_ORDER_CONTROL_EXACT'
-          assert e['scientific_evidence'] is False and e['phase']=='CONTINUITY_PREFLIGHT_V3_ONLY'
-          assert e['pod_deleted'] is True and e['estimated_gpu_cost_upper_bound_usd'] <= 0.50
-          assert e['gpu']['gpuId']=='NVIDIA RTX PRO 4500 Blackwell'
-          assert 'RTX PRO 4500' in r['device'] and r['torch']=='2.7.1+cu126'
-          assert r['serialization_exact'] is True and r['metadata_equal'] is True
-          assert r['original_repeat_exact'] is True and r['restored_repeat_exact'] is True
-          assert r['cross_first_exact'] is True and r['cross_second_exact'] is True
-          assert max(float(x) for x in r['max_abs'].values())==0.0
-          PY
-      - name: Upload authoritative continuity preflight v3 evidence
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: vela-r2-02-runpod-continuity-preflight-v3
-          path: /tmp/runpod-continuity-v3-evidence
-          if-no-files-found: error
-          retention-days: 30
-
-  runpod-continuity-preflight-v4:
-    needs: [contract, runpod-readiness]
-    if: ${{ github.event_name == 'push' && contains(github.event.head_commit.message, '[runpod-continuity-v4-authorized]') }}
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    env:
-      RUNPOD_API_KEY: ${{ secrets.RUNPOD_API_KEY }}
-      VELA_SOURCE_COMMIT: ${{ github.sha }}
-      VELA_RUNPOD_CONTINUITY_V4_AUTHORIZED: 'true'
-      VELA_CONTINUITY_V4_EVIDENCE_DIR: /tmp/runpod-continuity-v4-evidence
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.sha }}
-          fetch-depth: 1
-          persist-credentials: false
-      - name: Validate continuity-v4 one-shot authorization and runtime target
-        shell: bash
-        run: |
-          set -euo pipefail
-          bash -n "$EXPERIMENT_DIR/runpod_continuity_preflight_launch_v4.sh"
-          python - <<'PY'
-          import json, os
-          from pathlib import Path
-          p=Path(os.environ['EXPERIMENT_DIR'])
-          a=json.loads((p/'RUNPOD_CONTINUITY_PREFLIGHT_V4_AUTH.json').read_text())
-          s=json.loads((p/'RUNPOD_CONTINUITY_PREFLIGHT_SPEC_V4.json').read_text())
-          v3=json.loads((p/'RUNPOD_CONTINUITY_PREFLIGHT_V3_ATTEMPT_01.json').read_text())
-          assert a['status']=='AUTHORIZED_ONE_SHOT'
-          assert a['authorityRef']=='user-directive:2026-09-13:runpod-continuity-preflight-v4-go'
-          assert a['maxPodCount']==1 and a['maxTotalUsd']==0.50
-          assert a['automaticRetry'] is False and a['fallbackProviders']==[]
-          assert a['scientificExecutionAuthorized'] is False
-          assert s['target']['gpuId']=='NVIDIA A100-SXM4-80GB'
-          assert s['target']['maxSecurePricePerHrUsd']==1.59
-          assert s['budget']['workloadTimeoutSeconds']==600
-          assert s['orchestration']['failEarlyOnBootstrapNonzero'] is True
-          assert v3['status']=='RUNTIME_ARCH_INCOMPATIBLE' and v3['pod']['deleted'] is True
-          PY
-      - name: Install exact current RunPod CLI
-        shell: bash
-        run: |
-          set -euo pipefail
-          test -n "${RUNPOD_API_KEY:-}"
-          curl -fsSL https://cli.runpod.net | sudo bash
-          runpodctl version
-      - name: Execute one A100 continuity preflight v4
-        shell: bash
-        run: bash "$EXPERIMENT_DIR/runpod_continuity_preflight_launch_v4.sh"
-      - name: Validate continuity preflight v4 envelope
-        shell: bash
-        run: |
-          python - <<'PY'
-          import json, os
-          p=os.path.join(os.environ['VELA_CONTINUITY_V4_EVIDENCE_DIR'],'continuity-v4-envelope.json')
-          e=json.load(open(p)); r=e['result']
-          assert e['status']=='PASS' and e['classification']=='POST_WARMUP_ORDER_CONTROL_EXACT'
-          assert e['scientific_evidence'] is False and e['phase']=='CONTINUITY_PREFLIGHT_V4_ONLY'
-          assert e['pod_deleted'] is True and e['estimated_gpu_cost_upper_bound_usd'] <= 0.50
-          assert e['gpu']['gpuId']=='NVIDIA A100-SXM4-80GB'
-          assert 'A100' in r['device'] and r['torch']=='2.7.1+cu126'
-          assert r['serialization_exact'] is True and r['metadata_equal'] is True
-          assert r['original_repeat_exact'] is True and r['restored_repeat_exact'] is True
-          assert r['cross_first_exact'] is True and r['cross_second_exact'] is True
-          assert max(float(x) for x in r['max_abs'].values())==0.0
-          PY
-      - name: Upload authoritative continuity preflight v4 evidence
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: vela-r2-02-runpod-continuity-preflight-v4
-          path: /tmp/runpod-continuity-v4-evidence
           if-no-files-found: error
           retention-days: 30
