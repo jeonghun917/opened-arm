@@ -66,7 +66,7 @@ if not isinstance(price,(int,float)) or float(price)>cap:
 if int(match.get('memoryInGb') or 0)<48:
     raise SystemExit(f'GPU_MEMORY_DRIFT: {match.get("memoryInGb")}')
 dcs=match.get('dataCenterAvailability') or []
-dc=next((x for x in dcs if x.get('id')==dc_id),None)
+dc=next((x for x in dcs if x.get('dataCenterId')==dc_id),None)
 if not dc:
     raise SystemExit(f'DATACENTER_NOT_LISTED: {dc_id}')
 if dc.get('stockStatus') not in {'High','Medium'}:
