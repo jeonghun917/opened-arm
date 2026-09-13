@@ -1,7 +1,7 @@
 {
   "schema": "vela-runpod-continuity-preflight-auth:v3",
   "task": "vela-r2-2p9b-full-control-scale-replication-v0",
-  "status": "CONSUMED_FAILED",
+  "status": "CONSUMED",
   "authorityRef": "user-directive:2026-09-13:runpod-continuity-preflight-v3-go",
   "authorizedAt": "2026-09-13T10:01:53.989184Z",
   "maxPodCount": 1,
