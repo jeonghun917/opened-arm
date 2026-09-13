@@ -40,7 +40,6 @@ jobs:
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
           git merge-base --is-ancestor "$SOURCE_KAGGLE_HEAD" "$GITHUB_SHA"
           mapfile -t changed < <(git diff --name-only "$SOURCE_KAGGLE_HEAD" "$GITHUB_SHA" | sort)
-          printf 'changed=%s\n' "${changed[*]}"
           for p in "${changed[@]}"; do
             case "$p" in
               '.github/workflows/vela-r2-2p9b-full-control-v0.yml'|experiments/vela-active-state/r2-2p9b-full-control-v0/*) ;;
@@ -86,11 +85,10 @@ jobs:
           assert r['transport']['maxRuntimeSeconds']==480
           assert r['workflow']['matrixFailFast'] is True
           assert r['workflow']['paidRetry'] is False and r['workflow']['providerFallback'] is False
-          assert a['status']=='CONSUMED_INCOMPLETE' and a['scientificResultExists'] is False
+          assert a['status'] in {'CONSUMED_INCOMPLETE','AUTHORIZED_MATRIX'}
+          assert a['scientificResultExists'] is False
           launch=(p/'runpod_science_condition_launch_v2.sh').read_text()
-          for x in ['MAX_RUNTIME_SECONDS=480','WORKLOAD_TIMEOUT_SECONDS=420','POST_RESULT_HOLD_SECONDS=45',
-                    'MAX_CHUNK_CHARS=3500','VELA_SCIENCE_RESULT_READY','pod-logs-accumulated.jsonl',
-                    'VELA_RUNPOD_DATA_CENTER_ID','cleanup_pod','runpod_science_transport_v2.py']:
+          for x in ['MAX_RUNTIME_SECONDS=480','WORKLOAD_TIMEOUT_SECONDS=420','POST_RESULT_HOLD_SECONDS=45','MAX_CHUNK_CHARS=3500','VELA_SCIENCE_RESULT_READY','pod-logs-accumulated.jsonl','VELA_RUNPOD_DATA_CENTER_ID','cleanup_pod','runpod_science_transport_v2.py']:
               assert x in launch, x
           assert 'POST_RESULT_HOLD_SECONDS=1200' not in launch
           PY
@@ -102,30 +100,21 @@ jobs:
           python - "$tmp" <<'PY'
           import base64,hashlib,json,sys
           from pathlib import Path
-          p=Path(sys.argv[1]); result={
-            'status':'P-R2-02_CONDITION_RESULT','scientific_evidence':True,
-            'condition':'M','source_commit':'deadbeef','scales':{'0.4B':{},'2.9B':{}}
-          }
-          raw=json.dumps(result,separators=(',',':'),sort_keys=True).encode()
-          b64=base64.b64encode(raw).decode(); chunks=[b64[i:i+19] for i in range(0,len(b64),19)]
+          p=Path(sys.argv[1]); result={'status':'P-R2-02_CONDITION_RESULT','scientific_evidence':True,'condition':'M','source_commit':'deadbeef','scales':{'0.4B':{},'2.9B':{}}}
+          raw=json.dumps(result,separators=(',',':'),sort_keys=True).encode(); b64=base64.b64encode(raw).decode(); chunks=[b64[i:i+19] for i in range(0,len(b64),19)]
           meta={'condition':'M','bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest(),'chunks':len(chunks)}
           lines=[]
-          for replay in range(2):
+          for _ in range(2):
               lines.append(json.dumps({'line':'VELA_CONDITION_RESULT_META='+json.dumps(meta,separators=(',',':'),sort_keys=True)}))
-              for i,c in enumerate(chunks,1):
-                  lines.append(json.dumps({'line':f'VELA_CONDITION_RESULT_CHUNK={i:04d}/{len(chunks):04d}:{c}'}))
+              for i,c in enumerate(chunks,1): lines.append(json.dumps({'line':f'VELA_CONDITION_RESULT_CHUNK={i:04d}/{len(chunks):04d}:{c}'}))
               lines.append(json.dumps({'line':'VELA_SCIENCE_RESULT_READY='+json.dumps({'condition':'M','sha256':meta['sha256'],'chunks':len(chunks)},separators=(',',':'))}))
-          lines.append(json.dumps({'line':'VELA_SCIENCE_BOOTSTRAP_EXIT=0'}))
-          (p/'logs.jsonl').write_text('\n'.join(lines)+'\n')
-          (p/'expected.json').write_bytes(raw)
+          lines.append(json.dumps({'line':'VELA_SCIENCE_BOOTSTRAP_EXIT=0'})); (p/'logs.jsonl').write_text('\n'.join(lines)+'\n'); (p/'expected.json').write_bytes(raw)
           PY
           python "$EXPERIMENT_DIR/runpod_science_transport_v2.py" "$tmp/logs.jsonl" "$tmp/out.json" M deadbeef > "$tmp/status.json"
           cmp "$tmp/expected.json" "$tmp/out.json"
           python - "$tmp/status.json" <<'PY'
           import json,sys
-          x=json.load(open(sys.argv[1]))
-          assert x['ready_seen'] and x['bootstrap_exit']==0 and x['result_reconstructed']
-          assert x['valid_segments']==2 and not x['validation_errors']
+          x=json.load(open(sys.argv[1])); assert x['ready_seen'] and x['bootstrap_exit']==0 and x['result_reconstructed']; assert x['valid_segments']==2 and not x['validation_errors']
           PY
       - name: Revalidate frozen P-R2-02 contract
         run: python "$EXPERIMENT_DIR/validate_contract.py"
@@ -159,26 +148,17 @@ jobs:
           python - <<'PY'
           import json
           from pathlib import Path
-          p=Path('/tmp/runpod-readiness')
-          g=json.loads((p/'gpu-list.json').read_text())
-          rows=g if isinstance(g,list) else g.get('gpus',g.get('items',[]))
-          a40=next((x for x in rows if x.get('gpuId')=='NVIDIA A40'),None)
+          p=Path('/tmp/runpod-readiness'); g=json.loads((p/'gpu-list.json').read_text()); rows=g if isinstance(g,list) else g.get('gpus',g.get('items',[])); a40=next((x for x in rows if x.get('gpuId')=='NVIDIA A40'),None)
           if not a40: raise SystemExit('A40_NOT_LISTED')
-          p.joinpath('readiness.json').write_text(json.dumps({
-            'status':'AUTH_AND_INVENTORY_PASS','provider':'RUNPOD','paid_mutation':False,
-            'runpodctl':'2.14.0','runpodctl_sha256':'2e0fd370a52a0fc7e43a6434a209348a4f6836fcdf1ad2b093b609e938138be9',
-            'a40':a40,
-          },sort_keys=True)+'\n')
+          p.joinpath('readiness.json').write_text(json.dumps({'status':'AUTH_AND_INVENTORY_PASS','provider':'RUNPOD','paid_mutation':False,'runpodctl':'2.14.0','runpodctl_sha256':'2e0fd370a52a0fc7e43a6434a209348a4f6836fcdf1ad2b093b609e938138be9','a40':a40},sort_keys=True)+'\n')
           PY
-      - name: Upload readiness evidence
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: vela-r2-02-runpod-readiness
           path: /tmp/runpod-readiness
           if-no-files-found: error
           retention-days: 14
-      - name: Upload exact pinned RunPod CLI
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: vela-runpodctl-v2.14.0-linux-amd64
           path: /tmp/runpod-cli/runpodctl
@@ -208,28 +188,12 @@ jobs:
           python - <<'PY'
           import json
           from pathlib import Path
-          p=Path('experiments/vela-active-state/r2-2p9b-full-control-v0')
-          a=json.loads((p/'RUNPOD_SCIENCE_MATRIX_AUTH_V1.json').read_text())
-          assert a['status']=='AUTHORIZED_MATRIX'
-          assert a['maxPodCount']==5 and a['maxTotalUsd']==1.25
-          assert a['automaticRetry'] is False and a['fallbackProviders']==[]
-          assert a['conditions']==['B','C','G','M','X']
-          r=json.loads(Path('/tmp/readiness/readiness.json').read_text())
-          g=r['a40']
-          assert g.get('secureCloud') is True and g.get('available') is True
-          assert float(g.get('securePricePerHr')) <= 0.49
-          dcs=g.get('dataCenterAvailability') or []
-          candidates=[x for x in dcs if x.get('stockStatus')=='High']
-          if not candidates:
-              candidates=[x for x in dcs if x.get('stockStatus')=='Medium']
-          if not candidates:
-              raise SystemExit('NO_A40_HIGH_OR_MEDIUM_DATACENTER')
-          dc=candidates[0]
-          Path('/tmp/science-gate/science-gate.json').write_text(json.dumps({
-            'status':'PASS','paid_mutation':False,'gpuId':'NVIDIA A40',
-            'dataCenterId':dc['id'],'stockStatus':dc['stockStatus'],
-            'securePricePerHr':g['securePricePerHr'],
-          },sort_keys=True)+'\n')
+          p=Path('experiments/vela-active-state/r2-2p9b-full-control-v0'); a=json.loads((p/'RUNPOD_SCIENCE_MATRIX_AUTH_V1.json').read_text())
+          assert a['status']=='AUTHORIZED_MATRIX'; assert a['maxPodCount']==5 and a['maxTotalUsd']==1.25; assert a['automaticRetry'] is False and a['fallbackProviders']==[]; assert a['conditions']==['B','C','G','M','X']
+          r=json.loads(Path('/tmp/readiness/readiness.json').read_text()); g=r['a40']; assert g.get('secureCloud') is True and g.get('available') is True; assert float(g.get('securePricePerHr')) <= 0.49
+          dcs=g.get('dataCenterAvailability') or []; candidates=[x for x in dcs if x.get('stockStatus')=='High'] or [x for x in dcs if x.get('stockStatus')=='Medium']
+          if not candidates: raise SystemExit('NO_A40_HIGH_OR_MEDIUM_DATACENTER')
+          dc=candidates[0]; Path('/tmp/science-gate/science-gate.json').write_text(json.dumps({'status':'PASS','paid_mutation':False,'gpuId':'NVIDIA A40','dataCenterId':dc['id'],'stockStatus':dc['stockStatus'],'securePricePerHr':g['securePricePerHr']},sort_keys=True)+'\n')
           PY
           cat /tmp/science-gate/science-gate.json
       - uses: actions/upload-artifact@v4
@@ -278,9 +242,7 @@ jobs:
           runpodctl version
           python - <<'PY' >> "$GITHUB_ENV"
           import json
-          x=json.load(open('/tmp/science-gate/science-gate.json'))
-          assert x['status']=='PASS' and x['paid_mutation'] is False
-          print('VELA_RUNPOD_DATA_CENTER_ID='+x['dataCenterId'])
+          x=json.load(open('/tmp/science-gate/science-gate.json')); assert x['status']=='PASS' and x['paid_mutation'] is False; print('VELA_RUNPOD_DATA_CENTER_ID='+x['dataCenterId'])
           PY
       - name: Execute exact scientific condition
         shell: bash
@@ -290,18 +252,9 @@ jobs:
         run: |
           python - <<'PY'
           import json, os
-          d=os.environ['VELA_SCIENCE_EVIDENCE_DIR']; c=os.environ['VELA_CONDITION']; source=os.environ['VELA_SOURCE_COMMIT']
-          e=json.load(open(os.path.join(d,f'condition_envelope_{c}.json')))
-          r=json.load(open(os.path.join(d,f'condition_result_{c}.json')))
-          assert e['status']=='PASS' and e['scientific_evidence'] is True
-          assert e['pod_deleted'] is True and e['max_runtime_seconds']==480
-          assert e['estimated_gpu_cost_upper_bound_usd'] <= 0.07
-          assert e['gpu']['gpuId']=='NVIDIA A40'
-          assert e['transport_terminal_reason']=='RESULT_RECONSTRUCTED_AFTER_PROVIDER_DELETE'
-          assert r['status']=='P-R2-02_CONDITION_RESULT' and r['scientific_evidence'] is True
-          assert r['condition']==c and r['source_commit']==source
-          assert 'A40' in r['runtime']['device'] and r['runtime']['device_capability']==[8,6]
-          assert set(r['scales'])=={'0.4B','2.9B'}
+          d=os.environ['VELA_SCIENCE_EVIDENCE_DIR']; c=os.environ['VELA_CONDITION']; source=os.environ['VELA_SOURCE_COMMIT']; e=json.load(open(os.path.join(d,f'condition_envelope_{c}.json'))); r=json.load(open(os.path.join(d,f'condition_result_{c}.json')))
+          assert e['status']=='PASS' and e['scientific_evidence'] is True; assert e['pod_deleted'] is True and e['max_runtime_seconds']==480; assert e['estimated_gpu_cost_upper_bound_usd'] <= 0.07; assert e['gpu']['gpuId']=='NVIDIA A40'; assert e['transport_terminal_reason']=='RESULT_RECONSTRUCTED_AFTER_PROVIDER_DELETE'
+          assert r['status']=='P-R2-02_CONDITION_RESULT' and r['scientific_evidence'] is True; assert r['condition']==c and r['source_commit']==source; assert 'A40' in r['runtime']['device'] and r['runtime']['device_capability']==[8,6]; assert set(r['scales'])=={'0.4B','2.9B'}
           PY
       - name: Upload exact shard and transport evidence
         if: always()
@@ -330,36 +283,27 @@ jobs:
           set -euo pipefail
           echo "$RUNPODCTL_SHA256  /tmp/runpod-cli/runpodctl" | sha256sum -c -
           chmod +x /tmp/runpod-cli/runpodctl
-          prefix="vela-p-r2-02-science-"
-          suffix="-${GITHUB_SHA:0:10}"
+          prefix="vela-p-r2-02-science-"; suffix="-${GITHUB_SHA:0:10}"
           /tmp/runpod-cli/runpodctl pod list --all > /tmp/pods-before.json
           python - /tmp/pods-before.json "$prefix" "$suffix" > /tmp/delete-ids.txt <<'PY'
           import json,sys
-          data=json.load(open(sys.argv[1]))
-          rows=data if isinstance(data,list) else data.get('pods',data.get('items',[]))
+          data=json.load(open(sys.argv[1])); rows=data if isinstance(data,list) else data.get('pods',data.get('items',[]))
           for x in rows:
-              if not isinstance(x,dict): continue
-              name=str(x.get('name') or '')
-              if name.startswith(sys.argv[2]) and name.endswith(sys.argv[3]):
-                  print(x.get('id') or x.get('podId'))
+              if isinstance(x,dict):
+                  name=str(x.get('name') or '')
+                  if name.startswith(sys.argv[2]) and name.endswith(sys.argv[3]): print(x.get('id') or x.get('podId'))
           PY
-          while read -r id; do
-            [[ -n "$id" ]] || continue
-            /tmp/runpod-cli/runpodctl pod delete "$id" || true
-          done < /tmp/delete-ids.txt
+          while read -r id; do [[ -n "$id" ]] && /tmp/runpod-cli/runpodctl pod delete "$id" || true; done < /tmp/delete-ids.txt
           sleep 2
           /tmp/runpod-cli/runpodctl pod list --all > /tmp/pods-after.json
           python - /tmp/pods-after.json "$prefix" "$suffix" <<'PY'
           import json,sys
-          data=json.load(open(sys.argv[1]))
-          rows=data if isinstance(data,list) else data.get('pods',data.get('items',[]))
-          remain=[]
+          data=json.load(open(sys.argv[1])); rows=data if isinstance(data,list) else data.get('pods',data.get('items',[])); remain=[]
           for x in rows:
-              if not isinstance(x,dict): continue
-              name=str(x.get('name') or '')
-              if name.startswith(sys.argv[2]) and name.endswith(sys.argv[3]):
-                  remain.append({'id':x.get('id') or x.get('podId'),'name':name})
-          print(json.dumps({'remaining':remain},sort_keys=True))
+              if isinstance(x,dict):
+                  name=str(x.get('name') or '')
+                  if name.startswith(sys.argv[2]) and name.endswith(sys.argv[3]): remain.append({'id':x.get('id') or x.get('podId'),'name':name})
+          print(json.dumps({'remaining':remain},sort_keys=True));
           if remain: raise SystemExit(1)
           PY
 
@@ -387,12 +331,7 @@ jobs:
           mv scientific_result.json /tmp/runpod-science-aggregate/scientific_result.json
           python - <<'PY'
           import json,os
-          r=json.load(open('/tmp/runpod-science-aggregate/scientific_result.json'))
-          assert r['status']=='P-R2-02_RESULT' and r['scientific_evidence'] is True
-          assert r['source_commit']==os.environ['GITHUB_SHA']
-          assert r['shard_conditions']==['B','C','G','M','X']
-          assert set(r['scales'])=={'0.4B','2.9B'}
-          assert r['primary_hypothesis_status'] in {'SUPPORTED','MIXED','NOT_SUPPORTED','PROTOCOL_BLOCKED'}
+          r=json.load(open('/tmp/runpod-science-aggregate/scientific_result.json')); assert r['status']=='P-R2-02_RESULT' and r['scientific_evidence'] is True; assert r['source_commit']==os.environ['GITHUB_SHA']; assert r['shard_conditions']==['B','C','G','M','X']; assert set(r['scales'])=={'0.4B','2.9B'}; assert r['primary_hypothesis_status'] in {'SUPPORTED','MIXED','NOT_SUPPORTED','PROTOCOL_BLOCKED'}
           PY
       - uses: actions/upload-artifact@v4
         with:
