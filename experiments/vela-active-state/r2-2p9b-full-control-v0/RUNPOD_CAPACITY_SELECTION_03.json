@@ -1,0 +1,32 @@
+{
+  "schema": "vela-runpod-capacity-selection:v3",
+  "task": "vela-r2-2p9b-full-control-scale-replication-v0",
+  "selectionBasis": "PROVIDER_CAPACITY_PLUS_FROZEN_RUNTIME_ARCH_COMPATIBILITY_RESULT_BLIND",
+  "scientificResultsUsedForSelection": false,
+  "sourceInventory": {
+    "workflowRunId": 34750818822,
+    "observedBeforeContinuityV3": true
+  },
+  "rejected": [
+    {
+      "gpuId": "NVIDIA RTX PRO 4500 Blackwell",
+      "reason": "Continuity v3 observed sm_120, but frozen torch 2.7.1+cu126 supports through sm_90 only; model load failed before continuity measurement."
+    },
+    {
+      "gpuId": "NVIDIA A40",
+      "reason": "Runtime-compatible and continuity-v2 PASS, but provider stock Low caused 2 of 5 parallel science allocations to fail before pod creation."
+    }
+  ],
+  "selected": {
+    "gpuId": "NVIDIA A100-SXM4-80GB",
+    "displayName": "A100 SXM",
+    "memoryInGb": 80,
+    "cloud": "SECURE",
+    "observedSecurePricePerHrUsd": 1.59,
+    "observedStockStatus": "Medium",
+    "runtimeCompatibilityBasis": "Frozen torch 2.7.1+cu126 runtime explicitly reported sm_80 in its supported architecture list during continuity-v3 failure. Exact device capability/runtime remains to be observed by result-blind continuity-v4 preflight."
+  },
+  "automaticRetry": false,
+  "fallbackProviders": [],
+  "scientificExecutionAuthorized": false
+}
