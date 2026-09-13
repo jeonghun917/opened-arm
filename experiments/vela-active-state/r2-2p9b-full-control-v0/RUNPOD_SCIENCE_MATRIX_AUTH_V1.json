@@ -1,0 +1,15 @@
+{
+  "schema": "vela-runpod-science-matrix-auth:v1",
+  "task": "vela-r2-2p9b-full-control-scale-replication-v0",
+  "status": "PREPARED_UNARMED",
+  "authorityRef": null,
+  "authorizedAt": null,
+  "maxPodCount": 5,
+  "maxTotalUsd": 1.25,
+  "maxRuntimeSecondsPerPod": 1800,
+  "automaticRetry": false,
+  "fallbackProviders": [],
+  "conditions": ["B", "C", "G", "M", "X"],
+  "consumedByRunId": null,
+  "consumedByCandidate": null
+}
