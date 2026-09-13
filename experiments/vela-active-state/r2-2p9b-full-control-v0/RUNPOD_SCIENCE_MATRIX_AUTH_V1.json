@@ -1,7 +1,7 @@
 {
   "schema": "vela-runpod-science-matrix-auth:v1",
   "task": "vela-r2-2p9b-full-control-scale-replication-v0",
-  "status": "AUTHORIZED_MATRIX",
+  "status": "CONSUMED_INCOMPLETE",
   "attemptOrdinal": 3,
   "authorityRef": "user-directive:2026-09-14:runpod-science-matrix-attempt03-go",
   "authorizedAt": "2026-09-13T21:56:25.224Z",
@@ -9,36 +9,52 @@
   "maxTotalUsd": 1.25,
   "maxRuntimeSecondsPerPod": 480,
   "automaticRetry": false,
+  "automaticRetryPerformed": false,
   "fallbackProviders": [],
   "conditions": ["B", "C", "G", "M", "X"],
-  "consumedByRunId": null,
-  "consumedByCandidate": null,
+  "consumedByRunId": 34785836696,
+  "consumedByCandidate": "307ff642f9063378017cbe0664603bcb8ec4c62b",
+  "statusResult": "INFRASTRUCTURE_INCOMPLETE_PROVIDER_CREATE_FAILURE_NO_AGGREGATE",
+  "failedBeforePodAllocation": ["G"],
+  "allocatedThenCancelled": ["B", "C", "M", "X"],
+  "aggregateStatus": "SKIPPED_INCOMPLETE_SHARDS",
   "scientificResultExists": false,
-  "priorAttempt": {
-    "attemptOrdinal": 2,
-    "workflowRunId": 34783267070,
-    "candidate": "9c618036541c330303e30d630c56fee41d33b52d",
-    "status": "USER_ABORTED_LOG_ANOMALY_NO_AGGREGATE",
-    "aggregateStatus": "SKIPPED_USER_ABORTED",
-    "failedBeforePodAllocation": ["M"],
-    "cancelledDuringExecution": ["B", "C", "G", "X"],
-    "providerCleanupRunId": 34783749785,
-    "scientificResultExists": false
+  "completedScientificConditions": [],
+  "providerCleanup": {
+    "jobId": 103801173803,
+    "status": "PASS_ALL_EXACT_CANDIDATE_PODS_ABSENT",
+    "remaining": [],
+    "pods": {
+      "B": "mjo3k19qxz0uwr",
+      "C": "prgizexolr45eo",
+      "M": "gua9457kiyyip7",
+      "X": "qidtidc3ljpjpl"
+    }
   },
+  "providerFailure": {
+    "condition": "G",
+    "stage": "POD_CREATE_BEFORE_POD_ID",
+    "code": "graphql_error",
+    "messageClass": "RUNPOD_GENERIC_GRAPHQL_CREATE_FAILURE"
+  },
+  "artifacts": {
+    "B": {"id": 10327005140, "digest": "sha256:5154d79a73fb926e4f3b9cf4717a611aefbb10832d13a4f18600ad8729ddf16a"},
+    "C": {"id": 10325909852, "digest": "sha256:c466fabc0504cda1cc5f198865f63fcbc4cbdfa2e1d7dbbb466efa9946f136dd"},
+    "G": {"id": 10326960253, "digest": "sha256:fa83ba10a823f8abb0a8f566cd7f0f2e7906553829d6d9e64f14a089ced18268"},
+    "M": {"id": 10326124361, "digest": "sha256:f632556173a29c9bfec4cae46723d97f5968ab22a3e4c1c51cce3f9ea0347e81"},
+    "X": {"id": 10326851072, "digest": "sha256:e590535c754f282cfc098463bdb6195cf27ee4d6c3f46f293648e736d4a51948"}
+  },
+  "estimatedGpuSpendUsdUpperBoundFromObservedRentToDelete": 0.021189,
   "orchestrationRepair": {
     "version": 2,
-    "status": "ACTIVE_ATTEMPT_03",
+    "status": "PASS_FAIL_FAST_AND_PROVIDER_CLEANUP",
     "sourceHead": "5570f19c4309df26205ab3cfd17db81531e4c71b",
     "prepRunId": 34785787213,
-    "priorNoAllocationGateRunId": 34785408797,
-    "priorNoAllocationLauncherRunId": 34785555639,
-    "gateRepair": "dataCenterAvailability.dataCenterId",
-    "launcherRepair": "dataCenterAvailability.dataCenterId",
-    "scientificExecutionAuthorized": true,
     "runpodctlVersion": "2.14.0",
     "runpodctlSha256": "2e0fd370a52a0fc7e43a6434a209348a4f6836fcdf1ad2b093b609e938138be9",
     "deletePodBeforeResultValidation": true,
     "providerCleanupAlways": true,
-    "matrixFailFast": true
+    "matrixFailFast": true,
+    "scientificExecutionAuthorized": false
   }
 }
