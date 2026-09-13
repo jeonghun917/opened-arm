@@ -1,20 +1,32 @@
 {
   "schema": "vela-runpod-science-matrix-auth:v1",
   "task": "vela-r2-2p9b-full-control-scale-replication-v0",
-  "status": "CANCELLED_BY_USER",
+  "status": "CONSUMED_INCOMPLETE",
   "attemptOrdinal": 2,
   "authorityRef": "user-directive:2026-09-14:runpod-science-matrix-attempt02-go",
   "authorizedAt": "2026-09-13T21:14:58.619312Z",
+  "consumedByRunId": 34783267070,
+  "consumedByCandidate": "9c618036541c330303e30d630c56fee41d33b52d",
+  "statusResult": "USER_ABORTED_LOG_ANOMALY_NO_AGGREGATE",
   "cancelledBy": "USER",
   "cancelledAt": "2026-09-13T21:23:00Z",
-  "cancelReason": "USER_EMERGENCY_STOP",
+  "cancelReason": "USER_EMERGENCY_STOP_LOG_ANOMALY",
   "emergencyStopCommit": "c508fe78231a7f46fbb92dcd9145f155dcb76efd",
-  "workflowRunId": 34783267070,
+  "forceCleanupRunId": 34783721796,
   "maxPodCount": 5,
   "maxTotalUsd": 1.25,
   "maxRuntimeSecondsPerPod": 1800,
   "automaticRetry": false,
+  "automaticRetryPerformed": false,
   "fallbackProviders": [],
   "conditions": ["B", "C", "G", "M", "X"],
-  "scientificResultExists": false
+  "failedBeforePodAllocation": ["M"],
+  "cancelledDuringExecution": ["B", "C", "G", "X"],
+  "aggregateStatus": "SKIPPED_USER_ABORTED",
+  "scientificResultExists": false,
+  "providerCleanup": {
+    "pods": ["klon6wtdga8b2q", "8l5h6gbp617ixa", "437paq5odhz7a3", "2bk2l1xb1ria8a"],
+    "allDeleted": true,
+    "allAbsentReadback": true
+  }
 }
