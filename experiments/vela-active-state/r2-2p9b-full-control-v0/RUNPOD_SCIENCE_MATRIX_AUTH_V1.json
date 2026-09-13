@@ -28,8 +28,10 @@
   "orchestrationRepair": {
     "version": 2,
     "status": "ACTIVE_ATTEMPT_03",
-    "sourceHead": "9e5efde0b53a14284a16b4cb57b5422acf153af3",
-    "prepRunId": 34785376293,
+    "sourceHead": "a12c1d24a81c998ee816a98b585ec14c9b750957",
+    "prepRunId": 34785507389,
+    "priorNoAllocationGateRunId": 34785408797,
+    "gateRepair": "dataCenterAvailability.dataCenterId",
     "scientificExecutionAuthorized": true,
     "runpodctlVersion": "2.14.0",
     "runpodctlSha256": "2e0fd370a52a0fc7e43a6434a209348a4f6836fcdf1ad2b093b609e938138be9",
