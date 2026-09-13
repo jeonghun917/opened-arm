@@ -1,0 +1,37 @@
+{
+  "schema": "vela-runpod-continuity-preflight-attempt:v3",
+  "task": "vela-r2-2p9b-full-control-scale-replication-v0",
+  "workflowRunId": 34750818822,
+  "sourceCandidate": "70049304f940dfef432e4ac6f4a5c91778a2ac80",
+  "artifactId": 10316675143,
+  "artifactDigest": "sha256:8655295c9eebf5ba11ffdd70e67b553b658597084ff29c3b81d3253e8811ab46",
+  "scientificEvidence": false,
+  "status": "RUNTIME_ARCH_INCOMPATIBLE",
+  "provider": "RUNPOD",
+  "pod": {
+    "id": "8mf5krgaeitg2e",
+    "created": true,
+    "deleted": true,
+    "gpuId": "NVIDIA RTX PRO 4500 Blackwell",
+    "dataCenterId": "EU-RO-1",
+    "securePricePerHrUsd": 0.72,
+    "finalObservedUptimeSeconds": 878,
+    "estimatedGpuCostUpperBoundUsdFromObservedUptime": 0.1756
+  },
+  "runtimeFailure": {
+    "device": "NVIDIA RTX PRO 4500 Blackwell",
+    "observedCudaCapability": "sm_120",
+    "torch": "2.7.1+cu126",
+    "torchSupportedArchitectures": ["sm_50","sm_60","sm_70","sm_75","sm_80","sm_86","sm_90"],
+    "exception": "RuntimeError: CUDA error: no kernel image is available for execution on the device",
+    "failureStage": "RWKV model load before state-continuity measurement"
+  },
+  "orchestrationDefect": {
+    "present": true,
+    "detail": "Bootstrap emitted VELA_CONTINUITY_V3_BOOTSTRAP_EXIT=1 at 10:05:00Z, but controller did not fail early and waited until the 900-second result timeout.",
+    "scientificImpact": "NONE; no scientific workload executed",
+    "repairRequiredBeforeNextPaidPreflight": true
+  },
+  "automaticRetryPerformed": false,
+  "fallbackUsed": false
+}
