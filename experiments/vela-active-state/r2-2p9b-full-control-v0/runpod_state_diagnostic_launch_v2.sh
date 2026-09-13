@@ -13,6 +13,7 @@ GPU_PRICE_CAP="0.49"
 IMAGE_TAG="python:3.12.13-slim-bookworm"
 MAX_RUNTIME_SECONDS=1800
 WORKLOAD_TIMEOUT_SECONDS=1200
+POST_RESULT_HOLD_SECONDS=900
 EVIDENCE_DIR="${VELA_DIAGNOSTIC_EVIDENCE_DIR:-/tmp/runpod-diagnostic-v2-evidence}"
 mkdir -p "$EVIDENCE_DIR"
 START_EPOCH="$(date +%s)"
@@ -70,22 +71,25 @@ printf '%s\n' "$IMAGE_REF" > "$EVIDENCE_DIR/image-ref.txt"
 BASE_RAW="https://raw.githubusercontent.com/jeonghun917/opened-arm/${VELA_SOURCE_COMMIT}/experiments/vela-active-state/r2-2p9b-full-control-v0"
 DIAG_URL="$BASE_RAW/runpod_state_roundtrip_diagnostic_v2.py"
 
-BOOTSTRAP="$(cat <<'SH'
+BOOTSTRAP="$(cat <<SH
 #!/bin/sh
 set -u
 mkdir -p /workspace/vela
 cd /workspace/vela
-python -m pip install --quiet --extra-index-url https://download.pytorch.org/whl/cu126 \
+python -m pip install --quiet --extra-index-url https://download.pytorch.org/whl/cu126 \\
   torch==2.7.1+cu126 rwkv==0.8.32 tokenizers==0.21.4 numpy==2.4.6 huggingface_hub==0.36.0
 python - <<'PY'
 import os, urllib.request
 urllib.request.urlretrieve(os.environ['VELA_DIAG_URL'], 'runpod_state_roundtrip_diagnostic_v2.py')
 PY
 rc=0
-VELA_SOURCE_COMMIT="$VELA_SOURCE_COMMIT" VELA_DIAGNOSTIC_DIR=/workspace/vela python runpod_state_roundtrip_diagnostic_v2.py || rc=$?
-echo "VELA_DIAGNOSTIC_BOOTSTRAP_EXIT=$rc"
-sleep 45
-exit "$rc"
+VELA_SOURCE_COMMIT="\$VELA_SOURCE_COMMIT" VELA_DIAGNOSTIC_DIR=/workspace/vela python runpod_state_roundtrip_diagnostic_v2.py || rc=\$?
+echo "VELA_DIAGNOSTIC_BOOTSTRAP_EXIT=\$rc"
+# Keep the successful/failed container alive long enough for the GitHub controller to
+# read one compact result marker and delete the pod. This prevents RunPod from restarting
+# a completed container while desiredStatus remains RUNNING.
+sleep ${POST_RESULT_HOLD_SECONDS}
+exit "\$rc"
 SH
 )"
 BOOTSTRAP_B64="$(printf '%s' "$BOOTSTRAP" | base64 -w0)"
@@ -128,14 +132,23 @@ while (( $(date +%s) < DEADLINE )); do
 import json,sys
 src,out=sys.argv[1:]
 result=None
-try: lines=open(src,encoding='utf-8').read().splitlines()
-except FileNotFoundError: raise SystemExit(1)
+try:
+    lines=open(src,encoding='utf-8').read().splitlines()
+except FileNotFoundError:
+    raise SystemExit(1)
 for raw in lines:
-  try: obj=json.loads(raw); line=obj.get('line','')
-  except Exception: continue
-  if line.startswith('VELA_STATE_DIAGNOSTIC_V2_JSON='):
-    result=json.loads(line.split('=',1)[1])
-if result is not None: json.dump(result,open(out,'w'),indent=2,sort_keys=True)
+    try:
+        obj=json.loads(raw)
+        line=obj.get('line','')
+    except Exception:
+        continue
+    if line.startswith('VELA_STATE_DIAGNOSTIC_V2_SUMMARY='):
+        try:
+            result=json.loads(line.split('=',1)[1])
+        except json.JSONDecodeError:
+            continue
+if result is not None:
+    json.dump(result,open(out,'w'),indent=2,sort_keys=True)
 raise SystemExit(0 if result is not None else 1)
 PY
   then FOUND=1; break; fi
@@ -162,7 +175,7 @@ assert m.get('sha256')=='df5716263b617e7da83590446fb2a98b6663447cfd52e8e9b49e11c
 assert r.get('classification') in {
   'SERIALIZATION_DEFECT','BASE_RUNTIME_NONDETERMINISM_OR_MODEL_MUTATION',
   'RESTORED_RUNTIME_NONDETERMINISM','NO_DIVERGENCE_REPRODUCED',
-  'RESTORE_SPECIFIC_EXECUTION_DIVERGENCE'
+  'RESTORE_SPECIFIC_EXECUTION_DIVERGENCE','FIRST_CONTINUATION_WARMUP_OR_RUNTIME_ORDER_EFFECT'
 }, r
 PY
 
