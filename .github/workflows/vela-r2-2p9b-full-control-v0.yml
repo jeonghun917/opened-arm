@@ -86,13 +86,7 @@ jobs:
           ref: ${{ github.sha }}
           fetch-depth: 1
           persist-credentials: false
-      - name: Install current runpodctl
-        shell: bash
-        run: |
-          set -euo pipefail
-          curl -fsSL https://cli.runpod.net | bash
-          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
-      - name: Check RunPod auth and inventory without paid mutation
+      - name: Check RunPod setup without paid mutation
         shell: bash
         run: |
           set -euo pipefail
@@ -102,6 +96,7 @@ jobs:
             cat /tmp/runpod-readiness/readiness.json
             exit 0
           fi
+          curl -fsSL https://cli.runpod.net | sudo bash
           runpodctl version > /tmp/runpod-readiness/runpodctl-version.txt
           runpodctl user >/dev/null
           runpodctl gpu list --include-unavailable > /tmp/runpod-readiness/gpu-list.json
