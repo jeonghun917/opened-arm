@@ -70,7 +70,7 @@ jobs:
           kernel=f'{owner}/vela-r2-2p9b-gpu-preflight-v0'
           meta={
               'id':kernel,
-              'title':'VELA R2 2.9B GPU Preflight V0',
+              'title':'vela-r2-2p9b-gpu-preflight-v0',
               'code_file':'main.py',
               'language':'python',
               'kernel_type':'script',
