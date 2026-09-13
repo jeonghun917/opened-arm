@@ -1,0 +1,62 @@
+{
+  "schema": "vela-runpod-state-diagnostic-spec:v2",
+  "task": "vela-r2-2p9b-full-control-scale-replication-v0",
+  "provider": "RUNPOD",
+  "mode": "POD",
+  "phase": "STATE_DIAGNOSTIC_ONLY",
+  "scientificExecutionAuthorized": false,
+  "automaticRetry": false,
+  "fallbackProviders": [],
+  "target": {
+    "gpuId": "NVIDIA A40",
+    "memoryInGb": 48,
+    "cloud": "SECURE",
+    "maxSecurePricePerHrUsd": 0.49,
+    "containerImageTag": "python:3.12.13-slim-bookworm",
+    "containerDiskInGb": 20,
+    "ssh": false,
+    "minCudaVersion": "12.6"
+  },
+  "budget": {
+    "maxTotalUsd": 0.50,
+    "maxPodCount": 1,
+    "maxRuntimeSeconds": 1800,
+    "workloadTimeoutSeconds": 1200
+  },
+  "diagnostic": {
+    "script": "runpod_state_roundtrip_diagnostic_v2.py",
+    "questions": [
+      "Is continuation non-exactness already present when the same original state is executed twice?",
+      "Is restored-state repeatability different from original-state repeatability?",
+      "If both repeats are stable, is original-vs-restored continuation specifically divergent?",
+      "What are the max/mean absolute and relative numerical deltas?"
+    ],
+    "classifications": [
+      "SERIALIZATION_DEFECT",
+      "BASE_RUNTIME_NONDETERMINISM_OR_MODEL_MUTATION",
+      "RESTORED_RUNTIME_NONDETERMINISM",
+      "NO_DIVERGENCE_REPRODUCED",
+      "RESTORE_SPECIFIC_EXECUTION_DIVERGENCE"
+    ]
+  },
+  "model": {
+    "repo": "BlinkDL/rwkv7-g1",
+    "revision": "2448c93da77d9958ea89a9faa4c1b34c5c46ccec",
+    "file": "rwkv7-g1a-2.9b-20250924-ctx4096.pth",
+    "size": 5896274949,
+    "sha256": "df5716263b617e7da83590446fb2a98b6663447cfd52e8e9b49e11ce7f4faa3e"
+  },
+  "runtime": {
+    "pythonExpected": "3.12.13",
+    "torchExpected": "2.7.1+cu126",
+    "rwkvExpected": "0.8.32",
+    "numpyExpected": "2.4.6",
+    "tokenizersExpected": "0.21.4",
+    "strategy": "cuda fp16",
+    "rwkvCudaKernel": false
+  },
+  "resultTransport": "RUNPOD_POD_LOGS_TO_GITHUB_ACTIONS_ARTIFACT",
+  "scientificGate": {
+    "enabled": false
+  }
+}
