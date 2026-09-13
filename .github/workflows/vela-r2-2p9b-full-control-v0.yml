@@ -9,6 +9,10 @@ on:
       - 'experiments/vela-active-state/r2-2p9b-full-control-v0/runpod_preflight.py'
       - 'experiments/vela-active-state/r2-2p9b-full-control-v0/runpod_launch.sh'
       - 'experiments/vela-active-state/r2-2p9b-full-control-v0/validate_runpod_prep.py'
+      - 'experiments/vela-active-state/r2-2p9b-full-control-v0/RUNPOD_PREFLIGHT_SPEC_V1.json'
+      - 'experiments/vela-active-state/r2-2p9b-full-control-v0/runpod_state_roundtrip_v1.py'
+      - 'experiments/vela-active-state/r2-2p9b-full-control-v0/runpod_preflight_launch_v1.sh'
+      - 'experiments/vela-active-state/r2-2p9b-full-control-v0/validate_runpod_preflight_v1.py'
   workflow_dispatch:
 
 permissions:
@@ -16,7 +20,7 @@ permissions:
 
 concurrency:
   group: vela-r2-2p9b-runpod-prep-v0
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 env:
   EXPERIMENT_DIR: experiments/vela-active-state/r2-2p9b-full-control-v0
@@ -49,6 +53,10 @@ jobs:
             'experiments/vela-active-state/r2-2p9b-full-control-v0/runpod_launch.sh'
             'experiments/vela-active-state/r2-2p9b-full-control-v0/runpod_preflight.py'
             'experiments/vela-active-state/r2-2p9b-full-control-v0/validate_runpod_prep.py'
+            'experiments/vela-active-state/r2-2p9b-full-control-v0/RUNPOD_PREFLIGHT_SPEC_V1.json'
+            'experiments/vela-active-state/r2-2p9b-full-control-v0/runpod_state_roundtrip_v1.py'
+            'experiments/vela-active-state/r2-2p9b-full-control-v0/runpod_preflight_launch_v1.sh'
+            'experiments/vela-active-state/r2-2p9b-full-control-v0/validate_runpod_preflight_v1.py'
           )
           for p in "${changed[@]}"; do
             ok=0
@@ -63,6 +71,7 @@ jobs:
           check_blob "$EXPERIMENT_DIR/science_common.py" 77cee99a8ff131b31165521fa8c9cfb76a7ce174
           check_blob "$EXPERIMENT_DIR/condition_runner.py" 70b696bcfdb3ba7fc7f4010a1143aac1063c452b
           check_blob "$EXPERIMENT_DIR/aggregate.py" ac86908be386b0159f52bcf45d4dd0e0786daae4
+          check_blob "$EXPERIMENT_DIR/gpu_preflight.py" 7f3801df39f0689fd4135730f4c15c780f9ebab9
           check_blob "$EXPERIMENT_DIR/stimuli/episode_1.json" 9b91ed85c5a3f0e1495fbcda627b660857743235
           check_blob "$EXPERIMENT_DIR/stimuli/episode_2.json" 22e590dd8318ac64cc12bd3d41fc765e6ce7db46
           check_blob "$EXPERIMENT_DIR/stimuli/episode_3.json" 426055ca45b40476e0baa9917c72a7d1aba0332f
@@ -71,8 +80,8 @@ jobs:
           check_blob "$EXPERIMENT_DIR/stimuli/episode_6.json" 8091870b4f8ac512ac835d9db48f16a80033ad15
       - name: Revalidate frozen P-R2-02 contract
         run: python "$EXPERIMENT_DIR/validate_contract.py"
-      - name: Validate RunPod preparation gate
-        run: python "$EXPERIMENT_DIR/validate_runpod_prep.py"
+      - name: Validate RunPod preflight v1 gate
+        run: python "$EXPERIMENT_DIR/validate_runpod_preflight_v1.py"
 
   runpod-readiness:
     needs: contract
@@ -122,3 +131,55 @@ jobs:
           path: /tmp/runpod-readiness
           if-no-files-found: error
           retention-days: 14
+
+  runpod-preflight:
+    needs: [contract, runpod-readiness]
+    if: ${{ github.event_name == 'push' && contains(github.event.head_commit.message, '[runpod-preflight-authorized]') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      RUNPOD_API_KEY: ${{ secrets.RUNPOD_API_KEY }}
+      VELA_SOURCE_COMMIT: ${{ github.sha }}
+      VELA_RUNPOD_PREFLIGHT_AUTHORIZED: 'true'
+      VELA_EVIDENCE_DIR: /tmp/runpod-preflight-evidence
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Install exact current RunPod CLI
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${RUNPOD_API_KEY:-}"
+          curl -fsSL https://cli.runpod.net | sudo bash
+          runpodctl version
+      - name: Execute one result-blind A40 preflight
+        shell: bash
+        run: bash "$EXPERIMENT_DIR/runpod_preflight_launch_v1.sh"
+      - name: Validate preflight envelope
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json, os
+          p=os.path.join(os.environ['VELA_EVIDENCE_DIR'],'preflight-envelope.json')
+          r=json.load(open(p))
+          assert r['status']=='PASS'
+          assert r['scientific_evidence'] is False
+          assert r['phase']=='PREFLIGHT_ONLY'
+          assert r['pod_deleted'] is True
+          assert r['estimated_gpu_cost_upper_bound_usd'] <= 0.50
+          assert r['gpu']['gpuId']=='NVIDIA A40'
+          assert r['state_roundtrip']['state']['serialize_restore_exact'] is True
+          assert r['state_roundtrip']['state']['continuation_logits_exact'] is True
+          assert r['state_roundtrip']['state']['continuation_state_exact'] is True
+          PY
+      - name: Upload authoritative RunPod preflight evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vela-r2-02-runpod-preflight-v1
+          path: /tmp/runpod-preflight-evidence
+          if-no-files-found: error
+          retention-days: 30
