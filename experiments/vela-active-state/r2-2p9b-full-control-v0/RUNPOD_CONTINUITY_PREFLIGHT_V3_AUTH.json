@@ -1,7 +1,7 @@
 {
   "schema": "vela-runpod-continuity-preflight-auth:v3",
   "task": "vela-r2-2p9b-full-control-scale-replication-v0",
-  "status": "AUTHORIZED_ONE_SHOT",
+  "status": "CONSUMED_FAILED",
   "authorityRef": "user-directive:2026-09-13:runpod-continuity-preflight-v3-go",
   "authorizedAt": "2026-09-13T10:01:53.989184Z",
   "maxPodCount": 1,
@@ -9,6 +9,16 @@
   "automaticRetry": false,
   "fallbackProviders": [],
   "scientificExecutionAuthorized": false,
-  "consumedByRunId": null,
-  "consumedByCandidate": null
+  "consumedByRunId": 34750818822,
+  "consumedByCandidate": "70049304f940dfef432e4ac6f4a5c91778a2ac80",
+  "statusResult": "RUNTIME_ARCH_INCOMPATIBLE",
+  "artifactId": 10316675143,
+  "artifactDigest": "sha256:8655295c9eebf5ba11ffdd70e67b553b658597084ff29c3b81d3253e8811ab46",
+  "podId": "8mf5krgaeitg2e",
+  "podDeleted": true,
+  "targetGpuId": "NVIDIA RTX PRO 4500 Blackwell",
+  "observedCudaCapability": "sm_120",
+  "torchSupportedArchitectures": ["sm_50","sm_60","sm_70","sm_75","sm_80","sm_86","sm_90"],
+  "scientificEvidence": false,
+  "automaticRetryPerformed": false
 }
