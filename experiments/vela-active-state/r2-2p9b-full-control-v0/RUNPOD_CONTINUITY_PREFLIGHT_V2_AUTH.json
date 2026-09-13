@@ -1,7 +1,7 @@
 {
   "schema": "vela-runpod-continuity-preflight-auth:v2",
   "task": "vela-r2-2p9b-full-control-scale-replication-v0",
-  "status": "AUTHORIZED_ONE_SHOT",
+  "status": "CONSUMED",
   "authorityRef": "user-directive:2026-09-13:runpod-continuity-preflight-v2-go",
   "authorizedAt": "2026-09-13T09:13:43.622Z",
   "maxPodCount": 1,
@@ -9,6 +9,14 @@
   "automaticRetry": false,
   "fallbackProviders": [],
   "scientificExecutionAuthorized": false,
-  "consumedByRunId": null,
-  "consumedByCandidate": null
+  "consumedByRunId": 34749156324,
+  "consumedByCandidate": "3f48ee18384bb5afa51fbd641a0d0e2ae18ac41c",
+  "artifactId": 10315232230,
+  "artifactDigest": "sha256:578f414e7003d2ae4b59f6521c5b0cba0570afe00ddfa8186bfe90ac160d5bc9",
+  "podId": "hof0ksdb5l0814",
+  "podDeleted": true,
+  "statusResult": "PASS",
+  "classification": "POST_WARMUP_ORDER_CONTROL_EXACT",
+  "elapsedSeconds": 129,
+  "estimatedGpuCostUpperBoundUsd": 0.017558
 }
