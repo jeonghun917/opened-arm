@@ -19,9 +19,11 @@ env:
   EXPERIMENT_DIR: experiments/vela-active-state/r2-2p9b-full-control-v0
 
 jobs:
-  preflight:
+  gpu-preflight:
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 40
+    env:
+      KAGGLE_API_TOKEN: ${{ secrets.KAGGLE_API_TOKEN }}
     steps:
       - name: Checkout exact triggering commit
         uses: actions/checkout@v4
@@ -33,53 +35,92 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Verify exact source commit
+      - name: Verify exact preflight source
         shell: bash
         run: |
           set -euo pipefail
           actual="$(git rev-parse HEAD)"
-          [[ "$actual" == "$GITHUB_SHA" ]] || { echo "::error::checkout drift expected=$GITHUB_SHA actual=$actual"; exit 1; }
-          echo "checked_out_head=$actual"
+          [[ "$actual" == "$GITHUB_SHA" ]] || { echo "::error::checkout drift"; exit 1; }
+          [[ "$(git hash-object "$EXPERIMENT_DIR/gpu_preflight.py")" == "c3b8e8db3f6dfb682b1a8e6e1c2494175dfe4d3d" ]] || { echo "::error::gpu preflight blob drift"; exit 1; }
 
-      - name: Provision 16GiB swap
+      - name: Install Kaggle CLI
+        run: python -m pip install --quiet --upgrade kaggle
+
+      - name: Build private GPU preflight kernel
         shell: bash
         run: |
           set -euo pipefail
-          sudo fallocate -l 16G /mnt/vela-r2-swapfile
-          sudo chmod 600 /mnt/vela-r2-swapfile
-          sudo mkswap /mnt/vela-r2-swapfile
-          sudo swapon /mnt/vela-r2-swapfile
-          free -h
-          swapon --show
-          df -h / /mnt || true
+          test -n "${KAGGLE_API_TOKEN:-}" || { echo 'missing Kaggle token'; exit 2; }
+          rm -rf vela_kaggle vela_kaggle_out
+          mkdir vela_kaggle
+          cp "$EXPERIMENT_DIR/gpu_preflight.py" vela_kaggle/main.py
+          python - <<'PY'
+          import json, os, urllib.parse, urllib.request
+          from pathlib import Path
+          token=os.environ['KAGGLE_API_TOKEN']
+          req=urllib.request.Request(
+              'https://www.kaggle.com/api/v1/oauth2/introspect',
+              data=urllib.parse.urlencode({'token':token}).encode(),
+              headers={'Content-Type':'application/x-www-form-urlencoded'},
+              method='POST',
+          )
+          with urllib.request.urlopen(req,timeout=30) as r: data=json.load(r)
+          owner=(data.get('username') or '').strip()
+          if not data.get('active') or not owner: raise SystemExit('inactive Kaggle token')
+          kernel=f'{owner}/vela-r2-2p9b-gpu-preflight-v0'
+          meta={
+              'id':kernel,
+              'title':'VELA R2 2.9B GPU Preflight V0',
+              'code_file':'main.py',
+              'language':'python',
+              'kernel_type':'script',
+              'is_private':True,
+              'enable_gpu':True,
+              'enable_internet':True,
+              'dataset_sources':[],
+              'competition_sources':[],
+              'kernel_sources':[],
+              'model_sources':[],
+          }
+          Path('vela_kaggle/kernel-metadata.json').write_text(json.dumps(meta,indent=2)+'\n',encoding='utf-8')
+          Path('kernel-id.txt').write_text(kernel+'\n',encoding='utf-8')
+          PY
 
-      - name: Install exact CPU runtime
+      - name: Push GPU preflight kernel
+        run: kaggle kernels push -p vela_kaggle -t 900
+
+      - name: Wait and collect preflight
         shell: bash
         run: |
-          set -euo pipefail
-          python -m pip install --upgrade pip
-          python -m pip install --index-url https://download.pytorch.org/whl/cpu 'torch==2.7.1+cpu'
-          python -m pip install 'rwkv==0.8.32' 'tokenizers==0.21.4' 'numpy==2.4.6' 'huggingface_hub==0.36.0'
-          python -m pip check
+          set -u
+          K=$(cat kernel-id.txt)
+          STATUS=UNKNOWN
+          for i in $(seq 1 180); do
+            O=$(kaggle kernels status "$K" 2>&1 || true)
+            echo "VELA_KAGGLE_STATUS ${O##*status }"
+            if echo "$O" | grep -q 'KernelWorkerStatus.COMPLETE'; then STATUS=COMPLETE; break; fi
+            if echo "$O" | grep -Eq 'KernelWorkerStatus\.(ERROR|FAILED|CANCELLED|CANCELED)'; then STATUS=ERROR; break; fi
+            sleep 10
+          done
+          rm -rf vela_kaggle_out; mkdir vela_kaggle_out
+          kaggle kernels output "$K" -p vela_kaggle_out --force || true
+          if [[ -f vela_kaggle_out/gpu_preflight.json ]]; then
+            cp vela_kaggle_out/gpu_preflight.json /tmp/vela-r2-2p9b-gpu-preflight.json
+          else
+            printf '{"status":"NO_RESULT","kaggle_status":"%s","scientific_evidence":false}\n' "$STATUS" > /tmp/vela-r2-2p9b-gpu-preflight.json
+            exit 1
+          fi
+          cat /tmp/vela-r2-2p9b-gpu-preflight.json
 
-      - name: Run result-blind model preflight
-        shell: bash
-        env:
-          VELA_RESULT_PATH: /tmp/vela-r2-2p9b-preflight.json
-          HF_HUB_DISABLE_TELEMETRY: '1'
-          PYTHONUNBUFFERED: '1'
-          MALLOC_ARENA_MAX: '2'
-          OMP_NUM_THREADS: '4'
-          MKL_NUM_THREADS: '4'
-        run: |
-          set -euo pipefail
-          python "$EXPERIMENT_DIR/preflight.py"
-
-      - name: Upload preflight evidence
+      - name: Upload GPU preflight evidence
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: vela-r2-2p9b-preflight-v0
-          path: /tmp/vela-r2-2p9b-preflight.json
+          name: vela-r2-2p9b-gpu-preflight-v0
+          path: /tmp/vela-r2-2p9b-gpu-preflight.json
           if-no-files-found: error
           retention-days: 7
+
+      - name: Cleanup
+        if: always()
+        run: rm -rf vela_kaggle vela_kaggle_out kernel-id.txt
