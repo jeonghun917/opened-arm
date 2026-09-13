@@ -1,0 +1,31 @@
+{
+  "schema": "vela-runpod-preflight-attempt:v1",
+  "task": "vela-r2-2p9b-full-control-scale-replication-v0",
+  "attempt": 1,
+  "status": "BLOCKED_PROVIDER_BALANCE",
+  "scientificEvidence": false,
+  "provider": "RUNPOD",
+  "workflowRunId": 34746862740,
+  "sourceCandidate": "01e2ad73f3ef21e0b6c5aeaabb445a94a261e222",
+  "artifactId": 10314013536,
+  "artifactDigest": "sha256:37c0d95b96bd7196bbd49101babae303be5ea3198e27825c8b157b0faa25e26b",
+  "providerError": {
+    "code": "graphql_error",
+    "message": "Your account balance is too low to rent a pod. Please add funds to your account."
+  },
+  "podCreated": false,
+  "gpuComputeStarted": false,
+  "automaticRetry": false,
+  "selectedGpu": {
+    "gpuId": "NVIDIA A40",
+    "displayName": "A40",
+    "memoryInGb": 48,
+    "cloud": "SECURE",
+    "securePricePerHr": 0.49,
+    "stockStatus": "Low",
+    "observedDataCenters": ["CA-MTL-1", "EU-SE-1", "US-MO-1"]
+  },
+  "pinnedContainerImage": "python@sha256:6e13e65c55e33adf203d77ee371cf8bf5d81bd4902ef07565721f46bf44917af",
+  "frozenScienceChanged": false,
+  "nextGate": "ADD_RUNPOD_FUNDS_THEN_AUTHORIZE_A_NEW_SINGLE_PREFLIGHT_ATTEMPT"
+}
