@@ -1,0 +1,41 @@
+{
+  "schema": "vela-runpod-runner-spec:v0",
+  "task": "vela-r2-2p9b-full-control-scale-replication-v0",
+  "provider": "RUNPOD",
+  "mode": "POD",
+  "paidExecutionAuthorized": false,
+  "automaticRetry": false,
+  "silentFallbackProviders": [],
+  "sourceKaggleHead": "a1cb641b17436f5376df682db57243b75320bdeb",
+  "sourceKaggleRun": 34732809427,
+  "sourceKaggleClassification": "INFRASTRUCTURE_BOOTSTRAP_FAILURE_NOT_SCIENTIFIC_EVIDENCE",
+  "model": {
+    "repo": "BlinkDL/rwkv7-g1",
+    "revision": "2448c93da77d9958ea89a9faa4c1b34c5c46ccec",
+    "file": "rwkv7-g1a-2.9b-20250924-ctx4096.pth",
+    "size": 5896274949,
+    "sha256": "df5716263b617e7da83590446fb2a98b6663447cfd52e8e9b49e11ce7f4faa3e"
+  },
+  "runtime": {
+    "python": "3.11",
+    "rwkv": "0.8.32",
+    "numpy": "2.4.6",
+    "tokenizers": "0.21.4",
+    "strategy": "cuda fp16",
+    "torchPolicy": "freeze exact torch/cuda build from fresh result-blind RunPod preflight"
+  },
+  "storage": {
+    "modelPath": "/runpod-volume/models/rwkv7-g1a-2.9b-20250924-ctx4096.pth",
+    "artifactRoot": "/runpod-volume/artifacts/p-r2-02",
+    "authority": "CACHE_AND_EVIDENCE_ONLY_NOT_CANONICAL"
+  },
+  "scientificGate": {
+    "enabled": false,
+    "enableOnlyAfter": [
+      "canonical RunPod execution-plane registration",
+      "finite paid budget authorization",
+      "fresh RunPod preflight PASS",
+      "result-blind contract validation PASS"
+    ]
+  }
+}
