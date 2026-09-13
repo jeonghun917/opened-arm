@@ -1,0 +1,30 @@
+{
+  "schema": "vela-runpod-science-matrix-attempt:v2",
+  "attemptOrdinal": 2,
+  "status": "INFRASTRUCTURE_INCOMPLETE_NO_AGGREGATE",
+  "candidate": "9c618036541c330303e30d630c56fee41d33b52d",
+  "workflowRunId": 34783267070,
+  "scientificResultExists": false,
+  "aggregateStatus": "CANCELLED_INCOMPLETE_SHARDS",
+  "automaticRetryPerformed": false,
+  "conditionOutcomes": {
+    "M": {"status": "GITHUB_SIDE_RUNPODCTL_INSTALL_TRANSIENT", "podCreated": false, "scientificEvidence": false, "detail": "cli.runpod.net installer failed to fetch latest version before pod creation"},
+    "B": {"status": "CANCELLED_BEFORE_RESULT", "podId": "klon6wtdga8b2q", "artifactId": 10325383881, "artifactDigest": "sha256:31e7ff4b2634bd0fe3a199c770a54a9295a8a66f6d0924903896aa9919155415", "scientificEvidence": false},
+    "C": {"status": "CANCELLED_BEFORE_RESULT", "podId": "8l5h6gbp617ixa", "artifactId": 10326111128, "artifactDigest": "sha256:350a9b5725b7b767e2cb70afe2cc0a8b27eea76c646ed78783dafa1ee713b0e6", "scientificEvidence": false},
+    "G": {"status": "CANCELLED_BEFORE_RESULT", "podId": "437paq5odhz7a3", "artifactId": 10326385329, "artifactDigest": "sha256:0424bc89003613b6a692ade4df565d2c4bcfd3b7b02d252f15f78e2781c46361", "scientificEvidence": false},
+    "X": {"status": "CANCELLED_BEFORE_RESULT", "podId": "2bk2l1xb1ria8a", "artifactId": 10325604885, "artifactDigest": "sha256:85654e2f8c8119dd84b57abd01ee216ce1c16bd87c986ea6222920ba166e8081", "scientificEvidence": false}
+  },
+  "cancellationCause": "UNKNOWN_EXTERNAL_OR_WORKFLOW_LEVEL_CANCELLATION; no cause proven from available job evidence",
+  "cleanup": {
+    "verificationRunId": 34783749785,
+    "verifiedNoListedAttempt02PodsRemain": true,
+    "deleteCallsReturnedNotFound": true,
+    "interpretation": "pods were already absent by cleanup verification; no continuing GPU billing from these pod IDs"
+  },
+  "estimatedGpuSpendUsdUpperBound": 0.24,
+  "estimatedGpuSpendNote": "Elapsed-time estimate only for four allocated A40 jobs; not provider billing.",
+  "requiredRepairBeforeAnotherAttempt": [
+    "Pin runpodctl v2.14.0 linux-amd64 by exact release asset SHA256 instead of cli.runpod.net latest installer in every science shard.",
+    "Preserve frozen science, retry=0 semantics per authorized attempt, and require a new explicit scientific authorization before another matrix attempt."
+  ]
+}
