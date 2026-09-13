@@ -1,0 +1,40 @@
+{
+  "schema": "vela-runpod-capacity-selection:v1",
+  "task": "vela-r2-2p9b-full-control-scale-replication-v0",
+  "selectionOrdinal": 2,
+  "basis": "PROVIDER_CAPACITY_ONLY_RESULT_BLIND",
+  "source": {
+    "workflowRunId": 34749656683,
+    "readinessArtifactId": 10315247947,
+    "readinessArtifactDigest": "sha256:e9f62ee55c84344604ad9043450fb683f71e74f74ff548b936f4baf237c91833"
+  },
+  "excludedScientificInputs": true,
+  "priorAttemptInfrastructureFact": {
+    "gpuId": "NVIDIA A40",
+    "stockStatus": "Low",
+    "parallelAllocation": "3 of 5 pods allocated; 2 of 5 failed before pod allocation with generic RunPod GraphQL error"
+  },
+  "selected": {
+    "gpuId": "NVIDIA RTX PRO 4500 Blackwell",
+    "displayName": "RTX PRO 4500",
+    "memoryInGb": 32,
+    "secureCloud": true,
+    "securePricePerHrUsd": 0.72,
+    "stockStatus": "High",
+    "dataCenterAvailability": [
+      {"dataCenterId": "EU-RO-1", "stockStatus": "High"}
+    ]
+  },
+  "runnerUp": {
+    "gpuId": "NVIDIA GeForce RTX 4090",
+    "memoryInGb": 24,
+    "securePricePerHrUsd": 0.74,
+    "stockStatus": "Medium"
+  },
+  "selectionReason": "Among Secure GPUs with at least 24GB in the run-45 inventory, RTX PRO 4500 was the only High-stock option. Selection uses capacity/cost/runtime-fit information only and does not use C/M/X scientific scores.",
+  "requiredBeforeScience": [
+    "exact runtime/device-capability continuity preflight on selected GPU",
+    "provider-grounded PASS evidence",
+    "new explicit paid scientific-matrix authorization"
+  ]
+}
