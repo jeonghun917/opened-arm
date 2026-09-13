@@ -1,0 +1,75 @@
+{
+  "schema": "vela-runpod-state-diagnostic-attempt:v1",
+  "task": "vela-r2-2p9b-full-control-scale-replication-v0",
+  "attempt": 1,
+  "sourceCandidate": "13903c7a42d70d7726a77a1c1bf444c91a992c54",
+  "workflowRunId": 34748007249,
+  "artifactId": 10315555496,
+  "artifactDigest": "sha256:8ce185a242e7f352083a66a7faeb204bd5322dd82ec956da948a7f9a73d0a180",
+  "provider": "RUNPOD",
+  "phase": "STATE_DIAGNOSTIC_ONLY",
+  "scientificEvidence": false,
+  "pod": {
+    "id": "qrrih6loswiynn",
+    "created": true,
+    "deleted": true,
+    "gpuId": "NVIDIA A40",
+    "cloud": "SECURE",
+    "dataCenterId": "EU-SE-1",
+    "securePricePerHrUsd": 0.49
+  },
+  "rawDiagnosticClassification": "BASE_RUNTIME_NONDETERMINISM_OR_MODEL_MUTATION",
+  "recoveredDiagnostic": {
+    "serializationExact": true,
+    "metadataEqual": true,
+    "snapshotSha256": "72c608e5408155d9f79376bca2bbd8b0ac99e5871f576687eefb4a6f6bbd8723",
+    "snapshotBytes": 25261905,
+    "runtime": {
+      "torch": "2.7.1+cu126",
+      "cuda": "12.6",
+      "device": "NVIDIA A40",
+      "strategy": "cuda fp16",
+      "deterministicAlgorithmsEnabled": false,
+      "cudnnDeterministic": false,
+      "cudnnBenchmark": true,
+      "cudaMatmulAllowTf32": true
+    },
+    "originalRepeat": {
+      "logitsExact": false,
+      "logitsMaxAbs": 0.0625,
+      "logitsMeanAbs": 0.00792602077126503,
+      "logitsNonzeroCount": 46541,
+      "stateExact": false,
+      "stateDifferingTensorCount": 95,
+      "stateMaxAbs": 0.06951522827148438,
+      "stateTotalNonzeroCount": 5382893
+    },
+    "restoredRepeat": {
+      "logitsExact": true,
+      "stateExact": true
+    },
+    "originalVsRestoredFirst": {
+      "logitsExact": false,
+      "logitsMaxAbs": 0.0625,
+      "logitsMeanAbs": 0.00792602077126503,
+      "stateExact": false,
+      "stateMaxAbs": 0.06951522827148438
+    },
+    "originalVsRestoredSecond": {
+      "logitsExact": true,
+      "stateExact": true
+    }
+  },
+  "refinedInterpretation": "The state snapshot itself is exact and metadata-identical. Only the first continuation invocation differs. The second original continuation is bitwise equal to the second restored continuation, while restored repeat 1 and 2 are also bitwise equal. This isolates the observed preflight failure away from serialization/restore corruption and toward a first-continuation runtime warm-up/order effect (for example lazy kernel/algorithm selection or other runtime/model mutation). The prior original-then-restored exactness test was order-confounded.",
+  "transportDefect": {
+    "present": true,
+    "markerLengthChars": 81277,
+    "parserError": "JSONDecodeError at column 16359",
+    "cause": "RunPod log transport injected timestamps into the oversized single-line JSON marker around 16KB boundaries, making the marker invalid JSON for the polling parser.",
+    "completedMarkerRepeatCountObserved": 15,
+    "restartCause": "The container exited after the diagnostic while the RunPod pod desiredStatus remained RUNNING, causing the workload to restart repeatedly until the outer 1200-second orchestration timeout deleted the pod."
+  },
+  "scientificMatrixAuthorized": false,
+  "automaticRetry": false,
+  "fallback": false
+}
