@@ -1,8 +1,8 @@
-name: VELA R2 RWKV7 2.9B full-control v0
+name: VELA R2 Modal GPU smoke v0
 
 on:
   push:
-    branches: [exp/vela-r2-2p9b-full-control-v0]
+    branches: [infra/vela-r2-2p9b-modal-smoke-v0]
     paths:
       - '.github/workflows/vela-r2-2p9b-full-control-v0.yml'
   workflow_dispatch:
@@ -11,224 +11,106 @@ permissions:
   contents: read
 
 concurrency:
-  group: vela-r2-2p9b-full-control-v0-science
+  group: vela-r2-2p9b-modal-smoke-v0
   cancel-in-progress: true
 
-env:
-  EXPERIMENT_DIR: experiments/vela-active-state/r2-2p9b-full-control-v0
-  BASELINE_SHA: 8b07aceedc3c0b39682448216f83a5203fdbc2b3
-  PRIOR_INFRA_BLOCKED_SHA: 2ccfcb1ccb17537b0aff553741507912865a103f
-
 jobs:
-  contract:
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.sha }}
-          fetch-depth: 3
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-      - name: Verify workflow-only infrastructure repair candidate
-        shell: bash
-        run: |
-          set -euo pipefail
-          [[ "$(git rev-parse HEAD)" == "$GITHUB_SHA" ]]
-          [[ "$(git rev-parse HEAD^)" == "$PRIOR_INFRA_BLOCKED_SHA" ]]
-          git merge-base --is-ancestor "$BASELINE_SHA" "$GITHUB_SHA"
-          mapfile -t changed < <(git diff --name-only "$BASELINE_SHA" "$GITHUB_SHA")
-          printf 'changed=%s\n' "${changed[*]}"
-          [[ "${#changed[@]}" == "1" ]]
-          [[ "${changed[0]}" == ".github/workflows/vela-r2-2p9b-full-control-v0.yml" ]]
-          check_blob() { [[ "$(git hash-object "$1")" == "$2" ]] || { echo "::error::blob drift $1"; exit 1; }; }
-          check_blob "$EXPERIMENT_DIR/MODEL_STIMULI_INDEX.json" 95b2371ac7bb9416ad5b9a7d33f2df4de40d4d4c
-          check_blob "$EXPERIMENT_DIR/EVALUATOR.json" 55d28e6564396408f293f67ebabfc258e41ae9ef
-          check_blob "$EXPERIMENT_DIR/EXTERNAL_TRACE.json" fb056e547feaedfead6b2bb67f87e31449d21466
-          check_blob "$EXPERIMENT_DIR/PROTOCOL.json" 3dbf20fd96082221c90e348d15d943d5213ec8d1
-          check_blob "$EXPERIMENT_DIR/science_common.py" 77cee99a8ff131b31165521fa8c9cfb76a7ce174
-          check_blob "$EXPERIMENT_DIR/condition_runner.py" 70b696bcfdb3ba7fc7f4010a1143aac1063c452b
-          check_blob "$EXPERIMENT_DIR/aggregate.py" ac86908be386b0159f52bcf45d4dd0e0786daae4
-          check_blob "$EXPERIMENT_DIR/stimuli/episode_1.json" 9b91ed85c5a3f0e1495fbcda627b660857743235
-          check_blob "$EXPERIMENT_DIR/stimuli/episode_2.json" 22e590dd8318ac64cc12bd3d41fc765e6ce7db46
-          check_blob "$EXPERIMENT_DIR/stimuli/episode_3.json" 426055ca45b40476e0baa9917c72a7d1aba0332f
-          check_blob "$EXPERIMENT_DIR/stimuli/episode_4.json" fb232b0b6683276d8d323cc306071d7e5cf83f55
-          check_blob "$EXPERIMENT_DIR/stimuli/episode_5.json" 8c00d81963e25f998348aac88ebdf92d45077e95
-          check_blob "$EXPERIMENT_DIR/stimuli/episode_6.json" 8091870b4f8ac512ac835d9db48f16a80033ad15
-      - name: Revalidate frozen contract
-        run: python "$EXPERIMENT_DIR/validate_contract.py"
-
-  condition:
-    needs: contract
-    strategy:
-      fail-fast: false
-      max-parallel: 5
-      matrix:
-        condition: [B, C, G, M, X]
-    runs-on: ubuntu-latest
-    timeout-minutes: 90
-    env:
-      KAGGLE_API_TOKEN: ${{ secrets.KAGGLE_API_TOKEN }}
-      COND: ${{ matrix.condition }}
-      SOURCE_SHA: ${{ github.sha }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.sha }}
-          fetch-depth: 1
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-      - name: Revalidate exact frozen inputs
-        run: python "$EXPERIMENT_DIR/validate_contract.py"
-      - name: Install Kaggle CLI
-        run: python -m pip install --quiet --upgrade kaggle
-      - name: Build private condition kernel
-        shell: bash
-        run: |
-          set -euo pipefail
-          test -n "${KAGGLE_API_TOKEN:-}"
-          rm -rf vela_kaggle vela_kaggle_out
-          mkdir -p vela_kaggle/stimuli
-          cp "$EXPERIMENT_DIR/science_common.py" vela_kaggle/
-          cp "$EXPERIMENT_DIR/condition_runner.py" vela_kaggle/
-          cp "$EXPERIMENT_DIR/MODEL_STIMULI_INDEX.json" vela_kaggle/
-          cp "$EXPERIMENT_DIR/EVALUATOR.json" vela_kaggle/
-          cp "$EXPERIMENT_DIR/EXTERNAL_TRACE.json" vela_kaggle/
-          cp "$EXPERIMENT_DIR"/stimuli/*.json vela_kaggle/stimuli/
-          cat > vela_kaggle/main.py <<PY
-          import json, os, runpy, sys, traceback
-          from pathlib import Path
-          cond = '${COND}'
-          os.environ['VELA_CONDITION'] = cond
-          os.environ['VELA_SOURCE_COMMIT'] = '${SOURCE_SHA}'
-          try:
-              src = Path(__file__).resolve().parent
-              sys.path.insert(0, str(src))
-              target = src / 'condition_runner.py'
-              if not target.is_file():
-                  raise FileNotFoundError(f'condition runner missing beside Kaggle script: {target}; src_entries={[p.name for p in src.iterdir()]}')
-              runpy.run_path(str(target), run_name='__main__')
-          except BaseException as exc:
-              out = Path.cwd() / f'condition_result_{cond}.json'
-              if not out.exists():
-                  out.write_text(json.dumps({
-                      'status':'BOOTSTRAP_ERROR',
-                      'scientific_evidence':False,
-                      'condition':cond,
-                      'source_commit':'${SOURCE_SHA}',
-                      'error_type':type(exc).__name__,
-                      'error':str(exc),
-                      'script_path':str(Path(__file__).resolve()),
-                      'cwd':str(Path.cwd()),
-                      'traceback_tail':traceback.format_exc().splitlines()[-80:]
-                  }, indent=2) + '\n')
-              raise
-          PY
-          python - <<'PY'
-          import json, os, urllib.parse, urllib.request
-          from pathlib import Path
-          token=os.environ['KAGGLE_API_TOKEN']
-          req=urllib.request.Request('https://www.kaggle.com/api/v1/oauth2/introspect',data=urllib.parse.urlencode({'token':token}).encode(),headers={'Content-Type':'application/x-www-form-urlencoded'},method='POST')
-          with urllib.request.urlopen(req,timeout=30) as r: data=json.load(r)
-          owner=(data.get('username') or '').strip()
-          if not data.get('active') or not owner: raise SystemExit('inactive Kaggle token')
-          cond=os.environ['COND'].lower(); slug=f'vela-r2-2p9b-science-v0-{cond}'; kernel=f'{owner}/{slug}'
-          meta={'id':kernel,'title':slug,'code_file':'main.py','language':'python','kernel_type':'script','is_private':True,'enable_gpu':True,'enable_internet':True,'dataset_sources':[],'competition_sources':[],'kernel_sources':[],'model_sources':[]}
-          Path('vela_kaggle/kernel-metadata.json').write_text(json.dumps(meta,indent=2)+'\n')
-          Path('kernel-id.txt').write_text(kernel+'\n')
-          PY
-      - name: Push scientific condition kernel
-        id: push
-        continue-on-error: true
-        run: kaggle kernels push -p vela_kaggle -t 900
-      - name: Collect condition result
-        if: steps.push.outcome == 'success'
-        shell: bash
-        run: |
-          set -u
-          K=$(cat kernel-id.txt)
-          RESULT="/tmp/condition_result_${COND}.json"
-          FOUND=0
-          for i in $(seq 1 360); do
-            rm -rf vela_kaggle_out; mkdir vela_kaggle_out
-            O=$(kaggle kernels output "$K" -p vela_kaggle_out --force 2>&1 || true)
-            echo "VELA_KAGGLE_OUTPUT condition=$COND attempt=$i ${O//$'\n'/ }"
-            F=$(find vela_kaggle_out -type f -name "condition_result_${COND}.json" -print -quit)
-            if [[ -n "$F" ]]; then cp "$F" "$RESULT"; FOUND=1; break; fi
-            sleep 10
-          done
-          if [[ "$FOUND" != "1" ]]; then
-            printf '{"status":"CONDITION_COLLECTION_TIMEOUT","scientific_evidence":false,"condition":"%s","source_commit":"%s"}\n' "$COND" "$SOURCE_SHA" > "$RESULT"
-          fi
-          cat "$RESULT"
-      - name: Record push failure
-        if: steps.push.outcome != 'success'
-        shell: bash
-        run: |
-          printf '{"status":"CONDITION_PUSH_ERROR","scientific_evidence":false,"condition":"%s","source_commit":"%s"}\n' "$COND" "$SOURCE_SHA" > "/tmp/condition_result_${COND}.json"
-      - name: Upload raw condition evidence
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: vela-r2-02-condition-${{ matrix.condition }}
-          path: /tmp/condition_result_${{ matrix.condition }}.json
-          if-no-files-found: error
-          retention-days: 14
-      - name: Validate scientific shard
-        if: always()
-        shell: bash
-        run: |
-          python - <<'PY'
-          import json, os
-          p=f"/tmp/condition_result_{os.environ['COND']}.json"
-          r=json.load(open(p))
-          assert r.get('status')=='P-R2-02_CONDITION_RESULT', r
-          assert r.get('scientific_evidence') is True, r
-          assert r.get('source_commit')==os.environ['SOURCE_SHA'], r
-          assert r.get('condition')==os.environ['COND'], r
-          PY
-      - name: Cleanup
-        if: always()
-        run: rm -rf vela_kaggle vela_kaggle_out kernel-id.txt
-
-  aggregate:
-    needs: condition
+  modal-smoke:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout exact triggering commit
+        uses: actions/checkout@v4
         with:
           ref: ${{ github.sha }}
           fetch-depth: 1
+
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Download all five shards
-        uses: actions/download-artifact@v4
-        with:
-          pattern: vela-r2-02-condition-*
-          path: /tmp/shards
-          merge-multiple: true
-      - name: Revalidate contract before aggregation
-        run: python "$EXPERIMENT_DIR/validate_contract.py"
-      - name: Aggregate and classify
-        run: python "$EXPERIMENT_DIR/aggregate.py" /tmp/shards
-      - name: Validate aggregate envelope
+
+      - name: Verify Modal credentials are present
+        shell: bash
         run: |
+          set -euo pipefail
+          test -n "${MODAL_TOKEN_ID:-}" || { echo '::error::MODAL_TOKEN_ID is not available to this repository'; exit 2; }
+          test -n "${MODAL_TOKEN_SECRET:-}" || { echo '::error::MODAL_TOKEN_SECRET is not available to this repository'; exit 2; }
+          echo 'Modal credential pair is present; values intentionally not printed.'
+
+      - name: Install Modal client
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --quiet --upgrade pip
+          python -m pip install --quiet modal
+          modal --version
+          modal token info
+
+      - name: Build ephemeral Modal GPU probe
+        shell: bash
+        run: |
+          cat > /tmp/vela_modal_smoke.py <<'PY'
+          import json
+          import os
+          import subprocess
+          import modal
+
+          app = modal.App('vela-r2-2p9b-modal-smoke-v0')
+
+          @app.function(gpu='L4', timeout=180)
+          def gpu_probe():
+              query = subprocess.check_output(
+                  [
+                      'nvidia-smi',
+                      '--query-gpu=name,memory.total,driver_version',
+                      '--format=csv,noheader,nounits',
+                  ],
+                  text=True,
+              ).strip()
+              return {
+                  'status': 'PASS',
+                  'scientific_evidence': False,
+                  'provider': 'modal',
+                  'gpu_request': 'L4',
+                  'nvidia_smi': query,
+                  'cuda_visible_devices': os.environ.get('CUDA_VISIBLE_DEVICES'),
+              }
+
+          @app.local_entrypoint()
+          def main():
+              result = gpu_probe.remote()
+              print('VELA_MODAL_SMOKE_JSON=' + json.dumps(result, sort_keys=True))
+          PY
+
+      - name: Run one tiny L4 GPU allocation
+        shell: bash
+        run: |
+          set -euo pipefail
+          modal run /tmp/vela_modal_smoke.py | tee /tmp/modal-smoke.log
+          grep '^VELA_MODAL_SMOKE_JSON=' /tmp/modal-smoke.log > /tmp/modal-smoke-result.txt
           python - <<'PY'
           import json
-          r=json.load(open('scientific_result.json'))
-          assert r.get('status')=='P-R2-02_RESULT'
-          assert r.get('scientific_evidence') is True
-          assert r.get('scientific_matrix_run_ordinal')==1
-          assert r.get('shard_conditions')==['B','C','G','M','X']
+          from pathlib import Path
+          line = Path('/tmp/modal-smoke-result.txt').read_text().strip()
+          result = json.loads(line.split('=', 1)[1])
+          assert result['status'] == 'PASS', result
+          assert result['scientific_evidence'] is False, result
+          assert result['provider'] == 'modal', result
+          assert result['gpu_request'] == 'L4', result
+          Path('/tmp/modal-smoke-result.json').write_text(json.dumps(result, indent=2, sort_keys=True) + '\n')
+          print(json.dumps(result, indent=2, sort_keys=True))
           PY
-      - name: Upload authoritative scientific result
+
+      - name: Upload non-scientific smoke evidence
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: vela-r2-02-scientific-result
-          path: scientific_result.json
-          if-no-files-found: error
-          retention-days: 30
+          name: vela-r2-02-modal-gpu-smoke-v0
+          path: |
+            /tmp/modal-smoke.log
+            /tmp/modal-smoke-result.json
+          if-no-files-found: warn
+          retention-days: 7
