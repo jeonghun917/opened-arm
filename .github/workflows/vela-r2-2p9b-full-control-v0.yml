@@ -13,7 +13,7 @@ permissions:
 
 concurrency:
   group: vela-r2-2p9b-full-control-v0
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 env:
   EXPERIMENT_DIR: experiments/vela-active-state/r2-2p9b-full-control-v0
@@ -41,7 +41,7 @@ jobs:
           set -euo pipefail
           actual="$(git rev-parse HEAD)"
           [[ "$actual" == "$GITHUB_SHA" ]] || { echo "::error::checkout drift"; exit 1; }
-          [[ "$(git hash-object "$EXPERIMENT_DIR/gpu_preflight.py")" == "c3b8e8db3f6dfb682b1a8e6e1c2494175dfe4d3d" ]] || { echo "::error::gpu preflight blob drift"; exit 1; }
+          [[ "$(git hash-object "$EXPERIMENT_DIR/gpu_preflight.py")" == "7f3801df39f0689fd4135730f4c15c780f9ebab9" ]] || { echo "::error::gpu preflight blob drift"; exit 1; }
 
       - name: Install Kaggle CLI
         run: python -m pip install --quiet --upgrade kaggle
@@ -112,6 +112,13 @@ jobs:
           fi
           cp vela_kaggle_out/gpu_preflight.json /tmp/vela-r2-2p9b-gpu-preflight.json
           cat /tmp/vela-r2-2p9b-gpu-preflight.json
+          python - <<'PY'
+          import json
+          p='/tmp/vela-r2-2p9b-gpu-preflight.json'
+          r=json.load(open(p))
+          if r.get('status') != 'PASS':
+              raise SystemExit('GPU preflight returned non-PASS artifact')
+          PY
 
       - name: Upload GPU preflight evidence
         uses: actions/upload-artifact@v4

@@ -8,11 +8,23 @@ import os
 import subprocess
 import sys
 import time
+import traceback
 from pathlib import Path
 
 
+EXPECTED_TORCH = "2.7.1+cu126"
+
+
 def ensure_runtime() -> None:
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "--quiet", "rwkv==0.8.32", "tokenizers==0.21.4", "numpy==2.4.6", "huggingface_hub==0.36.0"])
+    subprocess.check_call([
+        sys.executable, "-m", "pip", "install", "--quiet",
+        "--extra-index-url", "https://download.pytorch.org/whl/cu126",
+        f"torch=={EXPECTED_TORCH}",
+        "rwkv==0.8.32",
+        "tokenizers==0.21.4",
+        "numpy==2.4.6",
+        "huggingface_hub==0.36.0",
+    ])
 
 
 def sha256_file(path: Path) -> str:
@@ -27,14 +39,25 @@ def state_bytes(state) -> int:
     return int(sum(x.numel() * x.element_size() for x in state))
 
 
+def write_report(report: dict) -> None:
+    Path("gpu_preflight.json").write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    print(json.dumps(report, ensure_ascii=False, indent=2), flush=True)
+
+
 def main() -> None:
     ensure_runtime()
     import numpy as np
     import torch
     from huggingface_hub import hf_hub_download
 
+    if torch.__version__ != EXPECTED_TORCH:
+        raise RuntimeError(f"torch version drift: expected {EXPECTED_TORCH}, got {torch.__version__}")
     if not torch.cuda.is_available():
         raise RuntimeError("Kaggle GPU preflight requires CUDA")
+    arches = list(torch.cuda.get_arch_list())
+    capability = tuple(int(x) for x in torch.cuda.get_device_capability(0))
+    if capability == (6, 0) and "sm_60" not in arches:
+        raise RuntimeError(f"P100 requires sm_60 but wheel arches are {arches}")
 
     os.environ["RWKV_V7_ON"] = "1"
     os.environ["RWKV_JIT_ON"] = "1"
@@ -102,26 +125,50 @@ def main() -> None:
         gc.collect()
         torch.cuda.empty_cache()
 
-    report = {
+    write_report({
         "status": "PASS",
         "scientific_evidence": False,
         "purpose": "result-blind matched-GPU backend preflight for P-R2-02",
         "runtime": {
             "python": sys.version.split()[0],
             "torch": torch.__version__,
+            "torch_cuda_arch_list": arches,
             "rwkv": importlib.metadata.version("rwkv"),
             "tokenizers": importlib.metadata.version("tokenizers"),
             "numpy": np.__version__,
             "cuda": torch.version.cuda,
             "device": torch.cuda.get_device_name(0),
+            "device_capability": list(capability),
             "strategy": "cuda fp16",
             "rwkv_cuda_kernel": False,
         },
         "models": results,
-    }
-    Path("gpu_preflight.json").write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    print(json.dumps(report, ensure_ascii=False, indent=2), flush=True)
+    })
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except BaseException as exc:
+        runtime = {"python": sys.version.split()[0]}
+        try:
+            import torch
+            runtime.update({
+                "torch": torch.__version__,
+                "cuda": torch.version.cuda,
+                "cuda_available": bool(torch.cuda.is_available()),
+                "torch_cuda_arch_list": list(torch.cuda.get_arch_list()) if torch.cuda.is_available() else [],
+                "device": torch.cuda.get_device_name(0) if torch.cuda.is_available() else None,
+                "device_capability": list(torch.cuda.get_device_capability(0)) if torch.cuda.is_available() else None,
+            })
+        except BaseException:
+            pass
+        write_report({
+            "status": "PREFLIGHT_ERROR",
+            "scientific_evidence": False,
+            "error_type": type(exc).__name__,
+            "error": str(exc),
+            "runtime": runtime,
+            "traceback_tail": traceback.format_exc().splitlines()[-80:],
+        })
+        raise
