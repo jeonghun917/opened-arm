@@ -18,6 +18,7 @@ on:
       - 'experiments/vela-active-state/r2-2p9b-full-control-v0/runpod_state_roundtrip_diagnostic_v2.py'
       - 'experiments/vela-active-state/r2-2p9b-full-control-v0/RUNPOD_DIAGNOSTIC_SPEC_V2.json'
       - 'experiments/vela-active-state/r2-2p9b-full-control-v0/runpod_state_diagnostic_launch_v2.sh'
+      - 'experiments/vela-active-state/r2-2p9b-full-control-v0/RUNPOD_DIAGNOSTIC_ATTEMPT_01.json'
   workflow_dispatch:
 
 permissions:
@@ -67,6 +68,7 @@ jobs:
             'experiments/vela-active-state/r2-2p9b-full-control-v0/runpod_state_roundtrip_diagnostic_v2.py'
             'experiments/vela-active-state/r2-2p9b-full-control-v0/RUNPOD_DIAGNOSTIC_SPEC_V2.json'
             'experiments/vela-active-state/r2-2p9b-full-control-v0/runpod_state_diagnostic_launch_v2.sh'
+            'experiments/vela-active-state/r2-2p9b-full-control-v0/RUNPOD_DIAGNOSTIC_ATTEMPT_01.json'
           )
           for p in "${changed[@]}"; do
             ok=0
@@ -98,17 +100,34 @@ jobs:
           from pathlib import Path
           p=Path('experiments/vela-active-state/r2-2p9b-full-control-v0')
           s=json.loads((p/'RUNPOD_DIAGNOSTIC_SPEC_V2.json').read_text())
+          a=json.loads((p/'RUNPOD_DIAGNOSTIC_ATTEMPT_01.json').read_text())
           assert s['schema']=='vela-runpod-state-diagnostic-spec:v2'
           assert s['phase']=='STATE_DIAGNOSTIC_ONLY'
           assert s['scientificExecutionAuthorized'] is False
           assert s['automaticRetry'] is False and s['fallbackProviders']==[]
+          assert s['attemptAuthorization']['consumedByRunId']==34748007249
+          assert 'FIRST_CONTINUATION_WARMUP_OR_RUNTIME_ORDER_EFFECT' in s['diagnostic']['classifications']
+          assert s['transport']['marker']=='VELA_STATE_DIAGNOSTIC_V2_SUMMARY'
+          assert s['transport']['fullPerTensorReportPrintedToSingleLogLine'] is False
+          assert s['transport']['postResultHoldSeconds']==900
           assert s['target']['gpuId']=='NVIDIA A40' and s['target']['cloud']=='SECURE'
           assert s['budget']['maxPodCount']==1 and s['budget']['maxTotalUsd']==0.50
+          assert a['workflowRunId']==34748007249 and a['artifactId']==10315555496
+          assert a['pod']['deleted'] is True
+          assert a['recoveredDiagnostic']['serializationExact'] is True
+          assert a['recoveredDiagnostic']['metadataEqual'] is True
+          assert a['recoveredDiagnostic']['originalRepeat']['logitsExact'] is False
+          assert a['recoveredDiagnostic']['restoredRepeat']['logitsExact'] is True
+          assert a['recoveredDiagnostic']['originalVsRestoredSecond']['logitsExact'] is True
+          assert a['transportDefect']['present'] is True
           launch=(p/'runpod_state_diagnostic_launch_v2.sh').read_text()
-          for required in ['VELA_RUNPOD_DIAGNOSTIC_AUTHORIZED','NVIDIA A40','GPU_PRICE_CAP="0.49"','--cloud-type SECURE','--ssh=false','pod delete','WORKLOAD_TIMEOUT_SECONDS=1200']:
+          diag=(p/'runpod_state_roundtrip_diagnostic_v2.py').read_text()
+          for required in ['VELA_RUNPOD_DIAGNOSTIC_AUTHORIZED','NVIDIA A40','GPU_PRICE_CAP="0.49"','--cloud-type SECURE','--ssh=false','pod delete','WORKLOAD_TIMEOUT_SECONDS=1200','POST_RESULT_HOLD_SECONDS=900','VELA_STATE_DIAGNOSTIC_V2_SUMMARY']:
               assert required in launch, required
+          assert 'VELA_STATE_DIAGNOSTIC_V2_SUMMARY=' in diag
+          assert 'VELA_STATE_DIAGNOSTIC_V2_JSON=' not in diag
           for forbidden in ['MODEL_STIMULI_INDEX','EVALUATOR.json','EXTERNAL_TRACE.json','VELA_CONDITION','condition_runner.py','aggregate.py']:
-              assert forbidden not in (p/'runpod_state_roundtrip_diagnostic_v2.py').read_text(), forbidden
+              assert forbidden not in diag, forbidden
           PY
       - name: Revalidate frozen P-R2-02 contract
         run: python "$EXPERIMENT_DIR/validate_contract.py"
@@ -251,9 +270,9 @@ jobs:
           d=r['diagnostic']
           assert d['status']=='DIAGNOSTIC_COMPLETE' and d['scientific_evidence'] is False
           assert d['classification'] in {
-            'SERIALIZATION_DEFECT','BASE_RUNTIME_NONDETERMINISM_OR_MODEL_MUTATION',
-            'RESTORED_RUNTIME_NONDETERMINISM','NO_DIVERGENCE_REPRODUCED',
-            'RESTORE_SPECIFIC_EXECUTION_DIVERGENCE'
+            'SERIALIZATION_DEFECT','FIRST_CONTINUATION_WARMUP_OR_RUNTIME_ORDER_EFFECT',
+            'BASE_RUNTIME_NONDETERMINISM_OR_MODEL_MUTATION','RESTORED_RUNTIME_NONDETERMINISM',
+            'NO_DIVERGENCE_REPRODUCED','RESTORE_SPECIFIC_EXECUTION_DIVERGENCE'
           }
           PY
       - name: Upload authoritative state diagnostic v2 evidence
