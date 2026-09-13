@@ -1,0 +1,71 @@
+{
+  "schema": "vela-runpod-preflight-spec:v1",
+  "task": "vela-r2-2p9b-full-control-scale-replication-v0",
+  "provider": "RUNPOD",
+  "mode": "POD",
+  "phase": "PREFLIGHT_ONLY",
+  "preflightAuthorized": true,
+  "scientificExecutionAuthorized": false,
+  "automaticRetry": false,
+  "fallbackProviders": [],
+  "sourceKaggleHead": "a1cb641b17436f5376df682db57243b75320bdeb",
+  "frozenGpuPreflight": {
+    "path": "experiments/vela-active-state/r2-2p9b-full-control-v0/gpu_preflight.py",
+    "gitBlobSha1": "7f3801df39f0689fd4135730f4c15c780f9ebab9",
+    "reuseExactP100PreflightLogic": true
+  },
+  "target": {
+    "gpuId": "NVIDIA A40",
+    "displayName": "A40",
+    "memoryInGb": 48,
+    "cloud": "SECURE",
+    "maxSecurePricePerHrUsd": 0.49,
+    "observedStockStatus": "Low",
+    "containerImageTag": "python:3.12.13-slim-bookworm",
+    "resolveAndPinLinuxAmd64DigestBeforeCreate": true,
+    "containerDiskInGb": 20,
+    "ssh": false,
+    "minCudaVersion": "12.6"
+  },
+  "budget": {
+    "maxTotalUsd": 0.50,
+    "maxPodCount": 1,
+    "maxRuntimeSeconds": 1800,
+    "workloadTimeoutSeconds": 1500
+  },
+  "model": {
+    "repo": "BlinkDL/rwkv7-g1",
+    "revision": "2448c93da77d9958ea89a9faa4c1b34c5c46ccec",
+    "file": "rwkv7-g1a-2.9b-20250924-ctx4096.pth",
+    "size": 5896274949,
+    "sha256": "df5716263b617e7da83590446fb2a98b6663447cfd52e8e9b49e11ce7f4faa3e"
+  },
+  "runtime": {
+    "pythonExpected": "3.12.13",
+    "torchExpected": "2.7.1+cu126",
+    "rwkvExpected": "0.8.32",
+    "numpyExpected": "2.4.6",
+    "tokenizersExpected": "0.21.4",
+    "strategy": "cuda fp16",
+    "rwkvCudaKernel": false
+  },
+  "requiredChecks": [
+    "exact 0.4B and 2.9B model identity from frozen gpu_preflight.py",
+    "2.9B load and neutral forward pass",
+    "exact recurrent state serialize/restore",
+    "post-restore continuation logits equality",
+    "exact provider GPU identity",
+    "container image linux/amd64 digest pinned before pod create",
+    "RunPod pod evidence exported to GitHub artifact",
+    "pod delete attempted in EXIT cleanup"
+  ],
+  "resultTransport": "RUNPOD_POD_LOGS_TO_GITHUB_ACTIONS_ARTIFACT",
+  "scientificGate": {
+    "enabled": false,
+    "enableOnlyAfter": [
+      "RunPod preflight PASS",
+      "exact provider/runtime identity written to Neon",
+      "separate canonical scientific-matrix budget/enable"
+    ]
+  }
+}
