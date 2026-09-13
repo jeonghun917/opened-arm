@@ -12,11 +12,12 @@ permissions:
 
 concurrency:
   group: vela-r2-2p9b-full-control-v0-science
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 env:
   EXPERIMENT_DIR: experiments/vela-active-state/r2-2p9b-full-control-v0
   BASELINE_SHA: 8b07aceedc3c0b39682448216f83a5203fdbc2b3
+  PRIOR_INFRA_BLOCKED_SHA: 2ccfcb1ccb17537b0aff553741507912865a103f
 
 jobs:
   contract:
@@ -26,16 +27,17 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.sha }}
-          fetch-depth: 2
+          fetch-depth: 3
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Verify workflow-only scientific candidate
+      - name: Verify workflow-only infrastructure repair candidate
         shell: bash
         run: |
           set -euo pipefail
           [[ "$(git rev-parse HEAD)" == "$GITHUB_SHA" ]]
-          [[ "$(git rev-parse HEAD^)" == "$BASELINE_SHA" ]]
+          [[ "$(git rev-parse HEAD^)" == "$PRIOR_INFRA_BLOCKED_SHA" ]]
+          git merge-base --is-ancestor "$BASELINE_SHA" "$GITHUB_SHA"
           mapfile -t changed < <(git diff --name-only "$BASELINE_SHA" "$GITHUB_SHA")
           printf 'changed=%s\n' "${changed[*]}"
           [[ "${#changed[@]}" == "1" ]]
@@ -96,10 +98,33 @@ jobs:
           cp "$EXPERIMENT_DIR/EXTERNAL_TRACE.json" vela_kaggle/
           cp "$EXPERIMENT_DIR"/stimuli/*.json vela_kaggle/stimuli/
           cat > vela_kaggle/main.py <<PY
-          import os, runpy
-          os.environ['VELA_CONDITION'] = '${COND}'
+          import json, os, runpy, sys, traceback
+          from pathlib import Path
+          cond = '${COND}'
+          os.environ['VELA_CONDITION'] = cond
           os.environ['VELA_SOURCE_COMMIT'] = '${SOURCE_SHA}'
-          runpy.run_path('condition_runner.py', run_name='__main__')
+          try:
+              src = Path(__file__).resolve().parent
+              sys.path.insert(0, str(src))
+              target = src / 'condition_runner.py'
+              if not target.is_file():
+                  raise FileNotFoundError(f'condition runner missing beside Kaggle script: {target}; src_entries={[p.name for p in src.iterdir()]}')
+              runpy.run_path(str(target), run_name='__main__')
+          except BaseException as exc:
+              out = Path.cwd() / f'condition_result_{cond}.json'
+              if not out.exists():
+                  out.write_text(json.dumps({
+                      'status':'BOOTSTRAP_ERROR',
+                      'scientific_evidence':False,
+                      'condition':cond,
+                      'source_commit':'${SOURCE_SHA}',
+                      'error_type':type(exc).__name__,
+                      'error':str(exc),
+                      'script_path':str(Path(__file__).resolve()),
+                      'cwd':str(Path.cwd()),
+                      'traceback_tail':traceback.format_exc().splitlines()[-80:]
+                  }, indent=2) + '\n')
+              raise
           PY
           python - <<'PY'
           import json, os, urllib.parse, urllib.request
