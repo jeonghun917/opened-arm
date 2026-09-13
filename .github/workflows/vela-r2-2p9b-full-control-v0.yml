@@ -14,6 +14,8 @@ on:
       - 'experiments/vela-active-state/r2-2p9b-full-control-v0/runpod_preflight_launch_v1.sh'
       - 'experiments/vela-active-state/r2-2p9b-full-control-v0/validate_runpod_preflight_v1.py'
       - 'experiments/vela-active-state/r2-2p9b-full-control-v0/RUNPOD_PREFLIGHT_ATTEMPT_01.json'
+      - 'experiments/vela-active-state/r2-2p9b-full-control-v0/RUNPOD_PREFLIGHT_ATTEMPT_02.json'
+      - 'experiments/vela-active-state/r2-2p9b-full-control-v0/runpod_state_roundtrip_diagnostic_v2.py'
   workflow_dispatch:
 
 permissions:
@@ -59,6 +61,8 @@ jobs:
             'experiments/vela-active-state/r2-2p9b-full-control-v0/runpod_preflight_launch_v1.sh'
             'experiments/vela-active-state/r2-2p9b-full-control-v0/validate_runpod_preflight_v1.py'
             'experiments/vela-active-state/r2-2p9b-full-control-v0/RUNPOD_PREFLIGHT_ATTEMPT_01.json'
+            'experiments/vela-active-state/r2-2p9b-full-control-v0/RUNPOD_PREFLIGHT_ATTEMPT_02.json'
+            'experiments/vela-active-state/r2-2p9b-full-control-v0/runpod_state_roundtrip_diagnostic_v2.py'
           )
           for p in "${changed[@]}"; do
             ok=0
@@ -80,6 +84,14 @@ jobs:
           check_blob "$EXPERIMENT_DIR/stimuli/episode_4.json" fb232b0b6683276d8d323cc306071d7e5cf83f55
           check_blob "$EXPERIMENT_DIR/stimuli/episode_5.json" 8c00d81963e25f998348aac88ebdf92d45077e95
           check_blob "$EXPERIMENT_DIR/stimuli/episode_6.json" 8091870b4f8ac512ac835d9db48f16a80033ad15
+      - name: Validate nonpaid state diagnostic v2 instrumentation
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m py_compile "$EXPERIMENT_DIR/runpod_state_roundtrip_diagnostic_v2.py"
+          for forbidden in MODEL_STIMULI_INDEX EVALUATOR.json EXTERNAL_TRACE.json VELA_CONDITION condition_runner.py aggregate.py; do
+            ! grep -F "$forbidden" "$EXPERIMENT_DIR/runpod_state_roundtrip_diagnostic_v2.py"
+          done
       - name: Revalidate frozen P-R2-02 contract
         run: python "$EXPERIMENT_DIR/validate_contract.py"
       - name: Validate RunPod preflight v1 gate
