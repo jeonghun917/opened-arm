@@ -13,6 +13,7 @@ on:
       - 'experiments/vela-active-state/r2-2p9b-full-control-v0/runpod_state_roundtrip_v1.py'
       - 'experiments/vela-active-state/r2-2p9b-full-control-v0/runpod_preflight_launch_v1.sh'
       - 'experiments/vela-active-state/r2-2p9b-full-control-v0/validate_runpod_preflight_v1.py'
+      - 'experiments/vela-active-state/r2-2p9b-full-control-v0/RUNPOD_PREFLIGHT_ATTEMPT_01.json'
   workflow_dispatch:
 
 permissions:
@@ -57,6 +58,7 @@ jobs:
             'experiments/vela-active-state/r2-2p9b-full-control-v0/runpod_state_roundtrip_v1.py'
             'experiments/vela-active-state/r2-2p9b-full-control-v0/runpod_preflight_launch_v1.sh'
             'experiments/vela-active-state/r2-2p9b-full-control-v0/validate_runpod_preflight_v1.py'
+            'experiments/vela-active-state/r2-2p9b-full-control-v0/RUNPOD_PREFLIGHT_ATTEMPT_01.json'
           )
           for p in "${changed[@]}"; do
             ok=0
