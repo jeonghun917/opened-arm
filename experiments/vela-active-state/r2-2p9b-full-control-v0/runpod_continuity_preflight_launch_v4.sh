@@ -63,13 +63,39 @@ BOOTSTRAP="$(cat <<'SH'
 set -u
 mkdir -p /workspace/vela
 cd /workspace/vela
+rc=0
 python -m pip install --quiet --extra-index-url https://download.pytorch.org/whl/cu126 \
-  torch==2.7.1+cu126 rwkv==0.8.32 tokenizers==0.21.4 numpy==2.4.6 huggingface_hub==0.36.0
-python - <<'PY'
+  torch==2.7.1+cu126 rwkv==0.8.32 tokenizers==0.21.4 numpy==2.4.6 huggingface_hub==0.36.0 || rc=$?
+if [ "$rc" -ne 0 ]; then
+  echo "VELA_CONTINUITY_V4_BOOTSTRAP_EXIT=$rc"
+  exit "$rc"
+fi
+python - <<'PY' || rc=$?
+import json, torch
+name=torch.cuda.get_device_name(0)
+cap=list(torch.cuda.get_device_capability(0))
+arches=list(torch.cuda.get_arch_list())
+report={"device":name,"device_capability":cap,"torch":torch.__version__,"cuda":torch.version.cuda,"torch_arch_list":arches}
+print("VELA_CONTINUITY_V4_RUNTIME_IDENTITY="+json.dumps(report,separators=(",",":"),sort_keys=True),flush=True)
+if cap != [8,0]:
+    raise SystemExit(f"unexpected A100 capability {cap}")
+if "sm_80" not in arches:
+    raise SystemExit(f"torch wheel missing sm_80: {arches}")
+if "A100" not in name:
+    raise SystemExit(f"unexpected device name {name}")
+PY
+if [ "$rc" -ne 0 ]; then
+  echo "VELA_CONTINUITY_V4_BOOTSTRAP_EXIT=$rc"
+  exit "$rc"
+fi
+python - <<'PY' || rc=$?
 import os, urllib.request
 urllib.request.urlretrieve(os.environ['VELA_CONTINUITY_V4_URL'], 'runpod_continuity_preflight_v2.py')
 PY
-rc=0
+if [ "$rc" -ne 0 ]; then
+  echo "VELA_CONTINUITY_V4_BOOTSTRAP_EXIT=$rc"
+  exit "$rc"
+fi
 VELA_SOURCE_COMMIT="$VELA_SOURCE_COMMIT" VELA_CONTINUITY_PREFLIGHT_DIR=/workspace/vela python runpod_continuity_preflight_v2.py || rc=$?
 echo "VELA_CONTINUITY_V4_BOOTSTRAP_EXIT=$rc"
 if [ "$rc" -eq 0 ]; then sleep "$VELA_POST_RESULT_HOLD_SECONDS"; fi
@@ -113,19 +139,23 @@ while (( $(date +%s) < DEADLINE )); do
   runpodctl pod get "$POD_ID" --include-machine > "$EVIDENCE_DIR/pod-get.json" 2> "$EVIDENCE_DIR/pod-get.err" || true
   runpodctl pod logs "$POD_ID" --source container --tail 5000 --max-wait 3s > "$EVIDENCE_DIR/pod-logs.jsonl" 2> "$EVIDENCE_DIR/pod-logs.err" || true
   set +e
-  python - "$EVIDENCE_DIR/pod-logs.jsonl" "$EVIDENCE_DIR/continuity-v4-result.json" "$EVIDENCE_DIR/bootstrap-exit.json" <<'PY'
+  python - "$EVIDENCE_DIR/pod-logs.jsonl" "$EVIDENCE_DIR/continuity-v4-result.json" "$EVIDENCE_DIR/bootstrap-exit.json" "$EVIDENCE_DIR/runtime-identity.json" <<'PY'
 import json,sys
-src,out,exitout=sys.argv[1:]; result=None; bootstrap_exit=None
+src,out,exitout,identityout=sys.argv[1:]; result=None; bootstrap_exit=None; identity=None
 try: lines=open(src,encoding='utf-8').read().splitlines()
 except FileNotFoundError: raise SystemExit(1)
 for raw in lines:
   try: obj=json.loads(raw); line=obj.get('line','')
   except Exception: continue
+  if line.startswith('VELA_CONTINUITY_V4_RUNTIME_IDENTITY='):
+    identity=json.loads(line.split('=',1)[1])
   if line.startswith('VELA_CONTINUITY_PREFLIGHT_V2_SUMMARY='):
     result=json.loads(line.split('=',1)[1])
   if line.startswith('VELA_CONTINUITY_V4_BOOTSTRAP_EXIT='):
     try: bootstrap_exit=int(line.rsplit('=',1)[1])
     except ValueError: bootstrap_exit=255
+if identity is not None:
+  json.dump(identity,open(identityout,'w'),indent=2,sort_keys=True)
 if result is not None:
   json.dump(result,open(out,'w'),indent=2,sort_keys=True); raise SystemExit(0)
 if bootstrap_exit is not None:
@@ -148,9 +178,13 @@ if [[ "$FOUND" != "1" ]]; then
   exit 78
 fi
 
-python - "$EVIDENCE_DIR/continuity-v4-result.json" "$VELA_SOURCE_COMMIT" <<'PY'
+python - "$EVIDENCE_DIR/continuity-v4-result.json" "$EVIDENCE_DIR/runtime-identity.json" "$VELA_SOURCE_COMMIT" <<'PY'
 import json,sys
-r=json.load(open(sys.argv[1])); source=sys.argv[2]
+r=json.load(open(sys.argv[1])); ident=json.load(open(sys.argv[2])); source=sys.argv[3]
+assert ident['device_capability']==[8,0], ident
+assert 'sm_80' in ident['torch_arch_list'], ident
+assert 'A100' in ident['device'], ident
+assert ident['torch']=='2.7.1+cu126', ident
 assert r.get('status')=='PASS', r
 assert r.get('scientific_evidence') is False, r
 assert r.get('source_commit')==source, r
@@ -175,7 +209,7 @@ python - "$EVIDENCE_DIR" "$START_EPOCH" "$END_EPOCH" "$GPU_PRICE_CAP" "$MAX_RUNT
 import json,sys
 from pathlib import Path
 p=Path(sys.argv[1]); start,end=int(sys.argv[2]),int(sys.argv[3]); price=float(sys.argv[4]); max_runtime=int(sys.argv[5])
-elapsed=max(0,end-start); result=json.load(open(p/'continuity-v4-result.json'))
+elapsed=max(0,end-start); result=json.load(open(p/'continuity-v4-result.json')); identity=json.load(open(p/'runtime-identity.json'))
 env={
  'status':result.get('status'),'classification':result.get('classification'),
  'scientific_evidence':False,'provider':'RUNPOD','phase':'CONTINUITY_PREFLIGHT_V4_ONLY',
@@ -183,6 +217,7 @@ env={
  'observed_secure_price_per_hr_usd':price,
  'estimated_gpu_cost_upper_bound_usd':round(elapsed*price/3600,6),
  'gpu':json.load(open(p/'selected-gpu.json')),
+ 'runtime_identity':identity,
  'result':result,'image_ref':(p/'image-ref.txt').read_text().strip()
 }
 json.dump(env,open(p/'continuity-v4-envelope.json','w'),indent=2,sort_keys=True)
