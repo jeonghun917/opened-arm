@@ -16,6 +16,8 @@ on:
       - 'experiments/vela-active-state/r2-2p9b-full-control-v0/RUNPOD_PREFLIGHT_ATTEMPT_01.json'
       - 'experiments/vela-active-state/r2-2p9b-full-control-v0/RUNPOD_PREFLIGHT_ATTEMPT_02.json'
       - 'experiments/vela-active-state/r2-2p9b-full-control-v0/runpod_state_roundtrip_diagnostic_v2.py'
+      - 'experiments/vela-active-state/r2-2p9b-full-control-v0/RUNPOD_DIAGNOSTIC_SPEC_V2.json'
+      - 'experiments/vela-active-state/r2-2p9b-full-control-v0/runpod_state_diagnostic_launch_v2.sh'
   workflow_dispatch:
 
 permissions:
@@ -63,6 +65,8 @@ jobs:
             'experiments/vela-active-state/r2-2p9b-full-control-v0/RUNPOD_PREFLIGHT_ATTEMPT_01.json'
             'experiments/vela-active-state/r2-2p9b-full-control-v0/RUNPOD_PREFLIGHT_ATTEMPT_02.json'
             'experiments/vela-active-state/r2-2p9b-full-control-v0/runpod_state_roundtrip_diagnostic_v2.py'
+            'experiments/vela-active-state/r2-2p9b-full-control-v0/RUNPOD_DIAGNOSTIC_SPEC_V2.json'
+            'experiments/vela-active-state/r2-2p9b-full-control-v0/runpod_state_diagnostic_launch_v2.sh'
           )
           for p in "${changed[@]}"; do
             ok=0
@@ -84,14 +88,28 @@ jobs:
           check_blob "$EXPERIMENT_DIR/stimuli/episode_4.json" fb232b0b6683276d8d323cc306071d7e5cf83f55
           check_blob "$EXPERIMENT_DIR/stimuli/episode_5.json" 8c00d81963e25f998348aac88ebdf92d45077e95
           check_blob "$EXPERIMENT_DIR/stimuli/episode_6.json" 8091870b4f8ac512ac835d9db48f16a80033ad15
-      - name: Validate nonpaid state diagnostic v2 instrumentation
+      - name: Validate state diagnostic v2 instrumentation
         shell: bash
         run: |
           set -euo pipefail
           python -m py_compile "$EXPERIMENT_DIR/runpod_state_roundtrip_diagnostic_v2.py"
-          for forbidden in MODEL_STIMULI_INDEX EVALUATOR.json EXTERNAL_TRACE.json VELA_CONDITION condition_runner.py aggregate.py; do
-            ! grep -F "$forbidden" "$EXPERIMENT_DIR/runpod_state_roundtrip_diagnostic_v2.py"
-          done
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('experiments/vela-active-state/r2-2p9b-full-control-v0')
+          s=json.loads((p/'RUNPOD_DIAGNOSTIC_SPEC_V2.json').read_text())
+          assert s['schema']=='vela-runpod-state-diagnostic-spec:v2'
+          assert s['phase']=='STATE_DIAGNOSTIC_ONLY'
+          assert s['scientificExecutionAuthorized'] is False
+          assert s['automaticRetry'] is False and s['fallbackProviders']==[]
+          assert s['target']['gpuId']=='NVIDIA A40' and s['target']['cloud']=='SECURE'
+          assert s['budget']['maxPodCount']==1 and s['budget']['maxTotalUsd']==0.50
+          launch=(p/'runpod_state_diagnostic_launch_v2.sh').read_text()
+          for required in ['VELA_RUNPOD_DIAGNOSTIC_AUTHORIZED','NVIDIA A40','GPU_PRICE_CAP="0.49"','--cloud-type SECURE','--ssh=false','pod delete','WORKLOAD_TIMEOUT_SECONDS=1200']:
+              assert required in launch, required
+          for forbidden in ['MODEL_STIMULI_INDEX','EVALUATOR.json','EXTERNAL_TRACE.json','VELA_CONDITION','condition_runner.py','aggregate.py']:
+              assert forbidden not in (p/'runpod_state_roundtrip_diagnostic_v2.py').read_text(), forbidden
+          PY
       - name: Revalidate frozen P-R2-02 contract
         run: python "$EXPERIMENT_DIR/validate_contract.py"
       - name: Validate RunPod preflight v1 gate
@@ -129,11 +147,8 @@ jobs:
           p=Path('/tmp/runpod-readiness')
           g=json.loads((p/'gpu-list.json').read_text())
           (p/'readiness.json').write_text(json.dumps({
-              'status':'AUTH_AND_INVENTORY_PASS',
-              'provider':'RUNPOD',
-              'paid_mutation':False,
-              'gpu_inventory_observed':True,
-              'gpu_inventory_type':type(g).__name__,
+              'status':'AUTH_AND_INVENTORY_PASS','provider':'RUNPOD','paid_mutation':False,
+              'gpu_inventory_observed':True,'gpu_inventory_type':type(g).__name__,
           },sort_keys=True)+'\n')
           PY
           cat /tmp/runpod-readiness/readiness.json
@@ -179,10 +194,8 @@ jobs:
           import json, os
           p=os.path.join(os.environ['VELA_EVIDENCE_DIR'],'preflight-envelope.json')
           r=json.load(open(p))
-          assert r['status']=='PASS'
-          assert r['scientific_evidence'] is False
-          assert r['phase']=='PREFLIGHT_ONLY'
-          assert r['pod_deleted'] is True
+          assert r['status']=='PASS' and r['scientific_evidence'] is False
+          assert r['phase']=='PREFLIGHT_ONLY' and r['pod_deleted'] is True
           assert r['estimated_gpu_cost_upper_bound_usd'] <= 0.50
           assert r['gpu']['gpuId']=='NVIDIA A40'
           assert r['state_roundtrip']['state']['serialize_restore_exact'] is True
@@ -195,5 +208,59 @@ jobs:
         with:
           name: vela-r2-02-runpod-preflight-v1
           path: /tmp/runpod-preflight-evidence
+          if-no-files-found: error
+          retention-days: 30
+
+  runpod-state-diagnostic:
+    needs: [contract, runpod-readiness]
+    if: ${{ github.event_name == 'push' && contains(github.event.head_commit.message, '[runpod-diagnostic-authorized]') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      RUNPOD_API_KEY: ${{ secrets.RUNPOD_API_KEY }}
+      VELA_SOURCE_COMMIT: ${{ github.sha }}
+      VELA_RUNPOD_DIAGNOSTIC_AUTHORIZED: 'true'
+      VELA_DIAGNOSTIC_EVIDENCE_DIR: /tmp/runpod-diagnostic-v2-evidence
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Install exact current RunPod CLI
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${RUNPOD_API_KEY:-}"
+          curl -fsSL https://cli.runpod.net | sudo bash
+          runpodctl version
+      - name: Execute one A40 state diagnostic v2
+        shell: bash
+        run: bash "$EXPERIMENT_DIR/runpod_state_diagnostic_launch_v2.sh"
+      - name: Validate diagnostic envelope
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json, os
+          p=os.path.join(os.environ['VELA_DIAGNOSTIC_EVIDENCE_DIR'],'diagnostic-envelope.json')
+          r=json.load(open(p))
+          assert r['status']=='DIAGNOSTIC_COMPLETE'
+          assert r['scientific_evidence'] is False and r['phase']=='STATE_DIAGNOSTIC_ONLY'
+          assert r['pod_deleted'] is True and r['estimated_gpu_cost_upper_bound_usd'] <= 0.50
+          assert r['gpu']['gpuId']=='NVIDIA A40'
+          d=r['diagnostic']
+          assert d['status']=='DIAGNOSTIC_COMPLETE' and d['scientific_evidence'] is False
+          assert d['classification'] in {
+            'SERIALIZATION_DEFECT','BASE_RUNTIME_NONDETERMINISM_OR_MODEL_MUTATION',
+            'RESTORED_RUNTIME_NONDETERMINISM','NO_DIVERGENCE_REPRODUCED',
+            'RESTORE_SPECIFIC_EXECUTION_DIVERGENCE'
+          }
+          PY
+      - name: Upload authoritative state diagnostic v2 evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vela-r2-02-runpod-state-diagnostic-v2
+          path: /tmp/runpod-diagnostic-v2-evidence
           if-no-files-found: error
           retention-days: 30
