@@ -1,0 +1,25 @@
+{
+  "schema": "vela-statebank-execution-config:v1",
+  "routing_conditions": [
+    {"id": "M", "route_field": "semantic_bank"},
+    {"id": "X", "route_field": "shuffled_bank"}
+  ],
+  "comparisons": [
+    {"id": "M_vs_X", "treatment": "M", "control": "X"}
+  ],
+  "state_modes": {
+    "seed_all_banks": {"input_state": "zero", "commit": "all", "probe": false},
+    "keep": {"input_state": "selected", "commit": "selected", "probe": false},
+    "reset_then_commit": {"input_state": "zero", "commit": "selected", "probe": false},
+    "discard_probe_state": {"input_state": "selected", "commit": "none", "probe": true}
+  },
+  "retrieval_modes": {
+    "OFF": {"include_current_durable_snapshot_at_probe": false},
+    "FULL_CURRENT_EQUALIZED": {"include_current_durable_snapshot_at_probe": true}
+  },
+  "generation": {
+    "policy": "DETERMINISTIC_GREEDY_JSON_V1",
+    "max_new_tokens": 160
+  },
+  "result_schema": "vela-statebank-benchmark-result:v1"
+}
