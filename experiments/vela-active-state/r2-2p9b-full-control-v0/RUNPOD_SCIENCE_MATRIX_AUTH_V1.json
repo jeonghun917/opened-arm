@@ -1,10 +1,10 @@
 {
   "schema": "vela-runpod-science-matrix-auth:v1",
   "task": "vela-r2-2p9b-full-control-scale-replication-v0",
-  "status": "CONSUMED_INCOMPLETE",
-  "attemptOrdinal": 4,
-  "authorityRef": "user-directive:2026-09-14:runpod-science-matrix-attempt04-go",
-  "authorizedAt": "2026-09-13T22:52:25.309Z",
+  "status": "AUTHORIZED_MATRIX",
+  "attemptOrdinal": 5,
+  "authorityRef": "user-directive:2026-09-14:runpod-science-matrix-attempt05-go",
+  "authorizedAt": "2026-09-14T00:26:59.922Z",
   "maxPodCount": 5,
   "maxTotalUsd": 0.40,
   "maxRuntimeSecondsPerPod": 480,
@@ -12,52 +12,39 @@
   "automaticRetryPerformed": false,
   "fallbackProviders": [],
   "conditions": ["B", "C", "G", "M", "X"],
-  "consumedByRunId": 34788112122,
-  "consumedByCandidate": "6b9b97488f3a45c618f3ff3b2c3d6be5e1d99e0b",
-  "statusResult": "INFRASTRUCTURE_INCOMPLETE_LOG_PLANE_UNOBSERVABLE_NO_AGGREGATE",
-  "failedCondition": "B",
-  "failedStage": "RESULT_TRANSPORT_OBSERVATION",
-  "completedScientificConditions": [],
-  "cancelledBeforeAllocation": ["C", "G", "M", "X"],
-  "aggregateStatus": "SKIPPED_INCOMPLETE_SHARDS",
+  "consumedByRunId": null,
+  "consumedByCandidate": null,
+  "statusResult": null,
+  "aggregateStatus": null,
   "scientificResultExists": false,
-  "providerEvidence": {
+  "completedScientificConditions": [],
+  "allocationStrategy": "SEQUENTIAL_ONE_POD_PER_SHARD_FRESH_CAPACITY",
+  "matrixMaxParallel": 1,
+  "transport": "RUNPOD_HTTPS_PROXY_V1",
+  "providerCleanupAlways": true,
+  "priorAttempt": {
+    "attemptOrdinal": 4,
+    "candidate": "6b9b97488f3a45c618f3ff3b2c3d6be5e1d99e0b",
+    "workflowRunId": 34788112122,
+    "statusResult": "INFRASTRUCTURE_INCOMPLETE_LOG_PLANE_UNOBSERVABLE_NO_AGGREGATE",
+    "failedCondition": "B",
     "podId": "p15chnc7mzgkmg",
-    "gpuId": "NVIDIA A40",
-    "dataCenterId": "EU-SE-1",
-    "securePricePerHrUsd": 0.49,
-    "podCreated": true,
     "podDeleted": true,
-    "containerLog404Count": 114,
-    "controlPlanePodGetWorked": true,
-    "containerUptimeResetObserved": true,
-    "maxObservedContainerUptimeSeconds": 157,
-    "resultReadySeen": false,
-    "bootstrapExitSeen": false,
-    "resultReconstructed": false
+    "scientificResultExists": false,
+    "automaticRetryPerformed": false
   },
-  "providerCleanup": {
-    "jobId": 103808321385,
-    "status": "PASS_ALL_EXACT_CANDIDATE_PODS_ABSENT",
-    "remaining": []
-  },
-  "artifacts": {
-    "B": {
-      "id": 10326659272,
-      "digest": "sha256:23d7c301a2bc731170c8e5d8b6d7d19e71c86406f6a783e4e13bdc9063e6a787"
-    }
-  },
-  "estimatedGpuSpendUsdUpperBoundFromObservedRentToDelete": 0.0655,
   "orchestrationRepair": {
-    "version": 3,
-    "status": "SEQUENTIAL_ALLOCATION_PASS_LOG_PLANE_FAILURE_OBSERVED",
-    "sourceHead": "cbefc8ca6458d5f1c73fd5404c9e7ac1d7e68853",
-    "prepRunId": 34787603455,
-    "allocationStrategy": "SEQUENTIAL_ONE_POD_PER_SHARD_FRESH_CAPACITY",
+    "version": 4,
+    "status": "PREPARED_UNARMED_CI_PASS",
+    "sourceHead": "3981f2fcf27ed1f4c3ae64ab9201afded55e071a",
+    "prepRunId": 34792441296,
+    "primaryTransport": "RUNPOD_HTTPS_PROXY_V1",
+    "containerLogsRequiredForCorrectness": false,
+    "containerLogsRequiredForCleanup": false,
+    "controlPlaneRestartFailClosed": true,
     "matrixMaxParallel": 1,
-    "providerCleanupAlways": true,
     "automaticRetry": false,
     "fallbackProviders": [],
-    "scientificExecutionAuthorized": false
+    "scientificExecutionAuthorized": true
   }
 }
