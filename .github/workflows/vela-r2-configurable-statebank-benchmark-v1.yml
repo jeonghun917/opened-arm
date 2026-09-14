@@ -89,7 +89,63 @@ jobs:
             "$EXPERIMENT_DIR/rwkv_state_engine.py" \
             "$EXPERIMENT_DIR/statebank_runner.py" \
             "$EXPERIMENT_DIR/runpod_statebank_supervisor_v1.py" \
-            "$EXPERIMENT_DIR/runpod_statebank_launch_v1.py"
+            "$EXPERIMENT_DIR/runpod_statebank_launch_v1.py" \
+            "$EXPERIMENT_DIR/test_runpod_statebank_proxy_v1.py" \
+            "$EXPERIMENT_DIR/test_runpod_statebank_launcher_v1.py"
+      - name: Prove hardened proxy and controller semantics
+        run: |
+          set -euo pipefail
+          python "$EXPERIMENT_DIR/test_runpod_statebank_proxy_v1.py"
+          python "$EXPERIMENT_DIR/test_runpod_statebank_launcher_v1.py"
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('experiments/vela-active-state/r2-configurable-statebank-benchmark-v1')
+          launcher=(p/'runpod_statebank_launch_v1.py').read_text()
+          for token in (
+              'PROXY_STARTUP_GRACE_SECONDS=120',
+              'CONTAINER_RESTART_DETECTED_BY_CONTROL_PLANE',
+              'signal.SIGTERM',
+              'signal.SIG_IGN',
+              'result_sha256',
+              'result_bytes',
+              "'pod','get'",
+              'delete_pod(',
+          ):
+              assert token in launcher, token
+          assert '--terminate-after' not in launcher
+          supervisor=(p/'runpod_statebank_supervisor_v1.py').read_text()
+          for token in ('ThreadingHTTPServer','/v1/status/','/v1/result/','RESTART_WITHOUT_VALID_RESULT','RESULT_NOT_READY'):
+              assert token in supervisor, token
+          workflow=Path('.github/workflows/vela-r2-configurable-statebank-benchmark-v1.yml').read_text()
+          for token in ('Cleanup any recorded RunPod pod','workflow-pod-delete.stderr','pod-id.txt'):
+              assert token in workflow, token
+          PY
+      - name: Validate exact RunPod CLI surfaces and pinned runtime image
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash "$EXPERIMENT_DIR/install_runpodctl_pinned_v1.sh" /tmp/runpodctl
+          /tmp/runpodctl pod create --help > /tmp/pod-create-help.txt
+          grep -q -- '--data-center-ids' /tmp/pod-create-help.txt
+          grep -q -- '--ports' /tmp/pod-create-help.txt
+          grep -q -- '--min-cuda-version' /tmp/pod-create-help.txt
+          /tmp/runpodctl pod get --help > /tmp/pod-get-help.txt
+          grep -q -- '--include-machine' /tmp/pod-get-help.txt
+          if /tmp/runpodctl pod logs --help > /tmp/pod-logs-help.txt 2>&1; then
+            grep -q -- '--since' /tmp/pod-logs-help.txt
+            grep -q -- '--source' /tmp/pod-logs-help.txt
+          else
+            echo '::warning::runpodctl pod logs unavailable; diagnostics will degrade gracefully and are not correctness-critical'
+          fi
+          PINNED_IMAGE="$(python - <<'PY'
+          import importlib.util
+          from pathlib import Path
+          path=Path('experiments/vela-active-state/r2-configurable-statebank-benchmark-v1/runpod_statebank_launch_v1.py')
+          spec=importlib.util.spec_from_file_location('launcher',path); mod=importlib.util.module_from_spec(spec); spec.loader.exec_module(mod)
+          print(mod.PINNED_IMAGE)
+          PY
+          )"
+          docker buildx imagetools inspect "$PINNED_IMAGE" > /tmp/pinned-image.txt
       - name: Validate both selectable models independently without loading weights
         run: |
           set -euo pipefail
@@ -218,6 +274,27 @@ jobs:
           sudo install -m 0755 /tmp/runpodctl /usr/local/bin/runpodctl
       - name: Execute exactly one selected model
         run: python "$EXPERIMENT_DIR/runpod_statebank_launch_v1.py"
+      - name: Cleanup any recorded RunPod pod
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          pod_file="$VELA_EVIDENCE_DIR/pod-id.txt"
+          if [[ ! -s "$pod_file" ]]; then
+            echo 'No recorded pod id; cleanup no-op.'
+            exit 0
+          fi
+          pod="$(tr -d '\r\n' < "$pod_file")"
+          test -n "$pod"
+          set +e
+          runpodctl pod delete "$pod" > "$VELA_EVIDENCE_DIR/workflow-pod-delete.stdout" 2> "$VELA_EVIDENCE_DIR/workflow-pod-delete.stderr"
+          rc=$?
+          set -e
+          if [[ "$rc" -ne 0 ]] && ! grep -Eq '"code"[[:space:]]*:[[:space:]]*"not_found"' "$VELA_EVIDENCE_DIR/workflow-pod-delete.stderr"; then
+            cat "$VELA_EVIDENCE_DIR/workflow-pod-delete.stderr" >&2 || true
+            exit "$rc"
+          fi
+          echo "workflow cleanup confirmed for pod $pod"
       - name: Validate result identity and cleanup
         run: |
           python - <<'PY'
