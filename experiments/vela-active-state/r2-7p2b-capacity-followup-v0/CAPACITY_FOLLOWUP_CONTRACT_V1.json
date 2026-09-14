@@ -1,0 +1,40 @@
+{
+  "schema": "vela-p-r2-03-capacity-followup:v1",
+  "task": "vela-r2-7p2b-capacity-followup-v0",
+  "status": "PREPARED_UNARMED",
+  "scientificExecutionAuthorized": false,
+  "source": {
+    "repository": "jeonghun917/opened-arm",
+    "baseHead": "b875a0d065507e001cb47cbf2166f938ad69f8e6",
+    "sourceExperiment": "P-R2-02",
+    "sourceScientificCandidate": "a7ca8b9cd429262edf550eccbf406c7cb308138d",
+    "sourceWorkflowRunId": 34792771868,
+    "sourceAggregateArtifactId": 10327744795,
+    "sourceAggregateDigest": "sha256:d4dc9c29885aabc6dd1dfbf3a2ba3da32b3486f9f41af369e3da555cef4c4ca4",
+    "sourceIndependentAudit": "PASS"
+  },
+  "question": "Does the routed-state M advantage become a hard-correctness gain at higher capacity once model profile is held fixed?",
+  "design": {
+    "primaryScale": "7.2B",
+    "matchedBaselineScale": "2.9B",
+    "matchedProfile": "g1i-20260805",
+    "conditions": ["B", "C", "G", "M", "X"],
+    "episodes": 6,
+    "stimuliRoutesResetScoringInheritedExactly": true,
+    "classifierInheritedExactlyFromAggregateBlob": "ac86908be386b0159f52bcf45d4dd0e0786daae4",
+    "conditionRunnerInheritedExactlyFromBlob": "70b696bcfdb3ba7fc7f4010a1143aac1063c452b",
+    "scienceCommonCoreInheritedExactlyFromBlob": "77cee99a8ff131b31165521fa8c9cfb76a7ce174",
+    "runpodAdapterInheritedExactlyFromBlob": "fd5145246a519ae45992df21b6c3acdf7ede5273",
+    "shardSchemaInherited": "P-R2-02_CONDITION_RESULT",
+    "aggregateSchema": "P-R2-03_RESULT"
+  },
+  "models": [
+    {"scale":"2.9B","profile":"g1i","repo":"BlinkDL/rwkv7-g1","revision":"ede85bf8ab2e59aff7d7ca909fbbc73317866d89","file":"rwkv7-g1i-2.9b-20260805-ctx16384.pth","sizeBytes":5896273469,"sha256":"ac1ae23d0e65c1d35ba523eacd81a2a4dacb7b886479909bbff34f312e766320"},
+    {"scale":"7.2B","profile":"g1i","repo":"BlinkDL/rwkv7-g1","revision":"ede85bf8ab2e59aff7d7ca909fbbc73317866d89","file":"rwkv7-g1i-7.2b-20260805-ctx16384.pth","sizeBytes":14400007869,"sha256":"0d09d8961448032501c4d432c33a224c66356d43c10174386ea86b0da2b127d8"}
+  ],
+  "historicalBoundary": {"old2p9bProfile":"g1a-20250924","rule":"P-R2-02 g1a 2.9B is historical context only. Strict scale inference uses the matched g1i 2.9B and g1i 7.2B pair in P-R2-03."},
+  "runtime": {"python":"3.12.13","torch":"2.7.1+cu126","cuda":"12.6","rwkv":"0.8.32","tokenizers":"0.21.4","numpy":"2.4.6","strategy":"cuda fp16","rwkvCudaKernel":false,"gpu":"NVIDIA A40","deviceCapability":[8,6]},
+  "orchestration": {"sourceLauncherBlob":"8f5b721d5d1e91888b335ed6756b13f13687c697","transport":"RUNPOD_HTTPS_PROXY_V1","containerLogsRequiredForCorrectness":false,"containerLogsRequiredForCleanup":false,"controlPlaneRestartFailClosed":true,"matrixMaxParallel":1,"automaticRetry":false,"fallbackProviders":[],"containerDiskGb":50,"maxRuntimeSecondsPerPod":900,"workloadTimeoutSeconds":840},
+  "gates": {"resultBlindPaidPreflightRequiredBeforeScience":true,"preflightStatus":"NOT_RUN","scienceStatus":"NOT_AUTHORIZED","freeFirstPaidLast":true},
+  "budgetProposal": {"preflightMaxPodCount":1,"preflightMaxTotalUsd":0.2,"scienceMaxPodCount":5,"scienceMaxTotalUsd":0.7,"secureA40PriceCapUsdPerHour":0.49}
+}

@@ -1,0 +1,89 @@
+{
+  "format": "vela-r2-p-r2-01-provider-external-trace-v1",
+  "source_candidate": "f7516276f5d4bc9b05f3a226334473bdb98869d8",
+  "source_run": 34722990921,
+  "source_artifact": 10306803736,
+  "source_artifact_zip_sha256": "7c54fd59aace5648a497b9d5c9bd9d3cebf25e1f8a44bb8c10229c81db666275",
+  "provider_mutation_count": 6,
+  "provider_receipt_count": 18,
+  "provider_request_ids": [
+    "ep1-read-release-spec-v1",
+    "ep1-read-release-spec-v2",
+    "ep1-read-security-note-v1",
+    "manifest-v1",
+    "ep2-read-release-channel-v1",
+    "manifest-v2",
+    "ep3-read-security-ticket-v1",
+    "manifest-v3",
+    "ep4-read-user-correction-1",
+    "manifest-v4",
+    "ep5-read-security-clearance-v2",
+    "manifest-v5",
+    "checks-ep5",
+    "complete-ep5",
+    "ep6-read-packaging-mode-v1",
+    "manifest-v6",
+    "checks-ep6",
+    "complete-v1"
+  ],
+  "source_reads": [
+    "packaging-mode-v1",
+    "release-channel-v1",
+    "release-spec-v1",
+    "release-spec-v2",
+    "security-clearance-v2",
+    "security-note-v1",
+    "security-ticket-v1",
+    "user-correction-1"
+  ],
+  "usable_memory_ids": [
+    "packaging-mode",
+    "parser",
+    "python-min-v2",
+    "release-channel",
+    "release-version",
+    "security-passed",
+    "security-ticket"
+  ],
+  "memory_head_trace": [
+    "5d6dde6247959c02bf81fa9028adefbb8fad4d4054ba2d075ca30a7e0a78c191",
+    "4fc9cc4e30a9ef46c1e5103dce5f878a060442619ef97e5c459183f4cc913cd2",
+    "89a02703222d0daefde00c9e25e8eb94d2f125b32eea3394a60bd856748b7bf6",
+    "1c1843ecbaabc2722962ce1d8edc2866da57b98a9789ee54a782d5a18b229e02",
+    "0ba760d19b835bf856dbbf2233ec3185536a437ec25870adc0ca711774118ae3",
+    "be8bdef56508e3a6c6d321fa0a9907e73fcb21733440cc037e4b2f9693dbdd92"
+  ],
+  "provider_receipt_head_trace": [
+    "b6ac1fda797f77e4e4d0ddf12535990ae696a7a42d5d3079334896f8164353d0",
+    "8bfe3b5f4e1ba5fdf031bc6a376be8950c845c8e75ee878f8d6043540686bc11",
+    "36837980ab186ee930e7e6b1ece018f3075197b57d80dd6dd6195c7e83f89582",
+    "e3bb6bbe19352f8452e3f378386cd857506145dae9abe9f8d4a7ea8709eccb01",
+    "1a0280510fc9ca84f99e5902e2522a3339107c9fe5aa5b5ed873900b15a11610",
+    "fe1fe11f618849619f469ff18d108e00505329f865bbefae8b00545564ed230b"
+  ],
+  "provider_state_sha256_trace": [
+    "73ce3389824438756e6d9e742e9dcc50175bd4e58be110c1eaf794f086eec51e",
+    "0281161a0e9545bf3a9de16dbb48b055c641b34038c97808af49fe4e5ccca806",
+    "6a0cd5aba0d03008ad406280f3629d56449178bbd1eb69461b475554199fd7cc",
+    "fed08a29982e50b538f42d7802b609520868886719f305565a84c60e22c9053a",
+    "30b225d8a5267335a776c3dc2a4ab7bca254dfe30a05b024c0e066163e959454",
+    "fba25188e9809b612f872bd524aba8460d3cf43308d79743bfd485306fd4b36d"
+  ],
+  "decision_prompt_bytes_by_episode": [
+    1423,
+    1582,
+    1880,
+    2027,
+    2065,
+    2323
+  ],
+  "decision_prompt_bytes_total": 11300,
+  "proposal_units_per_condition": 3112,
+  "equality_observed_across_conditions": [
+    "B",
+    "C",
+    "G",
+    "M",
+    "X"
+  ]
+}

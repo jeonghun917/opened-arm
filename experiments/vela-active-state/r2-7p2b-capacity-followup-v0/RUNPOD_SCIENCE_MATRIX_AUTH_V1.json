@@ -1,0 +1,21 @@
+{
+  "schema": "vela-runpod-science-matrix-auth:v1",
+  "task": "vela-r2-7p2b-capacity-followup-v0",
+  "status": "PREPARED_UNARMED",
+  "attemptOrdinal": 1,
+  "authorityRef": null,
+  "authorizedAt": null,
+  "maxPodCount": 5,
+  "maxTotalUsd": 0.7,
+  "maxRuntimeSecondsPerPod": 900,
+  "automaticRetry": false,
+  "automaticRetryPerformed": false,
+  "fallbackProviders": [],
+  "conditions": ["B", "C", "G", "M", "X"],
+  "preflightRequired": true,
+  "preflightStatus": "NOT_RUN",
+  "matchedProfile": "g1i-20260805",
+  "scales": ["2.9B", "7.2B"],
+  "scientificExecutionAuthorized": false,
+  "scientificResultExists": false
+}
