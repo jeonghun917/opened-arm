@@ -1,4 +1,4 @@
-name: VELA R2 RWKV7 2.9B RunPod orchestration v3
+name: VELA R2 RWKV7 2.9B RunPod orchestration v4
 
 on:
   push:
@@ -33,7 +33,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Verify mutation scope and frozen science
+      - name: Verify frozen science and proxy transport v4
         shell: bash
         run: |
           set -euo pipefail
@@ -55,88 +55,57 @@ jobs:
           check_blob "$EXPERIMENT_DIR/condition_runner.py" 70b696bcfdb3ba7fc7f4010a1143aac1063c452b
           check_blob "$EXPERIMENT_DIR/aggregate.py" ac86908be386b0159f52bcf45d4dd0e0786daae4
           check_blob "$EXPERIMENT_DIR/gpu_preflight.py" 7f3801df39f0689fd4135730f4c15c780f9ebab9
+          check_blob "$EXPERIMENT_DIR/runpod_condition_adapter_v1.py" fd5145246a519ae45992df21b6c3acdf7ede5273
           check_blob "$EXPERIMENT_DIR/stimuli/episode_1.json" 9b91ed85c5a3f0e1495fbcda627b660857743235
           check_blob "$EXPERIMENT_DIR/stimuli/episode_2.json" 22e590dd8318ac64cc12bd3d41fc765e6ce7db46
           check_blob "$EXPERIMENT_DIR/stimuli/episode_3.json" 426055ca45b40476e0baa9917c72a7d1aba0332f
           check_blob "$EXPERIMENT_DIR/stimuli/episode_4.json" fb232b0b6683276d8d323cc306071d7e5cf83f55
           check_blob "$EXPERIMENT_DIR/stimuli/episode_5.json" 8c00d81963e25f998348aac88ebdf92d45077e95
           check_blob "$EXPERIMENT_DIR/stimuli/episode_6.json" 8091870b4f8ac512ac835d9db48f16a80033ad15
-      - name: Validate sequential allocation v3 statically
-        shell: bash
-        run: |
-          set -euo pipefail
           bash -n "$EXPERIMENT_DIR/install_runpodctl_pinned_v1.sh"
-          bash -n "$EXPERIMENT_DIR/runpod_science_condition_launch_v3.sh"
+          bash -n "$EXPERIMENT_DIR/runpod_science_condition_launch_v4.sh"
           python -m py_compile \
             "$EXPERIMENT_DIR/runpod_condition_adapter_v1.py" \
-            "$EXPERIMENT_DIR/runpod_science_transport_v2.py" \
-            "$EXPERIMENT_DIR/runpod_select_a40_capacity_v1.py"
+            "$EXPERIMENT_DIR/runpod_select_a40_capacity_v1.py" \
+            "$EXPERIMENT_DIR/runpod_science_proxy_supervisor_v1.py" \
+            "$EXPERIMENT_DIR/test_runpod_science_proxy_v1.py"
           python - <<'PY'
-          import importlib.util,json
+          import json
           from pathlib import Path
           p=Path('experiments/vela-active-state/r2-2p9b-full-control-v0')
-          r=json.loads((p/'RUNPOD_SCIENCE_ALLOCATION_REPAIR_V3.json').read_text())
-          a=json.loads((p/'RUNPOD_SCIENCE_MATRIX_AUTH_V1.json').read_text())
-          assert r['schema']=='vela-runpod-science-allocation-repair:v3'
-          assert r['status']=='PREPARED_UNARMED' and r['scientificExecutionAuthorized'] is False
-          assert r['allocation']['matrixMaxParallel']==1 and r['allocation']['matrixFailFast'] is True
-          assert r['allocation']['freshInventoryBeforeEveryShard'] is True
-          assert r['allocation']['freshInventoryAgainInsideLauncher'] is True
-          assert r['allocation']['automaticRetry'] is False and r['allocation']['fallbackProviders']==[]
-          assert r['capacitySelector']['canonicalDataCenterKey']=='dataCenterId'
-          assert r['costProposal']['maxRuntimeSecondsPerPod']==480
-          assert r['costProposal']['proposedCanonicalMaxTotalUsd']==0.40
-          assert a['status'] in {'CONSUMED_INCOMPLETE','AUTHORIZED_MATRIX'}
-          assert a['scientificResultExists'] is False
-          if a['status']=='AUTHORIZED_MATRIX':
-              assert a['attemptOrdinal'] >= 4
-              assert a['maxPodCount']==5 and float(a['maxTotalUsd']) <= 0.40
-              assert a['maxRuntimeSecondsPerPod']==480
-              assert a['automaticRetry'] is False and a['fallbackProviders']==[]
-          launcher=(p/'runpod_science_condition_launch_v3.sh').read_text()
-          for x in ['MAX_RUNTIME_SECONDS=480','WORKLOAD_TIMEOUT_SECONDS=420','POST_RESULT_HOLD_SECONDS=45',
-                    'runpod_select_a40_capacity_v1.py','--require-data-center','pod-create.err',
-                    'provider-create-failure.json','VELA_SCIENCE_RESULT_READY','cleanup_pod','--data-center-ids']:
+          alloc=json.loads((p/'RUNPOD_SCIENCE_ALLOCATION_REPAIR_V3.json').read_text())
+          trans=json.loads((p/'RUNPOD_SCIENCE_TRANSPORT_REPAIR_V4.json').read_text())
+          auth=json.loads((p/'RUNPOD_SCIENCE_MATRIX_AUTH_V1.json').read_text())
+          assert alloc['status']=='PREPARED_UNARMED' and alloc['allocation']['matrixMaxParallel']==1
+          assert trans['schema']=='vela-runpod-science-transport-repair:v4'
+          assert trans['status']=='PREPARED_UNARMED' and trans['scientificExecutionAuthorized'] is False
+          assert trans['transport']['primary']=='RUNPOD_HTTPS_PROXY_V1'
+          assert trans['transport']['containerLogsRequiredForCorrectness'] is False
+          assert trans['transport']['containerLogsRequiredForCleanup'] is False
+          assert trans['containerLifecycle']['controlPlaneUptimeResetDeletesPodImmediately'] is True
+          assert trans['scienceContract']['adapterFrozenGitBlob']=='fd5145246a519ae45992df21b6c3acdf7ede5273'
+          assert auth['status'] in {'CONSUMED_INCOMPLETE','AUTHORIZED_MATRIX'}
+          assert auth['scientificResultExists'] is False
+          if auth['status']=='AUTHORIZED_MATRIX':
+              assert auth['attemptOrdinal'] >= 5
+              assert auth['maxPodCount']==5 and float(auth['maxTotalUsd']) <= 0.40
+              assert auth['maxRuntimeSecondsPerPod']==480
+              assert auth['automaticRetry'] is False and auth['fallbackProviders']==[]
+          launcher=(p/'runpod_science_condition_launch_v4.sh').read_text()
+          for x in ['MAX_RUNTIME_SECONDS=480','WORKLOAD_TIMEOUT_SECONDS=420','PROXY_STARTUP_GRACE_SECONDS=120',
+                    '--ports "${RESULT_PORT}/http"','proxy.runpod.net','RESULT_FETCHED_VIA_RUNPOD_HTTPS_PROXY',
+                    'CONTAINER_RESTART_DETECTED_BY_CONTROL_PLANE','result-token-sha256.txt','cleanup_pod']:
               assert x in launcher, x
+          assert 'pod logs' not in launcher
+          supervisor=(p/'runpod_science_proxy_supervisor_v1.py').read_text()
+          for x in ['ThreadingHTTPServer','/v1/status/','/v1/result/','CONTAINER_RESTART_AFTER_SCIENCE_START_NO_VALID_RESULT','serve_forever']:
+              assert x in supervisor, x
           wf=Path('.github/workflows/vela-r2-2p9b-full-control-v0.yml').read_text()
           assert 'max-parallel: 1' in wf
-          assert 'runpod_science_condition_launch_v3.sh' in wf
-          assert 'runpod_select_a40_capacity_v1.py' in wf
-          assert '\n  runpod-science-auth-gate:\n' in wf
-          spec=importlib.util.spec_from_file_location('cap',p/'runpod_select_a40_capacity_v1.py')
-          mod=importlib.util.module_from_spec(spec); spec.loader.exec_module(mod)
-          rows=[{'gpuId':'NVIDIA A40','displayName':'A40','memoryInGb':48,'secureCloud':True,'available':True,'securePricePerHr':0.49,
-                 'stockStatus':'High','dataCenterAvailability':[{'dataCenterId':'ZZ-1','stockStatus':'Medium'},{'dataCenterId':'AA-1','stockStatus':'High'}]}]
-          chosen=mod.select_capacity(rows)
-          assert chosen['selectedDataCenter']=={'dataCenterId':'AA-1','stockStatus':'High'}
-          assert mod.select_capacity(rows,'ZZ-1')['selectedDataCenter']['stockStatus']=='Medium'
-          try:
-              mod.select_capacity([{**rows[0],'dataCenterAvailability':[{'id':'BAD','stockStatus':'High'}]}])
-          except SystemExit as e:
-              assert 'dataCenterId' in str(e)
-          else:
-              raise AssertionError('schema drift did not fail closed')
+          assert 'runpod_science_condition_launch_v4.sh' in wf
           PY
-      - name: Synthetic transport reconstruction proof
-        shell: bash
-        run: |
-          set -euo pipefail
-          tmp="$(mktemp -d)"
-          python - "$tmp" <<'PY'
-          import base64,hashlib,json,sys
-          from pathlib import Path
-          p=Path(sys.argv[1]); result={'status':'P-R2-02_CONDITION_RESULT','scientific_evidence':True,'condition':'M','source_commit':'deadbeef','scales':{'0.4B':{},'2.9B':{}}}
-          raw=json.dumps(result,separators=(',',':'),sort_keys=True).encode(); b64=base64.b64encode(raw).decode(); chunks=[b64[i:i+19] for i in range(0,len(b64),19)]
-          meta={'condition':'M','bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest(),'chunks':len(chunks)}
-          lines=[]
-          for _ in range(2):
-              lines.append(json.dumps({'line':'VELA_CONDITION_RESULT_META='+json.dumps(meta,separators=(',',':'),sort_keys=True)}))
-              for i,c in enumerate(chunks,1): lines.append(json.dumps({'line':f'VELA_CONDITION_RESULT_CHUNK={i:04d}/{len(chunks):04d}:{c}'}))
-              lines.append(json.dumps({'line':'VELA_SCIENCE_RESULT_READY='+json.dumps({'condition':'M','sha256':meta['sha256'],'chunks':len(chunks)},separators=(',',':'))}))
-          lines.append(json.dumps({'line':'VELA_SCIENCE_BOOTSTRAP_EXIT=0'})); (p/'logs.jsonl').write_text('\n'.join(lines)+'\n'); (p/'expected.json').write_bytes(raw)
-          PY
-          python "$EXPERIMENT_DIR/runpod_science_transport_v2.py" "$tmp/logs.jsonl" "$tmp/out.json" M deadbeef > "$tmp/status.json"
-          cmp "$tmp/expected.json" "$tmp/out.json"
+      - name: Synthetic HTTPS proxy transport proof
+        run: python "$EXPERIMENT_DIR/test_runpod_science_proxy_v1.py"
       - name: Revalidate frozen P-R2-02 contract
         run: python "$EXPERIMENT_DIR/validate_contract.py"
       - name: Revalidate preflight contract
@@ -165,13 +134,14 @@ jobs:
           /tmp/runpod-cli/runpodctl gpu list --include-unavailable > /tmp/runpod-readiness/gpu-list.json
           /tmp/runpod-cli/runpodctl pod create --help > /tmp/runpod-readiness/pod-create-help.txt
           grep -q -- '--data-center-ids' /tmp/runpod-readiness/pod-create-help.txt
+          grep -q -- '--ports string' /tmp/runpod-readiness/pod-create-help.txt
           cp /tmp/runpodctl-version.txt /tmp/runpod-readiness/runpodctl-version.txt
           python - <<'PY'
           import json
           from pathlib import Path
           p=Path('/tmp/runpod-readiness'); g=json.loads((p/'gpu-list.json').read_text()); rows=g if isinstance(g,list) else g.get('gpus',g.get('items',[])); a40=next((x for x in rows if x.get('gpuId')=='NVIDIA A40'),None)
           if not a40: raise SystemExit('A40_NOT_LISTED')
-          p.joinpath('readiness.json').write_text(json.dumps({'status':'AUTH_AND_INVENTORY_PASS','provider':'RUNPOD','paid_mutation':False,'runpodctl':'2.14.0','runpodctl_sha256':'2e0fd370a52a0fc7e43a6434a209348a4f6836fcdf1ad2b093b609e938138be9','a40':a40},sort_keys=True)+'\n')
+          p.joinpath('readiness.json').write_text(json.dumps({'status':'AUTH_INVENTORY_AND_PROXY_PORT_PASS','provider':'RUNPOD','paid_mutation':False,'runpodctl':'2.14.0','runpodctl_sha256':'2e0fd370a52a0fc7e43a6434a209348a4f6836fcdf1ad2b093b609e938138be9','httpProxyPortFlag':True,'a40':a40},sort_keys=True)+'\n')
           PY
       - uses: actions/upload-artifact@v4
         with:
@@ -198,15 +168,13 @@ jobs:
           fetch-depth: 1
           persist-credentials: false
       - name: Validate attempt authorization only
-        shell: bash
         run: |
-          set -euo pipefail
           python - <<'PY'
           import json
           from pathlib import Path
           a=json.loads(Path('experiments/vela-active-state/r2-2p9b-full-control-v0/RUNPOD_SCIENCE_MATRIX_AUTH_V1.json').read_text())
           assert a['status']=='AUTHORIZED_MATRIX'
-          assert a['attemptOrdinal'] >= 4
+          assert a['attemptOrdinal'] >= 5
           assert a['maxPodCount']==5 and float(a['maxTotalUsd']) <= 0.40
           assert a['maxRuntimeSecondsPerPod']==480
           assert a['automaticRetry'] is False and a['fallbackProviders']==[]
@@ -240,7 +208,6 @@ jobs:
           name: vela-runpodctl-v2.14.0-linux-amd64
           path: /tmp/runpod-cli
       - name: Install exact pinned CLI
-        shell: bash
         run: |
           set -euo pipefail
           echo "$RUNPODCTL_SHA256  /tmp/runpod-cli/runpodctl" | sha256sum -c -
@@ -248,7 +215,6 @@ jobs:
           sudo install -m 0755 /tmp/runpod-cli/runpodctl /usr/local/bin/runpodctl
           runpodctl version
       - name: Fresh-read A40 capacity for this shard
-        shell: bash
         run: |
           set -euo pipefail
           mkdir -p /tmp/shard-capacity
@@ -261,11 +227,9 @@ jobs:
           assert x['status']=='PASS' and x['paid_mutation'] is False
           print('VELA_RUNPOD_DATA_CENTER_ID='+x['selectedDataCenter']['dataCenterId'])
           PY
-      - name: Execute exact scientific condition
-        shell: bash
-        run: bash "$EXPERIMENT_DIR/runpod_science_condition_launch_v3.sh"
+      - name: Execute exact scientific condition through HTTPS proxy transport
+        run: bash "$EXPERIMENT_DIR/runpod_science_condition_launch_v4.sh"
       - name: Validate condition evidence envelope
-        shell: bash
         run: |
           python - <<'PY'
           import json,os
@@ -275,7 +239,8 @@ jobs:
           assert e['max_runtime_seconds']==480 and e['estimated_gpu_cost_upper_bound_usd'] <= 0.07
           assert e['gpu']['gpuId']=='NVIDIA A40'
           assert e['gpu']['selectedDataCenter']['stockStatus'] in {'High','Medium'}
-          assert e['transport_terminal_reason']=='RESULT_RECONSTRUCTED_AFTER_PROVIDER_DELETE'
+          assert e['transport']=='RUNPOD_HTTPS_PROXY_V1'
+          assert e['transport_terminal_reason']=='RESULT_FETCHED_VIA_RUNPOD_HTTPS_PROXY'
           assert r['status']=='P-R2-02_CONDITION_RESULT' and r['scientific_evidence'] is True
           assert r['condition']==c and r['source_commit']==source
           assert 'A40' in r['runtime']['device'] and r['runtime']['device_capability']==[8,6]
@@ -303,7 +268,6 @@ jobs:
           name: vela-runpodctl-v2.14.0-linux-amd64
           path: /tmp/runpod-cli
       - name: Delete any exact-candidate science pods left behind
-        shell: bash
         run: |
           set -euo pipefail
           echo "$RUNPODCTL_SHA256  /tmp/runpod-cli/runpodctl" | sha256sum -c -
@@ -348,7 +312,6 @@ jobs:
           pattern: vela-r2-02-runpod-science-*
           path: /tmp/runpod-science-shards
       - name: Aggregate exact five-condition scientific result
-        shell: bash
         run: |
           set -euo pipefail
           mkdir -p /tmp/runpod-science-aggregate
