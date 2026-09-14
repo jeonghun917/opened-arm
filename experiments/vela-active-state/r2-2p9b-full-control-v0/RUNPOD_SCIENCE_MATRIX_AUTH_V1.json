@@ -1,7 +1,7 @@
 {
   "schema": "vela-runpod-science-matrix-auth:v1",
   "task": "vela-r2-2p9b-full-control-scale-replication-v0",
-  "status": "AUTHORIZED_MATRIX",
+  "status": "CONSUMED_SUCCESS",
   "attemptOrdinal": 5,
   "authorityRef": "user-directive:2026-09-14:runpod-science-matrix-attempt05-go",
   "authorizedAt": "2026-09-14T00:26:59.922Z",
@@ -12,30 +12,52 @@
   "automaticRetryPerformed": false,
   "fallbackProviders": [],
   "conditions": ["B", "C", "G", "M", "X"],
-  "consumedByRunId": null,
-  "consumedByCandidate": null,
-  "statusResult": null,
-  "aggregateStatus": null,
-  "scientificResultExists": false,
-  "completedScientificConditions": [],
+  "consumedByRunId": 34792771868,
+  "consumedByCandidate": "a7ca8b9cd429262edf550eccbf406c7cb308138d",
+  "statusResult": "SCIENTIFIC_MATRIX_COMPLETE_MIXED",
+  "aggregateStatus": "SUCCESS",
+  "scientificResultExists": true,
+  "primaryHypothesisStatus": "MIXED",
+  "protocolOk": true,
+  "completedScientificConditions": ["B", "C", "G", "M", "X"],
   "allocationStrategy": "SEQUENTIAL_ONE_POD_PER_SHARD_FRESH_CAPACITY",
   "matrixMaxParallel": 1,
   "transport": "RUNPOD_HTTPS_PROXY_V1",
   "providerCleanupAlways": true,
-  "priorAttempt": {
-    "attemptOrdinal": 4,
-    "candidate": "6b9b97488f3a45c618f3ff3b2c3d6be5e1d99e0b",
-    "workflowRunId": 34788112122,
-    "statusResult": "INFRASTRUCTURE_INCOMPLETE_LOG_PLANE_UNOBSERVABLE_NO_AGGREGATE",
-    "failedCondition": "B",
-    "podId": "p15chnc7mzgkmg",
-    "podDeleted": true,
-    "scientificResultExists": false,
-    "automaticRetryPerformed": false
+  "aggregate": {
+    "artifactId": 10327744795,
+    "artifactDigest": "sha256:d4dc9c29885aabc6dd1dfbf3a2ba3da32b3486f9f41af369e3da555cef4c4ca4",
+    "sourceCommit": "a7ca8b9cd429262edf550eccbf406c7cb308138d",
+    "primaryHypothesisStatus": "MIXED",
+    "protocolOk": true,
+    "M_minus_X_correct_count_2p9b": 0,
+    "M_minus_X_margin_sum_2p9b": 0.5201422113459557,
+    "episode5_M_minus_X_margin_2p9b": 0.21704092272557318,
+    "episode6_M_minus_X_margin_2p9b": 0.30310128862038255
+  },
+  "providerEvidence": {
+    "cleanupJobId": 103822172466,
+    "cleanupStatus": "PASS_ALL_EXACT_CANDIDATE_PODS_ABSENT",
+    "remaining": [],
+    "estimatedGpuSpendUsdUpperBound": 0.098816,
+    "pods": {
+      "B": {"id":"03362ne9rgr5o0","deleted":true,"elapsedSeconds":135,"estimatedGpuCostUpperBoundUsd":0.018375,"dataCenterId":"EU-SE-1"},
+      "C": {"id":"44n2pp503jbwvn","deleted":true,"elapsedSeconds":165,"estimatedGpuCostUpperBoundUsd":0.022458,"dataCenterId":"EU-SE-1"},
+      "G": {"id":"al1w5iysmozgj5","deleted":true,"elapsedSeconds":143,"estimatedGpuCostUpperBoundUsd":0.019464,"dataCenterId":"EU-SE-1"},
+      "M": {"id":"m1vmqikkac3ahc","deleted":true,"elapsedSeconds":146,"estimatedGpuCostUpperBoundUsd":0.019872,"dataCenterId":"EU-SE-1"},
+      "X": {"id":"2yw1w2euem85gf","deleted":true,"elapsedSeconds":137,"estimatedGpuCostUpperBoundUsd":0.018647,"dataCenterId":"EU-SE-1"}
+    }
+  },
+  "artifacts": {
+    "B": {"id":10328419936,"digest":"sha256:df69d9f652369f48f88d4f1c14768eb6565cac068149005658f87adf462780ee"},
+    "C": {"id":10327764178,"digest":"sha256:a603fca01b433aefd5a36dfee1f8ce26eebbe341395d863e1284855a994dee85"},
+    "G": {"id":10327958978,"digest":"sha256:890995a5c047dd0aca47a07cf544ed90dc71463194f8c8f3aad418682098b477"},
+    "M": {"id":10328213861,"digest":"sha256:571c82be20aaa2ac53784117fc77a9314c31208cc7dd43e4d31235697efa0d50"},
+    "X": {"id":10328669768,"digest":"sha256:196767c5e856019b1d22c7f5b6ef75419f03639164bae822feea914fa44e20d9"}
   },
   "orchestrationRepair": {
     "version": 4,
-    "status": "PREPARED_UNARMED_CI_PASS",
+    "status": "PASS_SCIENTIFIC_MATRIX_COMPLETE",
     "sourceHead": "3981f2fcf27ed1f4c3ae64ab9201afded55e071a",
     "prepRunId": 34792441296,
     "primaryTransport": "RUNPOD_HTTPS_PROXY_V1",
@@ -45,6 +67,6 @@
     "matrixMaxParallel": 1,
     "automaticRetry": false,
     "fallbackProviders": [],
-    "scientificExecutionAuthorized": true
+    "scientificExecutionAuthorized": false
   }
 }
