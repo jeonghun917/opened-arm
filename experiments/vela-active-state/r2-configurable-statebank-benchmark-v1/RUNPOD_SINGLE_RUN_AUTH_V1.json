@@ -1,11 +1,11 @@
 {
   "schema": "vela-configurable-statebank-runpod-auth:v1",
   "task": "vela-r2-configurable-statebank-benchmark-v1",
-  "status": "AUTHORIZED_SINGLE_RUN",
-  "paidExecutionAuthorized": true,
+  "status": "PREPARED_UNARMED",
+  "paidExecutionAuthorized": false,
   "attemptOrdinal": 2,
-  "authorityRef": "user-directive:2026-09-14:post-hardening-pod-deleted-next-go",
-  "authorizedAt": "2026-09-14T14:50:49.047Z",
+  "authorityRef": null,
+  "authorizedAt": null,
   "maxPodCount": 1,
   "maxTotalUsd": 0.13,
   "maxRuntimeSeconds": 900,
@@ -15,27 +15,24 @@
     "rwkv7-g1i-2.9b-20260805",
     "rwkv7-g1i-7.2b-20260805"
   ],
-  "boundRun": {
-    "sourceCommit": "27fe0dcb43185cf57a913be6e24f0b75048e98be",
-    "modelProfileId": "rwkv7-g1i-2.9b-20260805",
-    "problemPackPath": "experiments/vela-active-state/r2-configurable-statebank-benchmark-v1/problem_packs/VELA_R2_StateBank_ProblemPack_v1/PROBLEM_SOURCE_V1.json",
-    "executionConfigPath": "experiments/vela-active-state/r2-configurable-statebank-benchmark-v1/EXECUTION_CONFIG_V1.json",
-    "retrievalMode": "OFF",
-    "problemPackGitBlobSha": "3e1fdb1162bb8a2f4c21e29cf1e59702fabfe5fd",
-    "executionConfigGitBlobSha": "465f7f59a0af09f7f9b326e84ed47e190bfc2179",
-    "suiteProjectCount": 30,
-    "routingConditions": ["M", "X"]
-  },
+  "boundRun": null,
   "lastAttempt": {
-    "workflowRunId": 34850571501,
-    "controlHead": "2911d8f63b134ab2dadb04417a2f49cc75ba0979",
-    "sourceCommit": "88b8aa1cb526de136948d86fafdad4c9d9cdb676",
+    "workflowRunId": 34858950775,
+    "controlHead": "8f78391e8ecc2e0c4e348ef5855da9f8014f085c",
+    "sourceCommit": "27fe0dcb43185cf57a913be6e24f0b75048e98be",
     "modelProfileId": "rwkv7-g1i-2.9b-20260805",
     "retrievalMode": "OFF",
     "providerMutationObserved": true,
-    "podCreationConfirmedByContainerLog": true,
+    "podCreationConfirmed": true,
+    "podId": "t0st8azooo1nl1",
+    "podCleanupConfirmed": true,
     "scientificResultAccepted": false,
-    "disposition": "ABORTED_DEBUG_REQUIRED",
-    "reason": "USER_REQUESTED_ABORT_AFTER_PROLONGED_SILENT_EXECUTION"
+    "terminalReason": "PROXY_UNREACHABLE_AFTER_RUNNING_GRACE",
+    "observedProxyHttpStatus": 403,
+    "estimatedGpuCostUpperBoundUsd": 0.019056,
+    "artifactId": 10352879454,
+    "artifactSha256": "5714efe904a4548f6c4e6ff7d9e3b1d7702caef65d4f2d90409011218baca48f",
+    "disposition": "FAILED_PROXY_TRANSPORT_REPAIR_REQUIRED",
+    "diagnosis": "HIGH_CONFIDENCE_CONTROLLER_TRANSPORT_403; exact upstream cause is not provider-attested; repair restores the old-v4 curl proxy transport before any future paid attempt"
   }
 }
