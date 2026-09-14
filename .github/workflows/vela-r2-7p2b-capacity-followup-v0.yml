@@ -1,0 +1,406 @@
+name: VELA R2 7.2B capacity follow-up RunPod prep v0
+
+on:
+  push:
+    branches: [exp/vela-r2-7p2b-capacity-followup-v0]
+    paths:
+      - '.github/workflows/vela-r2-7p2b-capacity-followup-v0.yml'
+      - 'experiments/vela-active-state/r2-7p2b-capacity-followup-v0/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: vela-r2-7p2b-capacity-followup-v0
+  cancel-in-progress: false
+
+env:
+  EXPERIMENT_DIR: experiments/vela-active-state/r2-7p2b-capacity-followup-v0
+  BASE_HEAD: b875a0d065507e001cb47cbf2166f938ad69f8e6
+  RUNPODCTL_SHA256: 2e0fd370a52a0fc7e43a6434a209348a4f6836fcdf1ad2b093b609e938138be9
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Verify mutation scope and frozen inheritance
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          git merge-base --is-ancestor "$BASE_HEAD" "$GITHUB_SHA"
+          mapfile -t changed < <(git diff --name-only "$BASE_HEAD" "$GITHUB_SHA" | sort)
+          for p in "${changed[@]}"; do
+            case "$p" in
+              '.github/workflows/vela-r2-7p2b-capacity-followup-v0.yml'|experiments/vela-active-state/r2-7p2b-capacity-followup-v0/*) ;;
+              *) echo "::error::unexpected path $p"; exit 1;;
+            esac
+          done
+          python "$EXPERIMENT_DIR/validate_capacity_followup_v1.py"
+          python -m py_compile \
+            "$EXPERIMENT_DIR/science_common.py" \
+            "$EXPERIMENT_DIR/aggregate.py" \
+            "$EXPERIMENT_DIR/runpod_science_condition_launch_v5.py" \
+            "$EXPERIMENT_DIR/runpod_capacity_preflight_v1.py" \
+            "$EXPERIMENT_DIR/runpod_capacity_preflight_supervisor_v1.py" \
+            "$EXPERIMENT_DIR/test_runpod_capacity_preflight_proxy_v1.py" \
+            "$EXPERIMENT_DIR/test_runpod_science_launcher_v5.py"
+          bash -n "$EXPERIMENT_DIR/runpod_capacity_preflight_launch_v1.sh"
+          tmp="$(mktemp)"
+          python "$EXPERIMENT_DIR/runpod_science_condition_launch_v5.py" --emit-adapted "$tmp"
+          bash -n "$tmp"
+          rm -f "$tmp"
+      - name: Synthetic proxy and controller proofs
+        run: |
+          set -euo pipefail
+          python "$EXPERIMENT_DIR/test_runpod_science_proxy_v1.py"
+          python "$EXPERIMENT_DIR/test_runpod_capacity_preflight_proxy_v1.py"
+          python "$EXPERIMENT_DIR/test_runpod_science_launcher_v5.py"
+      - name: Result-blind exact Hugging Face metadata proof
+        run: |
+          set -euo pipefail
+          python -m pip install --quiet huggingface_hub==0.36.0
+          python - <<'PY'
+          from huggingface_hub import HfApi
+          repo='BlinkDL/rwkv7-g1'; rev='ede85bf8ab2e59aff7d7ca909fbbc73317866d89'
+          expected={
+            'rwkv7-g1i-2.9b-20260805-ctx16384.pth':(5896273469,'ac1ae23d0e65c1d35ba523eacd81a2a4dacb7b886479909bbff34f312e766320'),
+            'rwkv7-g1i-7.2b-20260805-ctx16384.pth':(14400007869,'0d09d8961448032501c4d432c33a224c66356d43c10174386ea86b0da2b127d8'),
+          }
+          info=HfApi().model_info(repo,revision=rev,files_metadata=True)
+          rows={x.rfilename:x for x in info.siblings}
+          for name,(size,sha) in expected.items():
+              x=rows[name]
+              assert x.size==size,(name,x.size,size)
+              assert x.lfs is not None and x.lfs.sha256==sha,(name,x.lfs)
+          print('P_R2_03_HF_METADATA_PASS')
+          PY
+
+  runpod-readiness:
+    needs: contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      RUNPOD_API_KEY: ${{ secrets.RUNPOD_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Install pinned CLI and read provider state only
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/runpod-readiness /tmp/runpod-cli
+          test -n "${RUNPOD_API_KEY:-}"
+          bash "$EXPERIMENT_DIR/install_runpodctl_pinned_v1.sh" /tmp/runpod-cli/runpodctl
+          /tmp/runpod-cli/runpodctl user >/dev/null
+          /tmp/runpod-cli/runpodctl gpu list --include-unavailable > /tmp/runpod-readiness/gpu-list.json
+          /tmp/runpod-cli/runpodctl pod create --help > /tmp/runpod-readiness/pod-create-help.txt
+          grep -q -- '--data-center-ids' /tmp/runpod-readiness/pod-create-help.txt
+          grep -q -- '--ports string' /tmp/runpod-readiness/pod-create-help.txt
+          cp /tmp/runpodctl-version.txt /tmp/runpod-readiness/runpodctl-version.txt
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('/tmp/runpod-readiness'); g=json.loads((p/'gpu-list.json').read_text()); rows=g if isinstance(g,list) else g.get('gpus',g.get('items',[])); a=next((x for x in rows if x.get('gpuId')=='NVIDIA A40'),None)
+          if not a: raise SystemExit('A40_NOT_LISTED')
+          price=a.get('securePricePerHr')
+          if price is None or float(price)>0.49: raise SystemExit(f'A40_PRICE_CAP_FAIL:{price}')
+          out={'status':'AUTH_INVENTORY_AND_PROXY_PORT_PASS','provider':'RUNPOD','paid_mutation':False,'runpodctl':'2.14.0','runpodctl_sha256':'2e0fd370a52a0fc7e43a6434a209348a4f6836fcdf1ad2b093b609e938138be9','httpProxyPortFlag':True,'a40':a,'resultBlindPaidPreflightStillRequired':True,'scientificExecutionAuthorized':False}
+          p.joinpath('readiness.json').write_text(json.dumps(out,sort_keys=True)+'\n')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vela-r2-03-runpod-readiness
+          path: /tmp/runpod-readiness
+          if-no-files-found: error
+          retention-days: 14
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vela-runpodctl-v2.14.0-linux-amd64
+          path: /tmp/runpod-cli/runpodctl
+          if-no-files-found: error
+          retention-days: 1
+
+  runpod-preflight-auth-gate:
+    needs: [contract, runpod-readiness]
+    if: ${{ github.event_name == 'push' && contains(github.event.head_commit.message, '[runpod-7p2b-preflight-authorized]') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Validate one-shot result-blind preflight authority
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          a=json.loads(Path('experiments/vela-active-state/r2-7p2b-capacity-followup-v0/RUNPOD_CAPACITY_PREFLIGHT_AUTH_V1.json').read_text())
+          assert a['status']=='AUTHORIZED_PREFLIGHT' and a['paidExecutionAuthorized'] is True
+          assert a['maxPodCount']==1 and float(a['maxTotalUsd'])<=0.20 and a['maxRuntimeSeconds']==900
+          assert a['automaticRetry'] is False and a['fallbackProviders']==[] and a['scientificEvidence'] is False
+          PY
+
+  runpod-capacity-preflight:
+    needs: [runpod-readiness, runpod-preflight-auth-gate]
+    if: ${{ github.event_name == 'push' && contains(github.event.head_commit.message, '[runpod-7p2b-preflight-authorized]') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      RUNPOD_API_KEY: ${{ secrets.RUNPOD_API_KEY }}
+      VELA_SOURCE_COMMIT: ${{ github.sha }}
+      VELA_RUNPOD_PREFLIGHT_AUTHORIZED: 'true'
+      VELA_PREFLIGHT_EVIDENCE_DIR: /tmp/runpod-capacity-preflight
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: vela-runpodctl-v2.14.0-linux-amd64
+          path: /tmp/runpod-cli
+      - name: Install exact pinned CLI
+        run: |
+          echo "$RUNPODCTL_SHA256  /tmp/runpod-cli/runpodctl" | sha256sum -c -
+          chmod +x /tmp/runpod-cli/runpodctl
+          sudo install -m 0755 /tmp/runpod-cli/runpodctl /usr/local/bin/runpodctl
+      - name: Fresh-read exact A40 capacity
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/preflight-capacity
+          runpodctl gpu list --include-unavailable > /tmp/preflight-capacity/gpu-list.json
+          python "$EXPERIMENT_DIR/runpod_select_a40_capacity_v1.py" /tmp/preflight-capacity/gpu-list.json /tmp/preflight-capacity/selection.json
+          cat /tmp/preflight-capacity/selection.json
+          python - <<'PY' >> "$GITHUB_ENV"
+          import json
+          x=json.load(open('/tmp/preflight-capacity/selection.json')); assert x['status']=='PASS' and x['paid_mutation'] is False
+          print('VELA_RUNPOD_DATA_CENTER_ID='+x['selectedDataCenter']['dataCenterId'])
+          PY
+      - name: Execute one result-blind capacity preflight
+        run: bash "$EXPERIMENT_DIR/runpod_capacity_preflight_launch_v1.sh"
+      - name: Validate preflight evidence envelope
+        run: |
+          python - <<'PY'
+          import json,os
+          d='/tmp/runpod-capacity-preflight'; r=json.load(open(d+'/capacity_preflight.json')); e=json.load(open(d+'/preflight_envelope.json'))
+          assert r['status']=='PASS' and r['scientific_evidence'] is False and r['purpose']=='P-R2-03_RESULT_BLIND_CAPACITY_PREFLIGHT'
+          assert r['source_commit']==os.environ['GITHUB_SHA'] and r['matched_profile']=='g1i-20260805'
+          assert e['status']=='PASS' and e['scientific_evidence'] is False and e['pod_deleted'] is True and e['transport']=='RUNPOD_HTTPS_PROXY_V1'
+          m={x['scale']:x for x in r['models']}; assert set(m)=={'2.9B','7.2B'} and all(x['state_restore_tensor_exact'] is True for x in m.values())
+          PY
+      - name: Upload result-blind provider evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vela-r2-03-runpod-capacity-preflight
+          path: /tmp/runpod-capacity-preflight
+          if-no-files-found: warn
+          retention-days: 30
+
+  runpod-preflight-cleanup:
+    needs: [runpod-readiness, runpod-capacity-preflight]
+    if: ${{ always() && github.event_name == 'push' && contains(github.event.head_commit.message, '[runpod-7p2b-preflight-authorized]') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      RUNPOD_API_KEY: ${{ secrets.RUNPOD_API_KEY }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: vela-runpodctl-v2.14.0-linux-amd64
+          path: /tmp/runpod-cli
+      - name: Delete exact preflight pod if any remains
+        run: |
+          set -euo pipefail
+          echo "$RUNPODCTL_SHA256  /tmp/runpod-cli/runpodctl" | sha256sum -c -; chmod +x /tmp/runpod-cli/runpodctl
+          prefix="vela-p-r2-03-preflight-"; suffix="${GITHUB_SHA:0:10}"
+          /tmp/runpod-cli/runpodctl pod list --all > /tmp/pods-before.json
+          python - /tmp/pods-before.json "$prefix" "$suffix" > /tmp/delete-ids.txt <<'PY'
+          import json,sys
+          x=json.load(open(sys.argv[1])); rows=x if isinstance(x,list) else x.get('pods',x.get('items',[]))
+          for p in rows:
+              n=str(p.get('name') or '') if isinstance(p,dict) else ''
+              if n.startswith(sys.argv[2]) and n.endswith(sys.argv[3]): print(p.get('id') or p.get('podId'))
+          PY
+          while read -r id; do [[ -n "$id" ]] && /tmp/runpod-cli/runpodctl pod delete "$id" || true; done < /tmp/delete-ids.txt
+          sleep 2; /tmp/runpod-cli/runpodctl pod list --all > /tmp/pods-after.json
+          python - /tmp/pods-after.json "$prefix" "$suffix" <<'PY'
+          import json,sys
+          x=json.load(open(sys.argv[1])); rows=x if isinstance(x,list) else x.get('pods',x.get('items',[])); r=[]
+          for p in rows:
+              n=str(p.get('name') or '') if isinstance(p,dict) else ''
+              if n.startswith(sys.argv[2]) and n.endswith(sys.argv[3]): r.append({'id':p.get('id') or p.get('podId'),'name':n})
+          print(json.dumps({'remaining':r},sort_keys=True)); raise SystemExit(1 if r else 0)
+          PY
+
+  runpod-science-auth-gate:
+    needs: [contract, runpod-readiness]
+    if: ${{ github.event_name == 'push' && contains(github.event.head_commit.message, '[runpod-7p2b-science-authorized]') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Validate science authority and consumed preflight
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          a=json.loads(Path('experiments/vela-active-state/r2-7p2b-capacity-followup-v0/RUNPOD_SCIENCE_MATRIX_AUTH_V1.json').read_text())
+          assert a['status']=='AUTHORIZED_MATRIX' and a['scientificExecutionAuthorized'] is True and a['preflightStatus']=='PASS'
+          assert a['maxPodCount']==5 and float(a['maxTotalUsd'])<=0.70 and a['maxRuntimeSecondsPerPod']==900
+          assert a['automaticRetry'] is False and a['fallbackProviders']==[] and a['conditions']==['B','C','G','M','X'] and a['scales']==['2.9B','7.2B']
+          PY
+
+  runpod-science:
+    needs: [runpod-readiness, runpod-science-auth-gate]
+    if: ${{ github.event_name == 'push' && contains(github.event.head_commit.message, '[runpod-7p2b-science-authorized]') }}
+    strategy:
+      fail-fast: true
+      max-parallel: 1
+      matrix:
+        condition: [B, C, G, M, X]
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    env:
+      RUNPOD_API_KEY: ${{ secrets.RUNPOD_API_KEY }}
+      VELA_SOURCE_COMMIT: ${{ github.sha }}
+      VELA_CONDITION: ${{ matrix.condition }}
+      VELA_RUNPOD_SCIENCE_AUTHORIZED: 'true'
+      VELA_SCIENCE_EVIDENCE_DIR: /tmp/runpod-science-${{ matrix.condition }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: vela-runpodctl-v2.14.0-linux-amd64
+          path: /tmp/runpod-cli
+      - name: Install exact pinned CLI
+        run: |
+          echo "$RUNPODCTL_SHA256  /tmp/runpod-cli/runpodctl" | sha256sum -c -; chmod +x /tmp/runpod-cli/runpodctl; sudo install -m 0755 /tmp/runpod-cli/runpodctl /usr/local/bin/runpodctl
+      - name: Fresh-read A40 capacity for this shard
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/shard-capacity; runpodctl gpu list --include-unavailable > /tmp/shard-capacity/gpu-list.json
+          python "$EXPERIMENT_DIR/runpod_select_a40_capacity_v1.py" /tmp/shard-capacity/gpu-list.json /tmp/shard-capacity/selection.json
+          cat /tmp/shard-capacity/selection.json
+          python - <<'PY' >> "$GITHUB_ENV"
+          import json
+          x=json.load(open('/tmp/shard-capacity/selection.json')); assert x['status']=='PASS' and x['paid_mutation'] is False
+          print('VELA_RUNPOD_DATA_CENTER_ID='+x['selectedDataCenter']['dataCenterId'])
+          PY
+      - name: Execute exact matched-profile condition through inherited v4 transport
+        run: python "$EXPERIMENT_DIR/runpod_science_condition_launch_v5.py"
+      - name: Validate shard evidence
+        run: |
+          python - <<'PY'
+          import json,os
+          d=os.environ['VELA_SCIENCE_EVIDENCE_DIR']; c=os.environ['VELA_CONDITION']; src=os.environ['VELA_SOURCE_COMMIT']; e=json.load(open(os.path.join(d,f'condition_envelope_{c}.json'))); r=json.load(open(os.path.join(d,f'condition_result_{c}.json')))
+          assert e['status']=='PASS' and e['scientific_evidence'] is True and e['pod_deleted'] is True and e['max_runtime_seconds']==900 and e['estimated_gpu_cost_upper_bound_usd']<=0.13
+          assert e['transport']=='RUNPOD_HTTPS_PROXY_V1' and e['transport_terminal_reason']=='RESULT_FETCHED_VIA_RUNPOD_HTTPS_PROXY'
+          assert r['status']=='P-R2-02_CONDITION_RESULT' and r['scientific_evidence'] is True and r['condition']==c and r['source_commit']==src
+          assert 'A40' in r['runtime']['device'] and r['runtime']['device_capability']==[8,6] and set(r['scales'])=={'2.9B','7.2B'}
+          mr=r['model_runtime']; assert mr['2.9B']['model']['sha256']=='ac1ae23d0e65c1d35ba523eacd81a2a4dacb7b886479909bbff34f312e766320'; assert mr['7.2B']['model']['sha256']=='0d09d8961448032501c4d432c33a224c66356d43c10174386ea86b0da2b127d8'
+          assert r['scales']['2.9B']['matched_model_profile']=='g1i-20260805' and r['scales']['7.2B']['matched_model_profile']=='g1i-20260805'
+          PY
+      - name: Upload exact shard and provider evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vela-r2-03-runpod-science-${{ matrix.condition }}
+          path: /tmp/runpod-science-${{ matrix.condition }}
+          if-no-files-found: warn
+          retention-days: 30
+
+  runpod-science-cleanup:
+    needs: [runpod-readiness, runpod-science]
+    if: ${{ always() && github.event_name == 'push' && contains(github.event.head_commit.message, '[runpod-7p2b-science-authorized]') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      RUNPOD_API_KEY: ${{ secrets.RUNPOD_API_KEY }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: vela-runpodctl-v2.14.0-linux-amd64
+          path: /tmp/runpod-cli
+      - name: Delete exact candidate science pods and verify absent
+        run: |
+          set -euo pipefail
+          echo "$RUNPODCTL_SHA256  /tmp/runpod-cli/runpodctl" | sha256sum -c -; chmod +x /tmp/runpod-cli/runpodctl
+          prefix="vela-p-r2-03-science-"; suffix="-${GITHUB_SHA:0:10}"; /tmp/runpod-cli/runpodctl pod list --all > /tmp/pods-before.json
+          python - /tmp/pods-before.json "$prefix" "$suffix" > /tmp/delete-ids.txt <<'PY'
+          import json,sys
+          x=json.load(open(sys.argv[1])); rows=x if isinstance(x,list) else x.get('pods',x.get('items',[]))
+          for p in rows:
+              n=str(p.get('name') or '') if isinstance(p,dict) else ''
+              if n.startswith(sys.argv[2]) and n.endswith(sys.argv[3]): print(p.get('id') or p.get('podId'))
+          PY
+          while read -r id; do [[ -n "$id" ]] && /tmp/runpod-cli/runpodctl pod delete "$id" || true; done < /tmp/delete-ids.txt
+          sleep 2; /tmp/runpod-cli/runpodctl pod list --all > /tmp/pods-after.json
+          python - /tmp/pods-after.json "$prefix" "$suffix" <<'PY'
+          import json,sys
+          x=json.load(open(sys.argv[1])); rows=x if isinstance(x,list) else x.get('pods',x.get('items',[])); r=[]
+          for p in rows:
+              n=str(p.get('name') or '') if isinstance(p,dict) else ''
+              if n.startswith(sys.argv[2]) and n.endswith(sys.argv[3]): r.append({'id':p.get('id') or p.get('podId'),'name':n})
+          print(json.dumps({'remaining':r},sort_keys=True)); raise SystemExit(1 if r else 0)
+          PY
+
+  aggregate:
+    needs: [runpod-science, runpod-science-cleanup]
+    if: ${{ github.event_name == 'push' && contains(github.event.head_commit.message, '[runpod-7p2b-science-authorized]') && needs.runpod-science.result == 'success' && needs.runpod-science-cleanup.result == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: vela-r2-03-runpod-science-*
+          path: /tmp/runpod-science-shards
+      - name: Aggregate exact five conditions with inherited classifier
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/runpod-science-aggregate
+          python "$EXPERIMENT_DIR/aggregate.py" /tmp/runpod-science-shards
+          mv scientific_result.json /tmp/runpod-science-aggregate/scientific_result.json
+          python - <<'PY'
+          import json,os
+          r=json.load(open('/tmp/runpod-science-aggregate/scientific_result.json'))
+          assert r['status']=='P-R2-03_RESULT' and r['scientific_evidence'] is True and r['source_commit']==os.environ['GITHUB_SHA']
+          assert r['shard_conditions']==['B','C','G','M','X'] and set(r['scales'])=={'2.9B','7.2B'} and r['matched_model_profile']=='g1i-20260805'
+          assert r['primary_hypothesis_status'] in {'SUPPORTED','MIXED','NOT_SUPPORTED','PROTOCOL_BLOCKED'}
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vela-r2-03-runpod-scientific-result
+          path: /tmp/runpod-science-aggregate
+          if-no-files-found: error
+          retention-days: 30
