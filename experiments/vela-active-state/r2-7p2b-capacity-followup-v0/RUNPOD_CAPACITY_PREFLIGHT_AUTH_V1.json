@@ -1,0 +1,18 @@
+{
+  "schema": "vela-runpod-capacity-preflight-auth:v1",
+  "task": "vela-r2-7p2b-capacity-followup-v0",
+  "status": "PREPARED_UNARMED",
+  "attemptOrdinal": 1,
+  "authorityRef": null,
+  "authorizedAt": null,
+  "maxPodCount": 1,
+  "maxTotalUsd": 0.20,
+  "maxRuntimeSeconds": 900,
+  "automaticRetry": false,
+  "fallbackProviders": [],
+  "scientificEvidence": false,
+  "paidExecutionAuthorized": false,
+  "targetGpuId": "NVIDIA A40",
+  "matchedProfile": "g1i-20260805",
+  "models": ["2.9B", "7.2B"]
+}
