@@ -1,0 +1,21 @@
+{
+  "schema": "vela-statebank-suite:v1",
+  "suiteId": "r2-statebank-problempack-v1",
+  "problemRoot": "problems",
+  "projectGlob": "project_*.json",
+  "runner": {
+    "stateTopologySource": "project_json",
+    "routeSource": "project_json",
+    "episodeSource": "project_json",
+    "problemContentSource": "project_json",
+    "probeOutput": "json",
+    "probeMutatesPersistentState": false
+  },
+  "conditions": {
+    "M": {"routeKey": "semantic"},
+    "X": {"routeKey": "shuffled_control"}
+  },
+  "memoryModes": ["OFF", "FULL_CURRENT_EQUALIZED"],
+  "modelRegistry": "MODEL_REGISTRY_V1.json",
+  "defaultProjectLimit": 30
+}
