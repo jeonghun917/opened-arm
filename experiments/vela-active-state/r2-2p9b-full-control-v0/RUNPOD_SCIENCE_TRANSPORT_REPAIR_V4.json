@@ -1,0 +1,66 @@
+{
+  "schema": "vela-runpod-science-transport-repair:v4",
+  "task": "vela-r2-2p9b-full-control-scale-replication-v0",
+  "status": "PREPARED_UNARMED",
+  "scientificExecutionAuthorized": false,
+  "basis": {
+    "attempt04WorkflowRunId": 34788112122,
+    "attempt04Candidate": "6b9b97488f3a45c618f3ff3b2c3d6be5e1d99e0b",
+    "failedCondition": "B",
+    "failureClass": "RUNPOD_REST_V2_LOGS_NOT_FOUND_CONTAINER_RESTARTS",
+    "containerLog404Count": 114,
+    "controlPlanePodGetWorked": true,
+    "containerUptimeResetObserved": true,
+    "scientificResultExists": false,
+    "scientificResultsUsedForRepair": false
+  },
+  "transport": {
+    "primary": "RUNPOD_HTTPS_PROXY_V1",
+    "resultPort": 8000,
+    "resultServer": "runpod_science_proxy_supervisor_v1.py",
+    "launcher": "runpod_science_condition_launch_v4.sh",
+    "randomBearerPathToken": true,
+    "tokenBits": 256,
+    "tokenPersistedInEvidence": false,
+    "tokenHashPersistedInEvidence": true,
+    "containerLogsRequiredForCorrectness": false,
+    "containerLogsRequiredForCleanup": false,
+    "statusEndpoint": "/v1/status/<token>",
+    "resultEndpoint": "/v1/result/<token>",
+    "deletePodAfterResultBytesAndIntegrityBeforeScientificValidation": true,
+    "proxyStartupGraceSecondsAfterRunning": 120
+  },
+  "containerLifecycle": {
+    "resultServerStartsBeforePackageInstall": true,
+    "mainProcessRemainsAliveAfterCompleteOrFailure": true,
+    "persistentStartedMarker": true,
+    "validExistingResultRecoveredWithoutRerun": true,
+    "restartWithoutValidResultFailsClosedWithoutRerun": true,
+    "controlPlaneUptimeResetDeletesPodImmediately": true,
+    "maxRuntimeSecondsPerPod": 480,
+    "workloadTimeoutSeconds": 420
+  },
+  "allocation": {
+    "gpuId": "NVIDIA A40",
+    "cloud": "SECURE",
+    "maxSecurePricePerHrUsd": 0.49,
+    "matrixMaxParallel": 1,
+    "freshInventoryBeforeEveryShard": true,
+    "freshInventoryAgainInsideLauncher": true,
+    "automaticRetry": false,
+    "fallbackProviders": []
+  },
+  "scienceContract": {
+    "frozenStimuliRoutesClassifier": true,
+    "adapterFrozenGitBlob": "fd5145246a519ae45992df21b6c3acdf7ede5273",
+    "aggregateOnlyAfterExactFiveOfFiveSuccess": true,
+    "noScientificResultFromAttempt04Consumed": true
+  },
+  "nextPaidAttemptProposal": {
+    "maxPodCount": 5,
+    "maxRuntimeSecondsPerPod": 480,
+    "maxTotalUsd": 0.40,
+    "automaticRetry": false,
+    "fallbackProviders": []
+  }
+}
