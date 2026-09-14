@@ -7,7 +7,19 @@ if [[ "${VELA_RUNPOD_PREFLIGHT_AUTHORIZED:-false}" != "true" ]]; then echo "RUNP
 GPU_ID="NVIDIA A40"; GPU_PRICE_CAP="0.49"; IMAGE_TAG="python:3.12.13-slim-bookworm"; MAX_RUNTIME_SECONDS=900; WORKLOAD_TIMEOUT_SECONDS=840; PROXY_STARTUP_GRACE_SECONDS=120; RESULT_PORT=8000; POLL_INTERVAL_SECONDS=3
 EVIDENCE_DIR="${VELA_PREFLIGHT_EVIDENCE_DIR:-/tmp/runpod-capacity-preflight}"; CAPACITY_SELECTOR="${VELA_RUNPOD_CAPACITY_SELECTOR:-$(dirname "$0")/runpod_select_a40_capacity_v1.py}"; SUPERVISOR="${VELA_RUNPOD_PREFLIGHT_SUPERVISOR:-$(dirname "$0")/runpod_capacity_preflight_supervisor_v1.py}"
 mkdir -p "$EVIDENCE_DIR/polls"; POD_ID=""; DELETED=0; WATCHDOG_PID=""; RENT_START_EPOCH=""
-cleanup_pod(){ set +e; if [[ -n "$WATCHDOG_PID" ]]; then kill "$WATCHDOG_PID" >/dev/null 2>&1||true; wait "$WATCHDOG_PID" >/dev/null 2>&1||true; WATCHDOG_PID=""; fi; if [[ -n "$POD_ID" && "$DELETED" != 1 ]]; then runpodctl pod get "$POD_ID" --include-machine > "$EVIDENCE_DIR/pod-final-get.json" 2> "$EVIDENCE_DIR/pod-final-get.err"||true; if runpodctl pod delete "$POD_ID" > "$EVIDENCE_DIR/pod-delete.json" 2> "$EVIDENCE_DIR/pod-delete.err"; then DELETED=1; elif grep -q '"code":"not_found"' "$EVIDENCE_DIR/pod-delete.err" 2>/dev/null; then DELETED=1; fi; fi; set -e; }
+sanitize_pod_get(){ local raw="$1" out="$2"; python - "$raw" "$out" <<'PY'
+import json,sys
+src,out=sys.argv[1:]
+try:x=json.load(open(src))
+except Exception: open(out,'w').write('{}\n'); raise SystemExit(0)
+env=x.get('env')
+if isinstance(env,dict):
+ for k in ('VELA_RESULT_TOKEN','VELA_SUPERVISOR_B64'):
+  if k in env: env[k]='<redacted>'
+json.dump(x,open(out,'w'),indent=2,sort_keys=True)
+PY
+}
+cleanup_pod(){ set +e; if [[ -n "$WATCHDOG_PID" ]]; then kill "$WATCHDOG_PID" >/dev/null 2>&1||true; wait "$WATCHDOG_PID" >/dev/null 2>&1||true; WATCHDOG_PID=""; fi; if [[ -n "$POD_ID" && "$DELETED" != 1 ]]; then raw="/tmp/vela-preflight-final-get-${POD_ID}.json"; runpodctl pod get "$POD_ID" --include-machine > "$raw" 2> "$EVIDENCE_DIR/pod-final-get.err"||true; sanitize_pod_get "$raw" "$EVIDENCE_DIR/pod-final-get.json"||true; rm -f "$raw"; if runpodctl pod delete "$POD_ID" > "$EVIDENCE_DIR/pod-delete.json" 2> "$EVIDENCE_DIR/pod-delete.err"; then DELETED=1; elif grep -q '"code":"not_found"' "$EVIDENCE_DIR/pod-delete.err" 2>/dev/null; then DELETED=1; fi; fi; set -e; }
 trap cleanup_pod EXIT INT TERM
 runpodctl version > "$EVIDENCE_DIR/runpodctl-version.txt"; runpodctl user >/dev/null; runpodctl gpu list --include-unavailable > "$EVIDENCE_DIR/gpu-list.json"; python "$CAPACITY_SELECTOR" "$EVIDENCE_DIR/gpu-list.json" "$EVIDENCE_DIR/selected-gpu.json" --require-data-center "$VELA_RUNPOD_DATA_CENTER_ID" > "$EVIDENCE_DIR/capacity-validation.json"
 docker buildx imagetools inspect "$IMAGE_TAG" --raw > "$EVIDENCE_DIR/image-manifest.json"
@@ -42,8 +54,8 @@ time.sleep(int(sys.argv[1])); open(sys.argv[3]+'/watchdog-fired.txt','w').write(
 PY
 WATCHDOG_PID=$!
 DEADLINE=$((RENT_START_EPOCH+MAX_RUNTIME_SECONDS)); FIRST_RUNNING=""; FIRST_PROXY=""; LAST_UPTIME=""; FOUND=0; REASON=""; POLL=0
-while (( $(date +%s)<DEADLINE )); do POLL=$((POLL+1)); base="$EVIDENCE_DIR/polls/poll-$(printf '%04d' "$POLL")"; runpodctl pod get "$POD_ID" --include-machine > "$base-get.json" 2> "$base-get.err"||true; read -r runtime uptime <<EOF
-$(python - "$base-get.json" <<'PY'
+while (( $(date +%s)<DEADLINE )); do POLL=$((POLL+1)); base="$EVIDENCE_DIR/polls/poll-$(printf '%04d' "$POLL")"; raw_get="/tmp/vela-preflight-get-${POD_ID}.json"; runpodctl pod get "$POD_ID" --include-machine > "$raw_get" 2> "$base-get.err"||true; sanitize_pod_get "$raw_get" "$base-get.json"||true; read -r runtime uptime <<EOF
+$(python - "$raw_get" <<'PY'
 import json,sys
 try:x=json.load(open(sys.argv[1]))
 except:print('unknown NA');raise SystemExit
@@ -51,7 +63,7 @@ u=x.get('uptimeSeconds'); print(x.get('runtimeStatus') or 'unknown',u if isinsta
 PY
 )
 EOF
-now="$(date +%s)"; [[ "$runtime" != running || -n "$FIRST_RUNNING" ]]||FIRST_RUNNING="$now"; if [[ "$uptime" != NA ]]; then if [[ -n "$LAST_UPTIME" ]]&&(( uptime+10<LAST_UPTIME ))&&(( LAST_UPTIME>=20 )); then REASON="CONTAINER_RESTART_DETECTED_BY_CONTROL_PLANE"; break; fi; LAST_UPTIME="$uptime"; fi
+rm -f "$raw_get"; now="$(date +%s)"; [[ "$runtime" != running || -n "$FIRST_RUNNING" ]]||FIRST_RUNNING="$now"; if [[ "$uptime" != NA ]]; then if [[ -n "$LAST_UPTIME" ]]&&(( uptime+10<LAST_UPTIME ))&&(( LAST_UPTIME>=20 )); then REASON="CONTAINER_RESTART_DETECTED_BY_CONTROL_PLANE"; break; fi; LAST_UPTIME="$uptime"; fi
 code="$(curl -sS -L --connect-timeout 3 --max-time 5 -o "$base-status.json" -w '%{http_code}' "$PROXY_BASE/v1/status/$RESULT_TOKEN" 2> "$base-status.err"||true)"; echo "$code" > "$base-status.code"
 if [[ "$code" == 200 ]]; then [[ -n "$FIRST_PROXY" ]]||FIRST_PROXY="$now"; read -r state source schema <<EOF
 $(python - "$base-status.json" <<'PY'
