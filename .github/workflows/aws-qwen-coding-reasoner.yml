@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
     inputs:
       payload_b64:
-        description: Base64-encoded bounded Coding Worker reasoner request
+        description: Base64-encoded gzip or legacy JSON bounded Coding Worker request
         required: true
         type: string
       dry_run:
@@ -36,6 +36,40 @@ jobs:
         run: |
           python3 infra/aws/coding-worker/reasoner.py --self-test
           python3 infra/aws/test_paid_producer_receipts.py
+      - name: Test exact workflow decoder without provider access
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import base64, gzip, os, subprocess, sys, tempfile, textwrap
+          from pathlib import Path
+          workflow = Path('.github/workflows/aws-qwen-coding-reasoner.yml').read_text()
+          section = workflow.split('      - name: Decode bounded request\n', 1)[1]
+          code = textwrap.dedent(section.split("          python3 - <<'PY'\n", 1)[1].split('          PY\n', 1)[0])
+          original = b'{"source":"' + b'x' * 100000 + b'"}'
+          compressed = gzip.compress(original, mtime=0)
+          cases = [
+              ('gzip exact bytes', base64.b64encode(compressed).decode(), original),
+              ('legacy JSON', base64.b64encode(b'{"goal":"legacy"}').decode(), b'{"goal":"legacy"}'),
+              ('decoded boundary', base64.b64encode(gzip.compress(b'x' * 131072)).decode(), b'x' * 131072),
+              ('decoded overflow', base64.b64encode(gzip.compress(b'x' * 131073)).decode(), None),
+              ('truncated gzip', base64.b64encode(compressed[:-3]).decode(), None),
+              ('malformed gzip', base64.b64encode(b'\x1f\x8b' + b'invalid' * 4).decode(), None),
+              ('encoded overflow', 'A' * 65536, None),
+              ('invalid Base64', '!!!', None),
+          ]
+          for name, payload, expected in cases:
+              with tempfile.TemporaryDirectory() as directory:
+                  result = subprocess.run([sys.executable, '-c', code], cwd=directory,
+                      env={**os.environ, 'PAYLOAD_B64': payload}, capture_output=True, timeout=5)
+                  output = Path(directory) / 'coding-reasoner-input.json'
+                  if expected is None:
+                      assert result.returncode != 0 and not output.exists(), name
+                  else:
+                      assert result.returncode == 0, (name, result.stderr.decode())
+                      assert output.read_bytes() == expected, name
+          print('Bounded workflow decoder: 8 checks PASS; provider calls 0')
+          PY
 
   reason:
     if: ${{ github.event_name == 'workflow_dispatch' }}
@@ -57,15 +91,21 @@ jobs:
         run: |
           set -euo pipefail
           python3 - <<'PY'
-          import base64, os
+          import base64, gzip, io, os, zlib
           from pathlib import Path
           raw = os.environ.get('PAYLOAD_B64', '')
-          if not raw or len(raw) > 180000:
+          if not raw or len(raw) > 65535:
               raise SystemExit('payload_b64_missing_or_too_large')
           try:
               decoded = base64.b64decode(raw, validate=True)
           except Exception as exc:
               raise SystemExit(f'payload_b64_invalid:{exc}')
+          if decoded.startswith(b'\x1f\x8b'):
+              try:
+                  with gzip.GzipFile(fileobj=io.BytesIO(decoded)) as compressed:
+                      decoded = compressed.read(131073)
+              except (OSError, EOFError, zlib.error) as exc:
+                  raise SystemExit(f'payload_gzip_invalid:{exc}')
           if len(decoded) > 131072:
               raise SystemExit('decoded_payload_too_large')
           Path('coding-reasoner-input.json').write_bytes(decoded)
