@@ -16,8 +16,10 @@ class Ctx:
  def started(self): return self.root/'.vela-started'
 def atomic(path,obj):
  t=path.with_suffix(path.suffix+'.tmp'); t.write_text(json.dumps(obj,separators=(',',':'),sort_keys=True)+'\n'); t.replace(path)
+def emit(tag,**data):
+ print(json.dumps({'tag':tag,'unix':int(time.time()),**data},sort_keys=True),flush=True)
 def set_status(ctx,state,phase,boot,**extra):
- x={'schema':'vela-statebank-proxy-status:v1','state':state,'phase':phase,'boot_id':boot,'source_commit':ctx.source,'model_profile_id':ctx.model,'retrieval_mode':ctx.retrieval,'updated_unix':int(time.time())}; x.update(extra); atomic(ctx.status,x)
+ x={'schema':'vela-statebank-proxy-status:v1','state':state,'phase':phase,'boot_id':boot,'source_commit':ctx.source,'model_profile_id':ctx.model,'retrieval_mode':ctx.retrieval,'updated_unix':int(time.time())}; x.update(extra); atomic(ctx.status,x); emit('VELA_STATUS',state=state,phase=phase,**extra)
 def valid_result(ctx):
  try: raw=ctx.result.read_bytes(); obj=json.loads(raw)
  except Exception:return None
@@ -35,14 +37,29 @@ def handler(ctx):
     self.sendb(200,ctx.result.read_bytes());return
    self.sendb(404,b'{"error":"NOT_FOUND"}\n')
  return H
+def heartbeat(ctx,stop):
+ while not stop.wait(15):
+  sizes={}
+  for name in ('pip_install.stdout','pip_install.stderr','run_benchmark.stdout','run_benchmark.stderr'):
+   p=ctx.root/name
+   if p.exists():sizes[name]=p.stat().st_size
+  try: s=json.loads(ctx.status.read_text()) if ctx.status.exists() else {'state':'STARTING','phase':'none'}
+  except Exception:s={'state':'UNKNOWN','phase':'status_parse_failed'}
+  emit('VELA_HEARTBEAT',state=s.get('state'),phase=s.get('phase'),file_sizes=sizes)
 def run(ctx,boot,deadline,phase,cmd,env=None):
  remain=deadline-time.monotonic()
  if remain<=0:return 124
  set_status(ctx,'RUNNING',phase,boot)
  with (ctx.root/f'{phase}.stdout').open('wb') as out,(ctx.root/f'{phase}.stderr').open('wb') as err:
-  try:return subprocess.run(cmd,cwd=ctx.root,env=env,stdout=out,stderr=err,timeout=remain,check=False).returncode
-  except subprocess.TimeoutExpired:return 124
-def dl(url,dest):dest.parent.mkdir(parents=True,exist_ok=True);urllib.request.urlretrieve(url,dest)
+  try:
+   rc=subprocess.run(cmd,cwd=ctx.root,env=env,stdout=out,stderr=err,timeout=remain,check=False).returncode
+   emit('VELA_PHASE_EXIT',phase=phase,exit_code=rc)
+   return rc
+  except subprocess.TimeoutExpired:
+   emit('VELA_PHASE_TIMEOUT',phase=phase)
+   return 124
+def dl(url,dest):
+ dest.parent.mkdir(parents=True,exist_ok=True); emit('VELA_DOWNLOAD_START',name=dest.name); urllib.request.urlretrieve(url,dest); emit('VELA_DOWNLOAD_DONE',name=dest.name,bytes=dest.stat().st_size)
 def download_pack(base,rel,dest):
  target=dest/'PACK_INPUT'; dl(base+'/'+rel,target)
  try:d=json.loads(target.read_text())
@@ -58,7 +75,7 @@ def work(ctx,boot):
    _,raw=valid_result(ctx);set_status(ctx,'COMPLETE','recovered',boot,result_bytes=len(raw),result_sha256=hashlib.sha256(raw).hexdigest());return
   if ctx.started.exists():set_status(ctx,'FAILED','restart_recovery',boot,failure_class='RESTART_WITHOUT_VALID_RESULT');return
   ctx.started.write_text(boot+'\n')
-  rc=run(ctx,boot,deadline,'pip_install',[sys.executable,'-m','pip','install','--quiet','--extra-index-url','https://download.pytorch.org/whl/cu126','torch==2.7.1+cu126','rwkv==0.8.32','tokenizers==0.21.4','numpy==2.4.6','huggingface_hub==0.36.0'])
+  rc=run(ctx,boot,deadline,'pip_install',[sys.executable,'-m','pip','install','--quiet','rwkv==0.8.32','tokenizers==0.21.4','numpy==2.4.6','huggingface_hub==0.36.0'])
   if rc!=0:set_status(ctx,'FAILED','pip_install',boot,failure_class='PIP_INSTALL_FAILED',exit_code=rc);return
   set_status(ctx,'RUNNING','download_sources',boot)
   for name in ('statebank_runner.py','benchmark_contract.py','benchmark_metrics.py','rwkv_state_engine.py'):dl(base+'/'+name,ctx.root/name)
@@ -72,5 +89,7 @@ def work(ctx,boot):
 def main():
  token=os.environ.get('VELA_RESULT_TOKEN','');source=os.environ.get('VELA_SOURCE_COMMIT','');model=os.environ.get('VELA_MODEL_PROFILE_ID','');retrieval=os.environ.get('VELA_RETRIEVAL_MODE','')
  if len(token)<32 or len(source)!=40 or not model or not retrieval:raise SystemExit('invalid identity environment')
- root=Path(os.environ.get('VELA_WORK_ROOT','/workspace/vela'));root.mkdir(parents=True,exist_ok=True);ctx=Ctx(root,token,source,model,retrieval);boot=uuid.uuid4().hex;set_status(ctx,'BOOTING','supervisor_start',boot);threading.Thread(target=work,args=(ctx,boot),daemon=True).start();server=ThreadingHTTPServer(('0.0.0.0',int(os.environ.get('VELA_RESULT_PORT','8000'))),handler(ctx));server.daemon_threads=True;server.serve_forever(poll_interval=.5)
+ root=Path(os.environ.get('VELA_WORK_ROOT','/workspace/vela'));root.mkdir(parents=True,exist_ok=True);ctx=Ctx(root,token,source,model,retrieval);boot=uuid.uuid4().hex;set_status(ctx,'BOOTING','supervisor_start',boot);stop=threading.Event();threading.Thread(target=heartbeat,args=(ctx,stop),daemon=True).start();threading.Thread(target=work,args=(ctx,boot),daemon=True).start();server=ThreadingHTTPServer(('0.0.0.0',int(os.environ.get('VELA_RESULT_PORT','8000'))),handler(ctx));server.daemon_threads=True
+ try:server.serve_forever(poll_interval=.5)
+ finally:stop.set()
 if __name__=='__main__':main()
