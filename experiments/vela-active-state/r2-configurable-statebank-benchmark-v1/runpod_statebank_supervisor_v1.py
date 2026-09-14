@@ -10,6 +10,7 @@ import threading
 import time
 import traceback
 import urllib.request
+import urllib.parse
 import uuid
 from dataclasses import dataclass
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -179,16 +180,47 @@ def run(
             return 124
 
 
+def safe_rel(value: str) -> str:
+    path = Path(value)
+    if not value or path.is_absolute() or ".." in path.parts or "\\" in value:
+        raise ValueError(f"unsafe relative path {value}")
+    return path.as_posix()
+
+
+def under_base(base: str, rel: str, source: str) -> str:
+    """Return rel expressed relative to VELA_BASE_RAW.
+
+    The launcher authenticates repo-relative pack/config paths, while
+    VELA_BASE_RAW already points at the experiment directory. Strip that
+    experiment prefix exactly once instead of duplicating it.
+    """
+    rel = safe_rel(rel)
+    parsed = urllib.parse.urlsplit(base)
+    marker = f"/{source}/"
+    if marker not in parsed.path:
+        raise ValueError("VELA_BASE_RAW does not contain exact source commit")
+    base_rel = parsed.path.split(marker, 1)[1].strip("/")
+    prefix = base_rel + "/"
+    if rel.startswith(prefix):
+        rel = rel[len(prefix):]
+    return safe_rel(rel)
+
+
+def raw_url(base: str, rel: str, source: str) -> str:
+    return base.rstrip("/") + "/" + under_base(base, rel, source)
+
+
 def dl(url: str, dest: Path) -> None:
     dest.parent.mkdir(parents=True, exist_ok=True)
-    emit("VELA_DOWNLOAD_START", name=dest.name)
+    emit("VELA_DOWNLOAD_START", name=dest.name, url_sha256=hashlib.sha256(url.encode()).hexdigest())
     urllib.request.urlretrieve(url, dest)
     emit("VELA_DOWNLOAD_DONE", name=dest.name, bytes=dest.stat().st_size)
 
 
-def download_pack(base: str, rel: str, dest: Path) -> Path:
+def download_pack(base: str, rel: str, source: str, dest: Path) -> Path:
+    rel = under_base(base, rel, source)
     target = dest / "PACK_INPUT"
-    dl(base + "/" + rel, target)
+    dl(base.rstrip("/") + "/" + rel, target)
     try:
         descriptor = json.loads(target.read_text())
     except Exception:
@@ -200,8 +232,32 @@ def download_pack(base: str, rel: str, dest: Path) -> Path:
     desc = packdir / "PACK_V1.json"
     desc.write_text(json.dumps(descriptor, indent=2) + "\n")
     for chunk in descriptor["chunks"]:
-        dl(base + "/" + str(Path(rel).parent / chunk), packdir / chunk)
+        chunk_rel = safe_rel(str(Path(rel).parent / chunk))
+        dl(base.rstrip("/") + "/" + chunk_rel, packdir / chunk)
     return desc
+
+
+def _path_contract_selfcheck() -> None:
+    source = "d" * 40
+    base = (
+        "https://raw.githubusercontent.com/o/r/"
+        + source
+        + "/experiments/vela-active-state/r2-configurable-statebank-benchmark-v1"
+    )
+    full = (
+        "experiments/vela-active-state/r2-configurable-statebank-benchmark-v1/"
+        "EXECUTION_CONFIG_V1.json"
+    )
+    assert under_base(base, full, source) == "EXECUTION_CONFIG_V1.json"
+    assert raw_url(base, full, source).endswith(
+        "/r2-configurable-statebank-benchmark-v1/EXECUTION_CONFIG_V1.json"
+    )
+    assert raw_url(base, "statebank_runner.py", source).endswith(
+        "/r2-configurable-statebank-benchmark-v1/statebank_runner.py"
+    )
+
+
+_path_contract_selfcheck()
 
 
 def work(ctx: Ctx, boot: str) -> None:
@@ -262,9 +318,17 @@ def work(ctx: Ctx, boot: str) -> None:
 
         set_status(ctx, "RUNNING", "download_sources", boot)
         for name in ("statebank_runner.py", "benchmark_contract.py", "benchmark_metrics.py", "rwkv_state_engine.py"):
-            dl(base + "/" + name, ctx.root / name)
-        dl(base + "/" + os.environ["VELA_EXECUTION_CONFIG_REL"], ctx.root / "execution_config.json")
-        pack = download_pack(base, os.environ["VELA_PROBLEM_PACK_REL"], ctx.root / "problem_pack")
+            dl(raw_url(base, name, ctx.source), ctx.root / name)
+        dl(
+            raw_url(base, os.environ["VELA_EXECUTION_CONFIG_REL"], ctx.source),
+            ctx.root / "execution_config.json",
+        )
+        pack = download_pack(
+            base,
+            os.environ["VELA_PROBLEM_PACK_REL"],
+            ctx.source,
+            ctx.root / "problem_pack",
+        )
 
         env = os.environ.copy()
         env["VELA_SOURCE_COMMIT"] = ctx.source
