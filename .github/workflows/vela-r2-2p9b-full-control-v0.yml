@@ -68,7 +68,8 @@ jobs:
             "$EXPERIMENT_DIR/runpod_condition_adapter_v1.py" \
             "$EXPERIMENT_DIR/runpod_select_a40_capacity_v1.py" \
             "$EXPERIMENT_DIR/runpod_science_proxy_supervisor_v1.py" \
-            "$EXPERIMENT_DIR/test_runpod_science_proxy_v1.py"
+            "$EXPERIMENT_DIR/test_runpod_science_proxy_v1.py" \
+            "$EXPERIMENT_DIR/test_runpod_science_launcher_v4.py"
           python - <<'PY'
           import json
           from pathlib import Path
@@ -106,6 +107,8 @@ jobs:
           PY
       - name: Synthetic HTTPS proxy transport proof
         run: python "$EXPERIMENT_DIR/test_runpod_science_proxy_v1.py"
+      - name: Synthetic controller success and restart fail-close proof
+        run: python "$EXPERIMENT_DIR/test_runpod_science_launcher_v4.py"
       - name: Revalidate frozen P-R2-02 contract
         run: python "$EXPERIMENT_DIR/validate_contract.py"
       - name: Revalidate preflight contract
