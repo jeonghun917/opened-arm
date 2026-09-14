@@ -16,7 +16,7 @@
     "rwkv7-g1i-7.2b-20260805"
   ],
   "boundRun": {
-    "sourceCommit": "1990c966dde4981ec5fa8ca97e47c68fae977c90",
+    "sourceCommit": "88b8aa1cb526de136948d86fafdad4c9d9cdb676",
     "modelProfileId": "rwkv7-g1i-2.9b-20260805",
     "problemPackPath": "experiments/vela-active-state/r2-configurable-statebank-benchmark-v1/problem_packs/VELA_R2_StateBank_ProblemPack_v1/PROBLEM_SOURCE_V1.json",
     "executionConfigPath": "experiments/vela-active-state/r2-configurable-statebank-benchmark-v1/EXECUTION_CONFIG_V1.json",
