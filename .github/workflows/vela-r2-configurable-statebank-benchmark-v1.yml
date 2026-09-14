@@ -30,7 +30,7 @@ on:
         description: Retrieval mode declared by the execution config
         required: true
         type: string
-        default: OFF
+        default: 'OFF'
       execute_paid:
         description: Execute the separately authorized one-pod RunPod run
         required: true
@@ -160,7 +160,7 @@ jobs:
       MODEL_PROFILE_ID: ${{ inputs.model_profile_id }}
       PROBLEM_PACK: ${{ inputs.problem_pack }}
       EXECUTION_CONFIG: ${{ inputs.execution_config }}
-      RETRIEVAL_MODE: ${{ inputs.retrieval_mode }}
+      RETRIEVAL_MODE: ${{ inputs.retrieval_mode || 'OFF' }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -201,7 +201,7 @@ jobs:
       RUNPOD_API_KEY: ${{ secrets.RUNPOD_API_KEY }}
       VELA_SOURCE_COMMIT: ${{ needs.auth-gate.outputs.source_commit }}
       VELA_MODEL_PROFILE_ID: ${{ inputs.model_profile_id }}
-      VELA_RETRIEVAL_MODE: ${{ inputs.retrieval_mode }}
+      VELA_RETRIEVAL_MODE: ${{ inputs.retrieval_mode || 'OFF' }}
       VELA_PROBLEM_PACK_REL: ${{ inputs.problem_pack }}
       VELA_EXECUTION_CONFIG_REL: ${{ inputs.execution_config }}
       VELA_PAID_EXECUTION_AUTHORIZED: 'true'
@@ -235,7 +235,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: vela-statebank-${{ inputs.model_profile_id }}-${{ inputs.retrieval_mode }}
+          name: vela-statebank-${{ inputs.model_profile_id }}-${{ inputs.retrieval_mode || 'OFF' }}
           path: /tmp/vela-statebank
           if-no-files-found: warn
           retention-days: 30
