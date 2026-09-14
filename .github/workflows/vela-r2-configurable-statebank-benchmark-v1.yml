@@ -123,6 +123,8 @@ jobs:
           assert set(a['allowedModelProfiles'])=={'rwkv7-g1i-2.9b-20260805','rwkv7-g1i-7.2b-20260805'}
           if a['status']=='PREPARED_UNARMED':
               assert a['paidExecutionAuthorized'] is False and a['boundRun'] is None
+          elif a['status']=='AUTHORIZED_SINGLE_RUN':
+              assert a['paidExecutionAuthorized'] is True and isinstance(a['boundRun'],dict)
           PY
 
   readiness:
@@ -152,6 +154,8 @@ jobs:
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.execute_paid }}
     runs-on: ubuntu-latest
     timeout-minutes: 3
+    outputs:
+      source_commit: ${{ steps.bind.outputs.source_commit }}
     env:
       MODEL_PROFILE_ID: ${{ inputs.model_profile_id }}
       PROBLEM_PACK: ${{ inputs.problem_pack }}
@@ -161,25 +165,31 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.sha }}
+          fetch-depth: 0
           persist-credentials: false
       - name: Require exact one-shot authorization
+        id: bind
         run: |
           python - <<'PY'
-          import hashlib,json,os
-          from pathlib import Path
+          import json,os,re,subprocess
           a=json.load(open('experiments/vela-active-state/r2-configurable-statebank-benchmark-v1/RUNPOD_SINGLE_RUN_AUTH_V1.json'))
           assert a['status']=='AUTHORIZED_SINGLE_RUN' and a['paidExecutionAuthorized'] is True
           assert a['maxPodCount']==1 and float(a['maxTotalUsd'])<=0.13 and a['maxRuntimeSeconds']==900
           assert a['automaticRetry'] is False and a['fallbackProviders']==[]
           assert os.environ['MODEL_PROFILE_ID'] in a['allowedModelProfiles']
           b=a['boundRun']; assert isinstance(b,dict)
-          assert b['sourceCommit']==os.environ['GITHUB_SHA']
+          source=b['sourceCommit']; assert re.fullmatch(r'[0-9a-f]{40}',source)
+          parent=subprocess.check_output(['git','rev-parse',os.environ['GITHUB_SHA']+'^'],text=True).strip()
+          assert source==parent
           assert b['modelProfileId']==os.environ['MODEL_PROFILE_ID']
           assert b['problemPackPath']==os.environ['PROBLEM_PACK']
           assert b['executionConfigPath']==os.environ['EXECUTION_CONFIG']
           assert b['retrievalMode']==os.environ['RETRIEVAL_MODE']
-          assert b['problemPackSha256']==hashlib.sha256(Path(os.environ['PROBLEM_PACK']).read_bytes()).hexdigest()
-          assert b['executionConfigSha256']==hashlib.sha256(Path(os.environ['EXECUTION_CONFIG']).read_bytes()).hexdigest()
+          pack_blob=subprocess.check_output(['git','rev-parse',f"{source}:{os.environ['PROBLEM_PACK']}"],text=True).strip()
+          cfg_blob=subprocess.check_output(['git','rev-parse',f"{source}:{os.environ['EXECUTION_CONFIG']}"],text=True).strip()
+          assert pack_blob==b['problemPackGitBlobSha']
+          assert cfg_blob==b['executionConfigGitBlobSha']
+          with open(os.environ['GITHUB_OUTPUT'],'a') as f: f.write(f'source_commit={source}\n')
           PY
 
   science:
@@ -189,7 +199,7 @@ jobs:
     timeout-minutes: 22
     env:
       RUNPOD_API_KEY: ${{ secrets.RUNPOD_API_KEY }}
-      VELA_SOURCE_COMMIT: ${{ github.sha }}
+      VELA_SOURCE_COMMIT: ${{ needs.auth-gate.outputs.source_commit }}
       VELA_MODEL_PROFILE_ID: ${{ inputs.model_profile_id }}
       VELA_RETRIEVAL_MODE: ${{ inputs.retrieval_mode }}
       VELA_PROBLEM_PACK_REL: ${{ inputs.problem_pack }}
@@ -200,7 +210,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.sha }}
+          ref: ${{ needs.auth-gate.outputs.source_commit }}
           persist-credentials: false
       - name: Install exact pinned RunPod CLI
         run: |
@@ -215,7 +225,7 @@ jobs:
           r=json.load(open('/tmp/vela-statebank/benchmark_result.json'))
           e=json.load(open('/tmp/vela-statebank/provider-envelope.json'))
           assert r['schema']=='vela-statebank-benchmark-result:v1' and r['status']=='COMPLETE'
-          assert r['source_commit']==os.environ['GITHUB_SHA']
+          assert r['source_commit']==os.environ['VELA_SOURCE_COMMIT']
           assert r['model_profile']['id']==os.environ['VELA_MODEL_PROFILE_ID']
           assert r['retrieval_mode']==os.environ['VELA_RETRIEVAL_MODE']
           assert e['status']=='PASS' and e['pod_deleted'] is True

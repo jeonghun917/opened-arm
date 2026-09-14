@@ -1,11 +1,11 @@
 {
   "schema": "vela-configurable-statebank-runpod-auth:v1",
   "task": "vela-r2-configurable-statebank-benchmark-v1",
-  "status": "PREPARED_UNARMED",
-  "paidExecutionAuthorized": false,
+  "status": "AUTHORIZED_SINGLE_RUN",
+  "paidExecutionAuthorized": true,
   "attemptOrdinal": 1,
-  "authorityRef": null,
-  "authorizedAt": null,
+  "authorityRef": "user-directive:2026-09-14:2p9b-retrieval-off-full-suite-go",
+  "authorizedAt": "2026-09-14T11:27:00Z",
   "maxPodCount": 1,
   "maxTotalUsd": 0.13,
   "maxRuntimeSeconds": 900,
@@ -15,5 +15,15 @@
     "rwkv7-g1i-2.9b-20260805",
     "rwkv7-g1i-7.2b-20260805"
   ],
-  "boundRun": null
+  "boundRun": {
+    "sourceCommit": "c4f9672ff19e695ec485972a91f797dc06d0cbd7",
+    "modelProfileId": "rwkv7-g1i-2.9b-20260805",
+    "problemPackPath": "experiments/vela-active-state/r2-configurable-statebank-benchmark-v1/problem_packs/VELA_R2_StateBank_ProblemPack_v1/PROBLEM_SOURCE_V1.json",
+    "executionConfigPath": "experiments/vela-active-state/r2-configurable-statebank-benchmark-v1/EXECUTION_CONFIG_V1.json",
+    "retrievalMode": "OFF",
+    "problemPackGitBlobSha": "3e1fdb1162bb8a2f4c21e29cf1e59702fabfe5fd",
+    "executionConfigGitBlobSha": "465f7f59a0af09f7f9b326e84ed47e190bfc2179",
+    "suiteProjectCount": 30,
+    "routingConditions": ["M", "X"]
+  }
 }
