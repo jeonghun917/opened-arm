@@ -1,7 +1,7 @@
 {
   "schema": "vela-runpod-capacity-preflight-auth:v1",
   "task": "vela-r2-7p2b-capacity-followup-v0",
-  "status": "AUTHORIZED_PREFLIGHT",
+  "status": "CONSUMED_SUCCESS",
   "attemptOrdinal": 1,
   "authorityRef": "user-directive:2026-09-14:p-r2-03-result-blind-a40-preflight-go",
   "authorizedAt": "2026-09-14T05:45:41.011Z",
@@ -9,10 +9,66 @@
   "maxTotalUsd": 0.20,
   "maxRuntimeSeconds": 900,
   "automaticRetry": false,
+  "automaticRetryPerformed": false,
   "fallbackProviders": [],
   "scientificEvidence": false,
-  "paidExecutionAuthorized": true,
+  "paidExecutionAuthorized": false,
   "targetGpuId": "NVIDIA A40",
   "matchedProfile": "g1i-20260805",
-  "models": ["2.9B", "7.2B"]
+  "models": ["2.9B", "7.2B"],
+  "consumedByRunId": 34810814859,
+  "consumedByCandidate": "46791a7f3e8b3f4e798067e3cef42bcb7b30109b",
+  "statusResult": "RESULT_BLIND_CAPACITY_PREFLIGHT_PASS",
+  "preflightStatus": "PASS",
+  "providerCleanupAlways": true,
+  "artifact": {
+    "artifactId": 10335096058,
+    "artifactDigest": "sha256:e8515432e2970692a0246aaab473ac609cc279c4c80710308e481ab7a4de8f75",
+    "sourceCommit": "46791a7f3e8b3f4e798067e3cef42bcb7b30109b"
+  },
+  "providerEvidence": {
+    "cleanupJobId": 103872271282,
+    "cleanupStatus": "PASS_ALL_EXACT_PREFLIGHT_PODS_ABSENT",
+    "remaining": [],
+    "pod": {
+      "id": "c99os1x77pjxao",
+      "deleted": true,
+      "elapsedSeconds": 160,
+      "estimatedGpuCostUpperBoundUsd": 0.021778,
+      "dataCenterId": "EU-SE-1",
+      "securePricePerHrUsd": 0.49
+    }
+  },
+  "result": {
+    "transport": "RUNPOD_HTTPS_PROXY_V1",
+    "transportTerminalReason": "RESULT_FETCHED_VIA_RUNPOD_HTTPS_PROXY",
+    "device": "NVIDIA A40",
+    "deviceCapability": [8, 6],
+    "runtime": {
+      "python": "3.12.13",
+      "torch": "2.7.1+cu126",
+      "cuda": "12.6",
+      "rwkv": "0.8.32",
+      "tokenizers": "0.21.4",
+      "numpy": "2.4.6",
+      "strategy": "cuda fp16",
+      "rwkvCudaKernel": false
+    },
+    "models": {
+      "2.9B": {
+        "sha256": "ac1ae23d0e65c1d35ba523eacd81a2a4dacb7b886479909bbff34f312e766320",
+        "sizeBytes": 5896273469,
+        "stateRestoreTensorExact": true,
+        "tensorCount": 96,
+        "peakCudaBytes": 6232199168
+      },
+      "7.2B": {
+        "sha256": "0d09d8961448032501c4d432c33a224c66356d43c10174386ea86b0da2b127d8",
+        "sizeBytes": 14400007869,
+        "stateRestoreTensorExact": true,
+        "tensorCount": 96,
+        "peakCudaBytes": 14946238464
+      }
+    }
+  }
 }
