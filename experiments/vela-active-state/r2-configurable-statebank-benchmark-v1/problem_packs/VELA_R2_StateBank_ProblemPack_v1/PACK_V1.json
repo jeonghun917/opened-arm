@@ -1,0 +1,17 @@
+{
+  "schema": "vela-base64-zip-chunks:v1",
+  "zip_sha256": "2bbc40fb03035bc1cbed3d323b903eedbb3d47659b39de1b89ed670cba3e997e",
+  "chunks": [
+    "chunks/part-00.b64",
+    "chunks/part-01.b64",
+    "chunks/part-02.b64",
+    "chunks/part-03.b64",
+    "chunks/part-04.b64",
+    "chunks/part-05.b64",
+    "chunks/part-06.b64",
+    "chunks/part-07.b64",
+    "chunks/part-08.b64",
+    "chunks/part-09.b64",
+    "chunks/part-10.b64"
+  ]
+}
