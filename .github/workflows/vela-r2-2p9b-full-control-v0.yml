@@ -85,8 +85,14 @@ jobs:
           assert trans['transport']['containerLogsRequiredForCleanup'] is False
           assert trans['containerLifecycle']['controlPlaneUptimeResetDeletesPodImmediately'] is True
           assert trans['scienceContract']['adapterFrozenGitBlob']=='fd5145246a519ae45992df21b6c3acdf7ede5273'
-          assert auth['status'] in {'CONSUMED_INCOMPLETE','AUTHORIZED_MATRIX'}
-          assert auth['scientificResultExists'] is False
+          assert auth['status'] in {'CONSUMED_INCOMPLETE','AUTHORIZED_MATRIX','CONSUMED_SUCCESS'}
+          if auth['status']=='CONSUMED_SUCCESS':
+              assert auth['scientificResultExists'] is True
+              assert auth['aggregateStatus']=='SUCCESS'
+              assert auth['primaryHypothesisStatus'] in {'SUPPORTED','MIXED','NOT_SUPPORTED','PROTOCOL_BLOCKED'}
+              assert auth['automaticRetryPerformed'] is False
+          else:
+              assert auth['scientificResultExists'] is False
           if auth['status']=='AUTHORIZED_MATRIX':
               assert auth['attemptOrdinal'] >= 5
               assert auth['maxPodCount']==5 and float(auth['maxTotalUsd']) <= 0.40
