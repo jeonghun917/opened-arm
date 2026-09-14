@@ -105,6 +105,7 @@ jobs:
               'PROXY_STARTUP_GRACE_SECONDS=120',
               'CONTAINER_RESTART_DETECTED_BY_CONTROL_PLANE',
               'signal.SIGTERM',
+              'signal.SIG_IGN',
               'result_sha256',
               'result_bytes',
               "'pod','get'",
@@ -115,6 +116,9 @@ jobs:
           supervisor=(p/'runpod_statebank_supervisor_v1.py').read_text()
           for token in ('ThreadingHTTPServer','/v1/status/','/v1/result/','RESTART_WITHOUT_VALID_RESULT','RESULT_NOT_READY'):
               assert token in supervisor, token
+          workflow=Path('.github/workflows/vela-r2-configurable-statebank-benchmark-v1.yml').read_text()
+          for token in ('Cleanup any recorded RunPod pod','workflow-pod-delete.stderr','pod-id.txt'):
+              assert token in workflow, token
           PY
       - name: Validate exact RunPod CLI surfaces and pinned runtime image
         shell: bash
@@ -270,6 +274,27 @@ jobs:
           sudo install -m 0755 /tmp/runpodctl /usr/local/bin/runpodctl
       - name: Execute exactly one selected model
         run: python "$EXPERIMENT_DIR/runpod_statebank_launch_v1.py"
+      - name: Cleanup any recorded RunPod pod
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          pod_file="$VELA_EVIDENCE_DIR/pod-id.txt"
+          if [[ ! -s "$pod_file" ]]; then
+            echo 'No recorded pod id; cleanup no-op.'
+            exit 0
+          fi
+          pod="$(tr -d '\r\n' < "$pod_file")"
+          test -n "$pod"
+          set +e
+          runpodctl pod delete "$pod" > "$VELA_EVIDENCE_DIR/workflow-pod-delete.stdout" 2> "$VELA_EVIDENCE_DIR/workflow-pod-delete.stderr"
+          rc=$?
+          set -e
+          if [[ "$rc" -ne 0 ]] && ! grep -Eq '"code"[[:space:]]*:[[:space:]]*"not_found"' "$VELA_EVIDENCE_DIR/workflow-pod-delete.stderr"; then
+            cat "$VELA_EVIDENCE_DIR/workflow-pod-delete.stderr" >&2 || true
+            exit "$rc"
+          fi
+          echo "workflow cleanup confirmed for pod $pod"
       - name: Validate result identity and cleanup
         run: |
           python - <<'PY'

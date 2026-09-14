@@ -120,8 +120,11 @@ def main():
   if not terminal:terminal='MAX_RUNTIME_EXPIRED';logs(pod,ev,token,sup,'max-runtime')
  except ControllerSignal as e:sig=e.signum;terminal='CONTROLLER_CANCELLED';logs(pod,ev,token,sup,'controller-cancelled')
  finally:
-  for s,h in old.items():signal.signal(s,h)
-  emit('VELA_POD_DELETE_START',pod_id=pod,terminal_reason=terminal);deleted=delete_pod(pod,ev,token,sup)
+  for s in old:signal.signal(s,signal.SIG_IGN)
+  try:
+   emit('VELA_POD_DELETE_START',pod_id=pod,terminal_reason=terminal);deleted=delete_pod(pod,ev,token,sup)
+  finally:
+   for s,h in old.items():signal.signal(s,h)
  elapsed=min(max_runtime,max(0,int(time.time()-start)));out={'status':'PASS' if found and deleted else 'FAIL','scientific_evidence':bool(found),'source_commit':source,'model_profile_id':model,'retrieval_mode':retrieval,'pod_id':pod,'pod_deleted':deleted,'terminal_reason':terminal,'elapsed_seconds':elapsed,'max_runtime_seconds':max_runtime,'secure_price_per_hr_usd':price,'estimated_gpu_cost_upper_bound_usd':round(elapsed*price/3600,6),'data_center_id':dc,'max_pod_count':1,'model_selection_cardinality':1,'controller_signal':sig};(ev/'provider-envelope.json').write_text(json.dumps(out,indent=2,sort_keys=True)+'\n');print(json.dumps(out,sort_keys=True),flush=True)
  if sig is not None:raise SystemExit(128+sig)
  raise SystemExit(0 if out['status']=='PASS' else 1)
