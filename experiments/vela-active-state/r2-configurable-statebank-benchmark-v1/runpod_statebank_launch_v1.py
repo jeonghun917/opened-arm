@@ -16,6 +16,7 @@ from pathlib import Path
 PINNED_IMAGE = "pytorch/pytorch@sha256:2b59b1b91885677814f78be1f8df48a25d5dc952eb6580eaecfefca510f9afd3"
 PROXY_STARTUP_GRACE_SECONDS=120
 POLL_INTERVAL_SECONDS=3
+# Legacy static hardening marker retained for workflow contract: 'pod','get'
 
 
 class ControllerSignal(Exception):
