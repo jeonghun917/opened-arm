@@ -62,7 +62,7 @@ def load_contract(config:Path,pack:Path,profile_id:str,retrieval:str):
  cfg=load_json(config)
  if cfg.get('schema')!='vela-statebank-execution-config:v1': raise ValueError('unsupported execution config')
  tmp=None
- try: direct=load_json(pack) if pack.is_file() and pack.suffix.lower()=='.json' else None
+ try: direct=load_json(pack) if pack.is_file() else None
  except Exception: direct=None
  if isinstance(direct,dict) and direct.get('schema')=='vela-statebank-tabular-problem-source:v1':
   manifest,registry,problems=_expand_tabular_source(direct);root=pack.parent
@@ -70,7 +70,7 @@ def load_contract(config:Path,pack:Path,profile_id:str,retrieval:str):
   root,tmp=unpack_problem_pack(pack); manifest=load_json(root/'SUITE_MANIFEST_V1.json'); registry=load_json(root/'MODEL_REGISTRY_V1.json');problems=[]
   for item in manifest.get('projects',[]):
    p=root/item['file']
-   if sha256_file(p)!=item['sha256']: raise ValueEError(f'problem hash mismatch {item["file"]}')
+   if sha256_file(p)!=item['sha256']: raise ValueError(f'problem hash mismatch {item["file"]}')
    problems.append(load_json(p))
  matches=[x for x in registry.get('profiles',[]) if x.get('id')==profile_id]
  if len(matches)!=1: raise ValueError(f'model selection must resolve once: {profile_id}')
