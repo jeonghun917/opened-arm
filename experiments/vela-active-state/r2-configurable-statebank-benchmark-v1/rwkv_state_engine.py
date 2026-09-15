@@ -17,34 +17,43 @@ def feed_text(model,pipe,snapshot,text):
  tokens=[int(x) for x in pipe.encode(text)]
  if not tokens: raise RuntimeError('zero-token input')
  logits,next_state=model.forward(tokens,restore(model,snapshot)); return logits,snap(next_state),len(tokens)
+def _answer_region(text):
+ last_open=text.rfind('<think>'); last_close=text.rfind('</think>')
+ if last_open>=0 and last_close<last_open:return None
+ if last_close>=0:return text[last_close+len('</think>'):]
+ return text
 def extract_json(text):
- start=text.find('{')
- if start<0:return None
- depth=0;ins=False;esc=False
- for i,ch in enumerate(text[start:],start):
-  if ins:
-   if esc:esc=False
-   elif ch=='\\':esc=True
-   elif ch=='"':ins=False
-   continue
-  if ch=='"':ins=True
-  elif ch=='{':depth+=1
-  elif ch=='}':
-   depth-=1
-   if depth==0:
-    try:obj=json.loads(text[start:i+1])
-    except Exception:return None
-    return obj if isinstance(obj,dict) else None
+ region=_answer_region(text)
+ if region is None:return None
+ for start,ch0 in enumerate(region):
+  if ch0!='{':continue
+  depth=0;ins=False;esc=False
+  for i,ch in enumerate(region[start:],start):
+   if ins:
+    if esc:esc=False
+    elif ch=='\\':esc=True
+    elif ch=='"':ins=False
+    continue
+   if ch=='"':ins=True
+   elif ch=='{':depth+=1
+   elif ch=='}':
+    depth-=1
+    if depth==0:
+     try:obj=json.loads(region[start:i+1])
+     except Exception:break
+     if isinstance(obj,dict):return obj
+     break
  return None
 def greedy_json_probe(model,pipe,snapshot,prompt,max_new_tokens):
  import torch
  tokens=[int(x) for x in pipe.encode(prompt)]
  if not tokens: raise RuntimeError('zero-token probe')
- logits,state=model.forward(tokens,restore(model,snapshot));generated=[]
+ logits,state=model.forward(tokens,restore(model,snapshot));generated=[];stop_reason='MAX_NEW_TOKENS'
  for _ in range(max_new_tokens):
   v=logits if getattr(logits,'ndim',1)==1 else logits[-1];tok=int(torch.argmax(v.float()).item())
-  if tok==0:break
+  if tok==0:
+   stop_reason='EOS';break
   generated.append(tok);text=pipe.decode(generated);obj=extract_json(text)
-  if obj is not None:return obj,text,len(tokens)+len(generated)
+  if obj is not None:return obj,text,len(tokens)+len(generated),'FINAL_JSON'
   logits,state=model.forward([tok],state)
- return None,pipe.decode(generated),len(tokens)+len(generated)
+ return None,pipe.decode(generated),len(tokens)+len(generated),stop_reason

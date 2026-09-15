@@ -12,6 +12,20 @@ def select_project_shard(problems, shard_index, shard_count):
  if not selected: raise ValueError(f'empty project shard {shard_index}/{shard_count}')
  return selected
 
+def summarize_primary(probes):
+ fields=sum(len(x['field_correct']) for x in probes);correct=sum(sum(int(v) for v in x['field_correct'].values()) for x in probes);term={}
+ for x in probes:
+  reason=x.get('termination_reason') or 'UNKNOWN';term[reason]=term.get(reason,0)+1
+ return {'primary_probe_count':len(probes),'primary_exact_count':sum(int(x['exact_json']) for x in probes),'primary_exact_rate':sum(int(x['exact_json']) for x in probes)/max(1,len(probes)),'primary_field_accuracy':correct/max(1,fields),'primary_stale_value_error_count':sum(len(x['stale_value_errors']) for x in probes),'primary_omission_count':sum(len(x['omissions']) for x in probes),'primary_invention_count':sum(len(x['inventions']) for x in probes),'primary_parse_failure_count':sum(int(not x['parse_ok']) for x in probes),'termination_reason_counts':term}
+
+def summarize_domains(probes):
+ groups={}
+ for x in probes: groups.setdefault(str(x.get('domain')),[]).append(x)
+ out={}
+ for domain,rows in sorted(groups.items()):
+  s=summarize_primary(rows);out[domain]={'primary_probe_count':s['primary_probe_count'],'primary_exact_count':s['primary_exact_count'],'primary_exact_rate':s['primary_exact_rate'],'primary_field_accuracy':s['primary_field_accuracy'],'parse_failure_count':s['primary_parse_failure_count'],'stale_value_error_count':s['primary_stale_value_error_count'],'omission_count':s['primary_omission_count'],'invention_count':s['primary_invention_count'],'termination_reason_counts':s['termination_reason_counts']}
+ return out
+
 def run_condition(model,pipe,problem,condition,cfg,retrieval):
  zero=engine.snap(model.generate_zero_state()); banks={name:engine.clone_snap(zero) for name in problem['bank_profile']['banks']}; route_field=condition['route_field']; probes=[]; trace=[]; units=0; modes=cfg['state_modes']; retrieval_cfg=cfg['retrieval_modes'][retrieval]
  for ep in problem['episodes']:
@@ -23,7 +37,7 @@ def run_condition(model,pipe,problem,condition,cfg,retrieval):
   else: raise RuntimeError(f'unsupported input_state {inp}')
   before=engine.state_digest(snapshot)
   if mode.get('probe'):
-   prompt=metrics.render_probe_prompt(ep,problem,retrieval_cfg); parsed,raw,u=engine.greedy_json_probe(model,pipe,snapshot,prompt,int(cfg['generation']['max_new_tokens'])); units+=u; probes.append(metrics.evaluate_probe(problem,ep,parsed,raw)); after=before
+   prompt=metrics.render_probe_prompt(ep,problem,retrieval_cfg); parsed,raw,u,termination_reason=engine.greedy_json_probe(model,pipe,snapshot,prompt,int(cfg['generation']['max_new_tokens'])); units+=u; probes.append(metrics.evaluate_probe(problem,ep,parsed,raw,termination_reason)); after=before
   else:
    _,out,u=engine.feed_text(model,pipe,snapshot,str(ep['model_input'])); units+=u; commit=mode['commit']
    if commit=='all':
@@ -35,17 +49,17 @@ def run_condition(model,pipe,problem,condition,cfg,retrieval):
    after=engine.state_digest(out)
   trace.append({'episode':ep['episode'],'event':ep.get('event'),'mode':sc['mode'],'selected_bank':bank,'input_state_sha256':before,'active_output_state_sha256':after,'bank_state_sha256':{n:engine.state_digest(v) for n,v in banks.items()}})
   gc.collect()
- primary=[x for x in probes if x['primary']]; fields=sum(len(x['field_correct']) for x in primary); correct=sum(sum(int(v) for v in x['field_correct'].values()) for x in primary)
- return {'condition':condition['id'],'route_field':route_field,'bank_count':len(banks),'bank_names':list(banks),'probe_results':probes,'primary_probe_count':len(primary),'primary_exact_count':sum(int(x['exact_json']) for x in primary),'primary_field_accuracy':correct/max(1,fields),'primary_stale_value_error_count':sum(len(x['stale_value_errors']) for x in primary),'primary_omission_count':sum(len(x['omissions']) for x in primary),'primary_invention_count':sum(len(x['inventions']) for x in primary),'proposal_units':units,'state_trace':trace}
+ primary=[x for x in probes if x['primary']]; summary=summarize_primary(primary)
+ return {'condition':condition['id'],'route_field':route_field,'bank_count':len(banks),'bank_names':list(banks),'probe_results':probes,**summary,'domain_metrics':summarize_domains(primary),'proposal_units':units,'state_trace':trace}
 
 def aggregate_results(cfg,results):
  agg={}
  for c in cfg['routing_conditions']:
-  cid=c['id']; rows=[x['conditions'][cid] for x in results]; probes=sum(x['primary_probe_count'] for x in rows)
-  agg[cid]={'primary_probe_count':probes,'primary_exact_count':sum(x['primary_exact_count'] for x in rows),'primary_exact_rate':sum(x['primary_exact_count'] for x in rows)/max(1,probes),'primary_field_accuracy':sum(x['primary_field_accuracy']*x['primary_probe_count'] for x in rows)/max(1,probes),'stale_value_error_count':sum(x['primary_stale_value_error_count'] for x in rows),'omission_count':sum(x['primary_omission_count'] for x in rows),'invention_count':sum(x['primary_invention_count'] for x in rows),'proposal_units':sum(x['proposal_units'] for x in rows)}
+  cid=c['id']; rows=[x['conditions'][cid] for x in results]; primary=[p for row in rows for p in row['probe_results'] if p['primary']]; s=summarize_primary(primary); domains=summarize_domains(primary)
+  agg[cid]={'primary_probe_count':s['primary_probe_count'],'primary_exact_count':s['primary_exact_count'],'primary_exact_rate':s['primary_exact_rate'],'primary_field_accuracy':s['primary_field_accuracy'],'stale_value_error_count':s['primary_stale_value_error_count'],'omission_count':s['primary_omission_count'],'invention_count':s['primary_invention_count'],'parse_failure_count':s['primary_parse_failure_count'],'termination_reason_counts':s['termination_reason_counts'],'domain_metrics':domains,'zero_exact_domains':[d for d,v in domains.items() if v['primary_exact_count']==0],'proposal_units':sum(x['proposal_units'] for x in rows)}
  comps=[]
  for c in cfg.get('comparisons',[]):
-  t,ctl=c['treatment'],c['control']; comps.append({'id':c['id'],'treatment':t,'control':ctl,'exact_rate_delta':agg[t]['primary_exact_rate']-agg[ctl]['primary_exact_rate'],'field_accuracy_delta':agg[t]['primary_field_accuracy']-agg[ctl]['primary_field_accuracy'],'stale_error_delta':agg[t]['stale_value_error_count']-agg[ctl]['stale_value_error_count'],'omission_delta':agg[t]['omission_count']-agg[ctl]['omission_count'],'invention_delta':agg[t]['invention_count']-agg[ctl]['invention_count']})
+  t,ctl=c['treatment'],c['control']; comps.append({'id':c['id'],'treatment':t,'control':ctl,'exact_rate_delta':agg[t]['primary_exact_rate']-agg[ctl]['primary_exact_rate'],'field_accuracy_delta':agg[t]['primary_field_accuracy']-agg[ctl]['primary_field_accuracy'],'stale_error_delta':agg[t]['stale_value_error_count']-agg[ctl]['stale_value_error_count'],'omission_delta':agg[t]['omission_count']-agg[ctl]['omission_count'],'invention_delta':agg[t]['invention_count']-agg[ctl]['invention_count'],'parse_failure_delta':agg[t]['parse_failure_count']-agg[ctl]['parse_failure_count']})
  return agg,comps
 
 def main():
