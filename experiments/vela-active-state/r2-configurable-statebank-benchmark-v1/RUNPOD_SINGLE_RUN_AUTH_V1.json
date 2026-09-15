@@ -1,8 +1,8 @@
 {
   "schema": "vela-configurable-statebank-runpod-auth:v1",
   "task": "vela-r2-bank-count-scaling-v1",
-  "status": "AUTHORIZED_SINGLE_RUN",
-  "paidExecutionAuthorized": true,
+  "status": "CONSUMED_SUCCESS",
+  "paidExecutionAuthorized": false,
   "attemptOrdinal": 1,
   "authorityRef": "user-directive:2026-09-15:bank-count-scaling-4bank-next-go",
   "authorizedAt": "2026-09-15T01:12:07.167Z",
@@ -29,5 +29,57 @@
     "totalEpisodes": 234,
     "primaryProbeCount": 72
   },
-  "lastAttempt": null
+  "lastAttempt": {
+    "workflowRunId": 34917033768,
+    "controlHead": "96118549bbbeca6c93880b1705a3e078a8ff2c4b",
+    "sourceCommit": "5dfcf917fee620ef1196c11479eb4d408728523d",
+    "modelProfileId": "rwkv7-g1i-2.9b-20260805",
+    "retrievalMode": "OFF",
+    "bankCount": 4,
+    "providerMutationObserved": true,
+    "podCreationConfirmed": true,
+    "podId": "p9yo3na4bi3eu2",
+    "podCleanupConfirmed": true,
+    "scientificResultAccepted": true,
+    "terminalReason": "RESULT_FETCHED",
+    "supervisorPhase": "result_ready",
+    "elapsedSeconds": 484,
+    "estimatedGpuCostUpperBoundUsd": 0.065878,
+    "artifactId": 10376432744,
+    "artifactSha256": "fb91f4ce839727e9fcfe0d06f5343a6dd745bced4376acbe2b7e798d91a89baa",
+    "benchmarkResultBytes": 595529,
+    "benchmarkResultSha256": "1f9784dbe626f44a53e9109d58ef7e8c5f752d0c3bc713e0429795314b399e29",
+    "aggregate": {
+      "M": {
+        "primaryProbeCount": 72,
+        "primaryExactCount": 36,
+        "primaryExactRate": 0.5,
+        "primaryFieldCorrect": 166,
+        "primaryFieldTotal": 216,
+        "primaryFieldAccuracy": 0.7685185185185186,
+        "inventionCount": 0,
+        "omissionCount": 21,
+        "staleValueErrorCount": 29
+      },
+      "X": {
+        "primaryProbeCount": 72,
+        "primaryExactCount": 0,
+        "primaryExactRate": 0.0,
+        "primaryFieldCorrect": 116,
+        "primaryFieldTotal": 216,
+        "primaryFieldAccuracy": 0.537037037037037,
+        "inventionCount": 0,
+        "omissionCount": 42,
+        "staleValueErrorCount": 58
+      },
+      "MvsX": {
+        "exactRateDelta": 0.5,
+        "fieldAccuracyDelta": 0.23148148148148162,
+        "projectExactWins": 18,
+        "projectFieldWins": 17,
+        "projectFieldTies": 1
+      }
+    },
+    "disposition": "CONSUMED_SUCCESS"
+  }
 }
