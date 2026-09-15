@@ -11,4 +11,4 @@ All VELA R1 and R2 experiments, benchmarks, results, implementation candidates, 
 - Do not use R1/R2 results as current scientific or product authority.
 - Preserve commits, runs, artifacts, and branches only for forensic history.
 
-The current Neon VELA project record is PAUSED with no active task. Its exact authority etag is `vela-resume-r1-r2-retired-no-active-authority-v1`. A new VELA implementation or experiment requires a separate explicit decision.
+The current Neon VELA project record is PAUSED with no active task. Its exact authority etag is `vela-resume-r1-r2-retired-no-active-authority-v2`. A new VELA implementation or experiment requires a separate explicit decision.
