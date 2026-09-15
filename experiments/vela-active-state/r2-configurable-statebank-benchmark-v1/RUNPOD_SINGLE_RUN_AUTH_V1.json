@@ -1,11 +1,11 @@
 {
   "schema": "vela-configurable-statebank-runpod-auth:v1",
-  "task": "vela-r2-configurable-statebank-benchmark-v1",
-  "status": "CONSUMED_SUCCESS",
-  "paidExecutionAuthorized": false,
-  "attemptOrdinal": 5,
-  "authorityRef": "user-directive:2026-09-15:post-compact-source-runtime-repair-next-go",
-  "authorizedAt": "2026-09-14T23:55:30.032Z",
+  "task": "vela-r2-bank-count-scaling-v1",
+  "status": "AUTHORIZED_SINGLE_RUN",
+  "paidExecutionAuthorized": true,
+  "attemptOrdinal": 1,
+  "authorityRef": "user-directive:2026-09-15:bank-count-scaling-4bank-next-go",
+  "authorizedAt": "2026-09-15T01:12:07.167Z",
   "maxPodCount": 1,
   "maxTotalUsd": 0.13,
   "maxRuntimeSeconds": 900,
@@ -16,51 +16,18 @@
     "rwkv7-g1i-7.2b-20260805"
   ],
   "boundRun": {
-    "sourceCommit": "55ca9559300d48df0d98de11820266d2b5a8cda8",
+    "sourceCommit": "5dfcf917fee620ef1196c11479eb4d408728523d",
     "modelProfileId": "rwkv7-g1i-2.9b-20260805",
-    "problemPackPath": "experiments/vela-active-state/r2-configurable-statebank-benchmark-v1/problem_packs/VELA_R2_StateBank_ProblemPack_v1/PROBLEM_SOURCE_V1.json",
+    "problemPackPath": "experiments/vela-active-state/r2-configurable-statebank-benchmark-v1/problem_packs/VELA_R2_StateBank_ProblemPack_4Bank_v1/PROBLEM_SOURCE_4BANK_V1.json",
     "executionConfigPath": "experiments/vela-active-state/r2-configurable-statebank-benchmark-v1/EXECUTION_CONFIG_V1.json",
     "retrievalMode": "OFF",
-    "problemPackGitBlobSha": "3e1fdb1162bb8a2f4c21e29cf1e59702fabfe5fd",
+    "problemPackGitBlobSha": "44b18a0f1037fc9540d7fa4a99bbb944a363088c",
     "executionConfigGitBlobSha": "465f7f59a0af09f7f9b326e84ed47e190bfc2179",
-    "suiteProjectCount": 30,
-    "routingConditions": ["M", "X"]
+    "suiteProjectCount": 18,
+    "routingConditions": ["M", "X"],
+    "bankCount": 4,
+    "totalEpisodes": 234,
+    "primaryProbeCount": 72
   },
-  "lastAttempt": {
-    "workflowRunId": 34911462391,
-    "controlHead": "ac8775c35f5b33070a3022b49a3bb2c4f16a73f2",
-    "sourceCommit": "55ca9559300d48df0d98de11820266d2b5a8cda8",
-    "modelProfileId": "rwkv7-g1i-2.9b-20260805",
-    "retrievalMode": "OFF",
-    "providerMutationObserved": true,
-    "podCreationConfirmed": true,
-    "podId": "6beeppsztwpoxd",
-    "podCleanupConfirmed": true,
-    "scientificResultAccepted": true,
-    "terminalReason": "RESULT_FETCHED",
-    "supervisorPhase": "result_ready",
-    "elapsedSeconds": 759,
-    "estimatedGpuCostUpperBoundUsd": 0.103308,
-    "artifactId": 10375510185,
-    "artifactSha256": "40a6263f577f9f3c3273f6a9dff895933a7643d08c89fa8ba0a0deef48b86564",
-    "benchmarkResultBytes": 583853,
-    "benchmarkResultSha256": "b7a2068476a009cc044fa131ec8804a1c83c8bfc1e9b0c7fe048d25976203c8b",
-    "aggregate": {
-      "M": {
-        "primaryExactRate": 0.8,
-        "primaryFieldAccuracy": 0.8666666666666667,
-        "inventionCount": 0,
-        "omissionCount": 28,
-        "staleValueErrorCount": 8
-      },
-      "X": {
-        "primaryExactRate": 0.0,
-        "primaryFieldAccuracy": 0.21481481481481476,
-        "inventionCount": 70,
-        "omissionCount": 131,
-        "staleValueErrorCount": 13
-      }
-    },
-    "disposition": "CONSUMED_SUCCESS"
-  }
+  "lastAttempt": null
 }
