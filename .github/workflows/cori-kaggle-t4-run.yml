@@ -1,0 +1,198 @@
+name: Cori Kaggle T4 Benchmark Launch
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/cori-kaggle-t4-run.yml'
+      - 'runner/kaggle_cori_offline_kernel.py'
+      - 'runner/kaggle_cori_kernel.py'
+      - 'runner/kaggle_offline_runtime.py'
+      - 'runner/kaggle_cori_segment_entry.py'
+      - 'runner/lightning_cori_continue_to550.py'
+      - 'ops/build_kaggle_offline_runtime.py'
+      - 'ops/build_kaggle_offline_runtime_v3.py'
+      - 'ops/kaggle_offline_cpu_validate.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-code:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: |
+          python -m py_compile \
+            runner/kaggle_cori_offline_kernel.py \
+            runner/kaggle_cori_kernel.py \
+            runner/kaggle_offline_runtime.py \
+            runner/kaggle_cori_segment_entry.py \
+            runner/lightning_cori_continue_to550.py \
+            ops/build_kaggle_offline_runtime.py \
+            ops/build_kaggle_offline_runtime_v3.py \
+            ops/kaggle_offline_cpu_validate.py
+
+  offline-runtime-cpu-validate:
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    env:
+      KAGGLE_API_TOKEN: ${{ secrets.KAGGLE_API_TOKEN }}
+      KAGGLE_DATASET_ID: ${{ secrets.KAGGLE_DATASET_ID }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate CPU-only gate inputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${KAGGLE_API_TOKEN:-}" || { echo 'missing KAGGLE_API_TOKEN'; exit 2; }
+          [[ "${KAGGLE_DATASET_ID:-}" == */* ]] || { echo 'KAGGLE_DATASET_ID must be owner/private-dataset-slug'; exit 2; }
+          echo C3_OFFLINE_PR_GATE_INPUTS_PASS
+      - name: Install builder clients
+        run: python -m pip install --quiet --upgrade pip wheel kaggle
+      - name: Build private offline runtime and run CPU-only Kaggle validator
+        shell: bash
+        run: |
+          set -euo pipefail
+          python ops/build_kaggle_offline_runtime_v3.py
+      - name: Show bounded validation report
+        if: always()
+        shell: bash
+        run: |
+          if [ -f ops/kaggle-offline-runtime-validation-latest.txt ]; then
+            cat ops/kaggle-offline-runtime-validation-latest.txt
+          else
+            echo 'validation report missing'
+          fi
+      - name: Enforce CPU validation pass
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q '^terminal_status: COMPLETE$' ops/kaggle-offline-runtime-validation-latest.txt
+          grep -q '^validation_pass: true$' ops/kaggle-offline-runtime-validation-latest.txt
+          grep -q 'C3_OFFLINE_CPU_VALIDATION_PASS' ops/kaggle-offline-runtime-validation-latest.txt
+          echo C3_OFFLINE_PR_CPU_GATE_PASS
+      - name: Cleanup builder workspace
+        if: always()
+        run: rm -rf .c3-kaggle-offline-build
+
+  launch-private-t4-benchmark:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      KAGGLE_API_TOKEN: ${{ secrets.KAGGLE_API_TOKEN }}
+      KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
+      KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
+      KAGGLE_DATASET_ID: ${{ secrets.KAGGLE_DATASET_ID }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Validate Kaggle auth and private dataset handle
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${KAGGLE_DATASET_ID:-}" || { echo 'missing KAGGLE_DATASET_ID'; exit 2; }
+          [[ "$KAGGLE_DATASET_ID" == */* ]] || { echo 'KAGGLE_DATASET_ID must be owner/private-dataset-slug'; exit 2; }
+          if [ -z "${KAGGLE_API_TOKEN:-}" ] && { [ -z "${KAGGLE_USERNAME:-}" ] || [ -z "${KAGGLE_KEY:-}" ]; }; then
+            echo 'missing Kaggle auth: add KAGGLE_API_TOKEN or KAGGLE_USERNAME + KAGGLE_KEY'
+            exit 2
+          fi
+
+      - name: Install Kaggle CLI
+        run: python -m pip install --quiet --upgrade kaggle
+
+      - name: Verify private training and offline runtime Datasets exist
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, os, subprocess, urllib.parse, urllib.request
+          token=os.environ.get('KAGGLE_API_TOKEN','')
+          if token:
+              req=urllib.request.Request('https://www.kaggle.com/api/v1/oauth2/introspect',data=urllib.parse.urlencode({'token':token}).encode(),headers={'Content-Type':'application/x-www-form-urlencoded'},method='POST')
+              with urllib.request.urlopen(req,timeout=30) as r: data=json.load(r)
+              owner=(data.get('username') or '').strip()
+          else:
+              owner=os.environ.get('KAGGLE_USERNAME','').strip()
+          raw=os.environ['KAGGLE_DATASET_ID'].strip()
+          slug=raw.split('/',1)[1]
+          candidates=[]
+          for item in (f'{owner}/{slug}' if owner else '', raw):
+              if item and item not in candidates: candidates.append(item)
+          selected=None
+          for item in candidates:
+              if subprocess.run(['kaggle','datasets','status',item],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL).returncode==0:
+                  selected=item; break
+          if not selected: raise SystemExit('no valid private training dataset handle for authenticated Kaggle account')
+          runtime_id=f'{owner}/c3-cori-offline-runtime'
+          subprocess.run(['kaggle','datasets','status',runtime_id],stdout=subprocess.DEVNULL,check=True)
+          with open(os.environ['GITHUB_ENV'],'a',encoding='utf-8') as f:
+              f.write('C3_CANONICAL_DATASET_ID='+selected+'\n')
+              f.write('C3_RUNTIME_DATASET_ID='+runtime_id+'\n')
+          print('C3_KAGGLE_PRIVATE_DATASET_STATUS_PASS')
+          print('C3_KAGGLE_OFFLINE_RUNTIME_DATASET_STATUS_PASS')
+          PY
+
+      - name: Build private offline kernel bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf kaggle_kernel_bundle
+          mkdir -p kaggle_kernel_bundle
+          cp runner/kaggle_cori_offline_kernel.py kaggle_kernel_bundle/benchmark.py
+          cp runner/kaggle_cori_kernel.py kaggle_kernel_bundle/kaggle_cori_kernel.py
+          cp runner/kaggle_offline_runtime.py kaggle_kernel_bundle/kaggle_offline_runtime.py
+          cp runner/kaggle_cori_segment_entry.py kaggle_kernel_bundle/kaggle_cori_segment_entry.py
+          cp runner/lightning_cori_continue_to550.py kaggle_kernel_bundle/lightning_cori_continue_to550.py
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          dataset_id=os.environ['C3_CANONICAL_DATASET_ID']
+          runtime_id=os.environ['C3_RUNTIME_DATASET_ID']
+          owner=runtime_id.split('/',1)[0]
+          metadata={
+              'id': f'{owner}/c3-cori-e280-e290-t4-benchmark',
+              'title': 'C3 Cori E280 E290 T4 Benchmark',
+              'code_file': 'benchmark.py',
+              'language': 'python',
+              'kernel_type': 'script',
+              'is_private': True,
+              'enable_gpu': True,
+              'enable_internet': False,
+              'machine_shape': 'NvidiaTeslaT4',
+              'dataset_sources': [dataset_id, runtime_id],
+              'competition_sources': [],
+              'kernel_sources': [],
+              'model_sources': [],
+          }
+          Path('kaggle_kernel_bundle/kernel-metadata.json').write_text(
+              json.dumps(metadata, indent=2)+'\n', encoding='utf-8'
+          )
+          print('C3_KAGGLE_KERNEL_ID='+metadata['id'])
+          print('C3_KAGGLE_NETWORK_ENABLED=false')
+          PY
+
+      - name: Push and start private T4 kernel
+        shell: bash
+        run: |
+          set -euo pipefail
+          kaggle kernels push -p kaggle_kernel_bundle --accelerator NvidiaTeslaT4 -t 43200
+          echo C3_KAGGLE_T4_OFFLINE_KERNEL_PUSHED
+
+      - name: Remove local kernel bundle
+        if: always()
+        run: rm -rf kaggle_kernel_bundle
