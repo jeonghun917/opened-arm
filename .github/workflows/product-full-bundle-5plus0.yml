@@ -6,14 +6,12 @@ on:
       - '.github/workflows/product-full-bundle-5plus0.yml'
       - 'ops/product-full-bundle-5plus0-audit.py'
       - 'ops/product-5plus0-pharos.json'
-      - 'ops/product-5plus0-vela.json'
       - 'ops/dashboard-semantic-review-strict.py'
       - 'infra/aws/semantic-review/pool.py'
   push:
     branches: [main]
     paths:
       - 'ops/product-5plus0-pharos.json'
-      - 'ops/product-5plus0-vela.json'
 
 permissions:
   id-token: write
@@ -39,7 +37,6 @@ jobs:
       matrix:
         config:
           - ops/product-5plus0-pharos.json
-          - ops/product-5plus0-vela.json
     steps:
       - name: Checkout opened-arm runner
         uses: actions/checkout@v4
@@ -141,7 +138,6 @@ jobs:
       matrix:
         config:
           - ops/product-5plus0-pharos.json
-          - ops/product-5plus0-vela.json
     steps:
       - name: Checkout opened-arm runner
         uses: actions/checkout@v4
