@@ -1,8 +1,8 @@
 {
   "schema": "vela-configurable-statebank-runpod-auth:v1",
   "task": "vela-r2-configurable-statebank-benchmark-v1",
-  "status": "AUTHORIZED_SINGLE_RUN",
-  "paidExecutionAuthorized": true,
+  "status": "CONSUMED_SUCCESS",
+  "paidExecutionAuthorized": false,
   "attemptOrdinal": 5,
   "authorityRef": "user-directive:2026-09-15:post-compact-source-runtime-repair-next-go",
   "authorizedAt": "2026-09-14T23:55:30.032Z",
@@ -27,23 +27,40 @@
     "routingConditions": ["M", "X"]
   },
   "lastAttempt": {
-    "workflowRunId": 34910502262,
-    "controlHead": "05d263c4bd74924bd3a684fd11ffbd3d722c745d",
-    "sourceCommit": "c78c32d306969d5d7773fc574dee6ee6450ca0df",
+    "workflowRunId": 34911462391,
+    "controlHead": "ac8775c35f5b33070a3022b49a3bb2c4f16a73f2",
+    "sourceCommit": "55ca9559300d48df0d98de11820266d2b5a8cda8",
     "modelProfileId": "rwkv7-g1i-2.9b-20260805",
     "retrievalMode": "OFF",
     "providerMutationObserved": true,
     "podCreationConfirmed": true,
-    "podId": "g96z4wyog909o7",
+    "podId": "6beeppsztwpoxd",
     "podCleanupConfirmed": true,
-    "scientificResultAccepted": false,
-    "terminalReason": "SUPERVISOR_FAILED",
-    "supervisorPhase": "run_benchmark",
-    "failureClass": "RUNNER_FAILED_OR_INVALID_RESULT",
-    "diagnosis": "EXTENSIONLESS_COMPACT_PROBLEM_SOURCE_NOT_RECOGNIZED",
-    "estimatedGpuCostUpperBoundUsd": 0.003947,
-    "artifactId": 10373409278,
-    "artifactSha256": "e7c140278c16678dadbabbd07152dd44e8e22f90d6db652a1a27724ae9dd4da2",
-    "disposition": "FAILED_REPAIRED_UNARMED"
+    "scientificResultAccepted": true,
+    "terminalReason": "RESULT_FETCHED",
+    "supervisorPhase": "result_ready",
+    "elapsedSeconds": 759,
+    "estimatedGpuCostUpperBoundUsd": 0.103308,
+    "artifactId": 10375510185,
+    "artifactSha256": "40a6263f577f9f3c3273f6a9dff895933a7643d08c89fa8ba0a0deef48b86564",
+    "benchmarkResultBytes": 583853,
+    "benchmarkResultSha256": "b7a2068476a009cc044fa131ec8804a1c83c8bfc1e9b0c7fe048d25976203c8b",
+    "aggregate": {
+      "M": {
+        "primaryExactRate": 0.8,
+        "primaryFieldAccuracy": 0.8666666666666667,
+        "inventionCount": 0,
+        "omissionCount": 28,
+        "staleValueErrorCount": 8
+      },
+      "X": {
+        "primaryExactRate": 0.0,
+        "primaryFieldAccuracy": 0.21481481481481476,
+        "inventionCount": 70,
+        "omissionCount": 131,
+        "staleValueErrorCount": 13
+      }
+    },
+    "disposition": "CONSUMED_SUCCESS"
   }
 }
