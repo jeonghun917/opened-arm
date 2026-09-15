@@ -1,0 +1,44 @@
+{
+  "schema": "vela-statebank-bank-count-scaling-packset:v1",
+  "baseline_source_commit": "9c8c0edd3a1a8ff13d7fcc76c80c67487f0174ed",
+  "model_profile_default": "rwkv7-g1i-2.9b-20260805",
+  "retrieval_mode_default": "OFF",
+  "execution_config_path": "experiments/vela-active-state/r2-configurable-statebank-benchmark-v1/EXECUTION_CONFIG_V1.json",
+  "source_schema": "vela-statebank-multidomain-problem-source:v1",
+  "control_design": {
+    "id": "storage_matched_balanced_temporal_update_derangement",
+    "initial_writes": "M and X both write each domain's complete initial state to the intended bank",
+    "authoritative_updates": "M writes each partial update to the intended bank; X cyclically misroutes each update one bank forward",
+    "probes": "M and X both read the intended bank",
+    "write_balance": "excluding the shared seed, every bank receives exactly two event writes under both M and X",
+    "purpose": "isolate temporal semantic routing interference rather than a globally consistent relabeling of bank names"
+  },
+  "capacity_caveat": "Each bank remains a full RWKV recurrent-state snapshot. Increasing bank count therefore increases total stored recurrent-state capacity; this packset tests routing granularity/scalability, not fixed-total-state-budget scaling.",
+  "workload_matching": {
+    "baseline_2bank_total_episodes": 240,
+    "pack_4bank_total_episodes": 234,
+    "pack_8bank_total_episodes": 225,
+    "pack_4bank_primary_probes": 72,
+    "pack_8bank_primary_probes": 72
+  },
+  "packs": [
+    {
+      "bank_count": 4,
+      "path": "experiments/vela-active-state/r2-configurable-statebank-benchmark-v1/problem_packs/VELA_R2_StateBank_ProblemPack_4Bank_v1/PROBLEM_SOURCE_4BANK_V1.json",
+      "suite_id": "r2-statebank-bank-count-4-v1",
+      "project_count": 18,
+      "episodes_per_project": 13,
+      "primary_probes_per_project": 4,
+      "content_sha256": "d339922f8a76eea20f0a6fb688e10a3f385ed1dd70db496808ccc64fb0b240f0"
+    },
+    {
+      "bank_count": 8,
+      "path": "experiments/vela-active-state/r2-configurable-statebank-benchmark-v1/problem_packs/VELA_R2_StateBank_ProblemPack_8Bank_v1/PROBLEM_SOURCE_8BANK_V1.json",
+      "suite_id": "r2-statebank-bank-count-8-v1",
+      "project_count": 9,
+      "episodes_per_project": 25,
+      "primary_probes_per_project": 8,
+      "content_sha256": "a108b2e186e47328f3bdb68d99cdc65441696b2e6f027824612371f2055062a7"
+    }
+  ]
+}

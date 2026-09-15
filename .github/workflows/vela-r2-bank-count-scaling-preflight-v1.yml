@@ -1,0 +1,153 @@
+name: VELA R2 bank-count scaling preflight v1
+
+on:
+  push:
+    branches: [exp/vela-r2-bank-count-scaling-v1]
+    paths:
+      - '.github/workflows/vela-r2-bank-count-scaling-preflight-v1.yml'
+      - 'experiments/vela-active-state/r2-configurable-statebank-benchmark-v1/benchmark_contract.py'
+      - 'experiments/vela-active-state/r2-configurable-statebank-benchmark-v1/problem_packs/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  EXPERIMENT_DIR: experiments/vela-active-state/r2-configurable-statebank-benchmark-v1
+  CONFIG: experiments/vela-active-state/r2-configurable-statebank-benchmark-v1/EXECUTION_CONFIG_V1.json
+  PACK_META: experiments/vela-active-state/r2-configurable-statebank-benchmark-v1/problem_packs/BANK_COUNT_SCALING_V1.json
+  PACK4: experiments/vela-active-state/r2-configurable-statebank-benchmark-v1/problem_packs/VELA_R2_StateBank_ProblemPack_4Bank_v1/PROBLEM_SOURCE_4BANK_V1.json
+  PACK8: experiments/vela-active-state/r2-configurable-statebank-benchmark-v1/problem_packs/VELA_R2_StateBank_ProblemPack_8Bank_v1/PROBLEM_SOURCE_8BANK_V1.json
+  FROZEN_BASE: 9c8c0edd3a1a8ff13d7fcc76c80c67487f0174ed
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Verify exact follow-up mutation scope
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          git merge-base --is-ancestor "$FROZEN_BASE" "$GITHUB_SHA"
+          mapfile -t changed < <(git diff --name-only "$FROZEN_BASE" "$GITHUB_SHA" | sort)
+          for p in "${changed[@]}"; do
+            case "$p" in
+              '.github/workflows/vela-r2-bank-count-scaling-preflight-v1.yml'|experiments/vela-active-state/r2-configurable-statebank-benchmark-v1/benchmark_contract.py|experiments/vela-active-state/r2-configurable-statebank-benchmark-v1/problem_packs/*) ;;
+              *) echo "::error::unexpected path $p"; exit 1;;
+            esac
+          done
+      - name: Verify frozen source bytes and workload contract
+        run: |
+          python - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+          meta=json.load(open('experiments/vela-active-state/r2-configurable-statebank-benchmark-v1/problem_packs/BANK_COUNT_SCALING_V1.json'))
+          assert meta['schema']=='vela-statebank-bank-count-scaling-packset:v1'
+          assert meta['source_schema']=='vela-statebank-multidomain-problem-source:v1'
+          assert meta['workload_matching']=={
+            'baseline_2bank_total_episodes':240,
+            'pack_4bank_total_episodes':234,
+            'pack_8bank_total_episodes':225,
+            'pack_4bank_primary_probes':72,
+            'pack_8bank_primary_probes':72,
+          }
+          for spec in meta['packs']:
+            p=Path(spec['path']); raw=p.read_bytes(); src=json.loads(raw)
+            assert hashlib.sha256(raw).hexdigest()==spec['content_sha256']
+            assert src['schema']==meta['source_schema']
+            assert len(src['banks'])==spec['bank_count']
+            assert len(src['project_ids'])==spec['project_count']
+            assert src['workload']['episodes_per_project']==spec['episodes_per_project']
+            assert src['workload']['primary_probes_per_project']==spec['primary_probes_per_project']
+          print('BANK_COUNT_SOURCE_BYTES_PASS')
+          PY
+      - name: Regress frozen 2-bank default pack and existing execution tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASEPACK="$EXPERIMENT_DIR/problem_packs/VELA_R2_StateBank_ProblemPack_v1/PROBLEM_SOURCE_V1.json"
+          python "$EXPERIMENT_DIR/validate_benchmark_v1.py" \
+            --execution-config "$CONFIG" \
+            --problem-pack "$BASEPACK" \
+            --workflow .github/workflows/vela-r2-configurable-statebank-benchmark-v1.yml
+          python "$EXPERIMENT_DIR/test_runpod_statebank_proxy_v1.py"
+          python "$EXPERIMENT_DIR/test_runpod_statebank_launcher_v1.py"
+
+      - name: Validate 4-bank and 8-bank packs with both selectable models
+        shell: bash
+        run: |
+          set -euo pipefail
+          for pack in "$PACK4" "$PACK8"; do
+            for model in rwkv7-g1i-2.9b-20260805 rwkv7-g1i-7.2b-20260805; do
+              python "$EXPERIMENT_DIR/statebank_runner.py" \
+                --execution-config "$CONFIG" \
+                --problem-pack "$pack" \
+                --model-profile "$model" \
+                --retrieval-mode OFF \
+                --validate-only
+            done
+          done
+      - name: Prove balanced M/X writes and probe isolation after expansion
+        run: |
+          python - <<'PY'
+          import importlib.util,json
+          from pathlib import Path
+          root=Path('experiments/vela-active-state/r2-configurable-statebank-benchmark-v1')
+          spec=importlib.util.spec_from_file_location('contract',root/'benchmark_contract.py')
+          contract=importlib.util.module_from_spec(spec); spec.loader.exec_module(contract)
+          meta=json.load(open(root/'problem_packs/BANK_COUNT_SCALING_V1.json'))
+          for item in meta['packs']:
+            cfg,manifest,registry,problems,_root,tmp=contract.load_contract(root/'EXECUTION_CONFIG_V1.json',Path(item['path']),'rwkv7-g1i-2.9b-20260805','OFF')
+            try:
+              contract.validate_contract(cfg,problems)
+              assert len(problems)==item['project_count']
+              for p in problems:
+                banks=p['bank_profile']['banks']
+                assert len(banks)==item['bank_count']==len(set(banks))
+                writes={f:{b:0 for b in banks} for f in ('semantic_bank','shuffled_bank')}
+                for ep in p['episodes']:
+                  sc=ep['state_commit']
+                  if ep['kind']=='event' and sc['mode']!='seed_all_banks':
+                    for f in writes: writes[f][sc[f]]+=1
+                  if ep.get('probe'):
+                    assert sc['mode']=='discard_probe_state'
+                    for v in ep['probe']['expected'].values(): assert str(v) not in ep['model_input']
+                assert set(writes['semantic_bank'].values())=={2}
+                assert set(writes['shuffled_bank'].values())=={2}
+            finally:
+              if tmp: tmp.cleanup()
+          print('BANK_COUNT_BALANCED_ROUTE_PASS')
+          PY
+      - name: Prove alternate pack paths reach provider-free launcher plan
+        shell: bash
+        run: |
+          set -euo pipefail
+          for pack in "$PACK4" "$PACK8"; do
+            VELA_SOURCE_COMMIT="$GITHUB_SHA" \
+            VELA_MODEL_PROFILE_ID=rwkv7-g1i-2.9b-20260805 \
+            VELA_RETRIEVAL_MODE=OFF \
+            VELA_PROBLEM_PACK_REL="$pack" \
+            VELA_EXECUTION_CONFIG_REL="$CONFIG" \
+            python "$EXPERIMENT_DIR/runpod_statebank_launch_v1.py" --dry-run
+          done
+      - name: Verify prior one-shot paid authority stays consumed
+        run: |
+          python - <<'PY'
+          import json
+          a=json.load(open('experiments/vela-active-state/r2-configurable-statebank-benchmark-v1/RUNPOD_SINGLE_RUN_AUTH_V1.json'))
+          assert a['status']=='CONSUMED_SUCCESS'
+          assert a['paidExecutionAuthorized'] is False
+          assert a['automaticRetry'] is False and a['fallbackProviders']==[]
+          assert a['lastAttempt']['workflowRunId']==34911462391
+          print('PAID_AUTH_REMAINS_CONSUMED')
+          PY
